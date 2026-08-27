@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0C2B21">
+<title>FINORA — Offline</title>
+<style>
+  :root{ color-scheme: dark; }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    min-height:100vh;padding:32px 24px;text-align:center;
+    background:linear-gradient(160deg,#0C2B21 0%,#05130E 100%);
+    color:#f4f1ea;
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;
+  }
+  .mark{width:88px;height:88px;margin-bottom:22px;filter:drop-shadow(0 6px 18px rgba(0,0,0,.35))}
+  h1{font-size:20px;font-weight:800;letter-spacing:.2px;margin-bottom:8px}
+  p{font-size:14px;line-height:1.6;color:#c9d3ce;max-width:340px;margin-bottom:26px}
+  .hint{font-size:12px;color:#8fa39a;margin-top:18px;max-width:320px;line-height:1.6}
+  button{
+    appearance:none;border:none;cursor:pointer;
+    background:linear-gradient(135deg,#F3D580 0%,#D4AF37 50%,#A97C1F 100%);
+    color:#12140f;font-weight:800;font-size:14px;
+    padding:12px 28px;border-radius:999px;
+    -webkit-tap-highlight-color:transparent;
+    box-shadow:0 4px 14px rgba(212,175,55,.25);
+  }
+  button:active{opacity:.82}
+  .dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#e2574c;margin-inline-end:8px;vertical-align:middle}
+</style>
+</head>
+<body>
+  <svg class="mark" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="bgG" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#0C2B21"/><stop offset="1" stop-color="#05130E"/>
+      </linearGradient>
+      <linearGradient id="fGold" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#F3D580"/><stop offset="0.5" stop-color="#D4AF37"/><stop offset="1" stop-color="#A97C1F"/>
+      </linearGradient>
+      <linearGradient id="fEm" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#2BC48C"/><stop offset="1" stop-color="#0F6B4A"/>
+      </linearGradient>
+      <mask id="hole"><rect x="47" y="48" width="53" height="52" rx="10" fill="#fff"/><circle cx="89" cy="74" r="6.5" fill="#000"/></mask>
+    </defs>
+    <rect width="120" height="120" rx="27" fill="url(#bgG)"/>
+    <path d="M34 22 H80 V36 H50 V52 H72 V66 H50 V100 H34 Z" fill="url(#fGold)"/>
+    <rect x="47" y="48" width="53" height="52" rx="10" fill="url(#fEm)" mask="url(#hole)"/>
+    <circle cx="89" cy="74" r="5.6" fill="url(#fGold)"/>
+  </svg>
+
+  <h1><span class="dot"></span>You're offline</h1>
+  <p>This page hasn't been loaded on this device before, so it isn't cached yet. Once FINORA has loaded successfully one time, it keeps working fully offline — your data, banks, and daily records stay available with no connection.</p>
+  <button onclick="location.reload()">Try again</button>
+  <p class="hint">Already used the app before? Your data is safe on this device — this screen only appears when the app itself hasn't been cached yet.</p>
+
+  <script>
+    // Auto-retry once connectivity returns, so the user doesn't have to
+    // remember to tap "Try again" themselves.
+    window.addEventListener('online', function(){ location.reload(); });
+  </script>
+</body>
+</html>
