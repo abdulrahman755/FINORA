@@ -8458,6 +8458,9 @@ let DATA={[_seedMonthKey]:{"transactions":[],"site_expenses":[],"bank_movements"
 const STORAGE_KEY = 'wdp_finance_data_v1';
 const MONTHS_KEY = 'wdp_finance_months_v1';
 const THEME_KEY='wdp_theme_v1';
+const THEME_MODE_KEY='wdp_theme_mode_v1'; // 'auto' (Maghrib/Sunrise-based) | 'manual'
+const PRAYER_TIMES_KEY='wdp_prayer_times_v1'; // cached { date, maghrib, sunrise, lat, lon }
+const GEO_KEY='wdp_geo_v1'; // cached { lat, lon } for prayer-time lookups
 const PIN_KEY='wdp_pin_v1';
 const CURRENCY_KEY='wdp_currency_v1';
 const LOCK_ENABLED_KEY='wdp_lock_enabled_v1';
@@ -10447,6 +10450,11 @@ function _resetSessionTimer() {
 
 // ── § INIT ────────────────────────────────────────────────────────────────────
 function initApp(){loadTheme();loadSavedData();runStartupMigration();loadBanks();loadHiddenBanks();loadBanksOrder();if(!_encEnabled){ if(_autoRolloverMonths()) pickDefaultActiveMonth(); }loadTextSettings();GLOBAL_PROFILE.direction=lang==='ar'?'rtl':'ltr';document.documentElement.setAttribute('dir',_globalDirection());document.documentElement.setAttribute('lang',lang);renderMonthTabs();setView('wsdash');updateNavLabels();persistMeta();
+  // Auto Theme (Maghrib → Dark, Sunrise → Light) — only kicked off from here,
+  // not from the earlier flash-prevention loadTheme() call up top, since
+  // today() and the other helpers it needs aren't defined yet at that point
+  // in the script. Defaults to 'auto' when the person has never touched it.
+  { let _themeMode='auto'; try{ _themeMode = localStorage.getItem(THEME_MODE_KEY) || 'auto'; }catch(e){} if(_themeMode==='auto') startAutoThemeScheduler(); }
   // Show backup reminder only after first user interaction (not immediately on load)
   const _onFirstInteract = () => { checkBackupReminder(); checkPeriodicReminders(); document.removeEventListener('touchstart', _onFirstInteract, true); document.removeEventListener('click', _onFirstInteract, true); };
   setTimeout(() => { document.addEventListener('touchstart', _onFirstInteract, {once:true,capture:true}); document.addEventListener('click', _onFirstInteract, {once:true,capture:true}); }, 3000);
@@ -22051,13 +22059,127 @@ function toggleTheme(){
   const isDark = document.documentElement.getAttribute('data-theme')==='dark';
   const newTheme = isDark ? 'light' : 'dark';
   applyTheme(newTheme, true);
-  try{ localStorage.setItem(THEME_KEY, newTheme); }
+  try{
+    localStorage.setItem(THEME_KEY, newTheme);
+    // Any manual flip is treated as an explicit override — it stops the
+    // Maghrib/Sunrise auto-schedule until the person turns Auto back on
+    // from Settings (mirrors how "Automatic" appearance modes work
+    // elsewhere: a manual choice always wins over the schedule).
+    localStorage.setItem(THEME_MODE_KEY, 'manual');
+  }
   catch(e){ console.warn('Could not save theme', e); }
+  stopAutoThemeScheduler();
   // Sprint W4: the active workspace's dark-mode primary/tint/glow are
   // derived live from its light-mode primary — recompute them now that
   // data-theme has changed, without touching anything else.
   if(typeof refreshWorkspaceBranding==='function') refreshWorkspaceBranding();
 }
+
+// ── Auto Theme (Maghrib → Dark, Sunrise → Light) ────────────────────────────
+// Opt-in schedule (Settings → Appearance → Auto) that flips the same
+// THEME_KEY/applyTheme() used by the manual toggle above, based on that
+// day's Maghrib and Sunrise times for the device's location. A manual tap
+// on the sun/moon button always overrides it (see toggleTheme()).
+const _AUTOTHEME_FALLBACK_GEO = {lat:30.0444, lon:31.2357}; // Cairo — only
+// used if geolocation is unavailable/denied, so Auto still works out of the
+// box; silently upgrades to the real device location once permission is granted.
+
+function _getSavedGeo(){
+  try{ return JSON.parse(localStorage.getItem(GEO_KEY)||'null'); }catch(e){ return null; }
+}
+function _requestGeoForAutoTheme(){
+  return new Promise(resolve=>{
+    const saved=_getSavedGeo();
+    if(saved && typeof saved.lat==='number' && typeof saved.lon==='number'){ resolve(saved); return; }
+    if(!navigator.geolocation){ resolve(_AUTOTHEME_FALLBACK_GEO); return; }
+    let settled=false;
+    const finish=(g)=>{ if(settled) return; settled=true; resolve(g); };
+    const timer=setTimeout(()=>finish(_AUTOTHEME_FALLBACK_GEO), 6000);
+    try{
+      navigator.geolocation.getCurrentPosition(
+        pos=>{
+          clearTimeout(timer);
+          const g={lat:pos.coords.latitude, lon:pos.coords.longitude};
+          try{ localStorage.setItem(GEO_KEY, JSON.stringify(g)); }catch(e){}
+          finish(g);
+        },
+        ()=>{ clearTimeout(timer); finish(_AUTOTHEME_FALLBACK_GEO); },
+        {timeout:5500, maximumAge:3600000}
+      );
+    }catch(e){ clearTimeout(timer); finish(_AUTOTHEME_FALLBACK_GEO); }
+  });
+}
+// Fetches (and caches for the day) Maghrib + Sunrise from the Aladhan API —
+// a free, no-key prayer-times API. method=5 is the Egyptian General
+// Authority of Survey calculation, the common default for Egypt.
+async function _getTodaysPrayerTimes(){
+  const todayStr = today();
+  let cached=null;
+  try{ cached=JSON.parse(localStorage.getItem(PRAYER_TIMES_KEY)||'null'); }catch(e){}
+  if(cached && cached.date===todayStr) return cached;
+
+  const geo = await _requestGeoForAutoTheme();
+  try{
+    const [y,m,d] = todayStr.split('-');
+    const apiDate = `${d}-${m}-${y}`; // Aladhan expects DD-MM-YYYY
+    const res = await fetch(`https://api.aladhan.com/v1/timings/${apiDate}?latitude=${geo.lat}&longitude=${geo.lon}&method=5`);
+    const j = await res.json();
+    const t = j && j.data && j.data.timings;
+    if(!t) throw new Error('no timings in response');
+    const clean = s => (s||'').split(' ')[0]; // strip any "(EEST)"-style suffix
+    const result = { date:todayStr, maghrib:clean(t.Maghrib), sunrise:clean(t.Sunrise), lat:geo.lat, lon:geo.lon };
+    try{ localStorage.setItem(PRAYER_TIMES_KEY, JSON.stringify(result)); }catch(e){}
+    return result;
+  }catch(e){
+    _logErr && _logErr('_getTodaysPrayerTimes', e);
+    return cached; // stale/missing — caller just skips this check
+  }
+}
+function _hhmmToMinutes(hhmm){
+  if(!hhmm) return null;
+  const parts=hhmm.split(':');
+  const h=parseInt(parts[0],10), m=parseInt(parts[1],10);
+  if(Number.isNaN(h)||Number.isNaN(m)) return null;
+  return h*60+m;
+}
+async function applyAutoThemeIfDue(){
+  let mode='auto';
+  try{ mode = localStorage.getItem(THEME_MODE_KEY) || 'auto'; }catch(e){}
+  if(mode!=='auto') return;
+
+  const times = await _getTodaysPrayerTimes();
+  if(!times) return;
+  const maghribMin = _hhmmToMinutes(times.maghrib);
+  const sunriseMin = _hhmmToMinutes(times.sunrise);
+  if(maghribMin==null || sunriseMin==null) return;
+
+  const now=new Date();
+  const nowMin = now.getHours()*60 + now.getMinutes();
+  // Dark spans from Maghrib through the night to Sunrise the next morning —
+  // wraps past midnight, so it's an OR, not a simple between-check.
+  const shouldBeDark = nowMin>=maghribMin || nowMin<sunriseMin;
+  const currentlyDark = document.documentElement.getAttribute('data-theme')==='dark';
+  if(shouldBeDark!==currentlyDark){
+    applyTheme(shouldBeDark?'dark':'light', true);
+    try{ localStorage.setItem(THEME_KEY, shouldBeDark?'dark':'light'); }catch(e){}
+    if(typeof refreshWorkspaceBranding==='function') refreshWorkspaceBranding();
+  }
+}
+let _autoThemeInterval=null;
+function startAutoThemeScheduler(){
+  applyAutoThemeIfDue();
+  if(_autoThemeInterval) clearInterval(_autoThemeInterval);
+  _autoThemeInterval=setInterval(applyAutoThemeIfDue, 5*60*1000); // re-check every 5 min
+}
+function stopAutoThemeScheduler(){
+  if(_autoThemeInterval){ clearInterval(_autoThemeInterval); _autoThemeInterval=null; }
+}
+// Catches the transition promptly if the app was backgrounded/asleep
+// through a Maghrib/Sunrise moment (throttled setInterval would otherwise
+// miss it until the next tick after returning).
+document.addEventListener('visibilitychange', ()=>{
+  if(document.visibilityState==='visible') applyAutoThemeIfDue();
+});
 
 // ── PIN persistence (for Change PIN feature) ─────────────────────────────────
 function loadCustomPin(){
@@ -22214,6 +22336,7 @@ const STT_ICONS={
   language:  `<circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a14 14 0 0 1 3.5 9A14 14 0 0 1 12 21a14 14 0 0 1-3.5-9A14 14 0 0 1 12 3z"/>`,
   currency:  `<circle cx="12" cy="12" r="9"/><path d="M14.5 8.5a3.5 3.5 0 0 0-5 0c-1.5 1.5-1.5 5.5 0 7a3.5 3.5 0 0 0 5 0"/><path d="M9.5 11h5"/>`,
   darkmode:  `<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9z"/>`,
+  autotheme: `<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/>`,
   textsize:  `<path d="M4 7V4h16v3"/><path d="M9 20h6"/><path d="M12 4v16"/>`,
   lock:      `<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>`,
   reset:     `<path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/>`,
@@ -22315,6 +22438,7 @@ function openSettings(){
   const _sttPrevSide=_sttIsRefresh ? _sttPrev.querySelector('.stt-sheet')?.dataset.side : null;
 
   const isDark=document.documentElement.getAttribute('data-theme')==='dark';
+  let _themeMode='auto'; try{ _themeMode=localStorage.getItem(THEME_MODE_KEY)||'auto'; }catch(e){_logErr('openSettings:readThemeMode',e);}
   let curLang='en'; try{ curLang=localStorage.getItem('wdp_lang')||'en'; }catch(e){_logErr('openSettings:readLang',e);}
   const langLabel=curLang==='ar'?'العربية':'English';
 
@@ -22435,6 +22559,16 @@ function openSettings(){
           </div>
           <div class="stt-row-trail">
             <div class="stt-switch ${isDark?'on':''}" id="sttThemeSwitch"><div class="stt-switch-dot"></div></div>
+          </div>
+        </div>
+        <div class="stt-row" onclick="sttToggleAutoTheme()" role="button" tabindex="0">
+          ${sttMakeIcon('autotheme')}
+          <div class="stt-row-body">
+            <div class="stt-row-title">${L('Auto (Maghrib &amp; Sunrise)','تلقائي (المغرب والشروق)')}</div>
+            <div class="stt-row-sub">${L('Switch to Dark at Maghrib, Light at Sunrise','التحويل لليلي عند أذان المغرب، والنهاري عند الشروق')}</div>
+          </div>
+          <div class="stt-row-trail">
+            <div class="stt-switch ${_themeMode==='auto'?'on':''}" id="sttAutoThemeSwitch"><div class="stt-switch-dot"></div></div>
           </div>
         </div>
         <div class="stt-row" onclick="sttToggleTextSizeGroup()" role="button" tabindex="0">
@@ -22826,6 +22960,15 @@ function refreshSettingsSheet(){
   // openSettings() now detects an already-open sheet and updates it in
   // place (no destroy/recreate), so it's safe to just call it directly.
   openSettings();
+}
+function sttToggleAutoTheme(){
+  SoundManager.play('toggle');
+  let mode='auto'; try{ mode=localStorage.getItem(THEME_MODE_KEY)||'auto'; }catch(e){_logErr('sttToggleAutoTheme:read',e);}
+  const newMode = mode==='auto' ? 'manual' : 'auto';
+  try{ localStorage.setItem(THEME_MODE_KEY, newMode); }catch(e){_logErr('sttToggleAutoTheme:write',e);}
+  if(newMode==='auto') startAutoThemeScheduler();
+  else stopAutoThemeScheduler();
+  refreshSettingsSheet();
 }
 
 
