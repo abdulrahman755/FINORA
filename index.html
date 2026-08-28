@@ -1003,6 +1003,11 @@ button:disabled{opacity:.5;cursor:not-allowed;pointer-events:none}
 .header-toprow .icon-btn:hover,.header-searchrow .icon-btn:hover{background:var(--gold-tint);color:var(--gold-dark)}
 .header-toprow .icon-btn:active,.header-searchrow .icon-btn:active{background:var(--gold-tint);color:var(--gold-dark)}
 .header-toprow .icon-btn[aria-expanded="true"],.header-toprow .icon-btn.open{background:var(--green-tint);color:var(--green)}
+/* Menu (hamburger) button sits outside the rail, opposite end of the
+   header — keeps its own quiet card treatment so it still reads as
+   independently tappable, not part of the icon-rail group. */
+#navBtn-SettingsHeader.icon-btn{background:var(--surface);border-color:var(--border);box-shadow:var(--shadow-xs)}
+#navBtn-SettingsHeader.icon-btn:hover,#navBtn-SettingsHeader.icon-btn:active{background:var(--gold-tint);border-color:var(--gold)}
 
 /* ── Sheet/modal close button — canonical (Part 2: App Shell) ────────────
    Several sheets (Reports sub-sheet, fullscreen chart, etc.) had this exact
@@ -1118,7 +1123,7 @@ button:disabled{opacity:.5;cursor:not-allowed;pointer-events:none}
    app's new, less-bubbly radius language) with a thin gold edge ring in
    addition to the emerald gradient fill, so the one deliberately-raised
    nav element reads as the Finora mark's own emerald+gold pairing. */
-.nav-btn-home{margin-top:-16px}
+.nav-btn-home{margin-top:-16px;margin-inline:6px}
 .nav-home-icon-wrap{
   width:46px;height:46px;border-radius:15px;
   display:flex;align-items:center;justify-content:center;
@@ -8223,10 +8228,7 @@ function fpInitSmartHeader(){
        Visual redesign only: every id/onclick below is unchanged from the
        previous header, so all existing business logic keeps working:
          • #navBtn-SettingsHeader → openSettings()   (also the onboarding
-           tour's anchor point — kept as the same element/id; the button
-           itself now lives in .bottom-nav, not the header — see below.
-           ID-based lookups (tour target, slide-in-side detection) don't
-           care where in the DOM it sits, so nothing else needed changing)
+           tour's anchor point — kept as the same element/id)
          • #monthTabs             → populated by renderMonthTabs(), which
            still calls toggleMonthDropdown()/selectMonth() unmodified
          • #headerSub             → still updated by renderView(), kept
@@ -8239,6 +8241,9 @@ function fpInitSmartHeader(){
        showToast) — no new business logic was introduced. -->
   <div class="app-header">
     <div class="header-toprow">
+      <button class="icon-btn" id="navBtn-SettingsHeader" onclick="openSettings()" title="Menu" data-i18n-attr="title" data-i18n-title-en="Menu" data-i18n-title-ar="القائمة">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+      </button>
       <div class="app-brand">
         <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMjAgMTIwIj4KICA8ZGVmcz4KICAgIDxsaW5lYXJHcmFkaWVudCBpZD0iZkdvbGQiIHgxPSIwIiB5MT0iMCIgeDI9IjEiIHkyPSIxIj4KICAgICAgPHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjRjNENTgwIi8+CiAgICAgIDxzdG9wIG9mZnNldD0iMC41IiBzdG9wLWNvbG9yPSIjRDRBRjM3Ii8+CiAgICAgIDxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iI0E5N0MxRiIvPgogICAgPC9saW5lYXJHcmFkaWVudD4KICAgIDxsaW5lYXJHcmFkaWVudCBpZD0iZkVtZXJhbGQiIHgxPSIwIiB5MT0iMCIgeDI9IjAiIHkyPSIxIj4KICAgICAgPHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjMUZBRTc5Ii8+CiAgICAgIDxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iIzBCNUMzRiIvPgogICAgPC9saW5lYXJHcmFkaWVudD4KICA8L2RlZnM+CiAgPHBhdGggZD0iTTI4IDE4IEg3NiBWMzMgSDQ1IFY1MCBINjggVjY1IEg0NSBWMTAyIEgyOCBaIiBmaWxsPSJ1cmwoI2ZHb2xkKSIvPgogIDxwYXRoIGQ9Ik00MiA0NSBIODggQTExIDExIDAgMCAxIDk5IDU2IFY5MSBBMTEgMTEgMCAwIDEgODggMTAyIEg1MyBBMTEgMTEgMCAwIDEgNDIgOTEgWiIgZmlsbD0idXJsKCNmRW1lcmFsZCkiLz4KICA8Y2lyY2xlIGN4PSI4NyIgY3k9IjczIiByPSI2LjIiIGZpbGw9InVybCgjZkdvbGQpIi8+Cjwvc3ZnPgo=" alt="FINORA">
         <div class="app-brand-text">
@@ -8356,7 +8361,10 @@ function fpInitSmartHeader(){
 
   <div class="bottom-nav">
     <!-- Quick Actions button removed from bottom nav (was crowding it) — the
-         same actions are still reachable via the FAB (+) and AI Quick Entry. -->
+         same actions are still reachable via the FAB (+) and AI Quick Entry.
+         Reports and Settings also don't live here — Reports moved into the
+         Settings sheet (General → Reports) and Settings is back in the
+         header (top-left) — keeping this row to a clean, symmetric 5. -->
 
     <button class="nav-btn" id="navBtn-Daily" onclick="setView('transactions');navCloseAll()" title="Daily">
       <svg class="nav-icon" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="16" rx="3"/><path d="M3 9.5h18"/><path d="M8 2.5v4"/><path d="M16 2.5v4"/><circle cx="12" cy="15" r="1.6" fill="currentColor" stroke="none"/></svg>
@@ -8389,23 +8397,9 @@ function fpInitSmartHeader(){
       <span id="navBtn-Dashboard-label"></span>
     </button>
 
-    <button class="nav-btn" id="navBtn-Reports" onclick="openReportsSheet();navCloseAll()" title="Reports">
-      <svg class="nav-icon" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="14" width="4" height="7" rx="1"/><rect x="10" y="9" width="4" height="12" rx="1"/><rect x="17" y="4" width="4" height="17" rx="1"/></svg>
-      <span id="navBtn-Reports-label"></span>
-    </button>
-
     <button class="nav-btn" id="navBtn-MySavings" onclick="setView('savings');navCloseAll()" title="My Savings">
       <svg class="nav-icon" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="12" cy="12" r="4.3"/><circle cx="12" cy="12" r="1" fill="currentColor" stroke="none"/><path d="M12 7.7v.9"/><path d="M16.3 12h-.9"/></svg>
       <span id="navBtn-MySavings-label"></span>
-    </button>
-
-    <!-- Settings — moved here from the header (was the hamburger/menu icon
-         top-left). Same id/onclick as before, so the onboarding tour anchor
-         (#navBtn-SettingsHeader) and the settings-sheet slide-in-side
-         detection (also keyed off this id) keep working unchanged. -->
-    <button class="nav-btn" id="navBtn-SettingsHeader" onclick="openSettings();navCloseAll()" title="Settings">
-      <svg class="nav-icon" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
-      <span id="navBtn-SettingsHeader-label"></span>
     </button>
   </div>
 
@@ -10242,8 +10236,6 @@ function updateNavLabels(){
     ['navBtn-Daily',       'Daily',        'يومي'],
     ['navBtn-SiteCustody', 'Site Custody', 'عهدة الموقع'],
     ['navBtn-MySavings',   'My Savings',   'مدخراتي'],
-    ['navBtn-Reports',     'Reports',      'التقارير'],
-    ['navBtn-SettingsHeader', 'Settings',  'الإعدادات'],
   ];
   iconBtnTitles.forEach(([id,tEN,tAR])=>{
     const el=document.getElementById(id);
@@ -22218,6 +22210,7 @@ function _sttIcon(path, opts={}){
 }
 const STT_ICONS={
   home:      `<path d="M3 10L12 3l9 7"/><path d="M4 10v9a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-9"/><path d="M9 21v-6a3 3 0 0 1 6 0v6"/>`,
+  reports:   `<rect x="3" y="14" width="4" height="7" rx="1"/><rect x="10" y="9" width="4" height="12" rx="1"/><rect x="17" y="4" width="4" height="17" rx="1"/>`,
   language:  `<circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a14 14 0 0 1 3.5 9A14 14 0 0 1 12 21a14 14 0 0 1-3.5-9A14 14 0 0 1 12 3z"/>`,
   currency:  `<circle cx="12" cy="12" r="9"/><path d="M14.5 8.5a3.5 3.5 0 0 0-5 0c-1.5 1.5-1.5 5.5 0 7a3.5 3.5 0 0 0 5 0"/><path d="M9.5 11h5"/>`,
   darkmode:  `<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9z"/>`,
@@ -22370,6 +22363,11 @@ function openSettings(){
         <div class="stt-row" onclick="closeSettings();setView('wsdash')" role="button" tabindex="0">
           ${sttMakeIcon('home')}
           <div class="stt-row-body"><div class="stt-row-title">${L('Home','الرئيسية')}</div><div class="stt-row-sub">${L('Go to overview screen','الذهاب إلى الشاشة الرئيسية')}</div></div>
+          <div class="stt-row-trail">${sttChevron()}</div>
+        </div>
+        <div class="stt-row" onclick="closeSettings();setTimeout(openReportsSheet,380)" role="button" tabindex="0">
+          ${sttMakeIcon('reports')}
+          <div class="stt-row-body"><div class="stt-row-title">${L('Reports','التقارير')}</div><div class="stt-row-sub">${L('Financial insights & analytics','تحليلات ورؤى مالية')}</div></div>
           <div class="stt-row-trail">${sttChevron()}</div>
         </div>
         <div class="stt-row" onclick="tourReplay()" role="button" tabindex="0">
