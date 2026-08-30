@@ -6984,6 +6984,8 @@ button:not(:disabled):active{transform:scale(.97)}
    language as .ds-card.interactive elsewhere in the design system. */
 .kpi3-card[role="button"]{transition:transform var(--dur-fast) var(--ease-standard),box-shadow var(--dur-fast) var(--ease-standard)}
 .kpi3-card[role="button"]:active{transform:scale(.97);box-shadow:var(--shadow-xs)}
+.kpi3-sec[role="button"]{cursor:pointer;transition:background var(--dur-fast) var(--ease-standard)}
+.kpi3-sec[role="button"]:active{background:var(--surface2)}
 @keyframes kpi3In{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:scale(1)}}
 .kpi3-icon{
   width:20px;height:20px;flex-shrink:0;
@@ -7029,8 +7031,8 @@ button:not(:disabled):active{transform:scale(.97)}
 .kpi3-hero{display:flex;flex-direction:column;gap:8px}
 .kpi3-primary{
   background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
-  box-shadow:none;padding:14px 16px;
-  display:flex;flex-direction:column;gap:2px;text-align:start;
+  box-shadow:none;padding:14px 16px;min-height:0;
+  display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:2px;text-align:start;
 }
 .kpi3-primary-label{font-size:calc(11.5px*var(--app-text-scale,1));font-weight:700;color:var(--muted)}
 .kpi3-primary-val{display:flex;align-items:baseline;gap:5px;margin-top:2px}
@@ -26765,7 +26767,7 @@ function renderTransactions(m){
       <div class="kpi3-primary-val" style="color:var(--orange)">${kpi3ValHTML(fmtEGP(totalAll))}</div>
     </div>
     <div class="kpi3-secondary-row">
-      <div class="kpi3-card kpi3-sec" role="button" tabindex="0" onclick="openBudgetModal(activeMonth)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}" aria-label="${L('Target','مستهدف')} ${_kpiHasTarget?fmtEGP(totalTargetAll):L('not set','غير محدد')}">
+      <div class="kpi3-sec" role="button" tabindex="0" onclick="openBudgetModal(activeMonth)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}" aria-label="${L('Target','مستهدف')} ${_kpiHasTarget?fmtEGP(totalTargetAll):L('not set','غير محدد')}">
         <div class="kpi3-sec-label">${L('Target','مستهدف')}</div>
         <div class="kpi3-sec-val" style="color:var(--blue)">${_kpiHasTarget?fmtEGP(totalTargetAll):L('Tap to set','اضغط للتحديد')}</div>
       </div>
