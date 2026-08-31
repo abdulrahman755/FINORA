@@ -5743,7 +5743,7 @@ button:not(:disabled):active{transform:scale(.97)}
    were touched beyond wdashSection()'s own head row. */
 .wdash-wrap .wdash-section .pxi-section-head.wdash-section-head{justify-content:space-between}
 .wdash-head-label{display:flex;align-items:center;gap:8px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.wdash-card-actions{position:relative;display:flex;align-items:center;gap:2px;flex-shrink:0;margin-inline-start:8px}
+.wdash-card-actions{position:relative;display:flex;align-items:center;gap:2px;flex-shrink:0;margin-inline-start:auto}
 /* Overflow dropdown (replaces the old 2-icon color/hide row) — anchored to
    .wdash-card-actions, same positioning approach as the bank-card .bnk-menu
    so it moves with the card and never drifts. */
@@ -5789,16 +5789,16 @@ button:not(:disabled):active{transform:scale(.97)}
    so it reads as the dashboard's main customization entry point — same
    wdashOpenManageSheet() call, same sheet, only the trigger's prominence
    and copy changed ("Manage Cards" -> "Customize Dashboard"). */
-.wdash-manage-bar{display:flex;margin-bottom:10px}
+.wdash-manage-bar{display:flex;justify-content:flex-end;margin-bottom:10px}
 .wdash-manage-btn{
-  display:flex;align-items:center;justify-content:center;gap:8px;font-size:calc(12.5px*var(--app-text-scale,1));font-weight:800;color:#fff;
-  background:linear-gradient(135deg,var(--green),var(--green-dark));border:none;border-radius:var(--radius-sm,12px);
-  padding:11px 16px;cursor:pointer;width:100%;box-shadow:0 3px 12px var(--green-glow);
-  transition:transform .15s ease,box-shadow .15s ease;
+  display:flex;align-items:center;justify-content:center;gap:6px;font-size:calc(11.5px*var(--app-text-scale,1));font-weight:700;color:var(--muted);
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-pill);
+  padding:7px 13px;cursor:pointer;width:auto;box-shadow:var(--shadow-xs);
+  transition:background .15s ease,border-color .15s ease;
 }
-.wdash-manage-btn:hover{transform:translateY(-1px);box-shadow:0 5px 16px var(--green-glow)}
-.wdash-manage-btn:active{transform:scale(.98)}
-.wdash-manage-badge{background:rgba(255,255,255,.28);color:#fff;border-radius:99px;font-size:calc(9.5px*var(--app-text-scale,1));font-weight:900;padding:1px 7px;line-height:1.5}
+.wdash-manage-btn:hover{background:var(--surface2);border-color:var(--border-strong)}
+.wdash-manage-btn:active{background:var(--surface2)}
+.wdash-manage-badge{background:var(--gold-tint);color:var(--gold-dark);border-radius:99px;font-size:calc(9.5px*var(--app-text-scale,1));font-weight:900;padding:1px 7px;line-height:1.5}
 
 /* Manage Cards sheet — per-card show/hide toggle rows */
 .wdash-toggle{position:relative;display:inline-block;width:36px;height:21px;flex-shrink:0;cursor:pointer}
@@ -10500,7 +10500,7 @@ function _resetSessionTimer() {
 });
 
 // ── § INIT ────────────────────────────────────────────────────────────────────
-function initApp(){loadTheme();loadSavedData();runStartupMigration();loadBanks();loadHiddenBanks();loadBanksOrder();if(!_encEnabled){ if(_autoRolloverMonths()) pickDefaultActiveMonth(); }loadTextSettings();GLOBAL_PROFILE.direction=lang==='ar'?'rtl':'ltr';document.documentElement.setAttribute('dir',_globalDirection());document.documentElement.setAttribute('lang',lang);renderMonthTabs();setView('wsdash');updateNavLabels();persistMeta();
+function initApp(){loadTheme();loadSavedData();runStartupMigration();loadBanks();loadHiddenBanks();loadBanksOrder();if(_autoRolloverMonths()) pickDefaultActiveMonth();loadTextSettings();GLOBAL_PROFILE.direction=lang==='ar'?'rtl':'ltr';document.documentElement.setAttribute('dir',_globalDirection());document.documentElement.setAttribute('lang',lang);renderMonthTabs();setView('wsdash');updateNavLabels();persistMeta();
   // Auto Theme (Maghrib → Dark, Sunrise → Light) — only kicked off from here,
   // not from the earlier flash-prevention loadTheme() call up top, since
   // today() and the other helpers it needs aren't defined yet at that point
@@ -12965,11 +12965,11 @@ function wdashSection(id, icon, label, bodyHtml, foldable, summary){
         </div>`;
   return `<div class="pxi-section wdash-section${foldable?' wdash-foldable':''}" data-cardid="${id}"${borderStyle}>
     <div class="pxi-section-head wdash-section-head">
+      <button type="button" class="wdash-card-act wdash-drag-handle" data-cardid="${id}" title="${L('Drag to reorder','اسحب لإعادة الترتيب')}" aria-label="${L('Drag to reorder','اسحب لإعادة الترتيب')}">${_SAV_DRAG_DOTS}</button>
       <span class="wdash-head-label"${headStyle}>${ic(icon, 16, 'aria-hidden="true"')} ${label}</span>
       <span class="wdash-card-actions">
         ${summaryHtml}
         ${foldToggle}
-        <button type="button" class="wdash-card-act wdash-drag-handle" data-cardid="${id}" title="${L('Drag to reorder','اسحب لإعادة الترتيب')}" aria-label="${L('Drag to reorder','اسحب لإعادة الترتيب')}">${_SAV_DRAG_DOTS}</button>
         ${overflowMenu}
       </span>
     </div>
