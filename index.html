@@ -11720,6 +11720,18 @@ function renderFinanceSummaryHeroV3(m){
   const _fsPrevMonth = _fsPrevKey && DATA[_fsPrevKey] ? DATA[_fsPrevKey] : null;
   const prevAllTotal = _fsPrevMonth ? banks.reduce((s,b)=>s+getBankBalance(_fsPrevMonth,b.key),0) : null;
   const netProfit    = prevAllTotal!=null ? allTotal - prevAllTotal : null;
+  // Last month's Total Net Balance — same formula as this month's netBalance
+  // above (banks total minus whatever custody cash was still on-site at the
+  // end of that month), just evaluated for _fsPrevMonth instead of m.
+  let prevNetBalance = null;
+  if(_fsPrevMonth){
+    const _prevCustDeps = _fsPrevMonth.custody_deposits || [];
+    let _prevCustIn=0, _prevCustOut=0;
+    for(let i=0;i<_prevCustDeps.length;i++){ const d=_prevCustDeps[i]; if(d.type==='with') _prevCustOut+=(d.amount||0); else _prevCustIn+=(d.amount||0); }
+    const _prevCustodySpent = (_fsPrevMonth.site_expenses||[]).reduce((s,e)=>s+(e.amount||0),0);
+    const _prevCustodyOnSite = Math.max(_prevCustIn - _prevCustOut - _prevCustodySpent, 0);
+    prevNetBalance = prevAllTotal - _prevCustodyOnSite;
+  }
 
   // Real Profit (التوفير الحقيقي) — per explicit instruction, this is a
   // SEPARATE figure from Net Profit above, with a different formula on
@@ -11823,6 +11835,8 @@ function renderFinanceSummaryHeroV3(m){
             ${dv3hStat(L('Real Balance','الرصيد الحقيقي'), netBanksOnlyNow, true)}
             <div class="dv3h-stat-sep"></div>
             ${dv3hStat(L('Monthly Change','التغير الشهري'), netProfit, false)}
+            <div class="dv3h-stat-sep"></div>
+            ${dv3hStat(L('Last Month','الشهر السابق'), prevNetBalance, true)}
           </div>
         </div>
       </div>
