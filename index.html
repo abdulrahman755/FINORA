@@ -8509,9 +8509,7 @@ let DATA={[_seedMonthKey]:{"transactions":[],"site_expenses":[],"bank_movements"
 const STORAGE_KEY = 'wdp_finance_data_v1';
 const MONTHS_KEY = 'wdp_finance_months_v1';
 const THEME_KEY='wdp_theme_v1';
-const THEME_MODE_KEY='wdp_theme_mode_v1'; // 'auto' (Maghrib/Sunrise-based) | 'manual'
-const PRAYER_TIMES_KEY='wdp_prayer_times_v1'; // cached { date, maghrib, sunrise, lat, lon }
-const GEO_KEY='wdp_geo_v1'; // cached { lat, lon } for prayer-time lookups
+const THEME_MODE_KEY='wdp_theme_mode_v1'; // 'auto' (fixed clock schedule) | 'manual'
 const PIN_KEY='wdp_pin_v1';
 const CURRENCY_KEY='wdp_currency_v1';
 const LOCK_ENABLED_KEY='wdp_lock_enabled_v1';
@@ -10501,7 +10499,7 @@ function _resetSessionTimer() {
 
 // ── § INIT ────────────────────────────────────────────────────────────────────
 function initApp(){loadTheme();loadSavedData();runStartupMigration();loadBanks();loadHiddenBanks();loadBanksOrder();if(_autoRolloverMonths()) pickDefaultActiveMonth();loadTextSettings();GLOBAL_PROFILE.direction=lang==='ar'?'rtl':'ltr';document.documentElement.setAttribute('dir',_globalDirection());document.documentElement.setAttribute('lang',lang);renderMonthTabs();setView('wsdash');updateNavLabels();persistMeta();
-  // Auto Theme (Maghrib → Dark, Sunrise → Light) — only kicked off from here,
+  // Auto Theme (7 PM → Dark, 6 AM → Light) — only kicked off from here,
   // not from the earlier flash-prevention loadTheme() call up top, since
   // today() and the other helpers it needs aren't defined yet at that point
   // in the script. Defaults to 'auto' when the person has never touched it.
@@ -22127,7 +22125,7 @@ function toggleTheme(){
   try{
     localStorage.setItem(THEME_KEY, newTheme);
     // Any manual flip is treated as an explicit override — it stops the
-    // Maghrib/Sunrise auto-schedule until the person turns Auto back on
+    // 7 PM/6 AM auto-schedule until the person turns Auto back on
     // from Settings (mirrors how "Automatic" appearance modes work
     // elsewhere: a manual choice always wins over the schedule).
     localStorage.setItem(THEME_MODE_KEY, 'manual');
@@ -22140,89 +22138,23 @@ function toggleTheme(){
   if(typeof refreshWorkspaceBranding==='function') refreshWorkspaceBranding();
 }
 
-// ── Auto Theme (Maghrib → Dark, Sunrise → Light) ────────────────────────────
+// ── Auto Theme (7 PM → Dark, 6 AM → Light) ──────────────────────────────────
 // Opt-in schedule (Settings → Appearance → Auto) that flips the same
-// THEME_KEY/applyTheme() used by the manual toggle above, based on that
-// day's Maghrib and Sunrise times for the device's location. A manual tap
-// on the sun/moon button always overrides it (see toggleTheme()).
-const _AUTOTHEME_FALLBACK_GEO = {lat:30.0444, lon:31.2357}; // Cairo — only
-// used if geolocation is unavailable/denied, so Auto still works out of the
-// box; silently upgrades to the real device location once permission is granted.
-
-function _getSavedGeo(){
-  try{ return JSON.parse(localStorage.getItem(GEO_KEY)||'null'); }catch(e){ return null; }
-}
-function _requestGeoForAutoTheme(){
-  return new Promise(resolve=>{
-    const saved=_getSavedGeo();
-    if(saved && typeof saved.lat==='number' && typeof saved.lon==='number'){ resolve(saved); return; }
-    if(!navigator.geolocation){ resolve(_AUTOTHEME_FALLBACK_GEO); return; }
-    let settled=false;
-    const finish=(g)=>{ if(settled) return; settled=true; resolve(g); };
-    const timer=setTimeout(()=>finish(_AUTOTHEME_FALLBACK_GEO), 6000);
-    try{
-      navigator.geolocation.getCurrentPosition(
-        pos=>{
-          clearTimeout(timer);
-          const g={lat:pos.coords.latitude, lon:pos.coords.longitude};
-          try{ localStorage.setItem(GEO_KEY, JSON.stringify(g)); }catch(e){}
-          finish(g);
-        },
-        ()=>{ clearTimeout(timer); finish(_AUTOTHEME_FALLBACK_GEO); },
-        {timeout:5500, maximumAge:3600000}
-      );
-    }catch(e){ clearTimeout(timer); finish(_AUTOTHEME_FALLBACK_GEO); }
-  });
-}
-// Fetches (and caches for the day) Maghrib + Sunrise from the Aladhan API —
-// a free, no-key prayer-times API. method=5 is the Egyptian General
-// Authority of Survey calculation, the common default for Egypt.
-async function _getTodaysPrayerTimes(){
-  const todayStr = today();
-  let cached=null;
-  try{ cached=JSON.parse(localStorage.getItem(PRAYER_TIMES_KEY)||'null'); }catch(e){}
-  if(cached && cached.date===todayStr) return cached;
-
-  const geo = await _requestGeoForAutoTheme();
-  try{
-    const [y,m,d] = todayStr.split('-');
-    const apiDate = `${d}-${m}-${y}`; // Aladhan expects DD-MM-YYYY
-    const res = await fetch(`https://api.aladhan.com/v1/timings/${apiDate}?latitude=${geo.lat}&longitude=${geo.lon}&method=5`);
-    const j = await res.json();
-    const t = j && j.data && j.data.timings;
-    if(!t) throw new Error('no timings in response');
-    const clean = s => (s||'').split(' ')[0]; // strip any "(EEST)"-style suffix
-    const result = { date:todayStr, maghrib:clean(t.Maghrib), sunrise:clean(t.Sunrise), lat:geo.lat, lon:geo.lon };
-    try{ localStorage.setItem(PRAYER_TIMES_KEY, JSON.stringify(result)); }catch(e){}
-    return result;
-  }catch(e){
-    _logErr && _logErr('_getTodaysPrayerTimes', e);
-    return cached; // stale/missing — caller just skips this check
-  }
-}
-function _hhmmToMinutes(hhmm){
-  if(!hhmm) return null;
-  const parts=hhmm.split(':');
-  const h=parseInt(parts[0],10), m=parseInt(parts[1],10);
-  if(Number.isNaN(h)||Number.isNaN(m)) return null;
-  return h*60+m;
-}
-async function applyAutoThemeIfDue(){
+// THEME_KEY/applyTheme() used by the manual toggle above, on a fixed daily
+// clock. A manual tap on the sun/moon button always overrides it (see
+// toggleTheme()).
+function applyAutoThemeIfDue(){
   let mode='auto';
   try{ mode = localStorage.getItem(THEME_MODE_KEY) || 'auto'; }catch(e){}
   if(mode!=='auto') return;
 
-  const times = await _getTodaysPrayerTimes();
-  if(!times) return;
-  const maghribMin = _hhmmToMinutes(times.maghrib);
-  const sunriseMin = _hhmmToMinutes(times.sunrise);
-  if(maghribMin==null || sunriseMin==null) return;
-
   const now=new Date();
   const nowMin = now.getHours()*60 + now.getMinutes();
-  // Dark spans from Maghrib through the night to Sunrise the next morning —
-  // wraps past midnight, so it's an OR, not a simple between-check.
-  const shouldBeDark = nowMin>=maghribMin || nowMin<sunriseMin;
+  const darkFromMin  = 19*60; // 7:00 PM
+  const lightFromMin = 6*60;  // 6:00 AM
+  // Dark spans from 7 PM through the night to 6 AM the next morning — wraps
+  // past midnight, so it's an OR, not a simple between-check.
+  const shouldBeDark = nowMin>=darkFromMin || nowMin<lightFromMin;
   const currentlyDark = document.documentElement.getAttribute('data-theme')==='dark';
   if(shouldBeDark!==currentlyDark){
     applyTheme(shouldBeDark?'dark':'light', true);
@@ -22239,9 +22171,9 @@ function startAutoThemeScheduler(){
 function stopAutoThemeScheduler(){
   if(_autoThemeInterval){ clearInterval(_autoThemeInterval); _autoThemeInterval=null; }
 }
-// Catches the transition promptly if the app was backgrounded/asleep
-// through a Maghrib/Sunrise moment (throttled setInterval would otherwise
-// miss it until the next tick after returning).
+// Catches the transition promptly if the app was backgrounded/asleep through
+// a 7 PM/6 AM moment (throttled setInterval would otherwise miss it until
+// the next tick after returning).
 document.addEventListener('visibilitychange', ()=>{
   if(document.visibilityState==='visible') applyAutoThemeIfDue();
 });
@@ -22629,8 +22561,8 @@ function openSettings(){
         <div class="stt-row" onclick="sttToggleAutoTheme()" role="button" tabindex="0">
           ${sttMakeIcon('autotheme')}
           <div class="stt-row-body">
-            <div class="stt-row-title">${L('Auto (Maghrib &amp; Sunrise)','تلقائي (المغرب والشروق)')}</div>
-            <div class="stt-row-sub">${L('Switch to Dark at Maghrib, Light at Sunrise','التحويل لليلي عند أذان المغرب، والنهاري عند الشروق')}</div>
+            <div class="stt-row-title">${L('Auto (7 PM \u2013 6 AM)','تلقائي (7 مساءً - 6 صباحًا)')}</div>
+            <div class="stt-row-sub">${L('Switch to Dark at 7 PM, Light at 6 AM','التحويل لليلي الساعة 7 مساءً، والنهاري الساعة 6 صباحًا')}</div>
           </div>
           <div class="stt-row-trail">
             <div class="stt-switch ${_themeMode==='auto'?'on':''}" id="sttAutoThemeSwitch"><div class="stt-switch-dot"></div></div>
