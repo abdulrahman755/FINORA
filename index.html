@@ -362,6 +362,7 @@
 [data-theme="dark"] .bnk-empty-cta{background:var(--surface3)!important;color:var(--text)!important}
 [data-theme="dark"] .empty-hero-hint{background:var(--surface3)!important;color:var(--text)!important}
 [data-theme="dark"] .fin-qa-chip{background:var(--surface3)!important;color:var(--text)!important;border-color:var(--border-strong)!important}
+[data-theme="dark"] .fin-qa-chip.fin-qa-chip-primary{background:var(--qc)!important;color:#fff!important;border-color:var(--qc)!important}
 
 /* ── Semantic Theme Token layer ───────────────────────────────────────────
    Additive only — every token below is a pure alias onto the existing,
@@ -3804,6 +3805,14 @@ body[data-workspace] .wdash-wrap .rpt-card{--rpt-accent:var(--ws-primary);--rpt-
 .fin-qa-chip:hover{filter:brightness(0.97)}
 .fin-qa-chip:active{transform:scale(.95)}
 .fin-qa-chip:focus-visible{outline:2px solid var(--qc);outline-offset:2px}
+/* Primary tier (Income / Outcome / Transfer — the actions people reach for
+   most) gets real visual weight; the rest stay as the original quiet
+   outline chip so all 6 no longer compete equally. */
+.fin-qa-chip.fin-qa-chip-primary{
+  color:#fff;background:var(--qc);border-color:var(--qc);
+  font-weight:900;box-shadow:0 2px 8px color-mix(in srgb,var(--qc) 30%,transparent);
+}
+.fin-qa-chip.fin-qa-chip-primary:hover{filter:brightness(1.05)}
 
 /* 2. Basic Information card */
 .sc-basic{}
@@ -16222,10 +16231,10 @@ function renderSavings(){
 
     <!-- Quick Actions -->
     <div class="fin-qa-row">
-      <button type="button" class="fin-qa-chip" style="--qc:var(--fin-income);--qc-tint:var(--fin-income-tint)" onclick="savAddIncome()">${ic('plus',12)} ${L('Income','دخل')}</button>
-      <button type="button" class="fin-qa-chip" style="--qc:var(--fin-outcome);--qc-tint:var(--fin-outcome-tint)" onclick="savAddOutcome()">${ic('plus',12)} ${L('Outcome','مصروف')}</button>
+      <button type="button" class="fin-qa-chip fin-qa-chip-primary" style="--qc:var(--fin-income);--qc-tint:var(--fin-income-tint)" onclick="savAddIncome()">${ic('plus',12)} ${L('Income','دخل')}</button>
+      <button type="button" class="fin-qa-chip fin-qa-chip-primary" style="--qc:var(--fin-outcome);--qc-tint:var(--fin-outcome-tint)" onclick="savAddOutcome()">${ic('plus',12)} ${L('Outcome','مصروف')}</button>
+      <button type="button" class="fin-qa-chip fin-qa-chip-primary" style="--qc:#0369a1;--qc-tint:#0369a11a" onclick="savTransfer()">${ic('refresh',12)} ${L('Transfer','تحويل')}</button>
       <button type="button" class="fin-qa-chip" style="--qc:#7c3aed;--qc-tint:#7c3aed1a" onclick="savAddAsset()">${ic('plus',12)} ${L('Asset','أصل')}</button>
-      <button type="button" class="fin-qa-chip" style="--qc:#0369a1;--qc-tint:#0369a11a" onclick="savTransfer()">${ic('refresh',12)} ${L('Transfer','تحويل')}</button>
       <button type="button" class="fin-qa-chip" style="--qc:#c17d0a;--qc-tint:#c17d0a1a" onclick="savScanReceipt()">${ic('photo',12)} ${L('Scan Receipt','مسح إيصال')}</button>
       <button type="button" class="fin-qa-chip" style="--qc:#b45309;--qc-tint:#b453091a" onclick="savAddDebt()">${ic('scale',12)} ${L('Debt','مديونية')}</button>
     </div>
