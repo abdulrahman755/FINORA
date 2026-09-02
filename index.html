@@ -2091,7 +2091,7 @@ tr.row-selected td{background:var(--green-tint)}
 .amt-kb-key{
   width:100%;max-width:68px;aspect-ratio:1;border-radius:50%;
   border:1px solid var(--border);
-  background:var(--surface3);
+  background:var(--surface);
   box-shadow:var(--shadow-xs);
   color:var(--text);
   font-family:var(--font);font-size:calc(18px*var(--app-text-scale,1));font-weight:600;font-variant-numeric:tabular-nums;
@@ -2099,7 +2099,8 @@ tr.row-selected td{background:var(--green-tint)}
   transition:transform .15s var(--ease-spring),background .12s ease;
 }
 .amt-kb-key:active{transform:scale(.9);background:var(--border-strong)}
-.amt-kb-key.amt-kb-op{background:var(--surface2);color:var(--text2)}
+.amt-kb-key.amt-kb-op{background:var(--green-tint);color:var(--green-dark);border-color:color-mix(in srgb,var(--green) 25%,var(--border))}
+.amt-kb-key.amt-kb-op:active{background:var(--green-glow)}
 .amt-kb-key.amt-kb-fn{color:var(--red)}
 .amt-kb-key.amt-kb-eq{background:linear-gradient(180deg,var(--green-light),var(--green));color:#fff;box-shadow:0 4px 14px var(--green-glow)}
 .amt-kb-key.amt-kb-eq:active{background:var(--green-dark);transform:scale(.9)}
