@@ -1597,6 +1597,38 @@ tr.row-selected td{background:var(--green-tint)}
   box-shadow:0 4px 14px var(--green-glow);
 }
 .fab.fab-daily:active:not(.dragging){box-shadow:0 2px 8px var(--green-glow)}
+
+/* ── Notes edge tab — a tiny edge-mounted utility, not a FAB ──────────────
+   Closed: icon only, ~38px tall, flush against the physical right edge
+   (same physical-right convention the FAB itself already uses, kept
+   consistent in both LTR and RTL per its own explicit spec). Open: grows
+   just wide enough to also show the word "Notes" while the sheet is up,
+   then collapses back the instant it's closed. No pill, no glow, no
+   gradient — reuses existing surface/border/shadow tokens only. */
+.notes-edge-tab{
+  position:fixed;z-index:97;
+  top:50%;transform:translateY(-50%);
+  right:env(safe-area-inset-right,0px);
+  display:flex;align-items:center;gap:0;
+  height:40px;min-width:34px;padding:0 8px;
+  border:1px solid var(--border);border-inline-end:none;
+  border-radius:12px 0 0 12px;
+  background:var(--surface);color:var(--muted);
+  box-shadow:var(--shadow-xs);
+  cursor:pointer;-webkit-tap-highlight-color:transparent;
+  transition:min-width .2s ease-out,padding .2s ease-out,color .2s ease-out;
+}
+.notes-edge-tab:active{background:var(--surface2)}
+.notes-edge-tab.open{min-width:96px;padding:0 12px;color:var(--green-dark);border-color:var(--green-glow)}
+.notes-edge-label{
+  max-width:0;opacity:0;overflow:hidden;white-space:nowrap;
+  font-size:calc(12px*var(--app-text-scale,1));font-weight:800;
+  transition:max-width .2s ease-out,opacity .18s ease-out,margin .2s ease-out;
+}
+.notes-edge-tab.open .notes-edge-label{max-width:70px;opacity:1;margin-inline-start:7px}
+@media (prefers-reduced-motion:reduce){
+  .notes-edge-tab,.notes-edge-label{transition:none}
+}
 /* FAB choice popup */
 .fab-picker{position:fixed;right:16px;bottom:152px;z-index:98;display:flex;flex-direction:column;gap:8px;align-items:flex-end}
 .fab-choice{
@@ -8369,6 +8401,16 @@ function fpInitSmartHeader(){
   </div>
   <div class="content" id="mainContent"></div>
   <button class="fab" id="fabBtn" onclick="openFabPicker(event)" style="display:none">+</button>
+  <!-- Notes edge tab — tiny edge-mounted utility, not a FAB. Closed: icon
+       only, flush against the right viewport edge. Tapping it opens the
+       Notes sheet and the tab itself grows just enough to also show the
+       word "Notes" while that sheet is open, then springs back to icon-only
+       the moment it's closed (see closeNotesModal()). Independent of the
+       nav/FAB — pure presentation, its own tiny localStorage-backed list. -->
+  <button type="button" class="notes-edge-tab" id="notesEdgeTab" onclick="toggleNotesModal()" aria-label="Notes" title="Notes" data-i18n-attr="title,aria-label" data-i18n-title-en="Notes" data-i18n-title-ar="ملاحظات" data-i18n-aria-label-en="Notes" data-i18n-aria-label-ar="ملاحظات">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/><path d="M15.5 6.5l2 2-5.4 5.4-2.6.6.6-2.6z"/></svg>
+    <span class="notes-edge-label" id="notesEdgeLabel" data-i18n-en="Notes" data-i18n-ar="ملاحظات">Notes</span>
+  </button>
   <!-- NAV DROPDOWNS -->
   <!-- REPORTS SUB-SHEET (consolidates Monthly Report / Bank Report / Yearly Analytics / Financial Health) -->
   <div id="reportsSheetOverlay" style="display:none;position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.5);backdrop-filter:blur(2px)" onclick="if(event.target===this)closeReportsSheet()">
@@ -9754,7 +9796,14 @@ const _COUNTRY_PROFILE_SCAFFOLD_DEFAULTS = {
   DE:{name:'Germany',nativeName:'Deutschland',currency:'EUR',timezone:'Europe/Berlin',phoneCode:'+49',dir:'ltr'},
   FR:{name:'France',nativeName:'France',currency:'EUR',timezone:'Europe/Paris',phoneCode:'+33',dir:'ltr'},
   JP:{name:'Japan',nativeName:'日本',currency:'JPY',timezone:'Asia/Tokyo',phoneCode:'+81',dir:'ltr'},
+  CN:{name:'China',nativeName:'中国',currency:'CNY',timezone:'Asia/Shanghai',phoneCode:'+86',dir:'ltr'},
   IN:{name:'India',nativeName:'भारत',currency:'INR',timezone:'Asia/Kolkata',phoneCode:'+91',dir:'ltr'},
+  TR:{name:'Turkey',nativeName:'Türkiye',currency:'TRY',timezone:'Europe/Istanbul',phoneCode:'+90',dir:'ltr'},
+  NG:{name:'Nigeria',nativeName:'Nigeria',currency:'NGN',timezone:'Africa/Lagos',phoneCode:'+234',dir:'ltr'},
+  BR:{name:'Brazil',nativeName:'Brasil',currency:'BRL',timezone:'America/Sao_Paulo',phoneCode:'+55',dir:'ltr'},
+  CA:{name:'Canada',nativeName:'Canada',currency:'CAD',timezone:'America/Toronto',phoneCode:'+1',dir:'ltr'},
+  IT:{name:'Italy',nativeName:'Italia',currency:'EUR',timezone:'Europe/Rome',phoneCode:'+39',dir:'ltr'},
+  AU:{name:'Australia',nativeName:'Australia',currency:'AUD',timezone:'Australia/Sydney',phoneCode:'+61',dir:'ltr'},
 };
 Object.keys(_COUNTRY_PROFILE_SCAFFOLD_DEFAULTS).forEach(code=>{
   const d=_COUNTRY_PROFILE_SCAFFOLD_DEFAULTS[code];
@@ -19349,6 +19398,86 @@ const BANK_LOGO_PRESETS=[
   {label:'Exim Bank Comoros',initials:'EBC',color:'#c8102e',country:'KM'},
   {label:'Banque F\u00e9d\u00e9rale de Commerce',initials:'BFC',color:'#8a6d3b',country:'KM'},
 
+  // ── Turkey ─────────────────────────────────────────────────────────────
+  {label:'Ziraat Bank',initials:'ZB',color:'#c8102e',country:'TR'},
+  {label:'\u0130\u015fbank',initials:'IB',color:'#004b87',country:'TR'},
+  {label:'Garanti BBVA',initials:'GB',color:'#00693c',country:'TR'},
+  {label:'Akbank',initials:'AK',color:'#8a6d3b',country:'TR'},
+  {label:'VakifBank',initials:'VB',color:'#b03060',country:'TR'},
+
+  // ── United States ──────────────────────────────────────────────────────
+  {label:'JPMorgan Chase',initials:'JPM',color:'#004b87',country:'US'},
+  {label:'Bank of America',initials:'BOA',color:'#c8102e',country:'US'},
+  {label:'Wells Fargo',initials:'WF',color:'#8a6d3b',country:'US'},
+  {label:'Citibank',initials:'CB',color:'#00693c',country:'US'},
+  {label:'Goldman Sachs',initials:'GS',color:'#b03060',country:'US'},
+
+  // ── United Kingdom ─────────────────────────────────────────────────────
+  {label:'HSBC',initials:'HSBC',color:'#c8102e',country:'GB'},
+  {label:'Barclays',initials:'BC',color:'#004b87',country:'GB'},
+  {label:'Lloyds Bank',initials:'LB',color:'#00693c',country:'GB'},
+  {label:'NatWest',initials:'NW',color:'#8a6d3b',country:'GB'},
+  {label:'Standard Chartered',initials:'SC',color:'#b03060',country:'GB'},
+
+  // ── Germany ────────────────────────────────────────────────────────────
+  {label:'Deutsche Bank',initials:'DB',color:'#004b87',country:'DE'},
+  {label:'Commerzbank',initials:'CB',color:'#c8102e',country:'DE'},
+  {label:'DZ Bank',initials:'DZ',color:'#00693c',country:'DE'},
+
+  // ── France ─────────────────────────────────────────────────────────────
+  {label:'BNP Paribas',initials:'BNP',color:'#004b87',country:'FR'},
+  {label:'Cr\u00e9dit Agricole',initials:'CA',color:'#00693c',country:'FR'},
+  {label:'Soci\u00e9t\u00e9 G\u00e9n\u00e9rale',initials:'SG',color:'#c8102e',country:'FR'},
+
+  // ── India ──────────────────────────────────────────────────────────────
+  {label:'State Bank of India',initials:'SBI',color:'#004b87',country:'IN'},
+  {label:'HDFC Bank',initials:'HDFC',color:'#c8102e',country:'IN'},
+  {label:'ICICI Bank',initials:'ICICI',color:'#8a6d3b',country:'IN'},
+  {label:'Axis Bank',initials:'AB',color:'#b03060',country:'IN'},
+
+  // ── China ──────────────────────────────────────────────────────────────
+  {label:'Industrial and Commercial Bank of China',initials:'ICBC',color:'#c8102e',country:'CN'},
+  {label:'China Construction Bank',initials:'CCB',color:'#004b87',country:'CN'},
+  {label:'Agricultural Bank of China',initials:'ABC',color:'#00693c',country:'CN'},
+  {label:'Bank of China',initials:'BOC',color:'#8a6d3b',country:'CN'},
+
+  // ── Japan ──────────────────────────────────────────────────────────────
+  {label:'Mitsubishi UFJ Financial Group',initials:'MUFG',color:'#c8102e',country:'JP'},
+  {label:'Sumitomo Mitsui Financial Group',initials:'SMFG',color:'#004b87',country:'JP'},
+  {label:'Mizuho Financial Group',initials:'MFG',color:'#00693c',country:'JP'},
+
+  // ── Nigeria ────────────────────────────────────────────────────────────
+  {label:'Access Bank',initials:'AB',color:'#004b87',country:'NG'},
+  {label:'Zenith Bank',initials:'ZB',color:'#c8102e',country:'NG'},
+  {label:'United Bank for Africa',initials:'UBA',color:'#8a6d3b',country:'NG'},
+  {label:'Guaranty Trust Bank',initials:'GTB',color:'#b03060',country:'NG'},
+  {label:'First Bank of Nigeria',initials:'FBN',color:'#00693c',country:'NG'},
+
+  // ── Brazil ─────────────────────────────────────────────────────────────
+  {label:'Ita\u00fa Unibanco',initials:'IU',color:'#004b87',country:'BR'},
+  {label:'Banco do Brasil',initials:'BB',color:'#FFDF00',country:'BR'},
+  {label:'Bradesco',initials:'BR',color:'#c8102e',country:'BR'},
+  {label:'Santander Brasil',initials:'SB',color:'#8a6d3b',country:'BR'},
+  {label:'Caixa Econ\u00f4mica Federal',initials:'CEF',color:'#00693c',country:'BR'},
+
+  // ── Canada ─────────────────────────────────────────────────────────────
+  {label:'Royal Bank of Canada',initials:'RBC',color:'#004b87',country:'CA'},
+  {label:'TD Bank',initials:'TD',color:'#00693c',country:'CA'},
+  {label:'Scotiabank',initials:'SB',color:'#c8102e',country:'CA'},
+  {label:'Bank of Montreal',initials:'BMO',color:'#8a6d3b',country:'CA'},
+  {label:'CIBC',initials:'CIBC',color:'#b03060',country:'CA'},
+
+  // ── Italy ──────────────────────────────────────────────────────────────
+  {label:'Intesa Sanpaolo',initials:'ISP',color:'#004b87',country:'IT'},
+  {label:'UniCredit',initials:'UC',color:'#c8102e',country:'IT'},
+  {label:'Banco BPM',initials:'BPM',color:'#8a6d3b',country:'IT'},
+
+  // ── Australia ──────────────────────────────────────────────────────────
+  {label:'Commonwealth Bank of Australia',initials:'CBA',color:'#000c3d',country:'AU'},
+  {label:'Westpac',initials:'WP',color:'#c8102e',country:'AU'},
+  {label:'ANZ',initials:'ANZ',color:'#004b87',country:'AU'},
+  {label:'National Australia Bank',initials:'NAB',color:'#8a6d3b',country:'AU'},
+
   {label:'Generic Bank',initials:'B',color:'#2563eb',country:'ALL'},
 ];
 const BANK_COUNTRIES=[
@@ -19375,6 +19504,19 @@ const BANK_COUNTRIES=[
   {code:'DJ', en:'Djibouti',ar:'جيبوتي'},
   {code:'SO', en:'Somalia',ar:'الصومال'},
   {code:'KM', en:'Comoros',ar:'جزر القمر'},
+  {code:'TR', en:'Turkey',ar:'تركيا'},
+  {code:'US', en:'United States',ar:'الولايات المتحدة'},
+  {code:'GB', en:'United Kingdom',ar:'المملكة المتحدة'},
+  {code:'DE', en:'Germany',ar:'ألمانيا'},
+  {code:'FR', en:'France',ar:'فرنسا'},
+  {code:'IN', en:'India',ar:'الهند'},
+  {code:'CN', en:'China',ar:'الصين'},
+  {code:'JP', en:'Japan',ar:'اليابان'},
+  {code:'NG', en:'Nigeria',ar:'نيجيريا'},
+  {code:'BR', en:'Brazil',ar:'البرازيل'},
+  {code:'CA', en:'Canada',ar:'كندا'},
+  {code:'IT', en:'Italy',ar:'إيطاليا'},
+  {code:'AU', en:'Australia',ar:'أستراليا'},
 ];
 let selectedBankCountry='ALL';
 let selectedWalletCountry='ALL';
@@ -19413,6 +19555,19 @@ function flagSVG(code){
     case 'DJ': return `<svg ${s}><rect width="20" height="7" fill="#6AB2E7"/><rect y="7" width="20" height="7" fill="#12AD2B"/><polygon points="0,0 9,7 0,14" fill="#fff"/><path d="M4 5.3l0.5 1.5h1.6l-1.3 0.95 0.5 1.5-1.3-0.95-1.3 0.95 0.5-1.5-1.3-0.95h1.6z" fill="#D7141A"/></svg>`;
     case 'SO': return `<svg ${s}><rect width="20" height="14" fill="#4189DD"/><path d="M10 4.5l0.9 2.75h2.9l-2.35 1.7 0.9 2.75-2.35-1.7-2.35 1.7 0.9-2.75-2.35-1.7h2.9z" fill="#fff"/></svg>`;
     case 'KM': return `<svg ${s}><rect width="20" height="3.5" fill="#FFD100"/><rect y="3.5" width="20" height="3.5" fill="#fff"/><rect y="7" width="20" height="3.5" fill="#CE1126"/><rect y="10.5" width="20" height="3.5" fill="#3A75C4"/><polygon points="0,0 9,7 0,14" fill="#009E49"/><circle cx="5.6" cy="7" r="2.3" fill="#fff"/><circle cx="6.6" cy="7" r="2.3" fill="#009E49"/></svg>`;
+    case 'TR': return `<svg ${s}><rect width="20" height="14" fill="#E30A17"/><circle cx="8" cy="7" r="3.4" fill="#fff"/><circle cx="8.9" cy="7" r="2.7" fill="#E30A17"/><path d="M12.2 7l1.6-0.5-1 1.35 0-1.7 1 1.35z" fill="#fff"/></svg>`;
+    case 'US': return `<svg ${s}><rect width="20" height="14" fill="#fff"/><rect width="20" height="1.08" fill="#B22234"/><rect y="2.15" width="20" height="1.08" fill="#B22234"/><rect y="4.3" width="20" height="1.08" fill="#B22234"/><rect y="6.45" width="20" height="1.08" fill="#B22234"/><rect y="8.6" width="20" height="1.08" fill="#B22234"/><rect y="10.75" width="20" height="1.08" fill="#B22234"/><rect y="12.9" width="20" height="1.08" fill="#B22234"/><rect width="8" height="7.5" fill="#3C3B6E"/></svg>`;
+    case 'GB': return `<svg ${s}><rect width="20" height="14" fill="#012169"/><rect y="6" width="20" height="2" fill="#fff"/><rect x="9" width="2" height="14" fill="#fff"/><rect y="6.5" width="20" height="1" fill="#C8102E"/><rect x="9.5" width="1" height="14" fill="#C8102E"/></svg>`;
+    case 'DE': return `<svg ${s}><rect width="20" height="4.67" fill="#000"/><rect y="4.67" width="20" height="4.67" fill="#DD0000"/><rect y="9.33" width="20" height="4.67" fill="#FFCE00"/></svg>`;
+    case 'FR': return `<svg ${s}><rect width="6.67" height="14" fill="#0055A4"/><rect x="6.67" width="6.67" height="14" fill="#fff"/><rect x="13.33" width="6.67" height="14" fill="#EF4135"/></svg>`;
+    case 'IN': return `<svg ${s}><rect width="20" height="4.67" fill="#FF9933"/><rect y="4.67" width="20" height="4.67" fill="#fff"/><rect y="9.33" width="20" height="4.67" fill="#138808"/><circle cx="10" cy="7" r="1.6" fill="none" stroke="#000080" stroke-width="0.35"/></svg>`;
+    case 'CN': return `<svg ${s}><rect width="20" height="14" fill="#DE2910"/><path d="M4 3.5l0.75 2.3h2.4l-1.95 1.4 0.75 2.3-1.95-1.4-1.95 1.4 0.75-2.3-1.95-1.4h2.4z" fill="#FFDE00"/><circle cx="8.2" cy="1.8" r="0.5" fill="#FFDE00"/><circle cx="9.5" cy="3" r="0.5" fill="#FFDE00"/><circle cx="9.5" cy="4.8" r="0.5" fill="#FFDE00"/><circle cx="8.2" cy="5.8" r="0.5" fill="#FFDE00"/></svg>`;
+    case 'JP': return `<svg ${s}><rect width="20" height="14" fill="#fff"/><circle cx="10" cy="7" r="4" fill="#BC002D"/></svg>`;
+    case 'NG': return `<svg ${s}><rect width="6.67" height="14" fill="#008751"/><rect x="6.67" width="6.67" height="14" fill="#fff"/><rect x="13.33" width="6.67" height="14" fill="#008751"/></svg>`;
+    case 'BR': return `<svg ${s}><rect width="20" height="14" fill="#009C3B"/><polygon points="10,2 18,7 10,12 2,7" fill="#FFDF00"/><circle cx="10" cy="7" r="2.8" fill="#002776"/></svg>`;
+    case 'CA': return `<svg ${s}><rect width="20" height="14" fill="#fff"/><rect width="5" height="14" fill="#FF0000"/><rect x="15" width="5" height="14" fill="#FF0000"/><path d="M10 3.5l0.8 1.7 1.7-0.8-0.5 1.8 1.8 0.3-1.4 1.2 1.4 1.2-1.8 0.3 0.5 1.8-1.7-0.8-0.8 1.7-0.8-1.7-1.7 0.8 0.5-1.8-1.8-0.3 1.4-1.2-1.4-1.2 1.8-0.3-0.5-1.8 1.7 0.8z" fill="#FF0000"/></svg>`;
+    case 'IT': return `<svg ${s}><rect width="6.67" height="14" fill="#009246"/><rect x="6.67" width="6.67" height="14" fill="#fff"/><rect x="13.33" width="6.67" height="14" fill="#CE2B37"/></svg>`;
+    case 'AU': return `<svg ${s}><rect width="20" height="14" fill="#00008B"/><rect width="9" height="6" fill="#00008B"/><rect y="0" width="9" height="0.9" fill="#fff"/><rect y="5.1" width="9" height="0.9" fill="#fff"/><rect x="4" width="0.9" height="6" fill="#fff"/><circle cx="15" cy="4" r="0.6" fill="#fff"/><circle cx="16.5" cy="9" r="0.6" fill="#fff"/><circle cx="13" cy="10.5" r="0.6" fill="#fff"/><circle cx="17.5" cy="11.5" r="0.5" fill="#fff"/></svg>`;
     default:   return ic('globe',14);
   }
 }
@@ -31808,6 +31963,92 @@ function _createExpBankMove(bankKey, amount, date, note) {
   DATA[activeMonth].bank_movements.push(mv);
   return mv;
 }
+
+// ── Quick Notes — standalone, separate from any transaction's own Note
+// field. New feature (no prior Notes system existed), built to hang off
+// the tiny edge tab above. Own storage key, own tiny sheet, reusing the
+// app's existing #modalOverlay/#modalContent system rather than inventing
+// a second overlay mechanism.
+const NOTES_KEY = 'wdp_quick_notes_v1';
+function _notesLoad(){
+  try{ return JSON.parse(localStorage.getItem(NOTES_KEY) || '[]'); }
+  catch(e){ _logErr('_notesLoad', e); return []; }
+}
+function _notesSave(list){
+  try{ localStorage.setItem(NOTES_KEY, JSON.stringify(list)); }
+  catch(e){ _logErr('_notesSave', e); }
+}
+function _notesListHtml(){
+  const list = _notesLoad();
+  if(!list.length){
+    return `<div style="text-align:center;color:var(--muted);font-size:calc(13px*var(--app-text-scale,1));padding:22px 10px">${L('No notes yet.','لا توجد ملاحظات بعد.')}</div>`;
+  }
+  return list.slice().reverse().map(n => `
+    <div style="display:flex;align-items:flex-start;gap:8px;padding:10px 0;border-bottom:1px solid var(--border)">
+      <div style="flex:1;min-width:0">
+        <div style="font-size:calc(13px*var(--app-text-scale,1));color:var(--text);white-space:pre-wrap;word-break:break-word">${esc(n.text)}</div>
+        <div style="font-size:calc(10.5px*var(--app-text-scale,1));color:var(--muted);margin-top:4px">${new Date(n.createdAt).toLocaleString(_dtLocale('en-US'),{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'})}</div>
+      </div>
+      <button type="button" class="icon-btn" style="flex-shrink:0" onclick="notesDelete('${n.id}')" aria-label="${L('Delete note','حذف الملاحظة')}">${ic('trash',14)}</button>
+    </div>`).join('');
+}
+function openNotesModal(){
+  document.getElementById('modalContent').innerHTML = `
+    <div class="modal-handle"></div>
+    <div class="modal-hdr">
+      <div class="modal-hdr-icon" style="background:linear-gradient(135deg,var(--green),var(--green-dark))">${ic('edit',20)}</div>
+      <div>
+        <div class="modal-hdr-title">${L('Notes','ملاحظات')}</div>
+        <div class="modal-hdr-sub">${L('Quick notes, separate from transactions','ملاحظات سريعة، منفصلة عن المعاملات')}</div>
+      </div>
+    </div>
+    <div class="field">
+      <textarea id="notesNewInput" rows="2" placeholder="${L('Write a quick note…','اكتب ملاحظة سريعة…')}" style="resize:vertical;min-height:44px"></textarea>
+    </div>
+    <div class="modal-btns" style="margin-bottom:6px">
+      <button class="mbtn save" onclick="notesAdd()">${L('Add Note','إضافة ملاحظة')}</button>
+    </div>
+    <div id="notesListWrap">${_notesListHtml()}</div>`;
+  document.getElementById('modalOverlay').style.display = 'flex';
+  const tab = document.getElementById('notesEdgeTab');
+  if(tab) tab.classList.add('open');
+}
+function closeNotesModal(){
+  closeModal();
+  const tab = document.getElementById('notesEdgeTab');
+  if(tab) tab.classList.remove('open');
+}
+function toggleNotesModal(){
+  const overlay = document.getElementById('modalOverlay');
+  const isOpen = overlay && overlay.style.display !== 'none' && overlay.style.display !== '';
+  if(isOpen) closeNotesModal(); else openNotesModal();
+}
+function notesAdd(){
+  const el = document.getElementById('notesNewInput');
+  const text = (el && el.value || '').trim();
+  if(!text) return;
+  const list = _notesLoad();
+  list.push({ id: 'n'+Date.now()+Math.random().toString(36).slice(2,7), text, createdAt: Date.now() });
+  _notesSave(list);
+  if(el) el.value = '';
+  const wrap = document.getElementById('notesListWrap');
+  if(wrap) wrap.innerHTML = _notesListHtml();
+}
+function notesDelete(id){
+  _notesSave(_notesLoad().filter(n => n.id !== id));
+  const wrap = document.getElementById('notesListWrap');
+  if(wrap) wrap.innerHTML = _notesListHtml();
+}
+// The modal's own backdrop-tap-to-close (closeModal via onclick on
+// #modalOverlay elsewhere) doesn't know about the edge tab's "open" class —
+// this keeps them in sync whenever the overlay is dismissed by any path
+// other than the tab/button above (backdrop tap, Escape key, etc.).
+document.addEventListener('click', function(e){
+  if(e.target && e.target.id === 'modalOverlay'){
+    const tab = document.getElementById('notesEdgeTab');
+    if(tab) tab.classList.remove('open');
+  }
+}, true);
 
 function closeModal(e){
   if(e&&e.target.id!=='modalOverlay')return;
