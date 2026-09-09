@@ -1629,6 +1629,85 @@ tr.row-selected td{background:var(--green-tint)}
 @media (prefers-reduced-motion:reduce){
   .notes-edge-tab,.notes-edge-label{transition:none}
 }
+
+/* ── Notes page — full dedicated screen, list + editor ────────────────── */
+#notesPageOverlay{
+  position:fixed;inset:0;z-index:96;
+  background:var(--bg);
+  display:flex;flex-direction:column;
+  padding-top:env(safe-area-inset-top);
+  padding-bottom:env(safe-area-inset-bottom);
+}
+.qn-header{
+  display:flex;align-items:center;gap:8px;
+  padding:12px var(--sp4);border-bottom:1px solid var(--border);
+  flex-shrink:0;
+}
+.qn-header-title{
+  flex:1;font-size:calc(17px*var(--app-text-scale,1));font-weight:900;color:var(--text);
+  display:flex;align-items:center;gap:8px;
+}
+.qn-header-count{font-size:calc(11px*var(--app-text-scale,1));font-weight:700;color:var(--muted)}
+.qn-title-input{
+  flex:1;min-width:0;border:none;background:none;outline:none;
+  font-size:calc(16px*var(--app-text-scale,1));font-weight:800;color:var(--text);font-family:inherit;
+}
+.qn-title-input::placeholder{color:var(--muted);font-weight:700}
+#qnPinBtn.qn-pinned{color:var(--gold-dark)}
+#qnLockBtn.qn-locked{color:var(--red)}
+.qn-table{border-collapse:collapse;width:100%;margin:10px 0}
+.qn-table td,.qn-table th{border:1px solid var(--border);padding:6px 8px;font-size:calc(13px*var(--app-text-scale,1));min-width:60px}
+.qn-table th{background:var(--surface2);font-weight:800}
+
+.qn-list{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:4px var(--sp4)}
+.qn-row{
+  display:flex;align-items:center;gap:10px;
+  padding:13px 2px;border-bottom:1px solid var(--border);
+  cursor:pointer;-webkit-tap-highlight-color:transparent;
+}
+.qn-row:active{background:var(--surface2)}
+.qn-pin-dot{flex-shrink:0;color:var(--gold-dark)}
+.qn-row-title{font-size:calc(14.5px*var(--app-text-scale,1));font-weight:800;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.qn-row-preview{font-size:calc(12.5px*var(--app-text-scale,1));color:var(--muted);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.qn-row-date{flex-shrink:0;font-size:calc(11px*var(--app-text-scale,1));color:var(--muted)}
+.qn-empty{text-align:center;color:var(--muted);font-size:calc(13px*var(--app-text-scale,1));padding:60px 20px}
+
+.qn-toolbar{
+  display:flex;align-items:center;gap:4px;
+  padding:8px var(--sp4);border-bottom:1px solid var(--border);
+  flex-shrink:0;
+}
+.qn-fmt-btn{
+  min-width:34px;height:34px;border-radius:var(--radius-sm);
+  border:1px solid var(--border);background:var(--surface);color:var(--text);
+  font-size:14px;cursor:pointer;-webkit-tap-highlight-color:transparent;
+  display:flex;align-items:center;justify-content:center;
+}
+.qn-fmt-btn:active{background:var(--surface2)}
+.qn-toolbar-sep{width:1px;height:20px;background:var(--border);margin:0 4px}
+
+.qn-body{
+  flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;
+  padding:14px var(--sp4) 40px;
+  font-size:calc(14px*var(--app-text-scale,1));line-height:1.6;color:var(--text);
+  outline:none;
+}
+.qn-body:empty::before{content:attr(data-placeholder);color:var(--muted)}
+.qn-chk{display:flex;align-items:flex-start;gap:8px;margin:4px 0}
+.qn-chk-box{
+  flex-shrink:0;width:18px;height:18px;margin-top:1px;border-radius:50%;
+  border:1.5px solid var(--border-strong);cursor:pointer;
+  display:inline-block;position:relative;
+}
+.qn-chk.checked .qn-chk-box{background:var(--green);border-color:var(--green)}
+.qn-chk.checked .qn-chk-box::after{
+  content:'';position:absolute;left:5px;top:2px;width:4px;height:8px;
+  border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg);
+}
+.qn-chk.checked .qn-chk-text{color:var(--muted);text-decoration:line-through}
+.qn-chk-text{flex:1;min-width:0}
+[dir="rtl"] .qn-chk.checked .qn-chk-box::after{left:auto;right:5px}
+
 /* FAB choice popup */
 .fab-picker{position:fixed;right:16px;bottom:152px;z-index:98;display:flex;flex-direction:column;gap:8px;align-items:flex-end}
 .fab-choice{
@@ -8411,6 +8490,11 @@ function fpInitSmartHeader(){
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/><path d="M15.5 6.5l2 2-5.4 5.4-2.6.6.6-2.6z"/></svg>
     <span class="notes-edge-label" id="notesEdgeLabel" data-i18n-en="Notes" data-i18n-ar="ملاحظات">Notes</span>
   </button>
+  <!-- Notes — full dedicated page (list + editor), rendered into by
+       renderNotesList()/openNoteEditor(). Own overlay, own z-index band
+       (below the lock screen's 9999, above ordinary content), so it never
+       interferes with routing/setView() or the lock screen. -->
+  <div id="notesPageOverlay" style="display:none"></div>
   <!-- NAV DROPDOWNS -->
   <!-- REPORTS SUB-SHEET (consolidates Monthly Report / Bank Report / Yearly Analytics / Financial Health) -->
   <div id="reportsSheetOverlay" style="display:none;position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.5);backdrop-filter:blur(2px)" onclick="if(event.target===this)closeReportsSheet()">
@@ -31964,91 +32048,326 @@ function _createExpBankMove(bankKey, amount, date, note) {
   return mv;
 }
 
-// ── Quick Notes — standalone, separate from any transaction's own Note
-// field. New feature (no prior Notes system existed), built to hang off
-// the tiny edge tab above. Own storage key, own tiny sheet, reusing the
-// app's existing #modalOverlay/#modalContent system rather than inventing
-// a second overlay mechanism.
-const NOTES_KEY = 'wdp_quick_notes_v1';
+// ── Notes — full dedicated page (list + rich editor), separate from any
+// transaction's own Note field. Replaces the earlier plain-text quick-notes
+// modal with an iPhone-Notes-style experience: title+preview list, pin to
+// top, Bold/Italic/Underline, and a checkable checklist — while staying a
+// pure presentation-layer feature (its own storage key, own full-screen
+// overlay, nothing wired into setView()/routing).
+const NOTES_KEY = 'wdp_notes_v2';
+let _notesCurrentId = null; // which note is open in the editor; null = list view
+const NOTES_LOCK_HASH_KEY = 'wdp_notes_lock_hash_v1'; // one shared password across every locked note — same model iPhone Notes uses (Face ID/one Notes password), not a separate PIN per note
+
+async function _notesHashPin(pin){
+  try{
+    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode('finora-notes-lock:'+pin));
+    return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+  }catch(e){ _logErr('_notesHashPin', e); return null; }
+}
+function _notesLockPinSet(){
+  try{ return !!localStorage.getItem(NOTES_LOCK_HASH_KEY); }catch(e){ return false; }
+}
+// Small PIN prompt, reusing the app's own #modalOverlay/#modalContent sheet
+// system (it already stacks above #notesPageOverlay, z-index 600 vs 96) —
+// no new overlay mechanism introduced.
+function _notesPromptPin(title, sub, onSubmit){
+  document.getElementById('modalContent').innerHTML = `
+    <div class="modal-handle"></div>
+    <div class="modal-hdr">
+      <div class="modal-hdr-icon" style="background:linear-gradient(135deg,var(--gold),var(--gold-dark))">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+      </div>
+      <div>
+        <div class="modal-hdr-title">${esc(title)}</div>
+        <div class="modal-hdr-sub">${esc(sub)}</div>
+      </div>
+    </div>
+    <div class="field">
+      <input type="password" inputmode="numeric" maxlength="4" id="qnPinInput" placeholder="${L('4-digit PIN','رقم سري من 4 أرقام')}" style="text-align:center;letter-spacing:8px;font-size:20px">
+    </div>
+    <div id="qnPinError" style="color:var(--red);font-size:calc(12px*var(--app-text-scale,1));text-align:center;margin:6px 0;display:none">${L('Incorrect PIN','رقم سري غير صحيح')}</div>
+    <div class="modal-btns">
+      <button class="mbtn save" id="qnPinSubmitBtn">${L('Continue','متابعة')}</button>
+    </div>`;
+  document.getElementById('modalOverlay').style.display = 'flex';
+  const input = document.getElementById('qnPinInput');
+  setTimeout(()=>input && input.focus(), 250);
+  const submit = () => onSubmit((input.value||'').trim());
+  document.getElementById('qnPinSubmitBtn').onclick = submit;
+  input.addEventListener('keydown', e => { if(e.key==='Enter') submit(); });
+}
+async function _notesToggleLock(){
+  const list = _notesLoad();
+  const n = list.find(x => x.id === _notesCurrentId);
+  if(!n) return;
+  if(n.locked){
+    // Already unlocked to view it (had to pass the PIN check to get here),
+    // so switching it off needs no further confirmation.
+    n.locked = false;
+    _notesSave(list);
+    const btn = document.getElementById('qnLockBtn');
+    if(btn) btn.classList.remove('qn-locked');
+    return;
+  }
+  const applyLock = () => {
+    n.locked = true;
+    _notesSave(list);
+    const btn = document.getElementById('qnLockBtn');
+    if(btn) btn.classList.add('qn-locked');
+    closeModal();
+  };
+  if(_notesLockPinSet()){
+    applyLock(); // shared password already exists — locking doesn't need it re-entered
+  } else {
+    _notesPromptPin(L('Set Notes Password','عيّن كلمة سر الملاحظات'), L('Used to lock and unlock any note','بتُستخدم لقفل وفتح أي ملاحظة'), async (pin) => {
+      if(!/^\d{4}$/.test(pin)){ const err=document.getElementById('qnPinError'); if(err) err.style.display='block'; return; }
+      const hash = await _notesHashPin(pin);
+      if(hash){ try{ localStorage.setItem(NOTES_LOCK_HASH_KEY, hash); }catch(e){_logErr('_notesToggleLock:save',e);} }
+      applyLock();
+    });
+  }
+}
+function _notesInsertTable(){
+  const body = document.getElementById('qnBody');
+  body.focus();
+  const table = document.createElement('table');
+  table.className = 'qn-table';
+  for(let r=0;r<3;r++){
+    const row = document.createElement('tr');
+    for(let c=0;c<2;c++){
+      const cell = document.createElement(r===0?'th':'td');
+      cell.contentEditable = 'true';
+      cell.innerHTML = '\u200B';
+      row.appendChild(cell);
+    }
+    table.appendChild(row);
+  }
+  const sel = window.getSelection();
+  if(sel && sel.rangeCount){
+    const range = sel.getRangeAt(0);
+    range.collapse(false);
+    range.insertNode(table);
+  } else {
+    body.appendChild(table);
+  }
+  _notesAutosave();
+}
+
 function _notesLoad(){
-  try{ return JSON.parse(localStorage.getItem(NOTES_KEY) || '[]'); }
-  catch(e){ _logErr('_notesLoad', e); return []; }
+  try{
+    const raw = localStorage.getItem(NOTES_KEY);
+    if(raw) return JSON.parse(raw);
+    // One-time migration from the earlier plain-text quick-notes version,
+    // so nothing anyone already wrote gets lost by this upgrade.
+    let old = [];
+    try{ old = JSON.parse(localStorage.getItem('wdp_quick_notes_v1') || '[]'); }catch(e){}
+    const migrated = old.map(n => ({
+      id: n.id || ('n'+Date.now()+Math.random().toString(36).slice(2,7)),
+      title: (n.text||'').split('\n')[0].slice(0,60),
+      bodyHTML: esc(n.text||'').replace(/\n/g,'<br>'),
+      pinned:false, createdAt:n.createdAt||Date.now(), updatedAt:n.createdAt||Date.now(),
+    }));
+    _notesSave(migrated);
+    return migrated;
+  }catch(e){ _logErr('_notesLoad', e); return []; }
 }
 function _notesSave(list){
   try{ localStorage.setItem(NOTES_KEY, JSON.stringify(list)); }
   catch(e){ _logErr('_notesSave', e); }
 }
-function _notesListHtml(){
-  const list = _notesLoad();
-  if(!list.length){
-    return `<div style="text-align:center;color:var(--muted);font-size:calc(13px*var(--app-text-scale,1));padding:22px 10px">${L('No notes yet.','لا توجد ملاحظات بعد.')}</div>`;
-  }
-  return list.slice().reverse().map(n => `
-    <div style="display:flex;align-items:flex-start;gap:8px;padding:10px 0;border-bottom:1px solid var(--border)">
-      <div style="flex:1;min-width:0">
-        <div style="font-size:calc(13px*var(--app-text-scale,1));color:var(--text);white-space:pre-wrap;word-break:break-word">${esc(n.text)}</div>
-        <div style="font-size:calc(10.5px*var(--app-text-scale,1));color:var(--muted);margin-top:4px">${new Date(n.createdAt).toLocaleString(_dtLocale('en-US'),{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'})}</div>
-      </div>
-      <button type="button" class="icon-btn" style="flex-shrink:0" onclick="notesDelete('${n.id}')" aria-label="${L('Delete note','حذف الملاحظة')}">${ic('trash',14)}</button>
-    </div>`).join('');
+function _notesSorted(){
+  return _notesLoad().slice().sort((a,b)=>{
+    if(!!b.pinned !== !!a.pinned) return (b.pinned?1:0)-(a.pinned?1:0);
+    return (b.updatedAt||0)-(a.updatedAt||0);
+  });
 }
+function _notesPreview(html){
+  const tmp = document.createElement('div');
+  tmp.innerHTML = html || '';
+  return (tmp.textContent||'').trim().replace(/\s+/g,' ').slice(0,80);
+}
+
+// ── Page open/close (drives the edge tab's own "open" visual state too) ──
 function openNotesModal(){
-  document.getElementById('modalContent').innerHTML = `
-    <div class="modal-handle"></div>
-    <div class="modal-hdr">
-      <div class="modal-hdr-icon" style="background:linear-gradient(135deg,var(--green),var(--green-dark))">${ic('edit',20)}</div>
-      <div>
-        <div class="modal-hdr-title">${L('Notes','ملاحظات')}</div>
-        <div class="modal-hdr-sub">${L('Quick notes, separate from transactions','ملاحظات سريعة، منفصلة عن المعاملات')}</div>
-      </div>
-    </div>
-    <div class="field">
-      <textarea id="notesNewInput" rows="2" placeholder="${L('Write a quick note…','اكتب ملاحظة سريعة…')}" style="resize:vertical;min-height:44px"></textarea>
-    </div>
-    <div class="modal-btns" style="margin-bottom:6px">
-      <button class="mbtn save" onclick="notesAdd()">${L('Add Note','إضافة ملاحظة')}</button>
-    </div>
-    <div id="notesListWrap">${_notesListHtml()}</div>`;
-  document.getElementById('modalOverlay').style.display = 'flex';
+  _notesCurrentId = null;
+  renderNotesList();
+  document.getElementById('notesPageOverlay').style.display = 'flex';
   const tab = document.getElementById('notesEdgeTab');
   if(tab) tab.classList.add('open');
 }
 function closeNotesModal(){
-  closeModal();
+  if(_notesCurrentId) _notesAutosave(); // flush any in-progress edit first
+  document.getElementById('notesPageOverlay').style.display = 'none';
   const tab = document.getElementById('notesEdgeTab');
   if(tab) tab.classList.remove('open');
 }
 function toggleNotesModal(){
-  const overlay = document.getElementById('modalOverlay');
+  const overlay = document.getElementById('notesPageOverlay');
   const isOpen = overlay && overlay.style.display !== 'none' && overlay.style.display !== '';
   if(isOpen) closeNotesModal(); else openNotesModal();
 }
-function notesAdd(){
-  const el = document.getElementById('notesNewInput');
-  const text = (el && el.value || '').trim();
-  if(!text) return;
+
+// ── List view ─────────────────────────────────────────────────────────────
+function renderNotesList(){
+  const list = _notesSorted();
+  const rowsHtml = list.length ? list.map(n => `
+    <div class="qn-row" onclick="openNoteEditor('${n.id}')" role="button" tabindex="0">
+      ${n.pinned ? `<svg class="qn-pin-dot" width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2c-.6 0-1 .4-1 1v6.2L7.6 12.4c-.4.3-.6.8-.6 1.3v1.3c0 .5.4 1 1 1h3v6l1 2 1-2v-6h3c.6 0 1-.5 1-1v-1.3c0-.5-.2-1-.6-1.3L13 9.2V3c0-.6-.4-1-1-1z"/></svg>` : ''}
+      <div style="flex:1;min-width:0">
+        <div class="qn-row-title">${esc(n.title) || L('New Note','ملاحظة جديدة')}</div>
+        <div class="qn-row-preview">${n.locked ? `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align:-1px;margin-inline-end:3px"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>${L('Locked','مقفلة')}` : (esc(_notesPreview(n.bodyHTML)) || L('No additional text','لا يوجد نص إضافي'))}</div>
+      </div>
+      <div class="qn-row-date">${new Date(n.updatedAt||n.createdAt).toLocaleDateString(_dtLocale('en-US'),{month:'short',day:'numeric'})}</div>
+    </div>`).join('') : `<div class="qn-empty">${L('No notes yet — tap + to add one.','لا توجد ملاحظات بعد — اضغط + للإضافة.')}</div>`;
+
+  document.getElementById('notesPageOverlay').innerHTML = `
+    <div class="qn-header">
+      <button type="button" class="icon-btn" onclick="closeNotesModal()" aria-label="${L('Close','إغلاق')}">${ic(_navDirIcon('prev'),18)}</button>
+      <div class="qn-header-title">${L('Notes','ملاحظات')}<span class="qn-header-count">${list.length}</span></div>
+      <button type="button" class="icon-btn" onclick="createNewNote()" aria-label="${L('New note','ملاحظة جديدة')}">${ic('plus',18)}</button>
+    </div>
+    <div class="qn-list">${rowsHtml}</div>`;
+}
+function createNewNote(){
   const list = _notesLoad();
-  list.push({ id: 'n'+Date.now()+Math.random().toString(36).slice(2,7), text, createdAt: Date.now() });
+  const n = { id:'n'+Date.now()+Math.random().toString(36).slice(2,7), title:'', bodyHTML:'', pinned:false, createdAt:Date.now(), updatedAt:Date.now() };
+  list.push(n);
   _notesSave(list);
-  if(el) el.value = '';
-  const wrap = document.getElementById('notesListWrap');
-  if(wrap) wrap.innerHTML = _notesListHtml();
+  openNoteEditor(n.id);
 }
-function notesDelete(id){
-  _notesSave(_notesLoad().filter(n => n.id !== id));
-  const wrap = document.getElementById('notesListWrap');
-  if(wrap) wrap.innerHTML = _notesListHtml();
-}
-// The modal's own backdrop-tap-to-close (closeModal via onclick on
-// #modalOverlay elsewhere) doesn't know about the edge tab's "open" class —
-// this keeps them in sync whenever the overlay is dismissed by any path
-// other than the tab/button above (backdrop tap, Escape key, etc.).
-document.addEventListener('click', function(e){
-  if(e.target && e.target.id === 'modalOverlay'){
-    const tab = document.getElementById('notesEdgeTab');
-    if(tab) tab.classList.remove('open');
+
+// ── Editor view ───────────────────────────────────────────────────────────
+function openNoteEditor(id){
+  const n = _notesLoad().find(x => x.id === id);
+  if(!n) return;
+  if(n.locked){
+    _notesPromptPin(L('Enter Notes Password','ادخل كلمة سر الملاحظات'), L('This note is locked','هذه الملاحظة مقفلة'), async (pin) => {
+      const hash = await _notesHashPin(pin);
+      let stored = null;
+      try{ stored = localStorage.getItem(NOTES_LOCK_HASH_KEY); }catch(e){}
+      if(hash && stored && hash === stored){
+        closeModal();
+        _notesCurrentId = id;
+        _renderNoteEditorUnlocked(n);
+      } else {
+        const err = document.getElementById('qnPinError');
+        if(err) err.style.display = 'block';
+      }
+    });
+    return;
   }
+  _notesCurrentId = id;
+  _renderNoteEditorUnlocked(n);
+}
+function _renderNoteEditorUnlocked(n){
+  document.getElementById('notesPageOverlay').innerHTML = `
+    <div class="qn-header">
+      <button type="button" class="icon-btn" onclick="closeNoteEditor()" aria-label="${L('Back','رجوع')}">${ic(_navDirIcon('prev'),18)}</button>
+      <input type="text" id="qnTitleInput" class="qn-title-input" placeholder="${L('Title','العنوان')}" value="${esc(n.title||'')}" oninput="_notesAutosave()">
+      <button type="button" class="icon-btn${n.locked?' qn-locked':''}" id="qnLockBtn" onclick="_notesToggleLock()" aria-label="${L('Lock note','قفل الملاحظة')}">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+      </button>
+      <button type="button" class="icon-btn${n.pinned?' qn-pinned':''}" id="qnPinBtn" onclick="_notesTogglePin()" aria-label="${L('Pin note','تثبيت الملاحظة')}">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="${n.pinned?'currentColor':'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2c-.6 0-1 .4-1 1v6.2L7.6 12.4c-.4.3-.6.8-.6 1.3v1.3c0 .5.4 1 1 1h3v6l1 2 1-2v-6h3c.6 0 1-.5 1-1v-1.3c0-.5-.2-1-.6-1.3L13 9.2V3c0-.6-.4-1-1-1z"/></svg>
+      </button>
+      <button type="button" class="icon-btn" onclick="_notesDeleteCurrent()" aria-label="${L('Delete note','حذف الملاحظة')}">${ic('trash',16)}</button>
+    </div>
+    <div class="qn-toolbar">
+      <button type="button" class="qn-fmt-btn" onclick="_notesFormat('bold')" aria-label="Bold"><b>B</b></button>
+      <button type="button" class="qn-fmt-btn" onclick="_notesFormat('italic')" aria-label="Italic"><i>I</i></button>
+      <button type="button" class="qn-fmt-btn" onclick="_notesFormat('underline')" aria-label="Underline"><u>U</u></button>
+      <span class="qn-toolbar-sep"></span>
+      <button type="button" class="qn-fmt-btn" onclick="_notesInsertChecklist()" aria-label="${L('Checklist','قائمة تأشير')}">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="6" height="6" rx="1"/><path d="M4.5 8l1 1 2-2"/><rect x="3" y="14" width="6" height="6" rx="1"/><path d="M12 8h9M12 17h9"/></svg>
+      </button>
+      <button type="button" class="qn-fmt-btn" onclick="_notesInsertTable()" aria-label="${L('Table','جدول')}">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="1"/><path d="M3 10h18M3 16h18M9 4v16M15 4v16"/></svg>
+      </button>
+    </div>
+    <div id="qnBody" class="qn-body" contenteditable="true" oninput="_notesAutosave()" dir="auto">${n.bodyHTML || ''}</div>`;
+  document.getElementById('qnBody').addEventListener('click', _notesChecklistClick);
+}
+function closeNoteEditor(){
+  _notesAutosave();
+  // Drop it silently if the person leaves it completely empty (no title,
+  // no body) — matches how a blank note in a list would otherwise just
+  // clutter it forever with nothing to show.
+  const list = _notesLoad();
+  const n = list.find(x => x.id === _notesCurrentId);
+  if(n && !n.title.trim() && !_notesPreview(n.bodyHTML)){
+    _notesSave(list.filter(x => x.id !== _notesCurrentId));
+  }
+  _notesCurrentId = null;
+  renderNotesList();
+}
+function _notesAutosave(){
+  if(!_notesCurrentId) return;
+  const list = _notesLoad();
+  const n = list.find(x => x.id === _notesCurrentId);
+  if(!n) return;
+  const titleEl = document.getElementById('qnTitleInput');
+  const bodyEl = document.getElementById('qnBody');
+  if(titleEl) n.title = titleEl.value;
+  if(bodyEl) n.bodyHTML = bodyEl.innerHTML;
+  n.updatedAt = Date.now();
+  _notesSave(list);
+}
+function _notesTogglePin(){
+  const list = _notesLoad();
+  const n = list.find(x => x.id === _notesCurrentId);
+  if(!n) return;
+  n.pinned = !n.pinned;
+  _notesSave(list);
+  const btn = document.getElementById('qnPinBtn');
+  if(btn){
+    btn.classList.toggle('qn-pinned', n.pinned);
+    const svg = btn.querySelector('svg');
+    if(svg) svg.setAttribute('fill', n.pinned ? 'currentColor' : 'none');
+  }
+}
+function _notesDeleteCurrent(){
+  if(!_notesCurrentId) return;
+  _notesSave(_notesLoad().filter(x => x.id !== _notesCurrentId));
+  _notesCurrentId = null;
+  renderNotesList();
+}
+function _notesFormat(cmd){
+  document.getElementById('qnBody').focus();
+  try{ document.execCommand(cmd, false, null); }catch(e){ _logErr('_notesFormat', e); }
+  _notesAutosave();
+}
+function _notesInsertChecklist(){
+  const body = document.getElementById('qnBody');
+  body.focus();
+  const line = document.createElement('div');
+  line.className = 'qn-chk';
+  line.innerHTML = `<span class="qn-chk-box" contenteditable="false"></span><span class="qn-chk-text">${'\u200B'}</span>`;
+  const sel = window.getSelection();
+  if(sel && sel.rangeCount){
+    const range = sel.getRangeAt(0);
+    range.collapse(false);
+    range.insertNode(line);
+    range.setStartAfter(line);
+    range.collapse(true);
+    sel.removeAllRanges();
+    sel.addRange(range);
+  } else {
+    body.appendChild(line);
+  }
+  _notesAutosave();
+}
+function _notesChecklistClick(e){
+  const box = e.target.closest('.qn-chk-box');
+  if(!box) return;
+  e.preventDefault();
+  box.closest('.qn-chk').classList.toggle('checked');
+  _notesAutosave();
+}
+// Backdrop-tap-to-close parity with the rest of the app's overlays.
+document.addEventListener('click', function(e){
+  if(e.target && e.target.id === 'notesPageOverlay') closeNotesModal();
 }, true);
+
 
 function closeModal(e){
   if(e&&e.target.id!=='modalOverlay')return;
