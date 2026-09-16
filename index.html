@@ -13000,6 +13000,26 @@ function renderTopListsCard(m, sig){
 }
 
 // ── 5) Monthly Comparison ───────────────────────────────────────────────────
+// Multi-month trend bars reuse bnkSparklineSVG() as-is — the same Apple-
+// Wallet-style bar component the Banks & Wallets hero uses for its daily
+// balance trend — just fed a per-month Profit series instead of per-day
+// balances. No new chart component, no new visual language.
+function _dfpMonthlyProfitSeries(m, count){
+  count = count || 6;
+  const idx = MONTHS_ORDER.indexOf(m);
+  if(idx === -1) return [];
+  const start = Math.max(0, idx - (count - 1));
+  const keys = MONTHS_ORDER.slice(start, idx + 1);
+  const MONTH_NUM = {JAN:'01',FEB:'02',MAR:'03',APR:'04',MAY:'05',JUN:'06',JUL:'07',AUG:'08',SEP:'09',OCT:'10',NOV:'11',DEC:'12'};
+  return keys.map(key => {
+    const [abbr, year] = key.split('-');
+    // A valid ISO date (1st of the month) — bnkSparkShowTip() re-parses this
+    // as new Date(date+'T00:00:00') for its tap tooltip, so it must stay a
+    // real parseable date, not a pre-formatted label like "Sep 2026".
+    const isoDate = `${year}-${MONTH_NUM[abbr]||'01'}-01`;
+    return { date: isoDate, value: fdFinanceStats(key).monthlyProfit };
+  });
+}
 function renderMonthlyComparisonCard(m, sig){
   sig = sig || fdDashboardSignals(m);
   const { s, prevStats } = sig;
@@ -13009,6 +13029,8 @@ function renderMonthlyComparisonCard(m, sig){
       <div class="dfp-toplist-empty">${L('Needs a previous month to compare against.','محتاج شهر سابق للمقارنة.')}</div>
     </div>`;
   }
+  const trendSeries = _dfpMonthlyProfitSeries(m, 6);
+  const trendSpark = trendSeries.length >= 2 ? bnkSparklineSVG(trendSeries) : '';
   const rowsDef = [
     {lbl:L('Income','الإيرادات'), cur:s.totalIncomeMonth, prev:prevStats.totalIncomeMonth, goodUp:true},
     {lbl:L('Expenses','المصروفات'), cur:s.totalExpMonth, prev:prevStats.totalExpMonth, goodUp:false},
@@ -13031,6 +13053,7 @@ function renderMonthlyComparisonCard(m, sig){
   }).join('');
   return `<div class="sc-card">
     <div class="dfp-card-head"><div class="dfp-card-title">${ic('chart', 13, 'aria-hidden="true"')} ${L('Monthly Comparison','مقارنة شهرية')}</div></div>
+    ${trendSpark ? `<div class="bnk-hero-spark" style="margin:0 var(--sp4) 12px">${trendSpark}</div>` : ''}
     ${rows}
   </div>`;
 }
