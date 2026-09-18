@@ -32600,6 +32600,7 @@ function _renderNoteEditorUnlocked(n){
     <input type="file" id="qnPhotoInput" accept="image/*" multiple style="display:none" onchange="_notesHandlePhotoFile(this.files)">
     <input type="file" id="qnFileInput" style="display:none" onchange="_notesHandleGenericFile(this.files)">`;
   document.getElementById('qnBody').addEventListener('click', _notesChecklistClick);
+  document.getElementById('qnBody').addEventListener('keydown', _notesChecklistKeydown);
   _notesAttachKeyboardTracking();
 }
 
@@ -32704,6 +32705,65 @@ function _notesChecklistClick(e){
   if(!box) return;
   e.preventDefault();
   box.closest('.qn-chk').classList.toggle('checked');
+  _notesAutosave();
+}
+// The native contenteditable Enter-split doesn't know how to divide a
+// display:flex row that has a contenteditable="false" checkbox span in it —
+// on mobile it tends to drop the new line inside the SAME .qn-chk (so it
+// renders beside the text instead of below it) and leaves the caret stuck
+// there, unable to advance on the next Enter. We intercept Enter ourselves
+// and build the next line by hand, as a proper sibling .qn-chk row.
+function _notesChecklistKeydown(e){
+  if(e.key !== 'Enter' || e.shiftKey) return;
+  const sel = window.getSelection();
+  if(!sel || !sel.rangeCount) return;
+  const range = sel.getRangeAt(0);
+  const anchorEl = range.startContainer.nodeType === 3 ? range.startContainer.parentElement : range.startContainer;
+  const chkText = anchorEl && anchorEl.closest && anchorEl.closest('.qn-chk-text');
+  if(!chkText) return; // not inside a checklist item — leave normal Enter handling alone
+  const chkLine = chkText.closest('.qn-chk');
+  if(!chkLine) return;
+  e.preventDefault();
+
+  const afterRange = range.cloneRange();
+  afterRange.selectNodeContents(chkText);
+  afterRange.setStart(range.endContainer, range.endOffset);
+  const afterFrag = afterRange.extractContents();
+  const afterText = (afterFrag.textContent || '').replace(/\u200B/g, '');
+
+  const beforeEmpty = chkText.textContent.replace(/\u200B/g, '').trim() === '';
+  if(beforeEmpty && !afterText.trim()){
+    // Enter on an empty checklist item exits the list, like Notes/Keep do,
+    // instead of stacking up empty checkboxes forever.
+    const p = document.createElement('div');
+    p.innerHTML = '<br>';
+    chkLine.replaceWith(p);
+    const r = document.createRange();
+    r.setStart(p, 0);
+    r.collapse(true);
+    sel.removeAllRanges();
+    sel.addRange(r);
+    _notesAutosave();
+    return;
+  }
+
+  const newLine = document.createElement('div');
+  newLine.className = 'qn-chk';
+  const newBox = document.createElement('span');
+  newBox.className = 'qn-chk-box';
+  newBox.contentEditable = 'false';
+  const newText = document.createElement('span');
+  newText.className = 'qn-chk-text';
+  if(afterText) newText.appendChild(afterFrag); else newText.innerHTML = '\u200B';
+  newLine.appendChild(newBox);
+  newLine.appendChild(newText);
+  chkLine.after(newLine);
+
+  const r = document.createRange();
+  r.selectNodeContents(newText);
+  r.collapse(true);
+  sel.removeAllRanges();
+  sel.addRange(r);
   _notesAutosave();
 }
 
