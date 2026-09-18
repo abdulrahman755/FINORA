@@ -27363,7 +27363,7 @@ function renderExpenses(m){
 
   <!-- 2. BASIC INFORMATION — custody stats -->
   <div class="sc-card sc-basic">
-    <div class="sc-main-header" onclick="this.nextElementSibling.nextElementSibling.classList.toggle('open');this.querySelector('.sc-collapse-chev').classList.toggle('open')">
+    <div class="sc-main-header" onclick="this.closest('.sc-card').querySelector('.sc-collapsible').classList.toggle('open');this.querySelector('.sc-collapse-chev').classList.toggle('open')">
       <div class="sc-main-title">${ic('lock',13)} ${L('Custody (العهدة)','العهدة')}</div>
       <span class="sc-collapse-chev${deposits.length>0?' open':''}">›</span>
     </div>
