@@ -1620,6 +1620,7 @@ tr.row-selected td{background:var(--green-tint)}
 }
 .notes-edge-tab:active{background:var(--surface2)}
 .notes-edge-tab.open{min-width:96px;padding:0 12px;color:var(--green-dark);border-color:var(--green-glow)}
+.notes-edge-tab.dragging{transition:none;box-shadow:var(--shadow-lg,var(--shadow-md))}
 .notes-edge-label{
   max-width:0;opacity:0;overflow:hidden;white-space:nowrap;
   font-size:calc(12px*var(--app-text-scale,1));font-weight:800;
@@ -3471,41 +3472,31 @@ tr.row-selected td{background:var(--green-tint)}
 }
 
 /* ══════════════════════════════════════════════════════════════════════
-   MIORA — FINORA in-app assistant. Trigger floats just below the header's
-   search row rather than being a normal row inside it (position:absolute,
-   top:100% of .app-header, which is position:sticky so it still tracks
-   the header while scrolling) — this way the sticky header's own height
-   stays exactly what it was before MIORA existed; the button never adds
-   to it or leaves empty space in the header box. A compact, quiet pill
-   (mirrors .header-searchbar's calm surface/border treatment) so it
-   reads as a small discoverable control, not a primary CTA competing
-   with the logo/search/nav. Uses only existing design tokens — no
-   purple AI accent, no glassmorphism/gradients. Panel + greeting toast
-   are positioned under the floating button dynamically in JS
-   (mioraPositionEl), so placement is correct regardless of header
-   layout / LTR / RTL.
+   MIORA — FINORA in-app assistant. Docked directly in the header's search
+   row, right beside the search bar, as a small circular trigger — not a
+   floating/draggable overlay anymore. Carries the app's own identity (a
+   thin emerald→gold gradient ring, same pairing as the logo and the
+   header's bottom accent line) instead of a generic AI-purple treatment,
+   so it reads as a native FINORA control rather than a bolted-on widget.
+   Panel + greeting toast are still positioned under this button
+   dynamically in JS (mioraPositionEl), so placement stays correct
+   regardless of header layout / LTR / RTL.
 ══════════════════════════════════════════════════════════════════════ */
-.miora-header-row{
-  position:absolute;left:0;right:0;top:100%;
-  display:flex;justify-content:flex-end;
-  padding:0 var(--s-2);
-  pointer-events:none; /* row itself is just a positioning shelf; only the button inside is interactive */
-}
-.miora-header-row .miora-header-btn{ pointer-events:auto; margin-top:6px; }
 .miora-header-btn{
-  display:inline-flex;align-items:center;gap:6px;
-  min-height:44px;box-sizing:border-box;
-  background:var(--surface2,var(--green-tint));border:1px solid var(--border);color:var(--text);
-  border-radius:var(--radius-pill,999px);
-  padding:0 15px;
-  font-size:calc(12.5px*var(--app-text-scale,1));font-weight:800;letter-spacing:.2px;
-  cursor:pointer;transition:border-color var(--dur-base) var(--ease-standard),background var(--dur-base) var(--ease-standard),transform .15s ease;
-  touch-action:none; /* drag support — see mioraDragStart/Move/End; button is now user-repositionable */
+  flex-shrink:0;position:relative;box-sizing:border-box;
+  width:34px;height:34px;padding:0;
+  display:inline-flex;align-items:center;justify-content:center;
+  border-radius:50%;cursor:pointer;
+  border:1.5px solid transparent;
+  background:
+    linear-gradient(var(--surface2,var(--green-tint)),var(--surface2,var(--green-tint))) padding-box,
+    linear-gradient(135deg,var(--green),var(--gold)) border-box;
+  box-shadow:var(--shadow-xs);
+  transition:transform .15s ease,box-shadow var(--dur-base) var(--ease-standard);
 }
-.miora-header-btn.miora-dragging{transition:none;cursor:grabbing;will-change:transform}
 .miora-header-btn svg{flex-shrink:0;color:var(--green)}
-.miora-header-btn:hover{border-color:var(--border-strong)}
-.miora-header-btn:active{transform:scale(.96)}
+.miora-header-btn:hover{box-shadow:0 2px 10px rgba(15,122,85,.28)}
+.miora-header-btn:active{transform:scale(.92)}
 .miora-header-btn:focus-visible{outline:var(--focus-ring-width,2px) solid var(--focus-ring-color,var(--green));outline-offset:2px}
 .miora-header-btn.miora-attn{animation:mioraPulse 1.4s ease-in-out infinite}
 @keyframes mioraPulse{
@@ -3514,7 +3505,7 @@ tr.row-selected td{background:var(--green-tint)}
 }
 @media (prefers-reduced-motion:reduce){ .miora-header-btn.miora-attn{animation:none} }
 @media (max-width:480px){
-  .miora-header-btn{min-height:40px;padding:0 12px;font-size:calc(11.5px*var(--app-text-scale,1));gap:5px}
+  .miora-header-btn{width:30px;height:30px}
   .miora-header-btn svg{width:13px;height:13px}
 }
 
@@ -8561,13 +8552,10 @@ function fpInitSmartHeader(){
         <span id="headerSearchLabel">Search...</span>
         <span class="gsearch-kbd-hint">⌘K</span>
       </button>
-      <div class="header-actions-extra" id="headerExtraActions"></div>
-    </div>
-    <div class="miora-header-row">
-      <button class="miora-header-btn" id="mioraBtn" onclick="toggleMiora()" aria-haspopup="dialog" aria-controls="mioraPanel" aria-expanded="false" aria-label="Open MIORA assistant" data-i18n-attr="aria-label" data-i18n-aria-label-en="Open MIORA assistant" data-i18n-aria-label-ar="فتح مساعد MIORA">
+      <button class="miora-header-btn" id="mioraBtn" onclick="toggleMiora()" aria-haspopup="dialog" aria-controls="mioraPanel" aria-expanded="false" aria-label="Open MIORA assistant" title="MIORA" data-i18n-attr="aria-label" data-i18n-aria-label-en="Open MIORA assistant" data-i18n-aria-label-ar="فتح مساعد MIORA">
         <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.8 5.4L19 10l-5.2 1.6L12 17l-1.8-5.4L5 10l5.2-1.6z"/></svg>
-        <span id="mioraBtnLabel">MIORA</span>
       </button>
+      <div class="header-actions-extra" id="headerExtraActions"></div>
     </div>
   </div>
   <div class="content" id="mainContent"></div>
@@ -34765,6 +34753,115 @@ const WDP_IDB = (function(){
 
   document.addEventListener('mouseup', endDrag);
 })();
+// ── NOTES EDGE TAB — VERTICAL DRAG TO MOVE ───────────────────────────────
+// Same drag pattern as the FAB above, but constrained to the Y axis only:
+// the tab is deliberately pinned to the physical right edge (its own
+// spec), so only its up/down position is user-adjustable. The tab is part
+// of the persistent app shell (rendered once, outside #mainContent), so
+// this already applies on every page/view — nothing extra needed for that.
+(function(){
+  var NOTES_EDGE_POS_KEY = 'wdp_notes_edge_pos_v1';
+  var _dragging = false, _startY = 0, _origCenterY = 0, _moved = false;
+
+  var getTab = function(){ return document.getElementById('notesEdgeTab'); };
+
+  // Keeps the tab's center between the header's bottom edge and the
+  // bottom nav's top edge, with a small margin either side.
+  var clampCenterY = function(centerY){
+    var tab = getTab();
+    var half = tab ? tab.offsetHeight / 2 : 20;
+    var header = document.querySelector('.app-header');
+    var headerBottom = header ? header.getBoundingClientRect().bottom : 60;
+    var navH = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--bottom-nav-h')) || 90;
+    var min = headerBottom + half + 8;
+    var max = window.innerHeight - navH - half - 8;
+    if(max < min) return (min + max) / 2; // very short viewport — just center it
+    return Math.max(min, Math.min(max, centerY));
+  };
+
+  var applyCenterY = function(tab, centerY){
+    tab.style.top = centerY + 'px';
+    tab.style.transform = 'translateY(-50%)';
+  };
+
+  var savePos = function(centerY){
+    try{ localStorage.setItem(NOTES_EDGE_POS_KEY, JSON.stringify({y:centerY})); }
+    catch(e){ _logErr('notesEdgeTab:savePos', e); }
+  };
+
+  var loadPos = function(){
+    var tab = getTab(); if(!tab) return;
+    try{
+      var raw = localStorage.getItem(NOTES_EDGE_POS_KEY);
+      if(!raw) return;
+      var p = JSON.parse(raw);
+      if(typeof p.y === 'number') applyCenterY(tab, clampCenterY(p.y));
+    }catch(e){ _logErr('notesEdgeTab:loadPos', e); }
+  };
+
+  document.addEventListener('DOMContentLoaded', loadPos);
+  // Re-clamp on rotate/resize, but only if the tab has ever been dragged
+  // (tab.style.top set) — otherwise leave the default centered CSS alone.
+  window.addEventListener('resize', function(){
+    var tab = getTab();
+    if(!tab || !tab.style.top) return;
+    applyCenterY(tab, clampCenterY(parseInt(tab.style.top)));
+  });
+
+  var startDrag = function(clientY){
+    var tab = getTab(); if(!tab) return;
+    var rect = tab.getBoundingClientRect();
+    _dragging = true; _moved = false;
+    _startY = clientY; _origCenterY = rect.top + rect.height / 2;
+    tab.classList.add('dragging');
+  };
+
+  var moveDrag = function(clientY){
+    if(!_dragging) return;
+    var dy = clientY - _startY;
+    if(Math.abs(dy) > 4) _moved = true;
+    if(_moved) applyCenterY(getTab(), clampCenterY(_origCenterY + dy));
+  };
+
+  var endDrag = function(e){
+    if(!_dragging) return;
+    var tab = getTab();
+    if(tab) tab.classList.remove('dragging');
+    _dragging = false;
+    if(_moved){
+      savePos(parseInt(tab.style.top));
+      if(e && e.cancelable) e.preventDefault(); // also swallows the synthetic click that follows a touch drag
+    }
+  };
+
+  document.addEventListener('touchstart', function(e){
+    if(!e.target.closest('#notesEdgeTab')) return;
+    var t = e.touches[0];
+    startDrag(t.clientY);
+  }, {passive:true});
+
+  document.addEventListener('touchmove', function(e){
+    if(!_dragging) return;
+    var t = e.touches[0];
+    moveDrag(t.clientY);
+    if(_moved && e.cancelable) e.preventDefault();
+  }, {passive:false});
+
+  document.addEventListener('touchend', endDrag, {passive:false});
+
+  document.addEventListener('mousedown', function(e){
+    if(!e.target.closest('#notesEdgeTab')) return;
+    startDrag(e.clientY);
+    e.preventDefault();
+  });
+
+  document.addEventListener('mousemove', function(e){
+    if(!_dragging) return;
+    moveDrag(e.clientY);
+  });
+
+  document.addEventListener('mouseup', endDrag);
+})();
 // (Project Info module removed — was unreachable, no route/nav ever pointed to it)
 </script>
 
@@ -39596,176 +39693,6 @@ function mioraPositionEl(el){
   el.style.right = 'auto';
   el.style.bottom = 'auto';
 }
-
-// ── Drag-to-reposition ──────────────────────────────────────────────────
-// Lets the user drag the MIORA button anywhere on screen (touch or mouse,
-// via Pointer Events). A tap with no real movement still calls
-// toggleMiora() through the button's existing onclick — a drag suppresses
-// that one following click so it doesn't also toggle the panel open/closed.
-// Position is clamped inside the viewport and persisted in localStorage so
-// it stays put across reloads. The panel/toast already read the button's
-// live position on open (mioraPositionEl above), so nothing else needs to
-// change for them to keep following it. Purely additive — does not touch
-// toggleMiora/openMiora/closeMiora.
-(function(){
-  const MIORA_POS_KEY = 'wdp_miora_pos';
-  let dragging = false, moved = false;
-  let startX = 0, startY = 0, startLeft = 0, startTop = 0;
-  // Facebook/Instagram/Line/TikTok WKWebViews (.iab-webview — detected at
-  // the very top of this file) are already documented elsewhere in this
-  // file as unreliable for position:fixed elements whose top/left get
-  // updated dynamically (see the calc-toolbar comment) — the WebView's own
-  // viewport/scroll handling fights the value, which is exactly why a drag
-  // reads as "only left/right ever move": horizontal isn't touched by that
-  // mechanism, vertical is. position:absolute (document-relative) doesn't
-  // go through that path, so it's used here instead when running inside
-  // one of those WebViews — same fallback strategy the calc-toolbar
-  // already relies on.
-  const IAB = document.documentElement.classList.contains('iab-webview');
-
-  function clamp(left, top, w, h){
-    const margin = 8;
-    left = Math.min(Math.max(left, margin), window.innerWidth - w - margin);
-    top  = Math.min(Math.max(top, margin), window.innerHeight - h - margin);
-    return {left, top};
-  }
-
-  // left/top here are always VIEWPORT-relative (matching getBoundingClientRect()
-  // and pointer clientX/clientY), regardless of which CSS position ends up
-  // being written — that keeps clamp()/drag math identical in both modes.
-  function applyPos(left, top){
-    const btn = _mioraEl('mioraBtn');
-    if(!btn) return;
-    const w = btn.offsetWidth, h = btn.offsetHeight;
-    const c = clamp(left, top, w, h);
-    if(IAB){
-      btn.style.position = 'absolute';
-      btn.style.left = (c.left + window.scrollX) + 'px';
-      btn.style.top  = (c.top + window.scrollY) + 'px';
-    }else{
-      btn.style.position = 'fixed';
-      btn.style.left = c.left + 'px';
-      btn.style.top = c.top + 'px';
-    }
-    btn.style.right = 'auto';
-    btn.style.bottom = 'auto';
-    btn.style.margin = '0';
-  }
-
-  function savePos(left, top){
-    try{ localStorage.setItem(MIORA_POS_KEY, JSON.stringify({left, top})); }
-    catch(e){ console.warn('[wdp-storage]', e); }
-  }
-
-  let rafId = null, pendingDx = 0, pendingDy = 0;
-
-  function onPointerDown(e){
-    const btn = _mioraEl('mioraBtn');
-    if(!btn) return;
-    dragging = true; moved = false;
-    const r = btn.getBoundingClientRect();
-    startX = e.clientX; startY = e.clientY;
-    startLeft = r.left; startTop = r.top;
-    try{ btn.setPointerCapture(e.pointerId); }catch(e2){}
-    // Without this, iOS Safari can still interpret a vertical finger-move as
-    // "start scrolling the page" even with touch-action:none in the
-    // stylesheet, and will send pointercancel instead of further
-    // pointermove — which reads as "only left/right ever moves". Calling
-    // preventDefault on the originating pointerdown (listener registered
-    // non-passive below) heads that off before it can happen.
-    if(e.cancelable) e.preventDefault();
-  }
-
-  function onPointerMove(e){
-    if(!dragging) return;
-    const dx = e.clientX - startX, dy = e.clientY - startY;
-    if(!moved && (Math.abs(dx) > 4 || Math.abs(dy) > 4)){
-      moved = true;
-      _mioraEl('mioraBtn').classList.add('miora-dragging');
-    }
-    if(moved && e.cancelable) e.preventDefault();
-    if(!moved) return;
-    // Live-drag visual: a pure transform, batched to one write per animation
-    // frame. This is compositor-only (no layout/reflow per finger move) —
-    // calling applyPos() (which reads offsetWidth/offsetHeight and writes
-    // left/top) on every raw pointer event is what made the drag feel
-    // stuttery, especially inside the Instagram WebView's extra compositing
-    // overhead. The real left/top only get baked in once, on release.
-    pendingDx = dx; pendingDy = dy;
-    if(rafId == null){
-      rafId = requestAnimationFrame(function(){
-        rafId = null;
-        if(!dragging) return;
-        const b = _mioraEl('mioraBtn');
-        if(b) b.style.transform = 'translate3d(' + pendingDx + 'px,' + pendingDy + 'px,0)';
-      });
-    }
-  }
-
-  function onPointerUp(e){
-    if(!dragging) return;
-    dragging = false;
-    if(rafId != null){ cancelAnimationFrame(rafId); rafId = null; }
-    const btn = _mioraEl('mioraBtn');
-    if(btn) btn.classList.remove('miora-dragging');
-    if(moved && btn){
-      btn.style.transform = '';
-      applyPos(startLeft + pendingDx, startTop + pendingDy);
-      const r = btn.getBoundingClientRect();
-      savePos(r.left, r.top);
-      const suppressClick = function(ev){ ev.stopPropagation(); ev.preventDefault(); btn.removeEventListener('click', suppressClick, true); };
-      btn.addEventListener('click', suppressClick, true);
-    }
-  }
-
-  function onResize(){
-    try{
-      const raw = localStorage.getItem(MIORA_POS_KEY);
-      if(!raw) return;
-      const pos = JSON.parse(raw);
-      if(typeof pos.left === 'number' && typeof pos.top === 'number') applyPos(pos.left, pos.top);
-    }catch(e){}
-  }
-
-  function initMioraDrag(){
-    const btn = _mioraEl('mioraBtn');
-    if(!btn) return;
-    // .app-header has backdrop-filter + transform + will-change:transform —
-    // each of those alone makes it a containing block for position:fixed
-    // descendants per spec, so a fixed-position button left inside it can
-    // only move within the header's own box, not the real viewport. Moving
-    // the button to be a direct child of <body> (once, here) escapes that,
-    // so it can reach every edge of the screen. Its id/onclick/classes are
-    // untouched — only its DOM parent changes.
-    const naturalRect = btn.getBoundingClientRect();
-    document.body.appendChild(btn);
-    btn.style.zIndex = '109';
-    // Belt-and-suspenders on top of the stylesheet's touch-action:none —
-    // set inline too, since a node reparented after first paint has
-    // occasionally been seen to miss a touch-action recalc in older
-    // WebKit builds. overscroll-behavior stops iOS from rubber-banding
-    // the whole page as a side-effect of a drag that starts on the button.
-    btn.style.touchAction = 'none';
-    btn.style.overscrollBehavior = 'none';
-    let restored = false;
-    try{
-      const raw = localStorage.getItem(MIORA_POS_KEY);
-      if(raw){
-        const pos = JSON.parse(raw);
-        if(typeof pos.left === 'number' && typeof pos.top === 'number'){ applyPos(pos.left, pos.top); restored = true; }
-      }
-    }catch(e){ console.warn('[wdp-storage]', e); }
-    if(!restored) applyPos(naturalRect.left, naturalRect.top);
-    btn.addEventListener('pointerdown', onPointerDown, {passive:false});
-    btn.addEventListener('pointermove', onPointerMove, {passive:false});
-    btn.addEventListener('pointerup', onPointerUp);
-    btn.addEventListener('pointercancel', onPointerUp);
-    window.addEventListener('resize', onResize);
-  }
-
-  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initMioraDrag);
-  else initMioraDrag();
-})();
 
 function openMiora(){
   _mioraOpen = true;
