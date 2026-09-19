@@ -32706,10 +32706,34 @@ function _notesSorted(){
     return (b.updatedAt||0)-(a.updatedAt||0);
   });
 }
+function _notesPlainText(el){
+  // Block elements have no whitespace between them in the saved HTML, so a plain
+  // textContent glues lines together ("ورق DMAفيش"). Add a space after each block.
+  el.querySelectorAll('div,p,h1,h2,h3,li,br').forEach(b => b.insertAdjacentText('afterend',' '));
+  return (el.textContent||'').replace(/[\u200B]/g,'').trim().replace(/\s+/g,' ');
+}
 function _notesPreview(html){
   const tmp = document.createElement('div');
   tmp.innerHTML = html || '';
-  return (tmp.textContent||'').trim().replace(/\s+/g,' ').slice(0,80);
+  return _notesPlainText(tmp).slice(0,80);
+}
+// List title: the note's own title if the person typed one, otherwise the first
+// heading (Title / Heading / Subheading) inside the note. The heading is left out
+// of the preview line so it isn't shown twice. Locked notes never expose body text.
+function _notesTitleAndPreview(n){
+  const own = (n.title||'').trim();
+  if(n.locked) return {title: own, preview: ''};
+  const tmp = document.createElement('div');
+  tmp.innerHTML = n.bodyHTML || '';
+  let title = own;
+  if(!title){
+    const h = tmp.querySelector('h1,h2,h3');
+    if(h){
+      const t = _notesPlainText(h.cloneNode(true)).slice(0,80);
+      if(t){ title = t; h.remove(); }
+    }
+  }
+  return {title, preview: _notesPlainText(tmp).slice(0,80)};
 }
 
 // ── Page open/close (drives the edge tab's own "open" visual state too) ──
@@ -32753,8 +32777,8 @@ function renderNotesList(){
     <div class="qn-row" onclick="openNoteEditor('${n.id}')" role="button" tabindex="0">
       ${n.pinned ? `<svg class="qn-pin-dot" width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2c-.6 0-1 .4-1 1v6.2L7.6 12.4c-.4.3-.6.8-.6 1.3v1.3c0 .5.4 1 1 1h3v6l1 2 1-2v-6h3c.6 0 1-.5 1-1v-1.3c0-.5-.2-1-.6-1.3L13 9.2V3c0-.6-.4-1-1-1z"/></svg>` : ''}
       <div style="flex:1;min-width:0">
-        <div class="qn-row-title">${esc(n.title) || L('New Note','ملاحظة جديدة')}</div>
-        <div class="qn-row-preview">${n.locked ? `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align:-1px;margin-inline-end:3px"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>${L('Locked','مقفلة')}` : (esc(_notesPreview(n.bodyHTML)) || L('No additional text','لا يوجد نص إضافي'))}</div>
+        <div class="qn-row-title">${esc(_notesTitleAndPreview(n).title) || L('New Note','ملاحظة جديدة')}</div>
+        <div class="qn-row-preview">${n.locked ? `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align:-1px;margin-inline-end:3px"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>${L('Locked','مقفلة')}` : (esc(_notesTitleAndPreview(n).preview) || L('No additional text','لا يوجد نص إضافي'))}</div>
       </div>
       <div class="qn-row-date">${new Date(n.updatedAt||n.createdAt).toLocaleDateString(_dtLocale('en-US'),{month:'short',day:'numeric'})}</div>
     </div>`).join('') : `<div class="qn-empty">${_notesSearchQuery ? L('No results.','لا نتائج.') : L('No notes yet — tap + to add one.','لا توجد ملاحظات بعد — اضغط + للإضافة.')}</div>`;
@@ -32816,7 +32840,7 @@ function _renderNoteEditorUnlocked(n){
   overlay.innerHTML = `
     <div class="qn-header">
       <button type="button" class="icon-btn" onclick="closeNoteEditor()" aria-label="${L('Back','رجوع')}">${ic(_navDirIcon('prev'),18)}</button>
-      <input type="text" id="qnTitleInput" class="qn-title-input" placeholder="${L('Title','العنوان')}" value="${esc(n.title||'')}" oninput="_notesAutosave()">
+      <input type="text" id="qnTitleInput" class="qn-title-input" placeholder="${esc(_notesTitleAndPreview(n).title) || L('Title','العنوان')}" value="${esc(n.title||'')}" oninput="_notesAutosave()">
       <button type="button" class="icon-btn${n.locked?' qn-locked':''}" id="qnLockBtn" onclick="_notesToggleLock()" aria-label="${L('Lock note','قفل الملاحظة')}">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
       </button>
@@ -32920,6 +32944,8 @@ function _notesAutosave(){
   if(bodyEl) n.bodyHTML = bodyEl.innerHTML;
   n.updatedAt = Date.now();
   _notesSave(list);
+  // keep the (grey) title placeholder in step with the heading the list will show
+  if(titleEl && !titleEl.value.trim()) titleEl.placeholder = _notesTitleAndPreview(n).title || L('Title','العنوان');
 }
 function _notesTogglePin(){
   const list = _notesLoad();
@@ -33434,8 +33460,8 @@ function _notesOpenRecent(){
   const rowsHtml = list.length ? list.map(n => `
     <div class="stt-row" onclick="closeModal();openNoteEditor('${n.id}')" role="button" tabindex="0">
       <div class="stt-row-body">
-        <div class="stt-row-title">${esc(n.title) || L('New Note','ملاحظة جديدة')}</div>
-        <div class="stt-row-sub">${esc(_notesPreview(n.bodyHTML)) || L('No additional text','لا يوجد نص إضافي')}</div>
+        <div class="stt-row-title">${esc(_notesTitleAndPreview(n).title) || L('New Note','ملاحظة جديدة')}</div>
+        <div class="stt-row-sub">${esc(_notesTitleAndPreview(n).preview) || L('No additional text','لا يوجد نص إضافي')}</div>
       </div>
     </div>`).join('') : `<div class="qn-empty">${L('No notes yet.','لا توجد ملاحظات بعد.')}</div>`;
   document.getElementById('modalContent').innerHTML = `
