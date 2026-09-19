@@ -7945,6 +7945,20 @@ button:not(:disabled):active{transform:scale(.97)}
 .wide-add-btn.blue-dashed{border-color:var(--blue);color:var(--blue);background:var(--blue-tint)}
 .wide-add-btn.blue-dashed:hover{background:var(--blue-tint)}
 
+/* Notes list: swipe-to-delete + long-press sheet */
+.qn-swipe{position:relative;overflow:hidden;touch-action:pan-y;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+.qn-swipe .qn-row{position:relative;background:var(--bg);transition:transform .22s cubic-bezier(.32,1,.32,1);will-change:transform}
+#notesPageOverlay.qn-force-light .qn-swipe .qn-row{background:#F6F4EA}
+.qn-swipe .qn-row:active{background:var(--surface2)}
+.qn-swipe.dragging .qn-row{transition:none}
+.qn-swipe.open .qn-row{transform:translateX(-92px)}
+/* right:0 is physical on purpose — swiping LEFT exposes this, in LTR and RTL alike */
+.qn-swipe-del{position:absolute;top:0;bottom:0;right:0;width:92px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;border:0;background:var(--red);color:#fff;font-family:inherit;font-size:calc(12px*var(--app-text-scale,1));font-weight:800;cursor:pointer;visibility:hidden;transition:visibility 0s .22s}
+.qn-swipe.open .qn-swipe-del,.qn-swipe.dragging .qn-swipe-del{visibility:visible;transition-delay:0s}
+[data-theme="dark"] .qn-swipe-del{color:#1A0B09}
+.qn-row-menu-title{display:flex;align-items:center;gap:6px;padding:4px 4px 12px;font-size:calc(15px*var(--app-text-scale,1));font-weight:800;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@media (prefers-reduced-motion:reduce){.qn-swipe .qn-row{transition:none}}
+
 /* ══════════════════════════════════════════════════════════════════════════
    SITE CUSTODY v2 — .cx-*  (renderExpenses)
    Scoped to .cx-wrap so no other screen is affected. Logical properties only
@@ -32769,11 +32783,266 @@ function _notesClearSearch(){
   renderNotesList();
 }
 
+// ── Notes list: swipe-left to delete + long-press menu (Copy / Print / Delete) ──
+// One set of pointer handlers on #notesPageOverlay (delegated, wired once) so it
+// survives renderNotesList() replacing the list's innerHTML.
+//  • swipe left  → row slides away and exposes a red Delete button (physical right edge
+//    on purpose: dragging left always reveals what's at the right, in LTR and RTL)
+//  • long press  → bottom sheet: Copy / Print / Delete
+//  • Delete (either way) asks for confirmation — notes have no trash/undo
+//  • locked notes: Copy / Print / Delete first ask for the notes PIN, like opening them
+let _nsw=null;            // gesture in progress
+let _nswOpen=null;        // .qn-swipe currently swiped open
+let _nswSuppressClick=0;  // swallow the click that follows a swipe / long-press
+const _NSW_W=92, _NSW_LP=480;
+function _notesWireList(){
+  const ov=document.getElementById('notesPageOverlay');
+  if(!ov || ov._nswWired) return;
+  ov._nswWired=true;
+  ov.addEventListener('pointerdown',_nswDown);
+  ov.addEventListener('pointermove',_nswMove);
+  ov.addEventListener('pointerup',_nswUp);
+  ov.addEventListener('pointercancel',_nswCancel);
+  ov.addEventListener('contextmenu',e=>{
+    const wrap=e.target.closest && e.target.closest('.qn-swipe');
+    if(!wrap) return;
+    e.preventDefault();
+    if(_nsw){ clearTimeout(_nsw.timer); _nsw=null; }
+    if(Date.now()>=_nswSuppressClick){ _nswSuppressClick=Date.now()+700; _notesOpenRowMenu(wrap.dataset.id); }
+  });
+  ov.addEventListener('click',e=>{
+    if(Date.now()<_nswSuppressClick){ e.stopPropagation(); e.preventDefault(); return; }
+    const wrap=e.target.closest && e.target.closest('.qn-swipe');
+    if(e.target.closest && e.target.closest('.qn-swipe-del')) return;
+    if(_nswOpen){
+      const same=(wrap===_nswOpen);
+      _nswClose();
+      if(wrap){ e.stopPropagation(); e.preventDefault(); }   // tap on a row while one is open just closes it
+      else if(same){ /* unreachable */ }
+    }
+  },true);
+}
+function _nswClose(){
+  if(_nswOpen){ _nswOpen.classList.remove('open'); _nswOpen=null; }
+}
+function _nswDown(e){
+  if(e.pointerType==='mouse' && e.button!==0) return;
+  const wrap=e.target.closest && e.target.closest('.qn-swipe');
+  if(!wrap || e.target.closest('.qn-swipe-del')) return;
+  _nsw={wrap,row:wrap.querySelector('.qn-row'),id:wrap.dataset.id,pid:e.pointerId,x0:e.clientX,y0:e.clientY,
+        base:(wrap===_nswOpen)?-_NSW_W:0,dx:(wrap===_nswOpen)?-_NSW_W:0,mode:'',timer:null};
+  _nsw.timer=setTimeout(()=>{
+    if(!_nsw || _nsw.mode) return;
+    const id=_nsw.id;
+    _nsw=null;
+    _nswSuppressClick=Date.now()+700;
+    try{ if(navigator.vibrate) navigator.vibrate(12); }catch(_){}
+    _notesOpenRowMenu(id);
+  },_NSW_LP);
+}
+function _nswMove(e){
+  if(!_nsw || e.pointerId!==_nsw.pid) return;
+  const dx=e.clientX-_nsw.x0, dy=e.clientY-_nsw.y0;
+  if(!_nsw.mode && (Math.abs(dx)>8 || Math.abs(dy)>8)){
+    clearTimeout(_nsw.timer);
+    if(Math.abs(dx)>Math.abs(dy)+2){
+      _nsw.mode='swipe';
+      if(_nswOpen && _nswOpen!==_nsw.wrap) _nswClose();
+      _nsw.wrap.classList.add('dragging');
+    } else {
+      _nsw.mode='scroll';      // vertical: the browser scrolls the list
+    }
+  }
+  if(_nsw.mode==='swipe'){
+    const x=Math.max(-_NSW_W-24,Math.min(0,_nsw.base+dx));
+    _nsw.dx=x;
+    _nsw.row.style.transform=`translateX(${x}px)`;
+  }
+}
+function _nswUp(e){
+  if(!_nsw || e.pointerId!==_nsw.pid) return;
+  clearTimeout(_nsw.timer);
+  const s=_nsw; _nsw=null;
+  if(s.mode!=='swipe') return;
+  _nswSuppressClick=Date.now()+350;
+  s.wrap.classList.remove('dragging');
+  s.row.style.transform='';
+  if(s.dx < -_NSW_W/2){ s.wrap.classList.add('open'); _nswOpen=s.wrap; }
+  else { s.wrap.classList.remove('open'); if(_nswOpen===s.wrap) _nswOpen=null; }
+}
+function _nswCancel(e){
+  if(!_nsw || e.pointerId!==_nsw.pid) return;
+  clearTimeout(_nsw.timer);
+  const s=_nsw; _nsw=null;
+  if(s.mode==='swipe'){ s.wrap.classList.remove('dragging'); s.row.style.transform=''; }
+}
+
+// Locked notes: same PIN check as opening one, before anything is read/removed.
+function _notesRowUnlock(n,then){
+  if(!n.locked){ then(); return; }
+  _notesPromptPin(L('Enter Notes Password','ادخل كلمة سر الملاحظات'), L('This note is locked','هذه الملاحظة مقفلة'), async (pin) => {
+    const hash = await _notesHashPin(pin);
+    let stored = null;
+    try{ stored = localStorage.getItem(NOTES_LOCK_HASH_KEY); }catch(e){}
+    if(hash && stored && hash === stored){
+      document.getElementById('modalOverlay').style.display='none';
+      then();
+    } else {
+      const err = document.getElementById('qnPinError');
+      if(err) err.style.display = 'block';
+    }
+  });
+}
+function _notesOpenRowMenu(id){
+  const n=_notesLoad().find(x=>x.id===id);
+  if(!n) return;
+  _nswClose();
+  const title=_notesTitleAndPreview(n).title || L('New Note','ملاحظة جديدة');
+  const row=(icon,en,ar,fn,danger)=>`<div class="qn-style-row${danger?' qn-danger':''}" onclick="${fn}"><span class="qn-style-row-label" style="display:flex;align-items:center;gap:10px"><span class="qn-more-row-icon">${ic(icon,18)}</span>${L(en,ar)}</span></div>`;
+  document.getElementById('modalContent').innerHTML=`
+    <div class="modal-handle"></div>
+    <div class="qn-row-menu-title">${n.locked?ic('lock',14)+' ':''}${esc(title)}</div>
+    <div class="stt-card">
+      ${row('copy','Copy','نسخ',`closeModal();_notesRowCopy('${id}')`)}
+      ${row('print','Print','طباعة',`closeModal();_notesRowPrint('${id}')`)}
+    </div>
+    <div class="stt-card" style="margin-top:10px">
+      ${row('trash','Delete','مسح',`_notesRowDelete('${id}')`,true)}
+    </div>`;
+  document.getElementById('modalOverlay').style.display='flex';
+}
+function _notesSwipeDelete(id){ _notesRowDelete(id); }
+function _notesRowDelete(id){
+  const n=_notesLoad().find(x=>x.id===id);
+  if(!n) return;
+  _notesRowUnlock(n,()=>{
+    const label=_notesTitleAndPreview(n).title || L('New Note','ملاحظة جديدة');
+    showConfirm(L(`Delete "${label}"?`,`مسح "${label}"؟`),()=>{
+      _notesSave(_notesLoad().filter(x=>x.id!==id));
+      if(_notesCurrentId===id) _notesCurrentId=null;
+      _nswOpen=null;
+      renderNotesList();
+      showToast(L('Note deleted','تم مسح الملاحظة'),'success');
+    });
+  });
+}
+// Note → plain text in the same shape the smart paste reads back:
+// title lines, "- [ ] / - [x]" checklists, "- " bullets, "1. " numbers.
+function _notesToText(n){
+  const tmp=document.createElement('div');
+  tmp.innerHTML=n.bodyHTML||'';
+  const out=[];
+  const own=(n.title||'').trim();
+  if(own){ out.push(own,''); }
+  const blank=()=>{ if(out.length && out[out.length-1]!=='') out.push(''); };
+  const txt=el=>{
+    const c=el.cloneNode(true);
+    c.querySelectorAll('.qn-chk-box').forEach(x=>x.remove());
+    return _notesPlainText(c);
+  };
+  const isBlock=el=>el.nodeType===1 && /^(DIV|P|H1|H2|H3|UL|OL|TABLE|BLOCKQUOTE)$/.test(el.tagName);
+  const walk=parent=>{
+    parent.childNodes.forEach(el=>{
+      if(el.nodeType===3){ const t=el.textContent.replace(/\u200B/g,'').trim(); if(t) out.push(t); return; }
+      if(el.nodeType!==1) return;
+      const tag=el.tagName;
+      if(/^H[1-3]$/.test(tag)){ const t=txt(el); if(t){ blank(); out.push(t); } }
+      else if(el.classList.contains('qn-chk')){ out.push(`- [${el.classList.contains('checked')?'x':' '}] ${txt(el)}`.trimEnd()); }
+      else if(tag==='UL'){ el.querySelectorAll(':scope > li').forEach(li=>out.push('- '+txt(li))); }
+      else if(tag==='OL'){ let i=1; el.querySelectorAll(':scope > li').forEach(li=>out.push((i++)+'. '+txt(li))); }
+      else if(tag==='TABLE'){ el.querySelectorAll('tr').forEach(tr=>out.push([...tr.children].map(c=>txt(c)).join(' | '))); }
+      else if(isBlock(el) && [...el.children].some(isBlock)){ walk(el); }
+      else { const t=txt(el); if(t) out.push(t); }
+    });
+  };
+  walk(tmp);
+  return out.join('\n').replace(/\n{3,}/g,'\n\n').trim();
+}
+async function _notesCopyText(t){
+  try{ if(navigator.clipboard && window.isSecureContext){ await navigator.clipboard.writeText(t); return true; } }catch(e){}
+  try{
+    const ta=document.createElement('textarea');
+    ta.value=t; ta.readOnly=true;
+    ta.style.cssText='position:fixed;top:0;left:0;opacity:0;pointer-events:none';
+    document.body.appendChild(ta);
+    ta.select(); ta.setSelectionRange(0,ta.value.length);
+    const ok=document.execCommand('copy');
+    ta.remove();
+    return ok;
+  }catch(e){ return false; }
+}
+function _notesRowCopy(id){
+  const n=_notesLoad().find(x=>x.id===id);
+  if(!n) return;
+  _notesRowUnlock(n,async()=>{
+    const ok=await _notesCopyText(_notesToText(n));
+    showToast(ok?L('Note copied','تم نسخ الملاحظة'):L('Could not copy','تعذر النسخ'),ok?'success':'error');
+  });
+}
+// Print via a hidden iframe so only the note is printed (not the app behind it).
+function _notesPrintHTML(n){
+  const own=(n.title||'').trim();
+  const tmp=document.createElement('template');
+  tmp.innerHTML=n.bodyHTML||'';
+  const frag=tmp.content;
+  frag.querySelectorAll('script,style,iframe,object,embed,link,meta,base').forEach(x=>x.remove());
+  frag.querySelectorAll('*').forEach(x=>{
+    [...x.attributes].forEach(a=>{
+      if(/^on/i.test(a.name) || (/^(href|src)$/i.test(a.name) && /^\s*javascript:/i.test(a.value))) x.removeAttribute(a.name);
+    });
+  });
+  const holder=document.createElement('div');
+  holder.appendChild(frag);
+  const plain=(own+' '+(holder.textContent||''));
+  const ar=(plain.match(/[\u0600-\u06FF\u0750-\u077F]/g)||[]).length, la=(plain.match(/[A-Za-z]/g)||[]).length;
+  const dir=ar>=la?'rtl':'ltr';
+  return `<!doctype html><html dir="${dir}"><head><meta charset="utf-8"><title>${esc(own||_notesTitleAndPreview(n).title||'Note')}</title><style>
+    @page{margin:16mm}
+    *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    body{margin:0;font:16px/1.7 -apple-system,BlinkMacSystemFont,'Segoe UI',Tahoma,'Noto Naskh Arabic',sans-serif;color:#111}
+    .t{font-size:28px;font-weight:800;margin:0 0 14px}
+    h1{font-size:26px;margin:18px 0 8px}h2{font-size:21px;margin:16px 0 6px}h3{font-size:18px;margin:14px 0 4px}
+    .qn-chk{display:flex;align-items:flex-start;gap:10px;margin:4px 0}
+    .qn-chk-box{flex:none;width:16px;height:16px;border:1.5px solid #555;border-radius:50%;margin-top:6px;display:inline-block;box-sizing:border-box}
+    .qn-chk.checked .qn-chk-box{background:#12724f;border-color:#12724f;box-shadow:inset 0 0 0 3px #fff}
+    .qn-chk.checked .qn-chk-text{text-decoration:line-through;color:#666}
+    ul,ol{margin:6px 0;padding-inline-start:26px}
+    img{max-width:100%}
+    table{border-collapse:collapse}td,th{border:1px solid #999;padding:4px 8px}
+  </style></head><body>${own?`<div class="t">${esc(own)}</div>`:''}${holder.innerHTML}</body></html>`;
+}
+function _notesRowPrint(id){
+  const n=_notesLoad().find(x=>x.id===id);
+  if(!n) return;
+  _notesRowUnlock(n,()=>{
+    try{
+      const f=document.createElement('iframe');
+      f.setAttribute('aria-hidden','true');
+      f.style.cssText='position:fixed;right:0;bottom:0;width:0;height:0;border:0;visibility:hidden';
+      document.body.appendChild(f);
+      const d=f.contentDocument;
+      d.open(); d.write(_notesPrintHTML(n)); d.close();
+      const cleanup=()=>{ try{ f.remove(); }catch(_){} };
+      setTimeout(()=>{
+        try{
+          f.contentWindow.onafterprint=cleanup;
+          f.contentWindow.focus();
+          f.contentWindow.print();
+        }catch(err){ _logErr('_notesRowPrint',err); cleanup(); }
+        setTimeout(cleanup,120000);
+      },350);
+    }catch(err){ _logErr('_notesRowPrint',err); showToast(L('Could not print','تعذرت الطباعة'),'error'); }
+  });
+}
+
 // ── List view ─────────────────────────────────────────────────────────────
 function renderNotesList(){
   const list = _notesSorted();
   const allFolders = _notesFoldersLoad();
+  _nswOpen = null;
   const rowsHtml = list.length ? list.map(n => `
+    <div class="qn-swipe" data-id="${n.id}">
+    <button type="button" class="qn-swipe-del" onclick="_notesSwipeDelete('${n.id}')" aria-label="${L('Delete','مسح')}">${ic('trash',18)}<span>${L('Delete','مسح')}</span></button>
     <div class="qn-row" onclick="openNoteEditor('${n.id}')" role="button" tabindex="0">
       ${n.pinned ? `<svg class="qn-pin-dot" width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2c-.6 0-1 .4-1 1v6.2L7.6 12.4c-.4.3-.6.8-.6 1.3v1.3c0 .5.4 1 1 1h3v6l1 2 1-2v-6h3c.6 0 1-.5 1-1v-1.3c0-.5-.2-1-.6-1.3L13 9.2V3c0-.6-.4-1-1-1z"/></svg>` : ''}
       <div style="flex:1;min-width:0">
@@ -32781,6 +33050,7 @@ function renderNotesList(){
         <div class="qn-row-preview">${n.locked ? `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align:-1px;margin-inline-end:3px"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>${L('Locked','مقفلة')}` : (esc(_notesTitleAndPreview(n).preview) || L('No additional text','لا يوجد نص إضافي'))}</div>
       </div>
       <div class="qn-row-date">${new Date(n.updatedAt||n.createdAt).toLocaleDateString(_dtLocale('en-US'),{month:'short',day:'numeric'})}</div>
+    </div>
     </div>`).join('') : `<div class="qn-empty">${_notesSearchQuery ? L('No results.','لا نتائج.') : L('No notes yet — tap + to add one.','لا توجد ملاحظات بعد — اضغط + للإضافة.')}</div>`;
 
   document.getElementById('notesPageOverlay').innerHTML = `
@@ -32802,6 +33072,7 @@ function renderNotesList(){
       ${allFolders.map(f => `<button type="button" class="qn-folder-chip${_notesActiveFolder===f.id?' active':''}" onclick="_notesSwitchFolder('${f.id}')">${esc(f.name)}</button>`).join('')}
     </div>
     <div class="qn-list">${rowsHtml}</div>`;
+  _notesWireList();
 }
 function createNewNote(){
   const list = _notesLoad();
