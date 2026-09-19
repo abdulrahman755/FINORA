@@ -2627,10 +2627,11 @@ tr.row-selected td{background:var(--green-tint)}
 .bnk-custom-logo-caption{font-size:calc(10.5px*var(--app-text-scale,1));color:var(--muted);font-weight:700;margin-bottom:9px}
 .bnk-custom-logo-actions{display:flex;align-items:center;gap:8px}
 .bnk-custom-logo-preview{
-  width:36px;height:36px;border-radius:11px;background:var(--surface2);
+  width:36px;height:36px;border-radius:22%;background:var(--surface2);
   display:flex;align-items:center;justify-content:center;color:var(--muted);
   flex-shrink:0;overflow:hidden;border:1.5px solid var(--border);
 }
+.bnk-custom-logo-preview .bl-img{box-shadow:none}
 .bnk-custom-logo-btn{
   height:36px;padding:0 13px;border-radius:99px;border:1.5px solid var(--border);
   background:var(--surface2);display:flex;align-items:center;gap:6px;color:var(--muted);
@@ -3617,6 +3618,24 @@ tr.row-selected td{background:var(--green-tint)}
 }
 .miora-chip:active{background:var(--surface3)}
 .miora-chip:focus-visible{outline:var(--focus-ring-width,2px) solid var(--focus-ring-color,var(--green));outline-offset:1px}
+
+/* Action cards — MIORA confirms before it changes interest / transfer-fee
+   settings, then offers Undo. Uses only existing design tokens. */
+.miora-act{display:flex;flex-direction:column;gap:7px;min-width:0}
+.miora-act-title{font-weight:900;color:var(--text);font-size:calc(12.5px*var(--app-text-scale,1))}
+.miora-act-row{display:flex;flex-direction:column;align-items:flex-start;gap:3px;padding:8px 10px;background:var(--surface);border:1px solid var(--border);border-radius:10px}
+.miora-act-bank{font-weight:800;color:var(--text);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.miora-act-vals{font-weight:700;color:var(--muted);font-size:calc(11px*var(--app-text-scale,1));line-height:1.6}
+.miora-act-vals b{color:var(--green);font-weight:900}
+.miora-act-note{font-size:calc(11px*var(--app-text-scale,1));color:var(--muted);font-weight:600;line-height:1.55}
+.miora-act-btns{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.miora-act-btn{border:1px solid var(--border);background:var(--surface);color:var(--text2);border-radius:var(--radius-pill,999px);padding:6px 14px;font-size:calc(11.5px*var(--app-text-scale,1));font-weight:800;cursor:pointer}
+.miora-act-btn.primary{background:var(--green);border-color:transparent;color:#fff}
+.miora-act-btn:active{transform:scale(.96)}
+.miora-act-btn:focus-visible{outline:var(--focus-ring-width,2px) solid var(--focus-ring-color,var(--green));outline-offset:2px}
+.miora-act-status{font-weight:800;color:var(--green);font-size:calc(11.5px*var(--app-text-scale,1))}
+.miora-act-status.off{color:var(--muted)}
+.miora-act-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
 
 .miora-inputrow{
   display:flex;align-items:center;gap:8px;
@@ -11849,7 +11868,7 @@ function renderBankDashboard(m){
     const accentColor = b.accentColor||b.color||'#0f7a55';
     const _logoSrc1=getBankLogoSrc(b);
     const logoHTML = _logoSrc1
-      ? `<img src="${_logoSrc1}" alt="${esc(b.name)}" style="width:28px;height:28px;border-radius:${b.isWallet?'50%':'8px'};flex-shrink:0">`
+      ? bankLogoHTML(_logoSrc1, 28, {alt:b.name, accent:accentColor})
       : `<div style="width:28px;height:28px;background:${accentColor}22;color:${accentColor};display:flex;align-items:center;justify-content:center;border-radius:var(--radius-xs);flex-shrink:0">${b.logo||ic('bank', 16, 'aria-hidden="true"')}</div>`;
     return `<div style="display:flex;align-items:center;gap:var(--sp3);padding:9px 16px;border-bottom:1px solid var(--border)">
       ${logoHTML}
@@ -12003,7 +12022,7 @@ function renderBankSummaryCompactV3(m){
     const accentColor = b.accentColor||b.color||'#0f7a55';
     const _logoSrc2=getBankLogoSrc(b);
     const logoHTML = _logoSrc2
-      ? `<img src="${_logoSrc2}" alt="${esc(b.name)}" style="width:26px;height:26px;border-radius:${b.isWallet?'50%':'8px'};flex-shrink:0">`
+      ? bankLogoHTML(_logoSrc2, 26, {alt:b.name, accent:accentColor})
       : `<div style="width:26px;height:26px;background:${accentColor}22;color:${accentColor};display:flex;align-items:center;justify-content:center;border-radius:var(--radius-xs);flex-shrink:0">${b.logo||ic('bank', 14, 'aria-hidden="true"')}</div>`;
     return `<div style="display:flex;align-items:center;gap:var(--sp3);padding:7px 0">
       ${logoHTML}
@@ -20278,6 +20297,190 @@ let bankCustomLogos={};
 try{ const r=localStorage.getItem(BANK_CUSTOM_LOGOS_KEY); if(r) bankCustomLogos=JSON.parse(r); }catch(e){_logErr('bankCustomLogos:read',e);}
 function persistBankLogos(){ try{localStorage.setItem(BANK_CUSTOM_LOGOS_KEY,JSON.stringify(bankCustomLogos));}catch(e){_logErr('persistBankLogos:setItem',e);} }
 function getBankLogoSrc(b){ return bankCustomLogos[b.key] || b.logoSrc || ''; }
+// ══════════════════════════════════════════════════════════════════════════
+// LogoNorm — one consistent look for every bank / wallet logo.
+//
+// Every logo (uploaded PNG/JPG, transparent or opaque, wide or square,
+// full-bleed colored tile or logo-on-white) is auto-trimmed of its own
+// margins and re-composited into the SAME tile: identical size, identical
+// squircle corner radius, identical inner padding — the "app icon" look of
+// the HSBC reference tile. Non-destructive: the original image is never
+// modified (Change Logo / Reset still work); the normalized version is a
+// cached render of it. App-generated monogram badges are already uniform and
+// are only re-shaped (wallet circles → squircle) so wallets match banks.
+// ══════════════════════════════════════════════════════════════════════════
+const LogoNorm = (function(){
+  const OUT = 192;                 // tile pixels (crisp up to ~64px @3x)
+  const RADIUS = 0.22;             // squircle corner radius, as tile fraction
+  const BOX_W = 0.76, BOX_H = 0.68; // logo's max share of the tile (≈ HSBC reference)
+  const CACHE_KEY = 'wdp_logo_norm_v2';
+  const CACHE_MAX = 48;
+  let cache = {};
+  try{ cache = JSON.parse(localStorage.getItem(CACHE_KEY)||'{}') || {}; }catch(e){ cache = {}; }
+  const mem = {};                  // hash → normalized data URL (or 'FAIL')
+  const inflight = {};
+
+  function keyOf(src){
+    const s = String(src||''); const n = s.length; if(!n) return '';
+    const step = Math.max(1, Math.floor(n/3000)); let h = 5381;
+    for(let i=0;i<n;i+=step) h = ((h<<5)+h+s.charCodeAt(i))|0;
+    return (h>>>0).toString(36)+'_'+n.toString(36);
+  }
+  // App-generated monogram badges (bankLogoRichSVG / walletLogoSVG) are already
+  // a uniform 40×40 tile; only the old wallet CIRCLE needs reshaping.
+  function native(src){
+    if(typeof src!=='string' || src.indexOf('data:image/svg+xml;base64,')!==0) return null;
+    try{
+      const svg = atob(src.slice(26));
+      if(svg.indexOf('viewBox="0 0 40 40"')===-1) return null;
+      if(svg.indexOf('rx="20"')!==-1){
+        const fixed = svg.replace(/rx="20"/g,'rx="9"').replace(/<circle[^>]*r="19"[^>]*\/>/,'');
+        return 'data:image/svg+xml;base64,'+btoa(fixed);
+      }
+      return src;
+    }catch(e){ return null; }
+  }
+  function dist(a,b){ const r=a[0]-b[0], g=a[1]-b[1], bl=a[2]-b[2]; return Math.sqrt(r*r+g*g+bl*bl); }
+  function rr(g,x,y,w,h,r){
+    g.beginPath();
+    g.moveTo(x+r,y); g.lineTo(x+w-r,y); g.quadraticCurveTo(x+w,y,x+w,y+r);
+    g.lineTo(x+w,y+h-r); g.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+    g.lineTo(x+r,y+h); g.quadraticCurveTo(x,y+h,x,y+h-r);
+    g.lineTo(x,y+r); g.quadraticCurveTo(x,y,x+r,y); g.closePath();
+  }
+  function process(img, fallback){
+    let nw = img.naturalWidth||img.width, nh = img.naturalHeight||img.height;
+    if(!nw || !nh){ nw = nh = 256; }
+    const k = Math.min(1, 256/Math.max(nw,nh));
+    const W = Math.max(1,Math.round(nw*k)), H = Math.max(1,Math.round(nh*k));
+    const c = document.createElement('canvas'); c.width=W; c.height=H;
+    const x = c.getContext('2d',{willReadFrequently:true});
+    x.drawImage(img,0,0,W,H);
+    const d = x.getImageData(0,0,W,H).data;
+    const at = (px,py)=>{ const i=(py*W+px)*4; return [d[i],d[i+1],d[i+2],d[i+3]]; };
+    // 1) what is the background? sample the outer 2px ring
+    let tr=0, cols=[];
+    const ring=(px,py)=>{ const p=at(px,py); if(p[3]<20) tr++; else cols.push(p); };
+    for(let t=0;t<2;t++){
+      for(let px=0;px<W;px++){ ring(px,t); ring(px,H-1-t); }
+      for(let py=1;py<H-1;py++){ ring(t,py); ring(W-1-t,py); }
+    }
+    const total = tr+cols.length;
+    let mode='complex', bg=null;
+    if(tr/total>=0.85) mode='transparent';
+    else if(cols.length/total>=0.5){
+      const med=[0,1,2].map(ch=>{ const a=cols.map(p=>p[ch]).sort((m,n)=>m-n); return a[a.length>>1]; });
+      const near = cols.filter(p=>dist(p,med)<48).length/cols.length;
+      if(near>=0.75){ mode='solid'; bg=med; }
+    }
+    // 2) where is the actual logo? (everything that isn't background)
+    let x0=W,y0=H,x1=-1,y1=-1, colCnt=new Array(W).fill(0), rowCnt=new Array(H).fill(0);
+    let lumSum=0, lumN=0, satSum=0;
+    if(mode==='complex'){ x0=0;y0=0;x1=W-1;y1=H-1; }
+    else{
+      for(let py=0;py<H;py++) for(let px=0;px<W;px++){
+        const i=(py*W+px)*4, a=d[i+3]; if(a<40) continue;
+        const col=[d[i],d[i+1],d[i+2]];
+        if(mode==='solid' && dist(col,bg)<=64) continue;
+        colCnt[px]++; rowCnt[py]++;
+        lumSum += 0.299*col[0]+0.587*col[1]+0.114*col[2]; satSum += Math.max(col[0],col[1],col[2])-Math.min(col[0],col[1],col[2]); lumN++;
+      }
+      for(let px=0;px<W;px++) if(colCnt[px]>=2){ if(px<x0)x0=px; if(px>x1)x1=px; }
+      for(let py=0;py<H;py++) if(rowCnt[py]>=2){ if(py<y0)y0=py; if(py>y1)y1=py; }
+      if(x1<x0 || y1<y0 || (x1-x0)<W*0.03 || (y1-y0)<H*0.03){ x0=0;y0=0;x1=W-1;y1=H-1; }
+    }
+    // 2b) is the image ALREADY an app-icon tile (near-square, rounded corners,
+    //     ~fully opaque inside — like the HSBC reference)? Then use it as the tile.
+    let asTile = false;
+    if(mode==='transparent' && x1>x0 && y1>y0){
+      const bw=x1-x0+1, bh=y1-y0+1, asp=bw/bh;
+      if(asp>0.85 && asp<1.18){
+        let solid=0; for(let py=y0;py<=y1;py++) for(let px=x0;px<=x1;px++) if(d[(py*W+px)*4+3]>=180) solid++;
+        const ci=Math.max(1,Math.round(Math.min(bw,bh)*0.05));
+        const corner=(px,py)=>d[(py*W+px)*4+3]<90;
+        const cornersRound = corner(x0+ci,y0+ci) && corner(x1-ci,y0+ci) && corner(x0+ci,y1-ci) && corner(x1-ci,y1-ci);
+        if(solid/(bw*bh)>=0.88 && cornersRound) asTile = true;
+      }
+    }
+    // 3) tile color — seamless with the image's own background
+    let fill1='#ffffff', fill2='#ffffff';
+    if(mode==='solid'){ fill1=fill2='rgb('+bg[0]+','+bg[1]+','+bg[2]+')'; }
+    else if(mode==='transparent' && lumN && !asTile){
+      if(lumSum/lumN>222 && satSum/lumN<26){ fill1=fill2 = fallback || '#1f2a37'; } // white-on-transparent logo needs a dark tile
+    }
+    // 4) compose the standard tile
+    const out = document.createElement('canvas'); out.width=OUT; out.height=OUT;
+    const g = out.getContext('2d');
+    rr(g,0,0,OUT,OUT,OUT*RADIUS);
+    const grad = g.createLinearGradient(0,0,0,OUT); grad.addColorStop(0,fill1); grad.addColorStop(1,fill2);
+    g.fillStyle = grad; g.fill();
+    const rx = nw/W, ry = nh/H;
+    const sx = x0*rx, sy = y0*ry, sw = (x1-x0+1)*rx, sh = (y1-y0+1)*ry;
+    g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';
+    if(asTile){
+      g.save(); rr(g,0,0,OUT,OUT,OUT*RADIUS); g.clip();
+      g.drawImage(img, sx,sy,sw,sh, 0,0,OUT,OUT);
+      g.restore();
+    } else {
+      let s = Math.min(OUT*BOX_W/sw, OUT*BOX_H/sh); s = Math.min(s, 4);
+      const dw = sw*s, dh = sh*s;
+      g.drawImage(img, sx,sy,sw,sh, (OUT-dw)/2,(OUT-dh)/2, dw,dh);
+    }
+    return out.toDataURL('image/png');
+  }
+  function persist(){
+    try{
+      const ks = Object.keys(cache);
+      if(ks.length>CACHE_MAX) ks.slice(0,ks.length-CACHE_MAX).forEach(k=>delete cache[k]);
+      localStorage.setItem(CACHE_KEY, JSON.stringify(cache));
+    }catch(e){ try{ cache={}; localStorage.removeItem(CACHE_KEY); }catch(_){} }
+  }
+  function applyToDom(h, out){
+    try{
+      document.querySelectorAll('img[data-ln="'+h+'"]').forEach(el=>{
+        el.src = out; el.style.padding='0'; el.style.background='transparent'; el.style.objectFit='fill'; el.classList.add('bl-done');
+      });
+    }catch(e){}
+  }
+  // → normalized data URL if ready, else null (and starts the job; matching
+  //   <img data-ln> elements in the DOM are swapped when it finishes).
+  function get(src, fallback){
+    if(!src) return null;
+    const h = keyOf(src);
+    if(mem[h]) return mem[h]==='FAIL' ? null : mem[h];
+    if(cache[h]){ mem[h]=cache[h]; return mem[h]; }
+    if(inflight[h]) return null;
+    inflight[h]=true;
+    const im = new Image();
+    if(/^https?:/i.test(src)) im.crossOrigin='anonymous';
+    im.onload = ()=>{
+      try{
+        const out = process(im, fallback);
+        mem[h]=out; cache[h]=out; persist(); applyToDom(h,out);
+      }catch(e){ mem[h]='FAIL'; if(typeof _logErr==='function') _logErr('LogoNorm', e); }
+      delete inflight[h];
+    };
+    im.onerror = ()=>{ mem[h]='FAIL'; delete inflight[h]; };
+    im.src = src;
+    return null;
+  }
+  return { get:get, native:native, keyOf:keyOf, _process:process };
+})();
+
+// One <img> for any bank/wallet logo — same size, radius and padding everywhere.
+// Before the normalized render is ready it shows the original inside a white
+// padded tile (already close), then swaps in place with no re-render.
+function bankLogoHTML(srcOrBank, size, opt){
+  opt = opt||{};
+  const src = typeof srcOrBank==='string' ? srcOrBank : getBankLogoSrc(srcOrBank);
+  if(!src) return '';
+  const done = LogoNorm.native(src) || LogoNorm.get(src, opt.accent);
+  const pad = Math.round(size*0.13);
+  const base = 'width:'+size+'px;height:'+size+'px;border-radius:22%;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,.22);';
+  const style = done ? base+'object-fit:fill' : base+'object-fit:contain;background:#fff;box-sizing:border-box;padding:'+pad+'px';
+  return `<img class="bl-img${done?' bl-done':''}" data-ln="${LogoNorm.keyOf(src)}" src="${done||src}" alt="${esc(opt.alt||'')}" style="${style}">`;
+}
+
 
 // ── Bank Interest Settings ────────────────────────────────────────────────────
 const BANK_INTEREST_KEY='wdp_bank_interest_v1';
@@ -21101,8 +21304,8 @@ function openBankLogoChanger(key){
 
     <div style="display:grid;gap:var(--sp4);margin-top:4px">
       <div style="display:flex;flex-direction:column;align-items:center;gap:var(--sp3)">
-        <div id="blc-preview" style="width:72px;height:72px;border-radius:${shape};overflow:hidden;background:${accentColor}22;display:flex;align-items:center;justify-content:center;color:${accentColor};box-shadow:0 2px 10px ${accentColor}33">
-          ${curLogo?`<img src="${curLogo}" alt="" style="width:100%;height:100%;object-fit:cover">`:(b.logo||ic('bank',30))}
+        <div id="blc-preview" style="width:72px;height:72px;display:flex;align-items:center;justify-content:center;color:${accentColor}">
+          ${curLogo?bankLogoHTML(curLogo,72,{alt:'',accent:accentColor}):(b.logo||ic('bank',30))}
         </div>
         <div style="font-size:calc(10.5px*var(--app-text-scale,1));color:var(--muted);text-align:center">${L('Upload a square PNG/JPG logo (max 500KB)','ارفع لوجو مربع PNG/JPG (٥٠٠ كيلوبايت كحد أقصى)')}</div>
       </div>
@@ -21134,7 +21337,7 @@ function bankChangeLogoUpload(inputEl){
   reader.onload = ()=>{
     _pendingBankLogo = reader.result;
     const preview = document.getElementById('blc-preview');
-    if(preview) preview.innerHTML = `<img src="${reader.result}" alt="" style="width:100%;height:100%;object-fit:cover">`;
+    if(preview) preview.innerHTML = bankLogoHTML(reader.result,72,{alt:''});
   };
   reader.onerror = ()=>{ showToast(L('⚠️ Could not read image','⚠️ تعذّرت قراءة الصورة'),'warn'); };
   reader.readAsDataURL(file);
@@ -21980,7 +22183,7 @@ function renderBanks(m){
     const isWallet=b.isWallet||false;
     const _logoSrc=getBankLogoSrc(b);
     const logoHTML = _logoSrc
-      ? `<img src="${_logoSrc}" alt="${esc(b.name)}" style="width:46px;height:46px;border-radius:${isWallet?'50%':'12px'};flex-shrink:0;box-shadow:0 2px 8px ${accentColor}44">`
+      ? bankLogoHTML(_logoSrc, 46, {alt:b.name, accent:accentColor})
       : `<div class="bank-logo-icon" style="background:${b.color}22;color:${b.color};overflow:hidden">${brandOrFallbackHTML(b.name, 46, b.logo||ic('bank',22))}</div>`;
 
     // Redesign-only: aggregate this bank's dep/with into the Analytics
@@ -22311,7 +22514,7 @@ function _handleOutsideLogoUpload(inputEl, setter, previewId, onPicked){
   reader.onload = ()=>{
     setter(reader.result);
     const preview = document.getElementById(previewId);
-    if(preview) preview.innerHTML = `<img src="${reader.result}" alt="" style="width:100%;height:100%;object-fit:cover">`;
+    if(preview) preview.innerHTML = bankLogoHTML(reader.result,36,{alt:''});
     onPicked();
   };
   reader.onerror = ()=>{ showToast(L('⚠️ Could not read image','⚠️ تعذّرت قراءة الصورة'),'warn'); };
@@ -23825,6 +24028,9 @@ function exportBackup() {
         banksOrder:  banksOrder,
         // ── Added in v2.2: previously-omitted data families (see storage audit) ──
         bankInterestSettings: bankInterestSettings,
+        // ── Added with MIORA action layer ──
+        bankFeeOverrides:     bankFeeOverrides,
+        countryRateData:      countryRateData,
         savings:              SAVINGS,
         timeline:             TL_ITEMS,
         reminders:            REMINDERS,
@@ -24029,6 +24235,8 @@ function _doRestore() {
       // files (v2.0/v2.1) simply won't have these keys, so each falls back to
       // its current in-memory value and is left untouched.
       bankInterestSettings = d.bankInterestSettings || bankInterestSettings;
+      bankFeeOverrides   = d.bankFeeOverrides    || bankFeeOverrides;
+      countryRateData    = d.countryRateData     || countryRateData;
       SAVINGS            = d.savings             || SAVINGS;
       TL_ITEMS           = d.timeline            || TL_ITEMS;
       // ── Added in v2.3 ──
@@ -24043,7 +24251,7 @@ function _doRestore() {
     }
     persistData(); persistCurrency(CURRENT_CURRENCY); persistBanks();
     persistHiddenBanks(); persistBankColors(); persistBanksOrder(); persistMonths();
-    persistBankInterest();
+    persistBankInterest(); persistBankFeeOverrides(); persistCountryRates();
     saveSavings(); tlSave();
     saveReminders(); savePlanner();
     if(typeof SoundManager!=='undefined') SoundManager.play(SoundManager.SOUND.DATA.RESTORE);
@@ -24279,6 +24487,21 @@ function getWalletFeeRule(bankKey){
 // otherwise it returns an explicit, honest "unknown" — never a borrowed
 // number from another country or provider.
 // ══════════════════════════════════════════════════════════════════════════
+// ── MIORA action layer storage ───────────────────────────────────────────────
+// bankFeeOverrides: per-account transfer-fee rule set through MIORA (or any
+//   future UI). Honoured by calcWalletFee() for the generic (non-ATM) path.
+//   { [bankKey]: { rule:{mode,rate,min,max,currency,...}, sourceCountry, setAt } }
+// countryRateData: per-country numbers the USER taught MIORA (never invented):
+//   { [CC]: { interestDefault:number, transferRule:{...rule in that country's currency} } }
+const BANK_FEE_OVERRIDE_KEY = 'wdp_bank_fee_overrides_v1';
+const COUNTRY_RATES_KEY     = 'wdp_country_rates_v1';
+let bankFeeOverrides = {};
+let countryRateData  = {};
+try{ const _bfo = localStorage.getItem(BANK_FEE_OVERRIDE_KEY); if(_bfo) bankFeeOverrides = JSON.parse(_bfo) || {}; }catch(e){ _logErr('bankFeeOverrides:read', e); }
+try{ const _crd = localStorage.getItem(COUNTRY_RATES_KEY); if(_crd) countryRateData = JSON.parse(_crd) || {}; }catch(e){ _logErr('countryRateData:read', e); }
+function persistBankFeeOverrides(){ try{ localStorage.setItem(BANK_FEE_OVERRIDE_KEY, JSON.stringify(bankFeeOverrides)); }catch(e){ _logErr('persistBankFeeOverrides', e); } }
+function persistCountryRates(){ try{ localStorage.setItem(COUNTRY_RATES_KEY, JSON.stringify(countryRateData)); }catch(e){ _logErr('persistCountryRates', e); } }
+
 const FeeEngine = {
   getRule({country, provider, operation}){
     operation = operation || 'transfer';
@@ -24299,8 +24522,11 @@ const FeeEngine = {
     return { mode:'unknown', supported:false, country, provider:provider||null };
   },
 
-  calculate({amount, country, provider, operation, currency, txType}){
-    const rule = this.getRule({country, provider, operation});
+  calculate({amount, country, provider, operation, currency, txType, ruleOverride}){
+    // ruleOverride (per-account rule set via MIORA) wins over country lookup.
+    const rule = ruleOverride
+      ? Object.assign({}, ruleOverride, { supported:true, ruleSource:'BANK_OVERRIDE', country, provider })
+      : this.getRule({country, provider, operation});
     if(!rule.supported){
       return { supported:false, fee:null, currency: currency||null, ruleSource:null, reason:'FEE_RULE_NOT_CONFIGURED' };
     }
@@ -24496,6 +24722,8 @@ function calcWalletFee(bankKey, amount, txType, withMethod){
   } else if(b){
     provider = '_bank';
   }
+  const _ovr = bankFeeOverrides[bankKey];
+  if(_ovr && _ovr.rule) return FeeEngine.calculate({ amount, country, provider, operation:'transfer', currency:bankCurrency, txType, ruleOverride:_ovr.rule });
   return FeeEngine.calculate({ amount, country, provider, operation:'transfer', currency:bankCurrency, txType });
 }
 
@@ -36736,7 +36964,7 @@ function renderBankReport(){
     const depPct    = (b.opening+b.deposits)>0 ? Math.min(100,Math.round((b.deposits/(b.opening+b.deposits))*100)) : 0;
     const withPct   = (b.opening+b.deposits)>0 ? Math.min(100,Math.round((b.withdrawals/(b.opening+b.deposits))*100)) : 0;
     const logoHTML  = b.logo
-      ? `<img src="${b.logo}" style="width:34px;height:34px;border-radius:${b.isWallet?'50%':'10px'};flex-shrink:0" alt="">`
+      ? bankLogoHTML(b.logo, 34, {alt:'', accent:b.color})
       : `<div style="width:34px;height:34px;border-radius:${b.isWallet?'50%':'10px'};background:${b.color}22;color:${b.color};display:flex;align-items:center;justify-content:center;font-size:calc(18px*var(--app-text-scale,1));flex-shrink:0;overflow:hidden">${brandOrFallbackHTML(b.name, 34, b.isWallet?ic('card',18):ic('bank',18))}</div>`;
 
     h+=`<div class="br-bank-card">
@@ -40332,6 +40560,7 @@ function _mioraBuildPrompt(userMessage, ctx, intent, history, confidence, helpMe
   L_.push('If the required information is not present in the context, say that the information is not currently available instead of guessing.');
   L_.push('Never fabricate numbers. Never assume a deleted or unavailable module exists.');
   L_.push('Never claim that an action was performed unless the application actually performed it.');
+  L_.push('You cannot change settings yourself in this reply. The app has a separate command layer that handles requests like "set the interest of bank X to N%" or "change the transfer fee of bank X to country Y\'s rate" (with a confirm step). If the user seems to want such a change but the request is incomplete or unclear, ask ONE short question for the missing piece (which account, which percentage, or which country) and do not say the change was made.');
   L_.push('Distinguish clearly between: (1) information visible in the application, (2) information inferred from the provided context, (3) general knowledge — and prefer (1) whenever it is available.');
   L_.push('For application-specific questions, prioritize the actual UI context above over the help metadata.');
   L_.push('Detected question type (reference only — do not template a reply around it): ' + intent + '. Confidence: ' + confidence.level + (confidence.reason ? ' (' + confidence.reason + ')' : '') + '.');
@@ -40377,12 +40606,751 @@ const MioraAIEngine = (function(){
 // inlined in mioraSend/_mioraRespond.
 const MioraConversationManager = (function(){
   function addUser(text){ _mioraLog.push({role:'user', html: esc(text)}); }
-  function addAssistant(html){
-    _mioraLog.push({role:'assistant', html: html});
+  function addAssistant(html, extra){
+    _mioraLog.push(Object.assign({role:'assistant', html: html}, extra||{}));
     if(_mioraLog.length>14) _mioraLog = _mioraLog.slice(-14);
   }
   return { addUser: addUser, addAssistant: addAssistant, recentHistory: _mioraRecentHistory };
 })();
+
+// ══════════════════════════════════════════════════════════════════════════
+// MioraActionEngine — MIORA can now DO things, not only explain them.
+//
+// Two families of commands, in Egyptian Arabic or English, that work with no
+// AI proxy (fully local, deterministic — the AI is never trusted to change
+// money settings):
+//
+//  1) INTEREST   "خلي فايدة بنك الراجحي 3.5%"  /  "set Al Rajhi interest to 3.5"
+//                "خلي فايدة بنك كذا حسب السعودية" (rate looked up by country)
+//  2) TRANSFER FEE  "غير نسبة التحويل لنسبة السعودية"  /  "خلي نسبة التحويل 0.5%
+//                بحد أدنى 1 وأقصى 10"  — when a rule from another country is
+//                applied, its min/max/flat amounts are CONVERTED into the
+//                account's currency using the app's existing FX rates.
+//
+// Safety rules (same philosophy as COUNTRY_PROFILES — never invent numbers):
+//  • Nothing is applied silently: every change shows a confirm card first
+//    (old → new), and can be undone afterwards.
+//  • If a country has no verified rate, MIORA says so and asks for the number
+//    instead of guessing; once given, it is saved as that country's default
+//    (countryRateData) so next time it happens automatically.
+//  • Per-bank fee overrides live in bankFeeOverrides and are honoured by
+//    calcWalletFee() — ATM-specific fees are untouched.
+// ══════════════════════════════════════════════════════════════════════════
+const MioraActionEngine = (function(){
+
+  // ── Text helpers ─────────────────────────────────────────────────────────
+  function ascii(s){
+    return String(s||'')
+      .replace(/[\u0660-\u0669]/g, d=>String(d.charCodeAt(0)-0x0660))
+      .replace(/[\u06F0-\u06F9]/g, d=>String(d.charCodeAt(0)-0x06F0))
+      .replace(/\u066B/g,'.').replace(/\u066A/g,'%').replace(/\u060C/g,',');
+  }
+  // Matching-only normalizer. Unlike _mioraNormalize it KEEPS digits, "." and
+  // "%" (needed to read rates) and does not strip "ال" (done per-token below).
+  function nrm(s){
+    return ascii(s).toLowerCase()
+      .replace(/[\u064B-\u0652\u0640]/g,'')
+      .replace(/[أإآ]/g,'ا').replace(/ة/g,'ه').replace(/ى/g,'ي').replace(/ئ/g,'ي').replace(/ؤ/g,'و')
+      .replace(/[^\p{L}\p{N}.%\s]/gu,' ')
+      .replace(/\./g,(m,off,str)=>(/\d/.test(str.charAt(off-1)) && /\d/.test(str.charAt(off+1))) ? '.' : ' ')
+      .replace(/\s+/g,' ').trim();
+  }
+  const PREFIXES = ['وال','بال','كال','فال','لل','ال','و','ب','ل','ك','ف'];
+  function variants(tok){
+    const out=[tok];
+    for(let i=0;i<PREFIXES.length;i++){
+      const p=PREFIXES[i];
+      if(tok.length>p.length+1 && tok.indexOf(p)===0) out.push(tok.slice(p.length));
+    }
+    return out;
+  }
+  const S = a => new Set(a);
+  function anyIn(tokens, set){ return tokens.some(tk=>variants(tk).some(v=>set.has(v))); }
+
+  const W_INTEREST = S(['فايده','فوايد','فايدت','فايدته','فايدتها','عايد','عوايد','interest','yield','apr','apy']);
+  const W_FEE      = S(['عموله','عمولات','عمولته','عمولتها','رسوم','commission','commissions','fee','fees','charge','charges']);
+  const W_RATE     = S(['نسبه','نسبته','نسبتها','معدل','مصاريف','مصروفات','rate','percentage','percent','pct']);
+  const W_TRANSFER = S(['تحويل','تحويله','تحويلات','تحويلها','transfer','transfers','سحب','withdraw','withdrawal','withdrawals','instapay','انستاباي']);
+  const W_TRANSFER_STRICT = S(['تحويل','تحويله','تحويلات','تحويلها','transfer','transfers','instapay','انستاباي']);
+  const W_VERB     = S(['غير','غيره','غيرها','غيرهم','غيرلي','اغير','تغير','تغيرلي','عدل','عدلي','عدللي','اعدل','تعدل','خلي','خليها','خليلي','اخلي','تخلي','تخليلي','حط','حطلي','احط','تحط','اضبط','ضبط','ظبط','اظبط','ظبطلي','تظبط','حول','حولها','حوللي','احول','تحول','بدل','ابدل','اعمل','اعملي','طبق','استخدم','set','change','make','update','switch','convert','apply','use','adjust','modify','put','edit','reset']);
+  const W_HOWQ     = S(['ازاي','كيف','how','طريقه','خطوات']);
+  const W_Q        = S(['ليه','لماذا','why','هل','يعني','معني','what','فين','where','امتي','when','ايه','كام']);
+  const W_ALL      = S(['كل','كله','كلهم','جميع','كافه','all','every','each']);
+  const W_RESET    = S(['افتراضي','default','defaults','reset','رجع','ارجع','رجعها','ارجعها','رجعلي','revert','restore','اصلي','اساسي','original']);
+  const W_RESET_VERB = S(['reset','رجع','ارجع','رجعها','ارجعها','رجعلي','revert','restore']);
+  const W_STOP     = S(['وقف','اوقف','الغي','الغ','شيل','امسح','ازل','stop','disable','remove','cancel','off']);
+  const W_FREE     = S(['مجاني','مجانا','مجانيه','free','بلاش','صفر','zero']);
+  const W_FLAT     = S(['ثابت','ثابته','flat','fixed']);
+  const W_MONTHLY  = S(['شهري','شهريه','monthly']);
+  const W_GENERIC_COUNTRY = S(['بلد','بلده','دوله','country']);
+  const W_YES      = S(['تمام','اه','ايوه','ايوا','yes','ok','okay','اوكي','نفذ','اكد','تاكيد','confirm','apply','طبق','ماشي','موافق','yep','yeah','sure']);
+  const W_NO       = S(['لا','no','cancel','الغي','الغاء','خلاص','سيبك','nevermind','stop']);
+  const MARKERS    = S(['زي','مثل','حسب','بحسب','نسبه','بنسبه','لنسبه','طبقا','وفق','نظام','معدل','بمعدل','لمعدل','like','as','according','per','based','same','of','in','في','علي','to','for','from','use','using']);
+  const STOP_TOK   = S(['بنك','مصرف','bank','banque','the','of','and','for','al','el','ال','intl','international','co','company','my','بتاع','بتاعي','بتاعه','بتاعت']);
+
+  // ── Countries ────────────────────────────────────────────────────────────
+  let _cAlias = null;
+  function countryAliases(){
+    if(_cAlias) return _cAlias;
+    const map = {};
+    const add=(code,a)=>{ const n=nrm(a); if(!n) return; map[n]=code; const st=n.replace(/^ال(?=.{3,})/,''); if(st) map[st]=code; };
+    (typeof BANK_COUNTRIES!=='undefined' ? BANK_COUNTRIES : []).forEach(c=>{ if(c.code==='ALL') return; add(c.code,c.en); add(c.code,c.ar); });
+    const extra = {
+      EG:['مصر','مصري','مصريه','egypt','egyptian'],
+      SA:['السعوديه','سعودي','سعوديه','المملكه','saudi','saudi arabia','ksa'],
+      AE:['الامارات','امارات','اماراتي','اماراتيه','دبي','ابوظبي','uae','emirates','dubai','abu dhabi'],
+      QA:['قطر','قطري','qatar'], KW:['الكويت','كويتي','kuwait'], BH:['البحرين','بحريني','bahrain'],
+      OM:['عمان','عماني','oman'], JO:['الاردن','اردني','jordan'], IQ:['العراق','عراقي','iraq'],
+      LB:['لبنان','لبناني','lebanon'], MA:['المغرب','مغربي','morocco'], DZ:['الجزائر','جزائري','algeria'],
+      TN:['تونس','تونسي','tunisia'], LY:['ليبيا','ليبي','libya'], SD:['السودان','سوداني','sudan'],
+      PS:['فلسطين','فلسطيني','palestine'], TR:['تركيا','تركي','turkey'],
+      US:['امريكا','امريكي','usa','america','united states','الولايات المتحده'],
+      GB:['بريطانيا','انجلترا','uk','britain','united kingdom','england'],
+      DE:['المانيا','germany'], FR:['فرنسا','france'], IN:['الهند','india'], CN:['الصين','china'], JP:['اليابان','japan'],
+      CA:['كندا','canada'], IT:['ايطاليا','italy'], AU:['استراليا','australia']
+    };
+    Object.keys(extra).forEach(cc=>extra[cc].forEach(a=>add(cc,a)));
+    _cAlias = map;
+    return map;
+  }
+  function countryName(cc){
+    const c = (typeof BANK_COUNTRIES!=='undefined' ? BANK_COUNTRIES : []).find(x=>x.code===cc);
+    return c ? L(c.en,c.ar) : cc;
+  }
+  function countryCurrency(cc){
+    try{ const p=getCountryProfile(cc); return (p && p.currency) || null; }catch(e){ return null; }
+  }
+  // Returns [{code, i, n, marked}] — marked = "like/according to/in <country>"
+  function findCountries(tokens){
+    const map = countryAliases();
+    const found = [];
+    for(let i=0;i<tokens.length;i++){
+      let hit=null;
+      for(let n=3;n>=1 && !hit;n--){
+        if(i+n>tokens.length) continue;
+        const slice = tokens.slice(i,i+n);
+        const cand = [slice.join(' ')];
+        variants(slice[0]).forEach(v=>{ cand.push([v].concat(slice.slice(1)).join(' ')); });
+        for(let k=0;k<cand.length;k++){
+          if(map[cand[k]]){
+            hit = { code:map[cand[k]], i:i, n:n, clitic: n===1 && slice[0]!==cand[k] && /^(لل|ل|ب|بال|وال|و)/.test(slice[0]) };
+            break;
+          }
+        }
+      }
+      if(hit){
+        const pv = tokens[i-1];
+        if(pv==='بنك' || pv==='مصرف' || pv==='bank' || pv==='banque'){ continue; }   // "بنك مصر" is a bank name, not a country
+        const p1 = tokens[i-1], p2 = tokens[i-2];
+        hit.marked = hit.clitic || (p1!==undefined && MARKERS.has(p1)) || (p2!==undefined && MARKERS.has(p2));
+        found.push(hit);
+        i += hit.n-1;
+      }
+    }
+    return found;
+  }
+
+  // ── Banks ────────────────────────────────────────────────────────────────
+  function aliasesOf(b){
+    const arr = [b.name];
+    try{ if(typeof BANK_NAME_AR!=='undefined' && BANK_NAME_AR[b.name]) arr.push(BANK_NAME_AR[b.name]); }catch(e){}
+    try{
+      const c = getBankCountry(b.key);
+      const lst = COUNTRY_ATM_BANKS[c];
+      const own = getOwnBankListKey(b.key);
+      if(lst && own && own!=='other'){ const e = lst.banks.find(x=>x.key===own); if(e){ arr.push(e.en); arr.push(e.ar); } }
+    }catch(e){}
+    return arr.filter(Boolean);
+  }
+  function sigTokens(alias){
+    return nrm(alias).split(' ').map(x=>x.replace(/^ال(?=.{3,})/,'')).filter(x=>x && x.length>=2 && !STOP_TOK.has(x));
+  }
+  // → {keys:[...], ambiguous:[banks...]}
+  function resolveBanks(tokens, consumed){
+    const free = new Set();
+    tokens.forEach((tk,i)=>{ if(!consumed[i]) variants(tk).forEach(v=>free.add(v)); });
+    const scored = [];
+    getAllBanks().forEach(b=>{
+      let best=0, bestHit=[];
+      aliasesOf(b).forEach(al=>{
+        const sig = sigTokens(al);
+        if(!sig.length) return;
+        const hit = sig.filter(s=>free.has(s));
+        if(!hit.length) return;
+        const score = hit.length/sig.length;
+        if(score===1 || (score>=0.5 && sig.length>=2)){ if(score>best){ best=score; bestHit=hit; } }
+      });
+      if(best>0) scored.push({b:b, score:best, hit:bestHit});
+    });
+    if(!scored.length) return {keys:[], ambiguous:[]};
+    const max = Math.max.apply(null, scored.map(x=>x.score));
+    const top = scored.filter(x=>x.score===max);
+    if(top.length===1) return {keys:[top[0].b.key], ambiguous:[]};
+    // several banks matched: intended if each matched through DIFFERENT words
+    // ("بنك مصر والأهلي"); ambiguous if they share the matched word ("الأهلي").
+    let overlap=false;
+    for(let i=0;i<top.length && !overlap;i++) for(let j=i+1;j<top.length;j++){
+      if(top[i].hit.some(h=>top[j].hit.indexOf(h)!==-1)){ overlap=true; break; }
+    }
+    if(!overlap) return {keys:top.map(x=>x.b.key), ambiguous:[]};
+    return {keys:[], ambiguous:top.map(x=>x.b)};
+  }
+  function bankById(key){ return getAllBanks().find(b=>b.key===key) || null; }
+  function bankLabel(b){ try{ return bankDisplayName(b.name); }catch(e){ return b.name; } }
+  function ledgerCurrency(b){
+    return (b && b.currency) || (typeof GLOBAL_PROFILE!=='undefined' && GLOBAL_PROFILE && GLOBAL_PROFILE.currency) || (typeof CURRENT_CURRENCY!=='undefined' && CURRENT_CURRENCY) || 'EGP';
+  }
+  const num = x => String(Math.round(x*10000)/10000);
+
+  // ── Numbers ──────────────────────────────────────────────────────────────
+  function parseValues(t){
+    let s = ' '+t+' ';
+    const N = '(\\d+(?:\\.\\d+)?)';
+    const v = { rate:null, ratePercentMarked:false, min:null, max:null, flat:null, raw:null };
+    const grab = re => { const m = s.match(re); if(!m) return null; s = s.replace(m[0],' '); return parseFloat(m[1]); };
+    v.min = grab(new RegExp('(?:حد ادني|ادني حد|ادني|minimum|min)\\s*(?:هو|=|:|of|ب)?\\s*'+N));
+    v.max = grab(new RegExp('(?:حد اقصي|اقصي حد|اعلي حد|اقصي|maximum|max)\\s*(?:هو|=|:|of|ب)?\\s*'+N));
+    const pm = s.match(new RegExp(N+'\\s*(?:%|(?:ب|في |ف)?(?:ال)?م(?:ا)?يه|percent|pct)'));
+    if(pm){ v.rate = parseFloat(pm[1]); v.ratePercentMarked = true; s = s.replace(pm[0],' '); }
+    const rest = s.match(new RegExp(N));
+    if(rest) v.raw = parseFloat(rest[1]);
+    const cur = s.match(new RegExp(N+'\\s*(?:جنيه|جنيها|جنيهات|جنية|ج م|ج|egp|ريال|ر س|sar|درهم|aed|دولار|usd|dollars?|eur|يورو)(?:\\s|$)'));
+    v.hasCurrencyWord = !!cur;
+    if(v.rate===null && v.raw!==null){
+      if(cur || anyIn(tokensOf(t), W_FLAT)) v.flat = v.raw; else v.rate = v.raw;
+    }
+    return v;
+  }
+  function tokensOf(t){ return t ? t.split(' ') : []; }
+
+  // ── FX (reuses the app's existing FX_STATE / fxLoadCached) ───────────────
+  function fxRate(from,to){
+    if(from===to) return {rate:1, approx:false};
+    try{
+      if(typeof FX_STATE==='undefined' || !FX_STATE) fxLoadCached();
+      try{ fxEnsureRates(); }catch(e){}
+      const r = FX_STATE && FX_STATE.rates; if(!r) return null;
+      const base = FX_STATE.base || 'EGP';
+      const rf = from===base ? 1 : r[from], rt = to===base ? 1 : r[to];
+      if(!rf || !rt) return null;
+      return { rate: rt/rf, approx: !!FX_STATE.isFallback };
+    }catch(e){ return null; }
+  }
+
+  // ── Fee rules ────────────────────────────────────────────────────────────
+  function ruleLabel(rule){
+    const cEn = rule.currency||'', cAr = curSymAr(rule.currency);
+    if(rule.mode==='free') return {en:'Free', ar:'مجاني'};
+    if(rule.mode==='fixed') return {en:num(rule.amount)+' '+cEn+' flat', ar:num(rule.amount)+' '+cAr+' ثابتة'};
+    const pct = num(rule.rate*100)+'%';
+    const en=[pct], ar=[pct];
+    let hasAmt=false;
+    if(/min/.test(rule.mode) && rule.min!=null){ en.push('min '+num(rule.min)); ar.push('min '+num(rule.min)); hasAmt=true; }
+    if(/max/.test(rule.mode) && rule.max!=null){ en.push('max '+num(rule.max)); ar.push('max '+num(rule.max)); hasAmt=true; }
+    return { en: en.join(', ')+(hasAmt?' '+cEn:''), ar: ar.join('، ')+(hasAmt?' '+cAr:'') };
+  }
+  function curSymAr(code){
+    try{ if(typeof CURRENCY_NAMES_AR!=='undefined' && CURRENCY_NAMES_AR[code]) return CURRENCY_NAMES_AR[code]; }catch(e){}
+    return code||'';
+  }
+  function makeRule(o){
+    const base = { depositMode:'fixed', depositFee:0, depLabel:{en:'Free',ar:'مجاني'}, currency:o.currency };
+    let r;
+    if(o.free) r = Object.assign(base,{ mode:'free' });
+    else if(o.flat!=null) r = Object.assign(base,{ mode:'fixed', amount:o.flat });
+    else {
+      const hasMin=o.min!=null, hasMax=o.max!=null;
+      r = Object.assign(base,{ mode: hasMin&&hasMax ? 'percentage_with_min_max' : hasMin ? 'percentage_with_min' : hasMax ? 'percentage_with_max' : 'percentage', rate:o.percent/100 });
+      if(hasMin) r.min=o.min; if(hasMax) r.max=o.max;
+    }
+    r.withLabel = ruleLabel(r);
+    return r;
+  }
+  // Converts a rule's money amounts into `toCur` (rate % is unit-less).
+  function convertRule(rule, toCur){
+    const out = JSON.parse(JSON.stringify(rule));
+    delete out.supported; delete out.ruleSource; delete out.country; delete out.provider;
+    const from = out.currency || toCur;
+    if(from===toCur){ out.currency = toCur; if(!out.withLabel) out.withLabel = ruleLabel(out); return {rule:out, fx:null}; }
+    const fx = fxRate(from,toCur);
+    if(!fx) return null;
+    let dec = 2; try{ dec = getCurrencyMeta(toCur).decimals; }catch(e){}
+    const c = x => (typeof x==='number' && isFinite(x)) ? Math.round(x*fx.rate*Math.pow(10,dec))/Math.pow(10,dec) : x;
+    ['min','max','amount','depositFee'].forEach(k=>{ if(out[k]!=null) out[k]=c(out[k]); });
+    if(Array.isArray(out.tiers)) out.tiers = out.tiers.map(t=>({upTo:c(t.upTo), fee:c(t.fee)}));
+    out.currency = toCur;
+    out.withLabel = ruleLabel(out);
+    return { rule:out, fx:{ from:from, to:toCur, rate:fx.rate, approx:fx.approx } };
+  }
+  function countryFeeRule(cc){
+    const ud = countryRateData[cc] && countryRateData[cc].transferRule;
+    if(ud) return {rule:ud, source:'user'};
+    try{
+      const p = getCountryProfile(cc);
+      const bt = p && p.fees && p.fees.bankTransferDefault;
+      if(bt) return {rule:bt, source:'builtin'};
+    }catch(e){}
+    return null;
+  }
+  function feeLabelNow(key){
+    try{
+      const r = calcWalletFee(key, 1000, 'with', '');
+      if(!r.supported) return L('not set','غير محددة');
+      if(r.withLabel) return L(r.withLabel.en, r.withLabel.ar);
+      return L('fee','عمولة')+' '+num(r.fee);
+    }catch(e){ return '—'; }
+  }
+  function feeSample(rule, cur){
+    try{
+      const r = FeeEngine.calculate({ amount:1000, country:null, provider:'_bank', operation:'transfer', currency:cur, txType:'with', ruleOverride:rule });
+      return r.supported ? r.fee : null;
+    }catch(e){ return null; }
+  }
+
+  // ── Interest ─────────────────────────────────────────────────────────────
+  function interestNow(key){
+    const cfg = getBankInterest(key);
+    const rate = parseFloat(cfg.rate)||0;
+    const active = cfg.type==='savings' || cfg.interestEnabled===true;
+    return { cfg:cfg, rate:rate, active:active, type:cfg.type==='savings'?'savings':'current' };
+  }
+  function interestLabelOf(cfg){
+    const rate = parseFloat(cfg.rate)||0;
+    const active = cfg.type==='savings' || cfg.interestEnabled===true;
+    return (active && rate>0) ? num(rate)+'%' : L('none','مفيش');
+  }
+  function interestWithoutOverride(key){
+    const saved = bankInterestSettings[key];
+    delete bankInterestSettings[key];
+    let cfg; try{ cfg = getBankInterest(key); } finally { if(saved!==undefined) bankInterestSettings[key]=saved; }
+    return cfg;
+  }
+  function lookupInterest(b, cc){
+    if(cc==='EG'){
+      const info = InterestRateService.getRateForBank(b.name);
+      if(info && info.savings>0) return { rate:info.savings, source:'table', islamic:!!info.islamicReturn };
+      const def = BANK_DEFAULT_RATES[b.key] || BANK_DEFAULT_RATES[Object.keys(BANK_DEFAULT_RATES).find(k=>k.toLowerCase()===(b.name||'').toLowerCase())];
+      if(def && def.rate>0) return { rate:def.rate, source:'table', islamic:false };
+    }
+    const d = countryRateData[cc];
+    if(d && typeof d.interestDefault==='number') return { rate:d.interestDefault, source:'user', islamic:false };
+    return null;
+  }
+
+  // ── Plans (confirm → apply → undo) ───────────────────────────────────────
+  const plans = {};
+  let planSeq = 0;
+  let pending = null;       // {req, awaiting}
+  let lastPlanId = null;
+
+  function T(en,ar){ return L(en,ar); }
+
+  function askBankHtml(req, banks){
+    const list = banks || getAllBanks();
+    const chips = list.slice(0,8).map(b=>`<button type="button" class="miora-chip" onclick="mioraActionPickBank('${esc(b.key)}')">${esc(bankLabel(b))}</button>`).join('')
+      + (list.length>1 ? `<button type="button" class="miora-chip" onclick="mioraActionPickBank('*')">${esc(T('All accounts','كل الحسابات'))}</button>` : '');
+    const q = req.kind==='interest' ? T('Which account should I change the interest for?','أغيّر الفايدة لأنهي حساب؟')
+                                     : T('Which account should I change the transfer fee for?','أغيّر نسبة التحويل لأنهي حساب؟');
+    return `<div>${esc(q)}</div><div class="miora-act-chips">${chips}</div>`;
+  }
+  function say(txt){ return {html: esc(txt)}; }
+
+  function newPlan(kind, op){
+    const p = { id:'a'+(++planSeq), kind:kind, op:op, status:'pending', items:[], notes:[], learn:null };
+    plans[p.id] = p; return p;
+  }
+  function note(p,en,ar){ p.notes.push({en:en,ar:ar}); }
+
+  function cardHtml(p){
+    const title = p.kind==='interest'
+      ? (p.op==='reset' ? T('Reset interest to default','رجوع الفايدة للافتراضي') : T('Change interest rate','تغيير الفايدة'))
+      : (p.op==='reset' ? T('Reset transfer fee to default','رجوع نسبة التحويل للافتراضي') : T('Change transfer fee','تغيير نسبة التحويل'));
+    const shown = p.items.slice(0,6);
+    const rows = shown.map(it=>`<div class="miora-act-row"><span class="miora-act-bank">${esc(it.name)}</span><span class="miora-act-vals"><bdi>${esc(it.beforeLabel)}</bdi> ← <b><bdi>${esc(it.afterLabel)}</bdi></b></span></div>`).join('')
+      + (p.items.length>6 ? `<div class="miora-act-note">+${p.items.length-6} ${esc(T('more accounts','حسابات كمان'))}</div>` : '');
+    const notes = p.notes.map(n=>`<div class="miora-act-note">${esc(L(n.en,n.ar))}</div>`).join('');
+    let foot;
+    if(p.status==='pending'){
+      foot = `<div class="miora-act-btns"><button type="button" class="miora-act-btn primary" onclick="mioraActionConfirm('${p.id}')">${esc(T('Confirm','تأكيد'))}</button><button type="button" class="miora-act-btn" onclick="mioraActionCancel('${p.id}')">${esc(T('Cancel','إلغاء'))}</button></div>`;
+    } else if(p.status==='applied'){
+      foot = `<div class="miora-act-btns"><span class="miora-act-status">✓ ${esc(T('Done','اتنفّذ'))}</span><button type="button" class="miora-act-btn" onclick="mioraActionUndo('${p.id}')">${esc(T('Undo','تراجع'))}</button></div>`;
+    } else if(p.status==='undone'){
+      foot = `<div class="miora-act-status off">↩ ${esc(T('Undone','اتراجع عنه'))}</div>`;
+    } else {
+      foot = `<div class="miora-act-status off">✕ ${esc(T('Cancelled','اتلغى'))}</div>`;
+    }
+    return `<div class="miora-act"><div class="miora-act-title">${esc(title)}</div>${rows}${notes}${foot}</div>`;
+  }
+  function refresh(p){
+    _mioraLog.forEach(m=>{ if(m.actId===p.id) m.html = cardHtml(p); });
+    if(typeof _mioraRenderBody==='function') _mioraRenderBody();
+  }
+  function offer(p){ lastPlanId = p.id; return { html: cardHtml(p), actId:p.id }; }
+
+  function apply(p){
+    if(p.status!=='pending') return false;
+    const live = new Set(getAllBanks().map(b=>b.key));
+    p.items.forEach(it=>{
+      if(!live.has(it.key)) return;
+      const store = p.kind==='interest' ? bankInterestSettings : bankFeeOverrides;
+      it.prev = (store[it.key]===undefined) ? undefined : JSON.parse(JSON.stringify(store[it.key]));
+      if(it.after===null) delete store[it.key]; else store[it.key] = it.after;
+    });
+    if(p.learn){
+      p.learn.prev = countryRateData[p.learn.cc] ? JSON.parse(JSON.stringify(countryRateData[p.learn.cc])) : undefined;
+      countryRateData[p.learn.cc] = Object.assign({}, countryRateData[p.learn.cc]||{}, {[p.learn.field]:p.learn.value});
+      persistCountryRates();
+    }
+    if(p.kind==='interest') persistBankInterest(); else persistBankFeeOverrides();
+    p.status='applied';
+    try{ renderView(); }catch(e){}
+    try{ showToast(T('✓ Done','✓ اتنفّذ'),'success'); }catch(e){}
+    return true;
+  }
+  function undo(p){
+    if(p.status!=='applied') return false;
+    p.items.forEach(it=>{
+      const store = p.kind==='interest' ? bankInterestSettings : bankFeeOverrides;
+      if(it.prev===undefined) delete store[it.key]; else store[it.key]=it.prev;
+    });
+    if(p.learn){
+      if(p.learn.prev===undefined) delete countryRateData[p.learn.cc]; else countryRateData[p.learn.cc]=p.learn.prev;
+      persistCountryRates();
+    }
+    if(p.kind==='interest') persistBankInterest(); else persistBankFeeOverrides();
+    p.status='undone';
+    try{ renderView(); }catch(e){}
+    return true;
+  }
+
+  // ── Request parsing ──────────────────────────────────────────────────────
+  function detectKind(tokens, t){
+    const hasInterest = anyIn(tokens, W_INTEREST);
+    const hasFee = anyIn(tokens, W_FEE)
+      || (anyIn(tokens, W_RATE) && anyIn(tokens, W_TRANSFER))
+      || (anyIn(tokens, W_TRANSFER_STRICT) && (anyIn(tokens, W_FREE) || anyIn(tokens, W_RESET)))
+      || (anyIn(tokens, W_TRANSFER_STRICT) && /\d\s*%/.test(t));
+    if(hasInterest && hasFee) return 'both';
+    return hasInterest ? 'interest' : hasFee ? 'fee' : null;
+  }
+  function isCommand(tokens, t, kind){
+    if(!kind) return false;
+    if(!(anyIn(tokens, W_VERB) || anyIn(tokens, W_STOP) || anyIn(tokens, W_RESET_VERB))) return false;
+    if(anyIn(tokens, W_HOWQ)) return false;
+    const hasSlot = /\d/.test(t) || findCountries(tokens).length>0;
+    if(anyIn(tokens, W_Q) && !hasSlot) return false;
+    return true;
+  }
+  function parseRequest(t, tokens, kind){
+    const req = { kind:kind, bankKeys:null, ambiguous:[], allBanks:false, scopeCountry:null, refCountry:null, learnCountry:null, ops:{}, values:null };
+    const consumed = tokens.map(()=>false);
+    // countries: marked ("like Saudi") = reference; unmarked handled after banks
+    const cs = findCountries(tokens);
+    cs.forEach(c=>{
+      if(c.marked){
+        req.refCountry = c.code;
+        for(let k=c.i;k<c.i+c.n;k++) consumed[k]=true;
+        for(let k=c.i-1;k>=Math.max(0,c.i-2);k--){ if(MARKERS.has(tokens[k])) consumed[k]=true; else break; }
+      }
+    });
+    if(!req.refCountry && anyIn(tokens,W_GENERIC_COUNTRY) && tokens.some(tk=>MARKERS.has(tk))) req.refCountry = 'OWN';
+    const rb = resolveBanks(tokens, consumed);
+    req.bankKeys = rb.keys.length ? rb.keys : null;
+    req.ambiguous = rb.ambiguous;
+    cs.forEach(c=>{
+      if(c.marked) return;
+      const prev = tokens[c.i-1];
+      if(prev==='بنك' || prev==='مصرف' || prev==='bank' || prev==='banque') return;   // "بنك مصر" = a bank name, not a country
+      const usedByBank = req.bankKeys && req.bankKeys.some(k=>{ const b=bankById(k); return b && aliasesOf(b).some(a=>sigTokens(a).some(s=>tokens.slice(c.i,c.i+c.n).some(tk=>variants(tk).indexOf(s)!==-1))); });
+      if(usedByBank) return;
+      if(!req.bankKeys) req.scopeCountry = c.code; else if(!req.refCountry) req.refCountry = c.code;
+    });
+    if(anyIn(tokens, W_ALL) || (anyIn(tokens, S(['بنوك','حسابات','banks','accounts'])) && !req.bankKeys)) req.allBanks = true;
+    req.values = parseValues(t);
+    req.ops.reset = anyIn(tokens, W_RESET);
+    req.ops.free  = anyIn(tokens, W_FREE) && req.values.raw===null;
+    req.ops.stop  = anyIn(tokens, W_STOP);
+    req.ops.monthly = anyIn(tokens, W_MONTHLY);
+    return req;
+  }
+
+  // ── Target resolution ────────────────────────────────────────────────────
+  function resolveTargets(req){
+    if(req.bankKeys) return {keys:req.bankKeys};
+    if(req.allBanks || req.scopeCountry){
+      let list = getAllBanks();
+      if(req.scopeCountry) list = list.filter(b=>getBankCountry(b.key)===req.scopeCountry);
+      if(!list.length) return {error: T('You have no accounts in '+countryName(req.scopeCountry)+' yet.','مفيش عندك حسابات في '+countryName(req.scopeCountry)+' لسه.')};
+      return {keys:list.map(b=>b.key)};
+    }
+    if(req.ambiguous && req.ambiguous.length) return {ask:'bank', banks:req.ambiguous};
+    const all = getAllBanks();
+    if(!all.length) return {error: T("You don't have any bank accounts yet — add one first.",'مفيش عندك حسابات بنكية لسه، ضيف حساب الأول.')};
+    if(all.length===1) return {keys:[all[0].key]};
+    return {ask:'bank', banks:all};
+  }
+
+  // ── Advance a request as far as it can go ────────────────────────────────
+  function advance(req){
+    if(req.kind==='both') return say(T('Let\'s do one at a time — interest or transfer fee?','خلينا نعمل واحدة واحدة — الفايدة ولا نسبة التحويل؟'));
+    const tg = resolveTargets(req);
+    if(tg.error) return say(tg.error);
+    if(tg.ask){ pending = {req:req, awaiting:'bank'}; return {html: askBankHtml(req, tg.banks)}; }
+    req.bankKeys = tg.keys;
+    return req.kind==='interest' ? advanceInterest(req) : advanceFee(req);
+  }
+
+  function advanceInterest(req){
+    const v = req.values, banks = req.bankKeys.map(bankById).filter(Boolean);
+    if(!banks.length) return say(T('I could not find that account.','مش لاقي الحساب ده.'));
+    const p = newPlan('interest', 'set');
+    const explicitZero = req.ops.free || (req.ops.stop && v.raw===null && v.rate===null);
+    let rateFor = null;   // bankKey -> {rate, source}
+    if(req.ops.reset && v.rate===null){
+      p.op='reset';
+      banks.forEach(b=>{
+        const raw = bankInterestSettings[b.key];
+        if(raw===undefined) return;
+        p.items.push({ key:b.key, name:bankLabel(b), before:raw, beforeLabel:interestLabelOf(getBankInterest(b.key)), after:null, afterLabel:interestLabelOf(interestWithoutOverride(b.key)) });
+      });
+      if(!p.items.length) return say(T('That account is already on its default interest.','الحساب ده أصلًا على الفايدة الافتراضية.'));
+      return offer(p);
+    }
+    if(explicitZero){ rateFor = {}; banks.forEach(b=>{ rateFor[b.key]={rate:0, source:'explicit'}; }); }
+    else if(v.rate!==null && v.rate!==undefined){
+      let r = v.rate;
+      if(req.ops.monthly){ r = r*12; note(p,'Monthly rate ×12 = annual '+num(r)+'%.','الفايدة الشهرية × 12 = '+num(r)+'% سنويًا.'); }
+      rateFor = {}; banks.forEach(b=>{ rateFor[b.key]={rate:r, source:'explicit'}; });
+      if(req.learnCountry){ p.learn = {cc:req.learnCountry, field:'interestDefault', value:r}; note(p,'I will also save '+num(r)+'% as the default interest for '+countryName(req.learnCountry)+'.','وهحفظ '+num(r)+'% كفايدة افتراضية لـ '+countryName(req.learnCountry)+' عشان المرة الجاية أعملها تلقائي.'); }
+    }
+    else if(req.refCountry){
+      rateFor = {}; const missing = []; let needCountry = null;
+      banks.forEach(b=>{
+        const cc = req.refCountry==='OWN' ? getBankCountry(b.key) : req.refCountry;
+        if(!cc){ needCountry = b; return; }
+        const hit = lookupInterest(b, cc);
+        if(hit) rateFor[b.key] = { rate:hit.rate, source:hit.source, cc:cc, islamic:hit.islamic }; else missing.push({b:b, cc:cc});
+      });
+      if(needCountry && !Object.keys(rateFor).length){
+        pending = {req:req, awaiting:'country'};
+        return say(T('Which country is '+bankLabel(needCountry)+' in? Say the country and I will look up its rate.','بنك '+bankLabel(needCountry)+' تابع لأنهي دولة؟ قولّي الدولة وأنا أدوّر على معدلها.'));
+      }
+      if(missing.length && !Object.keys(rateFor).length){
+        const cc = missing[0].cc; req.learnCountry = cc; pending = {req:req, awaiting:'rate'};
+        return say(T('I don\'t have a verified interest rate for '+countryName(cc)+'. Tell me the annual rate (e.g. 3.5) and I\'ll apply it and save it as '+countryName(cc)+'\'s default, so next time it happens automatically.',
+                     'معنديش معدل فايدة موثّق لـ '+countryName(cc)+'. قولّي المعدل السنوي (مثلًا 3.5) وأنا أطبّقه وأحفظه كمعدل افتراضي لـ '+countryName(cc)+' عشان المرة الجاية أعملها تلقائي.'));
+      }
+      if(missing.length) note(p,'Skipped '+missing.map(m=>bankLabel(m.b)).join(', ')+' — no verified rate for its country.','سبت '+missing.map(m=>bankLabel(m.b)).join('، ')+' — مفيش معدل موثّق لدولته.');
+      const src = Object.keys(rateFor).map(k=>rateFor[k]);
+      if(src.some(x=>x.source==='table')) note(p,'Rates come from the built-in bank rate table (average rates — edit if you have a special account).','المعدلات من جدول الفوايد الداخلي (متوسط البنك) — عدّلها لو عندك حساب خاص.');
+      if(src.some(x=>x.source==='user')) note(p,'Using the country default you saved earlier.','باستخدام الفايدة الافتراضية اللي حفظتها للدولة دي قبل كده.');
+      if(src.some(x=>x.islamic)) note(p,'Islamic bank: this is the profit-sharing return rate.','بنك إسلامي: ده معدل العائد (مش فايدة بالمعنى التقليدي).');
+    }
+    else {
+      pending = {req:req, awaiting:'rate'};
+      const b0 = banks[0];
+      const cur = interestNow(b0.key);
+      const curTxt = (cur.active && cur.rate>0) ? T(' (now '+num(cur.rate)+'%)',' (دلوقتي '+num(cur.rate)+'%)') : '';
+      return say(T('What annual interest rate for '+(banks.length>1?'these accounts':bankLabel(b0))+'?'+curTxt,'المعدل السنوي للفايدة على '+(banks.length>1?'الحسابات دي':bankLabel(b0))+' كام؟'+curTxt));
+    }
+    // Build items
+    const already = [];
+    banks.forEach(b=>{
+      const hit = rateFor[b.key]; if(!hit) return;
+      if(hit.rate<0 || hit.rate>100) return;
+      const now = interestNow(b.key);
+      if(hit.rate>0 && now.active && Math.abs(now.rate-hit.rate)<1e-9 && !p.learn){ already.push(b); return; }
+      const type = now.type;
+      const after = { type:type, rate:hit.rate, interestEnabled: type==='current' ? hit.rate>0 : false, _confirmed:true, _source:'MIORA' };
+      const wasActive = now.active && now.rate>0;
+      p.items.push({ key:b.key, name:bankLabel(b), before:bankInterestSettings[b.key], beforeLabel:(wasActive? num(now.rate)+'%' : T('none','مفيش')), after:after, afterLabel: hit.rate>0 ? num(hit.rate)+'%' : T('none','مفيش') });
+      if(type==='current' && hit.rate>0 && !now.interestEnabled) note(p,bankLabel(b)+' is a current account — I will switch interest on for it.',bankLabel(b)+' حساب جاري — هفعّل الفايدة عليه عشان تشتغل.');
+    });
+    if(!p.items.length){
+      if(already.length) return say(T(already.map(bankLabel).join(', ')+' already at that rate — nothing to change.',already.map(bankLabel).join('، ')+' أصلًا على المعدل ده — مفيش حاجة تتغيّر.'));
+      return say(T('That rate is out of range (0–100%).','المعدل ده برّه النطاق (من 0 لـ 100%).'));
+    }
+    if(already.length) note(p,already.map(bankLabel).join(', ')+' already at that rate — left as is.',already.map(bankLabel).join('، ')+' أصلًا على المعدل ده — سيبته زي ما هو.');
+    return offer(p);
+  }
+
+  function advanceFee(req){
+    const v = req.values, banks = req.bankKeys.map(bankById).filter(Boolean);
+    if(!banks.length) return say(T('I could not find that account.','مش لاقي الحساب ده.'));
+    const p = newPlan('fee', 'set');
+    if(req.ops.reset && v.raw===null && v.rate===null && !req.refCountry){
+      p.op='reset';
+      banks.forEach(b=>{
+        if(!bankFeeOverrides[b.key]) return;
+        p.items.push({ key:b.key, name:bankLabel(b), before:bankFeeOverrides[b.key], beforeLabel:feeLabelNow(b.key), after:null, afterLabel:T('default','الافتراضية') });
+      });
+      if(!p.items.length) return say(T('That account has no custom transfer fee — it is already on the default.','الحساب ده مفيهوش نسبة تحويل مخصصة — أصلًا على الافتراضي.'));
+      return offer(p);
+    }
+    const free = req.ops.free || (req.ops.stop && v.raw===null && v.rate===null && !req.refCountry);
+    let perBank = {};      // key -> {rule, fx, cc}
+    if(free || v.rate!==null || v.flat!==null){
+      // explicit rule typed by the user (amounts are in the account's currency)
+      if(!free && v.rate!==null && !v.ratePercentMarked && v.flat===null && !anyIn(tokensOf(req.t||''), W_RATE) && v.hasCurrencyWord===false && req.ambiguousUnit!==false){
+        // a bare number next to "commission" — % or a flat amount?
+        pending = {req:req, awaiting:'unit'};
+        return {html: `<div>${esc(T('Is '+num(v.rate)+' a percentage of the amount, or a flat fee?','الـ '+num(v.rate)+' دي نسبة من المبلغ ولا عمولة ثابتة؟'))}</div><div class="miora-act-chips"><button type="button" class="miora-chip" onclick="mioraQuickReply('${num(v.rate)}%')">${esc(num(v.rate)+'% '+T('of amount','من المبلغ'))}</button><button type="button" class="miora-chip" onclick="mioraQuickReply('${num(v.rate)} ${T('flat','ثابتة')}')">${esc(num(v.rate)+' '+T('flat','ثابتة'))}</button></div>`};
+      }
+      if(v.rate!==null && (v.rate<0 || v.rate>100)) return say(T('That percentage is out of range (0–100%).','النسبة دي برّه النطاق (من 0 لـ 100%).'));
+      banks.forEach(b=>{
+        const cur = ledgerCurrency(b);
+        perBank[b.key] = { rule:makeRule({ currency:cur, free:free, flat:v.flat, percent:v.rate, min:v.min, max:v.max }), fx:null, cc:null };
+      });
+      if(req.learnCountry && !free){
+        // teaching flow: the numbers are in the reference country's currency
+        const cc = req.learnCountry, ccCur = countryCurrency(cc) || ledgerCurrency(banks[0]);
+        const taught = makeRule({ currency:ccCur, free:false, flat:v.flat, percent:v.rate, min:v.min, max:v.max });
+        p.learn = { cc:cc, field:'transferRule', value:taught };
+        perBank = {}; let fail=false;
+        banks.forEach(b=>{ const cv = convertRule(taught, ledgerCurrency(b)); if(!cv) fail=true; else perBank[b.key]={rule:cv.rule, fx:cv.fx, cc:cc}; });
+        if(fail) return say(T('I could not convert that between currencies right now (no exchange rate).','مقدرتش أحوّل بين العملات دلوقتي (مفيش سعر صرف).'));
+        note(p,'I will also save this as '+countryName(cc)+'\'s transfer fee, so next time it happens automatically.','وهحفظها كنسبة تحويل لـ '+countryName(cc)+' عشان المرة الجاية أعملها تلقائي.');
+      }
+    }
+    else if(req.refCountry){
+      let missingCc = null; let needCountry=null;
+      banks.forEach(b=>{
+        const cc = req.refCountry==='OWN' ? getBankCountry(b.key) : req.refCountry;
+        if(!cc){ needCountry=b; return; }
+        const hit = countryFeeRule(cc);
+        if(!hit){ missingCc = cc; return; }
+        const cv = convertRule(hit.rule, ledgerCurrency(b));
+        if(!cv){ missingCc = missingCc || ('FX:'+cc); return; }
+        perBank[b.key] = { rule:cv.rule, fx:cv.fx, cc:cc, source:hit.source };
+      });
+      if(!Object.keys(perBank).length){
+        if(needCountry){ pending = {req:req, awaiting:'country'}; return say(T('Which country is '+bankLabel(needCountry)+' in? Say the country and I will look up its transfer fee.','بنك '+bankLabel(needCountry)+' تابع لأنهي دولة؟ قولّي الدولة وأنا أدوّر على نسبة التحويل بتاعتها.')); }
+        if(missingCc && missingCc.indexOf('FX:')===0) return say(T('I know that country\'s fee but I can\'t convert it to your currency right now (no exchange rate). Try again when you\'re online, or tell me the fee directly.','عارف نسبة الدولة دي بس مش قادر أحوّلها لعملتك دلوقتي (مفيش سعر صرف). جرّب وانت أونلاين، أو قولّي النسبة مباشرة.'));
+        const cc = missingCc; req.learnCountry = cc; pending = {req:req, awaiting:'fee'};
+        return say(T('I don\'t have a verified transfer fee for '+countryName(cc)+'. Tell me the fee (e.g. 0.5% min 1 max 10) and I\'ll apply it and save it as '+countryName(cc)+'\'s rate.',
+                     'معنديش نسبة تحويل موثّقة لـ '+countryName(cc)+'. قولّي النسبة (مثلًا 0.5% بحد أدنى 1 وأقصى 10) وأنا أطبّقها وأحفظها كنسبة '+countryName(cc)+'.'));
+      }
+      const anyFx = Object.keys(perBank).map(k=>perBank[k]).find(x=>x.fx);
+      if(anyFx) note(p,'Converted from '+anyFx.fx.from+' to '+anyFx.fx.to+' at '+num(anyFx.fx.rate)+(anyFx.fx.approx?' (approximate offline rate)':'')+'.','اتحوّلت من '+curSymAr(anyFx.fx.from)+' لـ '+curSymAr(anyFx.fx.to)+' بسعر '+num(anyFx.fx.rate)+(anyFx.fx.approx?' (سعر تقريبي — أوفلاين)':'')+'.');
+    }
+    else {
+      pending = {req:req, awaiting:'fee'};
+      const b0 = banks[0];
+      return say(T('What should the transfer fee be for '+(banks.length>1?'these accounts':bankLabel(b0))+'? (now: '+feeLabelNow(b0.key)+'). Say a percentage like 0.5% (optionally min/max), a flat amount, "free", or "like <country>".',
+                   'نسبة التحويل على '+(banks.length>1?'الحسابات دي':bankLabel(b0))+' تبقى كام؟ (دلوقتي: '+feeLabelNow(b0.key)+'). قولّي نسبة زي 0.5% (ممكن بحد أدنى وأقصى)، أو مبلغ ثابت، أو "مجاني"، أو "زي <دولة>".'));
+    }
+    banks.forEach(b=>{
+      const hit = perBank[b.key]; if(!hit) return;
+      const cur = ledgerCurrency(b);
+      const after = { rule:hit.rule, sourceCountry:hit.cc||null, _source:'MIORA', setAt:Date.now() };
+      const sample = feeSample(hit.rule, cur);
+      p.items.push({ key:b.key, name:bankLabel(b), before:bankFeeOverrides[b.key], beforeLabel:feeLabelNow(b.key), after:after, afterLabel:L(hit.rule.withLabel.en, hit.rule.withLabel.ar) });
+      if(sample!==null && p.items.length===1) note(p,'Example: a 1,000 '+cur+' transfer → fee '+num(sample)+' '+cur+'.','مثال: تحويل 1,000 '+curSymAr(cur)+' → العمولة '+num(sample)+' '+curSymAr(cur)+'.');
+    });
+    if(!p.items.length) return say(T('I could not build that rule.','مقدرتش أجهّز القاعدة دي.'));
+    note(p,'ATM withdrawal fees are not affected.','عمولات السحب من ATM مش بتتأثر.');
+    return offer(p);
+  }
+
+  // ── Slot filling for multi-turn requests ─────────────────────────────────
+  function fillPending(pd, t, tokens){
+    const req = pd.req;
+    req.t = t;
+    if(pd.awaiting==='bank'){
+      const rb = resolveBanks(tokens, tokens.map(()=>false));
+      if(anyIn(tokens, W_ALL)) { req.allBanks = true; req.bankKeys = null; }
+      else if(rb.keys.length) req.bankKeys = rb.keys;
+      else return null;
+      const vv = parseValues(t); if(vv.rate!==null && req.values.rate===null) req.values = vv;
+      pending = null; return advance(req);
+    }
+    if(pd.awaiting==='rate'){
+      const vv = parseValues(t);
+      if(vv.rate===null && !(anyIn(tokens, W_FREE) || /(^| )(صفر|zero)( |$)/.test(t))) return null;
+      if(vv.rate===null) req.ops.free = true; else { req.values = vv; req.refCountry = null; }
+      pending = null; return advance(req);
+    }
+    if(pd.awaiting==='fee'){
+      const vv = parseValues(t);
+      const free = anyIn(tokens, W_FREE) && vv.raw===null;
+      const cs = findCountries(tokens);
+      if(vv.rate===null && vv.flat===null && !free && cs.length){ req.refCountry = cs[0].code; req.learnCountry = null; pending=null; return advance(req); }
+      if(vv.rate===null && vv.flat===null && !free) return null;
+      req.values = vv; req.ops.free = free; req.ambiguousUnit = false; if(!req.learnCountry) req.refCountry = null;
+      pending = null; return advance(req);
+    }
+    if(pd.awaiting==='unit'){
+      const vv = parseValues(t);
+      if(vv.rate===null && vv.flat===null) return null;
+      req.values = vv; req.ambiguousUnit = false; pending = null; return advance(req);
+    }
+    if(pd.awaiting==='country'){
+      const cs = findCountries(tokens);
+      if(!cs.length) return null;
+      req.refCountry = cs[0].code; pending = null; return advance(req);
+    }
+    return null;
+  }
+
+  // ── Public entry points ──────────────────────────────────────────────────
+  function handle(text){
+    const t = nrm(text);
+    if(!t) return null;
+    const tokens = tokensOf(t);
+    const kind = detectKind(tokens, t);
+    // typed "تمام"/"cancel" for the card that is waiting
+    const waiting = lastPlanId && plans[lastPlanId] && plans[lastPlanId].status==='pending' ? plans[lastPlanId] : null;
+    if(waiting && !kind && tokens.length<=3){
+      if(tokens.every(tk=>anyIn([tk],W_YES))){ const ok=apply(waiting); refresh(waiting); return ok ? say(T('Done ✓','تمام، اتنفّذ ✓')) : null; }
+      if(tokens.some(tk=>anyIn([tk],W_NO))){ waiting.status='cancelled'; refresh(waiting); return say(T('Cancelled.','تمام، لغيتها.')); }
+    }
+    const newCmd = isCommand(tokens, t, kind);
+    if(pending){
+      const pd = pending;
+      if(tokens.length<=4 && tokens.some(tk=>anyIn([tk],W_NO)) && !newCmd){ pending=null; return say(T('OK, cancelled.','تمام، لغيت الطلب.')); }
+      // A slot answer ("بنك مصر", "12.5", "0.5% min 1") never mentions the OTHER
+      // topic and is never a question — otherwise it's a new turn, not a reply.
+      const isQuestion = (anyIn(tokens, W_Q) || anyIn(tokens, W_HOWQ)) && !/\d/.test(t);
+      const otherTopic = kind && kind!==pd.req.kind;
+      if(!newCmd && !isQuestion && !otherTopic){ const r = fillPending(pd, t, tokens); if(r) return r; }
+      pending = null;
+    }
+    if(!newCmd) return null;
+    const req = parseRequest(t, tokens, kind);
+    req.t = t;
+    return advance(req);
+  }
+  function pickBank(key){
+    if(!pending || pending.awaiting!=='bank') return null;
+    const req = pending.req;
+    if(key==='*'){ req.allBanks = true; req.bankKeys = null; } else req.bankKeys = [key];
+    pending = null;
+    return advance(req);
+  }
+  function confirmPlan(id){ const p=plans[id]; if(!p) return; apply(p); refresh(p); }
+  function cancelPlan(id){ const p=plans[id]; if(!p || p.status!=='pending') return; p.status='cancelled'; refresh(p); }
+  function undoPlan(id){ const p=plans[id]; if(!p) return; undo(p); refresh(p); }
+
+  return { handle:handle, pickBank:pickBank, confirm:confirmPlan, cancel:cancelPlan, undo:undoPlan,
+           _debug:{ nrm:nrm, parseRequest:parseRequest, parseValues:parseValues, findCountries:findCountries, resolveBanks:resolveBanks, plans:plans } };
+})();
+
+function mioraActionConfirm(id){ MioraActionEngine.confirm(id); }
+function mioraActionCancel(id){ MioraActionEngine.cancel(id); }
+function mioraActionUndo(id){ MioraActionEngine.undo(id); }
+function mioraActionPickBank(key){
+  const b = key==='*' ? null : (getAllBanks().find(x=>x.key===key)||null);
+  MioraConversationManager.addUser(key==='*' ? L('All accounts','كل الحسابات') : (b ? bankDisplayName(b.name) : key));
+  const r = MioraActionEngine.pickBank(key);
+  if(r) MioraConversationManager.addAssistant(r.html, r.actId ? {actId:r.actId} : null);
+  _mioraRenderBody();
+}
+function mioraQuickReply(text){
+  if(!text) return;
+  MioraConversationManager.addUser(text);
+  _mioraRenderBody();
+  _mioraProcessMessage(text, null);
+}
 
 // ── Panel state / rendering ────────────────────────────────────────────────
 let _mioraOpen = false;
@@ -40468,7 +41436,7 @@ function _mioraWelcomeHtml(){
   const first = !mioraWelcomeSeen();
   if(first){
     mioraMarkWelcomeSeen();
-    return `<div class="miora-bubble miora-bubble-a">👋 ${L('Welcome to FINORA','أهلاً بيك في FINORA')}<br>${L("I'm MIORA, your in-app assistant.",'أنا MIORA، مساعدك جوه البرنامج.')}<br>${L('Ask me about any screen or button.','أقدر أشرحلك أي شاشة أو زرار، اسألني بس.')}</div>`;
+    return `<div class="miora-bubble miora-bubble-a">👋 ${L('Welcome to FINORA','أهلاً بيك في FINORA')}<br>${L("I'm MIORA, your in-app assistant.",'أنا MIORA، مساعدك جوه البرنامج.')}<br>${L('Ask me about any screen or button.','أقدر أشرحلك أي شاشة أو زرار، اسألني بس.')}<br>${L('I can also change an account\'s interest rate or transfer fee for you.','وأقدر كمان أغيّر فايدة أي حساب أو نسبة التحويل بدالك.')}</div>`;
   }
   return `<div class="miora-bubble miora-bubble-a">👋 ${L('Welcome back.','أهلاً بعودتك.')} ${L('Ask me about this page.','اسألني عن الصفحة دي.')}</div>`;
 }
@@ -40494,9 +41462,15 @@ function _mioraRenderSuggestions(){
   const wrap = _mioraEl('mioraSuggestions');
   if(!wrap) return;
   const sugg = getMioraSuggestions();
-  wrap.innerHTML = sugg.map(s=>
+  let chips = sugg.map(s=>
     `<button type="button" class="miora-chip" onclick="mioraAskSuggested('${s.qa}')">${esc(L(s.en,s.ar))}</button>`
   ).join('');
+  // Action shortcuts (banks screen only): start a guided interest / fee change.
+  if(getMioraContext().pageKey==='banks'){
+    chips += `<button type="button" class="miora-chip" data-t="${esc(L('I want to change an account interest rate','عايز أغيّر فايدة حساب'))}" onclick="mioraQuickReply(this.dataset.t)">${esc(L('Change interest','غيّر الفايدة'))}</button>`
+          +  `<button type="button" class="miora-chip" data-t="${esc(L('I want to change the transfer fee','عايز أغيّر نسبة التحويل'))}" onclick="mioraQuickReply(this.dataset.t)">${esc(L('Change transfer fee','غيّر نسبة التحويل'))}</button>`;
+  }
+  wrap.innerHTML = chips;
 }
 
 function mioraAskSuggested(qaId){
@@ -40537,6 +41511,22 @@ async function _mioraProcessMessage(text, hintQaId){
 
   const ctx = MioraContextEngine.capture();               // Current Screen Context
   const intent = MioraIntentEngine.classify(text, ctx);    // Intent Detection (uses Conversation Context via _mioraConversationState)
+
+  // Action layer (interest / transfer-fee commands). Runs BEFORE the AI and
+  // needs no proxy: commands are parsed + executed locally and always go
+  // through a confirm card. Anything that isn't a command falls through.
+  if(!hintQaId){
+    try{
+      const act = MioraActionEngine.handle(text);
+      if(act){
+        _mioraThinking = false;
+        MioraConversationManager.addAssistant(act.html, act.actId ? {actId:act.actId} : null);
+        _mioraUpdateConversationState(ctx, intent);
+        _mioraRenderBody();
+        return;
+      }
+    }catch(err){ if(typeof _logErr==='function') _logErr('miora:action', err); }
+  }
 
   let html = null;
   let usedFallback = false;
