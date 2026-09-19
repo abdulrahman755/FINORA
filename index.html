@@ -7944,6 +7944,175 @@ button:not(:disabled):active{transform:scale(.97)}
 .pln-section-title{font-size:calc(var(--fs-caption)*var(--app-text-scale,1));font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.03em;margin:16px 0 8px}
 .wide-add-btn.blue-dashed{border-color:var(--blue);color:var(--blue);background:var(--blue-tint)}
 .wide-add-btn.blue-dashed:hover{background:var(--blue-tint)}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   SITE CUSTODY v2 — .cx-*  (renderExpenses)
+   Scoped to .cx-wrap so no other screen is affected. Logical properties only
+   (RTL-safe). One quiet surface language: hairline dividers, no card-in-card,
+   no gradients/glow. Red is reserved for "over custody" — expense amounts stay
+   in ink so the page isn't a wall of red. The gauge (limit tick + overrun) is
+   the single distinctive element. */
+.cx-wrap{gap:20px;padding-bottom:150px}
+.cx-wrap .cx-mn{display:inline-flex;align-items:baseline;gap:4px;direction:ltr;unicode-bidi:isolate;white-space:nowrap}
+.cx-wrap .cx-mn b{font-weight:800;font-variant-numeric:tabular-nums}
+.cx-wrap .cx-mn small{font-size:calc(11px*var(--app-text-scale,1));font-weight:700;color:var(--muted)}
+
+/* Hero */
+.cx-hero{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-hero);padding:18px 18px 16px;box-shadow:var(--shadow-xs)}
+.cx-hero-top{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.cx-hero-label{font-size:calc(13.5px*var(--app-text-scale,1));font-weight:700;color:var(--muted)}
+.cx-chip{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:99px;font-size:calc(12px*var(--app-text-scale,1));font-weight:800;background:var(--surface2);color:var(--muted);white-space:nowrap}
+.cx-chip::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+.cx-chip.ok{background:var(--green-tint);color:var(--green)}
+.cx-chip.low{background:var(--gold-tint);color:var(--gold)}
+.cx-chip.over{background:var(--red-tint);color:var(--red)}
+.cx-figrow{margin-top:14px}
+.cx-fig{display:inline-flex;align-items:baseline;gap:8px;max-width:100%;unicode-bidi:isolate}
+.cx-amt{font-family:var(--font-display);font-size:calc(44px*var(--app-text-scale,1));font-weight:600;line-height:1.05;letter-spacing:-.02em;color:var(--text);font-variant-numeric:lining-nums tabular-nums}
+.cx-cur{font-size:calc(15px*var(--app-text-scale,1));font-weight:700;color:var(--muted)}
+.cx-fig.over .cx-amt{color:var(--red)}
+.cx-fig.none .cx-amt{color:var(--text)}
+.cx-fig-note{margin-top:6px;font-size:calc(13px*var(--app-text-scale,1));font-weight:500;color:var(--muted);line-height:1.5}
+
+/* Gauge: track = max(available, spent); tick marks the custody limit when overspent */
+.cx-gauge{position:relative;height:10px;margin-top:18px}
+.cx-gtrack{display:flex;width:100%;height:100%;border-radius:99px;overflow:hidden;background:var(--surface3)}
+.cx-gtrack i{display:block;height:100%;flex:none}
+.cx-g-ok{background:var(--green)}
+.cx-gauge.low .cx-g-ok{background:var(--gold)}
+.cx-g-over{background:var(--red)}
+.cx-tick{position:absolute;top:-4px;bottom:-4px;width:2px;border-radius:2px;background:var(--gold)}
+.cx-gcap{margin-top:8px;font-size:calc(12px*var(--app-text-scale,1));font-weight:600;color:var(--muted)}
+
+/* Divided stats row (not boxes) */
+.cx-stats{display:grid;grid-template-columns:repeat(var(--n,2),minmax(0,1fr));margin-top:18px;padding-top:14px;border-top:1px solid var(--border)}
+.cx-stat{min-width:0}
+.cx-stat + .cx-stat{border-inline-start:1px solid var(--border);padding-inline-start:14px}
+.cx-stat-l{font-size:calc(12px*var(--app-text-scale,1));font-weight:600;color:var(--muted);margin-bottom:4px}
+.cx-stat-v{font-size:calc(16px*var(--app-text-scale,1));color:var(--text)}
+.cx-stat.pos .cx-stat-v{color:var(--green)}
+.cx-stat.zero .cx-stat-v,.cx-stat.zero .cx-stat-v b{color:var(--muted)}
+
+/* Actions */
+.cx-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:18px}
+.cx-act{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:50px;border-radius:12px;border:1.5px solid var(--border-strong);background:transparent;color:var(--text);font-family:inherit;font-size:calc(15px*var(--app-text-scale,1));font-weight:800;cursor:pointer;transition:transform .12s,box-shadow .18s,background-color .18s}
+.cx-act:active{transform:scale(.98)}
+.cx-act.dep{background:var(--green);border-color:var(--green);color:#fff}
+.cx-act.with svg{color:var(--red)}
+.cx-act[aria-pressed="true"]{box-shadow:0 0 0 3px var(--green-glow)}
+.cx-act.with[aria-pressed="true"]{box-shadow:0 0 0 3px var(--red-tint);border-color:var(--red)}
+[data-theme="dark"] .cx-act.dep,[data-theme="dark"] .cx-save{color:#07150F}
+
+/* Inline entry panel */
+.cx-entry{display:grid;grid-template-rows:0fr;transition:grid-template-rows .28s cubic-bezier(.32,1,.32,1)}
+.cx-entry.open{grid-template-rows:1fr}
+.cx-entry-in{overflow:hidden;min-height:0;padding-inline:6px;margin-inline:-6px;visibility:hidden;transition:visibility 0s .28s}
+.cx-entry.open .cx-entry-in{visibility:visible;transition:visibility 0s}
+.cx-form{display:flex;flex-direction:column;gap:12px;margin-top:16px;padding-top:16px;border-top:1px solid var(--border)}
+.cx-seg{display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:4px;background:var(--surface2);border-radius:12px}
+.cx-seg-btn{height:38px;border:0;border-radius:9px;background:transparent;color:var(--muted);font-family:inherit;font-size:calc(13.5px*var(--app-text-scale,1));font-weight:800;cursor:pointer;transition:background-color .15s,color .15s}
+.cx-seg-btn.on{background:var(--surface);color:var(--text);box-shadow:var(--shadow-xs)}
+.cx-entry[data-type="dep"] .cx-seg-btn.on{color:var(--green)}
+.cx-entry[data-type="with"] .cx-seg-btn.on{color:var(--red)}
+.cx-in{width:100%;min-width:0;height:48px;padding:0 14px;border-radius:12px;border:1.5px solid var(--border-strong);background:var(--surface);color:var(--text);font-family:inherit;font-size:calc(16px*var(--app-text-scale,1));font-weight:600}
+.cx-in::placeholder{color:var(--muted);opacity:.75;font-weight:500}
+.cx-in:focus{outline:none;border-color:var(--green);box-shadow:0 0 0 4px var(--green-glow)}
+.cx-in-amt{height:58px;font-size:calc(24px*var(--app-text-scale,1));font-weight:800;font-variant-numeric:tabular-nums}
+.cx-in-amt::placeholder{font-size:calc(16px*var(--app-text-scale,1))}
+.cx-row2{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:10px}
+/* The app wraps every <input type=date> in .date-wrap-auto (localized label) and moves the input's inline style onto it — style the wrapper. */
+.cx-row2 .date-wrap-auto{min-width:0;height:48px;padding:0 14px;border-radius:12px;border:1.5px solid var(--border-strong);background:var(--surface);color:var(--text);font-size:calc(16px*var(--app-text-scale,1));font-weight:600}
+.cx-row2 .date-wrap-auto:focus-within{border-color:var(--green);box-shadow:0 0 0 4px var(--green-glow)}
+.cx-form-btns{display:flex;align-items:center;gap:8px}
+.cx-save{flex:1;height:50px;border:0;border-radius:12px;background:var(--green);color:#fff;font-family:inherit;font-size:calc(15px*var(--app-text-scale,1));font-weight:800;cursor:pointer;transition:transform .12s}
+.cx-save:active{transform:scale(.98)}
+.cx-entry[data-type="with"] .cx-save{background:var(--red)}
+.cx-cancel{height:50px;padding:0 16px;border:0;background:none;color:var(--muted);font-family:inherit;font-size:calc(14px*var(--app-text-scale,1));font-weight:700;cursor:pointer}
+
+/* Sections */
+.cx-sec{display:flex;flex-direction:column;gap:10px}
+.cx-sh{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 4px}
+.cx-sh-l{display:flex;flex-direction:column;gap:2px;min-width:0;text-align:start}
+.cx-sh-t{font-size:calc(17px*var(--app-text-scale,1));font-weight:800;color:var(--text)}
+.cx-sh-s{font-size:calc(12.5px*var(--app-text-scale,1));font-weight:500;color:var(--muted)}
+.cx-sh-v{font-size:calc(17px*var(--app-text-scale,1));color:var(--text)}
+button.cx-sh-tap{width:100%;background:none;border:0;font-family:inherit;color:inherit;cursor:pointer;min-height:44px}
+.cx-chev{display:flex;align-items:center;justify-content:center;width:28px;height:28px;color:var(--muted);transition:transform .25s cubic-bezier(.32,1,.32,1),color .15s}
+.cx-ledger.cx-open .cx-chev{transform:rotate(180deg);color:var(--green)}
+.cx-lbody{display:grid;grid-template-rows:0fr;transition:grid-template-rows .28s cubic-bezier(.32,1,.32,1)}
+.cx-ledger.cx-open .cx-lbody{grid-template-rows:1fr}
+.cx-lbody-in{overflow:hidden;min-height:0}
+.cx-panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.cx-none{padding:28px 16px;text-align:center;color:var(--muted);font-size:calc(13px*var(--app-text-scale,1))}
+
+/* Search row */
+.cx-wrap .cx-search{display:flex;align-items:center;gap:8px;padding:0;border:0;background:none}
+.cx-wrap .cx-sbox{position:relative;flex:1;min-width:0;display:block}
+.cx-wrap .cx-search svg{position:absolute;top:50%;left:auto;inset-inline-start:14px;transform:translateY(-50%);color:var(--muted);pointer-events:none}
+.cx-wrap .cx-search input{width:100%;height:46px;padding:0 12px;padding-inline-start:40px;border-radius:12px;border:1.5px solid var(--border);background:var(--surface);color:var(--text);font-family:inherit;font-size:calc(16px*var(--app-text-scale,1))}
+.cx-wrap .cx-search input:focus{border-color:var(--green);box-shadow:0 0 0 4px var(--green-glow);outline:none}
+.cx-textbtn{flex:none;height:46px;padding:0 6px;border:0;background:none;color:var(--green);font-family:inherit;font-size:calc(13px*var(--app-text-scale,1));font-weight:800;cursor:pointer;white-space:nowrap}
+
+/* Expense groups — one panel, hairline rows (re-skins the shared .note-* classes, scoped) */
+.cx-glist{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;overflow-anchor:none}
+.cx-wrap .cx-glist .note-group{background:transparent;border:0;border-radius:0;margin:0;box-shadow:none;animation:none;border-bottom:1px solid var(--border)}
+.cx-wrap .cx-glist .note-group:last-child{border-bottom:0}
+.cx-wrap .note-header{display:grid;grid-template-columns:64px minmax(0,1fr) auto 26px;grid-template-areas:"title title tot chev" "cnt share share chev";column-gap:10px;row-gap:8px;align-items:center;padding:14px 16px;min-height:66px;transform:none}
+.cx-wrap .note-header:active{transform:none;background:var(--surface2)}
+.cx-wrap .note-title{grid-area:title;font-size:calc(15.5px*var(--app-text-scale,1));font-weight:800;color:var(--text)}
+.cx-wrap .note-meta{display:contents}
+.cx-wrap .cx-tot{grid-area:tot;justify-self:end;font-size:calc(15px*var(--app-text-scale,1));color:var(--text)}
+.cx-wrap .cx-cnt{grid-area:cnt;font-size:calc(12.5px*var(--app-text-scale,1));font-weight:600;color:var(--muted);white-space:nowrap}
+.cx-wrap .cx-share{grid-area:share;display:flex;align-items:center;gap:8px;min-width:0}
+.cx-wrap .cx-share .bar{flex:1;height:4px;border-radius:99px;background:var(--surface3);overflow:hidden}
+.cx-wrap .cx-share .bar i{display:block;height:100%;border-radius:99px;background:color-mix(in srgb,var(--muted) 75%,transparent)}
+.cx-wrap .cx-share em{font-style:normal;font-size:calc(12px*var(--app-text-scale,1));font-weight:700;color:var(--muted);min-width:32px;text-align:end;font-variant-numeric:tabular-nums}
+.cx-wrap .note-chevron{grid-area:chev;justify-self:center;width:26px;height:26px}
+.cx-wrap .note-body{background:color-mix(in srgb,var(--surface2) 45%,var(--surface))}
+.cx-wrap .note-row{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"desc amt" "date actions";column-gap:12px;row-gap:2px;padding:12px 16px 6px}
+.cx-wrap .note-row-desc{grid-area:desc;font-size:calc(14.5px*var(--app-text-scale,1));line-height:1.45;font-weight:600;color:var(--text)}
+.cx-wrap .note-row-amt{grid-area:amt;font-size:calc(14.5px*var(--app-text-scale,1));color:var(--text);align-self:start}
+.cx-wrap .note-row-date{grid-area:date;display:flex;align-items:center;flex-wrap:wrap;gap:8px;font-size:calc(12px*var(--app-text-scale,1));color:var(--muted);font-variant-numeric:tabular-nums}
+.cx-wrap .note-row-actions{grid-area:actions;gap:0;margin-inline-end:-8px}
+.cx-wrap .note-row-check{grid-area:chk;align-self:center}
+.cx-wrap .note-group.ng-select-active .note-row{grid-template-columns:auto minmax(0,1fr) auto;grid-template-areas:"chk desc amt" "chk date date";column-gap:12px}
+.cx-bankchip{display:inline-flex;align-items:center;gap:4px;padding:1px 8px;border-radius:99px;font-size:calc(11px*var(--app-text-scale,1));font-weight:700;color:var(--blue);background:var(--blue-tint)}
+.cx-imglink{display:inline-flex;align-items:center;color:var(--muted)}
+.cx-icbtn{display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;border:0;border-radius:10px;background:none;color:var(--muted);cursor:pointer;transition:background-color .15s,color .15s}
+.cx-icbtn:active{background:var(--surface2);color:var(--text)}
+.cx-icbtn.del:active{background:var(--red-tint);color:var(--red)}
+.cx-wrap .ng-assign-bar{padding:10px 16px}
+.cx-wrap .ng-cat-custom-row{padding:0 16px 10px}
+.cx-gtools{display:flex;padding-block:8px 0;padding-inline:16px 10px}
+.cx-gfoot{display:flex;justify-content:flex-end;padding-block:0 4px;padding-inline:16px 10px}
+.cx-wrap .note-row:has(+ .cx-gfoot){border-bottom:0}
+.cx-gbtn{display:inline-flex;align-items:center;gap:6px;min-height:38px;padding:0 10px;border:0;border-radius:10px;background:none;color:var(--muted);font-family:inherit;font-size:calc(12.5px*var(--app-text-scale,1));font-weight:700;cursor:pointer}
+.cx-gbtn.del:active{background:var(--red-tint);color:var(--red)}
+.cx-wrap .ng-select-btn.cx-gbtn.active{color:#fff;background:var(--green)}
+
+/* Insights */
+.cx-ins{display:flex;align-items:baseline;justify-content:space-between;gap:16px;padding:12px 16px;border-bottom:1px solid var(--border)}
+.cx-ins:last-child{border-bottom:0}
+.cx-ins-l{flex:none;font-size:calc(13px*var(--app-text-scale,1));font-weight:600;color:var(--muted)}
+.cx-ins-v{min-width:0;text-align:end;font-size:calc(13.5px*var(--app-text-scale,1));font-weight:700;color:var(--text);line-height:1.45;overflow-wrap:anywhere}
+
+/* Custody movements */
+.cx-mv{display:flex;align-items:center;gap:12px;padding-block:12px;padding-inline:16px 8px;border-bottom:1px solid var(--border)}
+.cx-mv:last-child{border-bottom:0}
+.cx-mv-ic{flex:none;display:flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:10px}
+.cx-mv-ic.dep{background:var(--green-tint);color:var(--green)}
+.cx-mv-ic.with{background:var(--red-tint);color:var(--red)}
+.cx-mv-txt{flex:1;min-width:0}
+.cx-mv-t{font-size:calc(14px*var(--app-text-scale,1));font-weight:700;color:var(--text);line-height:1.35;overflow-wrap:anywhere}
+.cx-mv-d{margin-top:2px;font-size:calc(12px*var(--app-text-scale,1));color:var(--muted);font-variant-numeric:tabular-nums}
+.cx-mv-amt{flex:none;display:inline-flex;align-items:baseline;gap:1px;font-size:calc(14.5px*var(--app-text-scale,1));font-weight:800}
+.cx-mv-amt.dep{color:var(--green)}
+.cx-mv-amt.with{color:var(--red)}
+.cx-mv-amt .cx-mn small{color:inherit;opacity:.7}
+.cx-wrap .cst-empty-state{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:28px 18px}
+@media (prefers-reduced-motion:reduce){
+  .cx-entry,.cx-lbody,.cx-chev,.cx-act,.cx-save{transition:none}
+}
 </style>
 <script>
 // Suppress cross-origin Script errors (in-app browsers like TikTok/Instagram)
@@ -27260,24 +27429,114 @@ function generateExpenseAIInsights(exps, groups){
 }
 
 // ── § SITE EXPENSES MODULE ────────────────────────────────────────────────────
+// Site Custody v2 (Sep 2026 redesign) — same data, same handlers, new layout:
+//   1. Hero: ONE custody-balance statement (remaining / over) with a limit gauge,
+//      a divided Deposited/Spent(/Withdrawn) row and two clear Deposit / Withdraw
+//      actions that open an inline entry panel (replaces the old hidden form).
+//   2. Site expenses: single ledger panel, groups sorted by size with a share bar,
+//      collapsed by default (open-state survives re-renders), search + expand all.
+//   3. Insights, then Custody movements (collapsible, newest first).
+// Custody math now always uses ALL expenses — the old header/KPIs recomputed
+// "Spent/Remaining" from the search-filtered list, so typing in search changed them.
+// Data model, ids (custodyDepDate/Amount/Note) and every mutation function
+// (addCustodyDeposit, editCustodyDeposit, deleteCustodyDeposit, openEdit('exp'),
+// deleteExp, deleteNoteGroup, _ng* categorize) are untouched.
 function renderExpenses(m){
   const all=m?.site_expenses||[];
   const exps=all.filter(e=>!searchQ||(e.description||'').toLowerCase().includes(searchQ.toLowerCase())||(e.notes||'').toLowerCase().includes(searchQ.toLowerCase())||String(e.amount).includes(searchQ)||_smartSearchHit(e,e.description,searchQ));
-  const total=exps.reduce((s,e)=>s+(e.amount||0),0);
+  const total=exps.reduce((s,e)=>s+(e.amount||0),0);      // list scope (respects search)
+  const spentAll=all.reduce((s,e)=>s+(e.amount||0),0);     // custody math (never search-filtered)
   const deposits=m?.custody_deposits||[];
-  // PERF (Sprint P4): totalDeposit/totalWithdrawn were 2 separate
-  // filter()+reduce() passes over `deposits`, and a 3rd filter().length pass
-  // (depCount, used later below) recomputed the same predicate again.
-  // Combined into a single pass that also captures the deposit count.
   let totalDeposit=0, totalWithdrawn=0, depCount=0;
   for(let i=0;i<deposits.length;i++){
     const d=deposits[i];
     if(d.type==='with') totalWithdrawn+=(d.amount||0);
     else { totalDeposit+=(d.amount||0); depCount++; }
   }
-  const remaining=totalDeposit-totalWithdrawn-total;
+  const avail=totalDeposit-totalWithdrawn;
+  const remaining=avail-spentAll;
+  const hasCustody=totalDeposit>0;
 
-  // Group by notes (note = accordion title). Items with no note go into "— No Note —"
+  // ── Hero state ──────────────────────────────────────────────────────────
+  const st = !hasCustody ? 'none' : (remaining<0 ? 'over' : ((avail>0 && remaining/avail<=0.15) ? 'low' : 'ok'));
+  const chipTxt = st==='none' ? L('No custody yet','لا توجد عهدة')
+                : st==='over' ? L('Overspent','صرف زيادة')
+                : st==='low'  ? (remaining===0 ? L('Fully used','استُهلكت بالكامل') : L('Running low','قربت تخلص'))
+                :               L('On track','في المسار');
+  let heroLbl, heroFig, heroNote;
+  if(st==='none'){
+    heroLbl  = spentAll>0 ? L('Spent so far','إجمالي المصروف') : L('Custody balance','رصيد العهدة');
+    heroFig  = spentAll;
+    heroNote = spentAll>0
+      ? L('No custody deposited yet. Add a deposit to see what is left.','لسه مفيش عهدة مودعة. ضيف إيداع عشان تعرف المتبقي.')
+      : L('Add the custody you received to start tracking spending.','ضيف العهدة اللي استلمتها عشان تبدأ تتابع المصروفات.');
+  } else if(st==='over'){
+    heroLbl  = L('Over custody by','تجاوز العهدة بمقدار');
+    heroFig  = -remaining;
+    heroNote = L(`Spent ${fmtEGP(spentAll)} against ${fmtEGP(avail)} available`,`صرفت ${fmtEGP(spentAll)} من أصل ${fmtEGP(avail)} متاح`);
+  } else {
+    heroLbl  = L('Remaining custody','المتبقي من العهدة');
+    heroFig  = remaining;
+    heroNote = L(`of ${fmtEGP(avail)} available`,`من أصل ${fmtEGP(avail)} متاح`);
+  }
+  // Gauge: track = whichever is bigger (available custody or spend). Fill up to the
+  // limit is green/gold; anything past the limit is red, with a gold tick at the limit.
+  const cap = Math.max(avail,spentAll);
+  const okW   = cap>0 ? Math.min(spentAll,Math.max(avail,0))/cap*100 : 0;
+  const overW = cap>0 ? Math.max(0,spentAll-Math.max(avail,0))/cap*100 : 0;
+  const tickX = (st==='over' && avail>0) ? avail/cap*100 : null;
+  const usedPct = avail>0 ? Math.round(spentAll/avail*100) : null;
+  const showGauge = st!=='none' && cap>0;
+  const gaugeHTML = showGauge ? `
+    <div class="cx-gauge ${st}" role="img" aria-label="${usedPct!==null?usedPct+'%':''}">
+      <div class="cx-gtrack"><i class="cx-g-ok" style="width:${okW.toFixed(2)}%"></i>${overW>0?`<i class="cx-g-over" style="width:${overW.toFixed(2)}%"></i>`:''}</div>
+      ${tickX!==null?`<b class="cx-tick" style="inset-inline-start:calc(${tickX.toFixed(2)}% - 1px)"></b>`:''}
+    </div>
+    ${usedPct!==null?`<div class="cx-gcap">${L(`${usedPct}% of custody used`,`${usedPct}% من العهدة مستخدمة`)}</div>`:''}` : '';
+
+  const statHTML=(lbl,val,cls)=>`<div class="cx-stat${cls?' '+cls:''}"><div class="cx-stat-l">${lbl}</div><div class="cx-stat-v">${_cxMoney(val)}</div></div>`;
+  const statsHTML=`<div class="cx-stats" style="--n:${totalWithdrawn>0?3:2}">
+      ${statHTML(L('Deposited','إجمالي الإيداع'),totalDeposit,hasCustody?'pos':'zero')}
+      ${statHTML(L('Spent','المصروف'),spentAll,spentAll===0?'zero':'')}
+      ${totalWithdrawn>0?statHTML(L('Withdrawn','المسحوب'),totalWithdrawn,''):''}
+    </div>`;
+
+  const heroHTML=`
+  <section class="cx-hero ${st}">
+    <div class="cx-hero-top">
+      <span class="cx-hero-label">${heroLbl}</span>
+      <span class="cx-chip ${st}">${chipTxt}</span>
+    </div>
+    <div class="cx-figrow"><div class="cx-fig ${st}" dir="ltr"><span class="cx-amt">${esc(fmt(heroFig))}</span><span class="cx-cur">${esc(curLabel())}</span></div></div>
+    <div class="cx-fig-note">${heroNote}</div>
+    ${gaugeHTML}
+    ${statsHTML}
+    <div class="cx-actions">
+      <button type="button" class="cx-act dep" data-t="dep" aria-pressed="false" onclick="_cxEntryOpen('dep')">${ic('arrow_up',18)} ${L('Deposit','إيداع')}</button>
+      <button type="button" class="cx-act with" data-t="with" aria-pressed="false" onclick="_cxEntryOpen('with')">${ic('arrow_down',18)} ${L('Withdraw','سحب')}</button>
+    </div>
+    <div class="cx-entry" id="cxEntry" data-type="dep">
+      <div class="cx-entry-in">
+        <div class="cx-form">
+          <div class="cx-seg" role="group">
+            <button type="button" class="cx-seg-btn on" data-t="dep" onclick="_cxEntrySet('dep')">${L('Deposit','إيداع')}</button>
+            <button type="button" class="cx-seg-btn" data-t="with" onclick="_cxEntrySet('with')">${L('Withdrawal','سحب')}</button>
+          </div>
+          <input type="text" inputmode="decimal" id="custodyDepAmount" class="cx-in cx-in-amt" data-calc autocomplete="off" placeholder="${L('Amount','المبلغ')} (${esc(curLabel())})" onfocus="_cxEnsureVisible()" onblur="applyFormula(this)" onkeydown="_cxEntryKey(event)">
+          <div class="cx-row2">
+            <input type="date" id="custodyDepDate" class="cx-in" value="${today()}">
+            <input type="text" id="custodyDepNote" class="cx-in" dir="auto" autocomplete="off" placeholder="${L('Note (optional)','ملاحظة (اختياري)')}" onkeydown="_cxEntryKey(event)">
+          </div>
+          <div class="cx-form-btns">
+            <button type="button" class="cx-save" id="cxSave" onclick="_cxEntrySave()">${L('Save deposit','حفظ الإيداع')}</button>
+            <button type="button" class="cx-cancel" onclick="_cxEntryClose()">${L('Cancel','إلغاء')}</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>`;
+
+  // ── Expense groups (grouped by note = category), biggest first ────────────
   const groups={};
   exps.forEach(e=>{
     const ri=all.indexOf(e);
@@ -27285,11 +27544,16 @@ function renderExpenses(m){
     if(!groups[key]) groups[key]=[];
     groups[key].push({...e, _ri:ri});
   });
+  const gEntries=Object.entries(groups).map(([k,items])=>({k,items,sum:items.reduce((s,e)=>s+(e.amount||0),0)}));
+  gEntries.sort((a,b)=>((b.k==='__none__'?1:0)-(a.k==='__none__'?1:0))||(b.sum-a.sum)); // uncategorized first, then by size
+  const isGroupOpen=k=>!!searchQ||_cxOpenGroups.has(k);
+  const allOpen=gEntries.length>0&&gEntries.every(g=>isGroupOpen(g.k));
 
-  const groupedHTML=Object.entries(groups).map(([noteKey, items],gi)=>{
+  const groupedHTML=gEntries.map(({k:noteKey,items,sum:groupTotal})=>{
     const isNone=noteKey==='__none__';
     const noteLabel=isNone?L('— No Note —','— بدون نوت —'):noteKey;
-    const groupTotal=items.reduce((s,e)=>s+(e.amount||0),0);
+    const pct=total>0?groupTotal/total*100:0;
+    const isOpen=isGroupOpen(noteKey);
     const itemsHTML=items.map(e=>{
       const linkedBankName = e.linkedBank
         ? (getAllBanks().find(b=>b.key===e.linkedBank)?.name || e.linkedBank)
@@ -27297,38 +27561,31 @@ function renderExpenses(m){
       return `
       <div class="note-row">
         ${isNone?`<label class="note-row-check"><input type="checkbox" data-ri="${e._ri}" onchange="_ngRowToggle(this)"></label>`:''}
-        <div class="note-row-date">${e.date||'—'}</div>
-        <div class="note-row-desc" title="${esc(e.description||'')}">
-          ${esc(e.description)||`<span style="color:var(--muted);font-style:italic">${L('No desc','بدون وصف')}</span>`}
-          ${linkedBankName?`<span style="display:inline-block;margin-top:2px;font-size:calc(9px*var(--app-text-scale,1));font-weight:800;color:var(--info);background:var(--info-tint);padding:1px 6px;border-radius:99px;white-space:nowrap">${ic("bank",11)} ${esc(linkedBankName)}</span>`:''}
+        <div class="note-row-desc" title="${esc(e.description||'')}">${esc(e.description)||`<span style="color:var(--muted);font-style:italic">${L('No desc','بدون وصف')}</span>`}</div>
+        <div class="note-row-amt">${_cxMoney(e.amount)}</div>
+        <div class="note-row-date">
+          <span>${e.date||'—'}</span>
+          ${linkedBankName?`<span class="cx-bankchip">${ic("bank",11)} ${esc(linkedBankName)}</span>`:''}
+          ${e.image?`<a class="cx-imglink" href="${esc(e.image)}" target="_blank" rel="noopener noreferrer" aria-label="${L('Attachment','مرفق')}">${ic('link',13)}</a>`:''}
         </div>
-        ${e.image?`<a href="${esc(e.image)}" target="_blank" rel="noopener noreferrer" style="font-size:calc(14px*var(--app-text-scale,1));text-decoration:none;flex-shrink:0">${ic('link',14)}</a>`:''}
-        <div class="note-row-amt">${fmtEGP(e.amount)}</div>
         <div class="note-row-actions">
-          <button class="edit-btn" style="padding:4px" onclick="openEdit('exp',${e._ri})" title="${L('Edit','تعديل')}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
-          <button class="del-btn" style="padding:4px" onclick="deleteExp(${e._ri})" title="${L('Delete','حذف')}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6l-1 13a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v5m4-5v5"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></button>
+          <button type="button" class="cx-icbtn" onclick="openEdit('exp',${e._ri})" aria-label="${L('Edit','تعديل')}">${ic('edit',17)}</button>
+          <button type="button" class="cx-icbtn del" onclick="deleteExp(${e._ri})" aria-label="${L('Delete','حذف')}">${ic('trash',17)}</button>
         </div>
       </div>`}).join('');
-    // default open if only one group or first group
-    const isOpen=gi===0;
     return `
     <div class="note-group">
-      <div class="note-header" onclick="toggleNoteGroup(this)">
+      <div class="note-header" data-gk="${esc(noteKey)}" onclick="_cxToggleGroup(this)">
         <span class="note-title">${isNone?'<span style="color:var(--muted);font-style:italic">'+noteLabel+'</span>':esc(noteLabel)}</span>
-        <span class="note-meta">${items.length} ${L('item','بند')} · <b style="color:var(--fin-outcome)">${fmtEGP(groupTotal)}</b></span>
-        ${isNone?`
-        <button class="ng-select-btn" onclick="event.stopPropagation();_ngToggleSelectMode(this)" title="${L('Assign category to selected items','حدد بنود وصنّفها')}">
-          ${ic('items',12)} ${L('Categorize','تصنيف')}
-        </button>`:''}
-        <button onclick="event.stopPropagation();deleteNoteGroup('${noteKey.replace(/'/g,"\\'")}')" title="${L('Delete all in group','حذف الكارت كله')}"
-          style="margin-right:2px;background:none;border:none;cursor:pointer;padding:4px 6px;border-radius:7px;color:var(--muted);font-size:calc(13px*var(--app-text-scale,1));flex-shrink:0;line-height:1"
-          onmouseenter="this.style.color='var(--danger)'" onmouseleave="this.style.color='var(--muted)'">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6l-1 13a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v5m4-5v5"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
-        </button>
+        <span class="note-meta"><span class="cx-cnt">${_cxItemsLabel(items.length)}</span><b class="cx-tot">${_cxMoney(groupTotal)}</b></span>
+        <span class="cx-share"><span class="bar"><i style="width:${pct.toFixed(2)}%"></i></span><em>${Math.round(pct)}%</em></span>
         <span class="note-chevron${isOpen?' open':''}">▾</span>
       </div>
       <div class="note-body${isOpen?' open':''}"><div class="note-body-inner">
         ${isNone?`
+        <div class="cx-gtools">
+          <button type="button" class="ng-select-btn cx-gbtn" onclick="_ngToggleSelectMode(this)">${ic('items',14)} ${L('Categorize','تصنيف')}</button>
+        </div>
         <div class="ng-assign-bar">
           <label class="ng-selectall"><input type="checkbox" onchange="_ngSelectAllInGroup(this)"> ${L('All','الكل')}</label>
           <span class="ng-sel-count">0 ${L('selected','محدد')}</span>
@@ -27344,166 +27601,87 @@ function renderExpenses(m){
           <button onclick="_ngCatCustomCancel(this)" title="${L('Cancel','إلغاء')}">${ic('close',13)}</button>
         </div>`:''}
         ${itemsHTML}
+        <div class="cx-gfoot">
+          <button type="button" class="cx-gbtn del" onclick="_cxDeleteGroup(this)">${ic('trash',14)} ${L('Delete group','حذف المجموعة')}</button>
+        </div>
       </div></div>
     </div>`;
   }).join('');
 
-  return `<div class="screen-wrap">
+  const expEmpty = searchQ
+    ? `<div class="cx-none">${L('No results','لا نتائج')}</div>`
+    : (depCount===0
+        ? `<div class="cst-empty-state">
+             <div class="cst-empty-icon">${ic('clipboard',26)}</div>
+             <div class="cst-empty-title">${L('Start with your custody','ابدأ بالعهدة')}</div>
+             <div class="cst-empty-sub">${L('Deposit the amount you received, then log each expense as you spend it.','ضيف المبلغ اللي استلمته، وبعدها سجّل كل مصروف أول بأول.')}</div>
+             <button type="button" class="cst-empty-cta" onclick="_cxEntryOpen('dep');window.scrollTo({top:0,behavior:'smooth'})">${ic('plus',13)} ${L('Add first deposit','ضيف أول إيداع')}</button>
+           </div>`
+        : `<div class="cst-empty-state">
+             <div class="cst-empty-icon">${ic('clipboard',26)}</div>
+             <div class="cst-empty-title">${L('No expenses yet','لسه مفيش مصروفات')}</div>
+             <div class="cst-empty-sub">${L('Tap the + button to log the first expense.','دوس على زرار + عشان تسجل أول مصروف.')}</div>
+           </div>`);
 
-  <!-- 1. HEADER -->
-  <div class="sc-header">
-    <div class="sc-header-eyebrow">${L('Site Expenses','مصروفات الموقع')}</div>
-    <div class="sc-header-title">${L('Custody & Spending','العهدة والإنفاق')}</div>
-    <div class="sc-header-sub">${all.length} ${L('expense entries','بند مصروفات')}</div>
-    <div class="sc-header-meta">
-      <span class="sc-header-badge ${remaining>=0?'ok':'warn'}">${L('Remaining','المتبقي')}: ${fmtEGP(Math.abs(remaining))}</span>
-      <span class="sc-header-badge">${L('Spent','مُنفق')}: ${fmtEGP(total)}</span>
-    </div>
-  </div>
-
-  <!-- 2. BASIC INFORMATION — custody stats -->
-  <div class="sc-card sc-basic">
-    <div class="sc-main-header" onclick="this.closest('.sc-card').querySelector('.sc-collapsible').classList.toggle('open');this.querySelector('.sc-collapse-chev').classList.toggle('open')">
-      <div class="sc-main-title">${ic('lock',13)} ${L('Custody (العهدة)','العهدة')}</div>
-      <span class="sc-collapse-chev${deposits.length>0?' open':''}">›</span>
-    </div>
-    <div class="cst-kpi-row">
-      <div class="cst-kpi${totalDeposit===0?' zero':''}">
-        <div class="cst-kpi-icon" style="--sc-kpi-icon-bg:var(--purple-tint);--sc-kpi-icon-fg:var(--purple)">${ic('wallet',13)}</div>
-        <div class="cst-kpi-val" style="color:${totalDeposit===0?'':'var(--purple)'}">${fmtEGP(totalDeposit)}</div>
-        <div class="cst-kpi-lbl">${L('Deposited','إجمالي الإيداع')}</div>
-      </div>
-      <div class="cst-kpi${total===0?' zero':''}">
-        <div class="cst-kpi-icon" style="--sc-kpi-icon-bg:${total>0?'var(--fin-outcome-tint)':'var(--surface2)'};--sc-kpi-icon-fg:${total>0?'var(--fin-outcome)':'var(--muted)'}">${ic('cash',13)}</div>
-        <div class="cst-kpi-val" style="color:${total>0?'var(--fin-outcome)':''}">${fmtEGP(total)}</div>
-        <div class="cst-kpi-lbl">${L('Spent','مُنفق')}</div>
-      </div>
-      <div class="cst-kpi cst-kpi-primary${remaining===0?' zero':''}">
-        <div class="cst-kpi-icon" style="--sc-kpi-icon-bg:${remaining>=0?'var(--success-tint)':'var(--danger-tint)'};--sc-kpi-icon-fg:${remaining>=0?'var(--success)':'var(--danger)'}">${ic('balance',13)}</div>
-        <div class="cst-kpi-val" style="color:${remaining===0?'':(remaining>=0?'var(--success)':'var(--danger)')}">${fmtEGP(Math.abs(remaining))}</div>
-        <div class="cst-kpi-lbl">${remaining>=0?L('Remaining','المتبقي'):L('Over','تجاوز')}</div>
-      </div>
-    </div>
-    <div class="cst-progress-wrap">
-      <div class="cst-progress-head"><span>${L('Remaining','المتبقي')}</span><span>${totalDeposit>0?Math.round(Math.max(0,Math.min(100,remaining/totalDeposit*100))):100}%</span></div>
-      <div class="cst-progress-track"><div class="cst-progress-fill" style="width:${totalDeposit>0?Math.max(0,Math.min(100,remaining/totalDeposit*100)):100}%;background:${remaining>=0?'var(--success)':'var(--danger)'}"></div></div>
-    </div>
-    <div class="sc-collapsible${deposits.length>0?' open':''}">
-    <!-- Deposit add row -->
-    <div class="sc-add-row" style="flex-direction:column;align-items:stretch;gap:var(--sp2)">
-      <div style="display:flex;gap:var(--sp2)">
-        <input type="date" id="custodyDepDate" value="${today()}" style="flex:none;width:136px;min-width:136px">
-        <input type="text" id="custodyDepNote" placeholder="${L('Note (optional)','ملاحظة (اختياري)')}" style="flex:1;min-width:0">
-      </div>
-      <div style="display:flex;gap:var(--sp2);align-items:center">
-        <input type="text" inputmode="decimal" id="custodyDepAmount" data-calc placeholder="${L('Amount','المبلغ')}" onblur="applyFormula(this)">
-        <button class="add-btn-small" style="background:var(--fin-income)" onclick="addCustodyDeposit('dep')">${ic('arrow_up',16)}</button>
-        <button class="add-btn-small" style="background:var(--fin-outcome)" onclick="addCustodyDeposit('with')">${ic('arrow_down',16)}</button>
-      </div>
-    </div>
-    ${deposits.length>0?`
-    <div class="tx-rows" style="border-top:1px solid var(--border)">
-      ${deposits.map(d=>{const isWith=d.type==='with';return `
-      <div class="tx-row">
-        <div class="tx-type ${isWith?'with':'dep'}">${isWith?ic('arrow_down',13):ic('arrow_up',13)}</div>
-        <div class="tx-info">
-          <div class="tx-label">${esc(d.note)||(isWith?L('Withdrawal','سحب'):L('Custody Deposit','إيداع عهدة'))}</div>
-          <div class="tx-date">${d.date||'—'}</div>
-        </div>
-        <div class="tx-amount ${isWith?'with':'dep'}">${isWith?'-':'+'}${fmtEGP(Math.abs(d.amount))}</div>
-        <button class="tx-edit-btn" onclick="editCustodyDeposit('${d.id}')">${ic('edit',13)}</button>
-        <button class="tx-del" onclick="deleteCustodyDeposit('${d.id}')">${ic('trash',13)}</button>
-      </div>`;}).join('')}
-    </div>`:`<div class="list-empty">${L('No entries yet','لا يوجد قيود بعد')}</div>`}
-    </div>
-  </div>
-
-
-  <!-- 3. MAIN CONTENT — expense groups -->
-  <div class="sc-card sc-main">
-    <div class="sc-main-header">
-      <div class="sc-main-title">${ic('site',14)} ${L('Site Expenses','مصروفات الموقع')}</div>
-      ${exps.length?`<span style="font-size:calc(11px*var(--app-text-scale,1));font-weight:900;color:var(--fin-outcome)">${fmtEGP(total)}</span>`:''}
+  const expensesHTML=`
+  <section class="cx-sec">
+    <div class="cx-sh">
+      <span class="cx-sh-l"><span class="cx-sh-t">${L('Site Expenses','مصروفات الموقع')}</span><span class="cx-sh-s">${searchQ?`${exps.length} / ${all.length}`:all.length} ${all.length===1?L('entry','بند'):L('entries','بند')}</span></span>
+      ${exps.length?`<span class="cx-sh-v">${_cxMoney(total)}</span>`:''}
     </div>
     ${all.length>0?`
-    <!-- Search -->
-    <div class="sc-search">
-      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
-      <input placeholder="${L('Search expenses...','ابحث في المصروفات...')}" value="${esc(searchQ)}" oninput="doSearch(this.value)"/>
+    <div class="sc-search cx-search">
+      <span class="cx-sbox">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
+        <input placeholder="${L('Search expenses...','ابحث في المصروفات...')}" value="${esc(searchQ)}" oninput="doSearch(this.value)"/>
+      </span>
+      ${gEntries.length>1?`<button type="button" class="cx-textbtn" onclick="_cxExpandAll(this)">${allOpen?L('Collapse all','طي الكل'):L('Expand all','فتح الكل')}</button>`:''}
     </div>`:''}
-    <div style="padding:var(--sp3) var(--sp4)">
-    ${exps.length===0
-      ? (searchQ
-          ? `<div style="text-align:center;padding:24px;color:var(--muted);font-size:calc(13px*var(--app-text-scale,1))">${L('No results','لا نتائج')}</div>`
-          : `<div class="cst-empty-state">
-               <div class="cst-empty-icon">${ic('clipboard',26)}</div>
-               <div class="cst-empty-title">${L('No expenses yet','لسه مفيش مصروفات')}</div>
-               <div class="cst-empty-sub">${L('Once you deposit custody money above, log expenses here and they will show up organized by category.','بعد ما تضيف مبلغ العهدة فوق، سجّل المصروفات هنا وهتلاقيها متنظمة حسب التصنيف.')}</div>
-               <button class="cst-empty-cta" onclick="document.getElementById('custodyDepAmount')?.scrollIntoView({behavior:'smooth',block:'center'});setTimeout(()=>document.getElementById('custodyDepAmount')?.focus(),300)">${ic('plus',13)} ${L('Add first deposit','ضيف أول إيداع')}</button>
-             </div>`)
-      : groupedHTML}
-    </div>
-  </div>
+    ${exps.length===0 ? expEmpty : `<div class="cx-glist" data-total="${total}">${groupedHTML}</div>`}
+  </section>`;
 
-  <!-- 4. SUMMARY — featured closing card (unique insights only; the raw
-       Deposited/Spent/Remaining figures already live in the Custody card
-       above, so this recap intentionally avoids repeating them). Now
-       enriched with lightweight AI-style insights (top/lowest expense,
-       top category, average) derived live from this month's entries. -->
-  ${(()=>{
-    if(depCount===0 && all.length===0){
-      return `
-  <div class="sc-card cst-empty-state">
-    <div class="cst-empty-icon">${ic('chart',26)}</div>
-    <div class="cst-empty-title">${L('Your month at a glance','ملخص الشهر هنا')}</div>
-    <div class="cst-empty-sub">${L('Once there is a deposit or expense to work with, this card will surface your top category, biggest expense and daily average automatically.','بمجرد ما يبقى فيه إيداع أو مصروف، الكارت ده هيوريك تلقائي أعلى تصنيف، أكبر مصروف، والمتوسط اليومي.')}</div>
-  </div>`;
-    }
-    const usedPct = totalDeposit>0 ? Math.min(100, Math.round((total/totalDeposit)*100)) : 0;
-    const circumference = 326.7; // 2 * PI * r(52)
-    // PERF (Sprint P4): depCount reuses the value already computed once at
-    // the top of renderExpenses instead of re-filtering `deposits` again.
-    const statusOk = remaining>=0;
-    const aiInsights = generateExpenseAIInsights(all, (()=>{
-      const g={}; all.forEach(e=>{ const k=(e.notes||'').trim()||'__none__'; (g[k]=g[k]||[]).push(e); }); return g;
-    })());
-    return `
-  <div class="sc-card sc-summary-hero">
-    <div class="sc-summary-hero-label">${ic('chart',12)} ${L('Month Summary','ملخص الشهر')}</div>
-    <div class="ssh-ring-wrap">
-      <svg class="ssh-ring" viewBox="0 0 120 120">
-        <circle class="ssh-ring-bg" cx="60" cy="60" r="52"></circle>
-        <circle class="ssh-ring-fill" cx="60" cy="60" r="52" stroke="${statusOk?'var(--success)':'var(--danger)'}" style="stroke-dasharray:${circumference};stroke-dashoffset:${circumference - (circumference*usedPct)/100}"></circle>
-      </svg>
-      <div class="ssh-ring-center">
-        <div class="ssh-ring-pct">${usedPct}%</div>
-        <div class="ssh-ring-lbl">${L('of custody','من العهدة')}</div>
-      </div>
+  // ── Insights (same generator as before; derived, read-only) ─────────────
+  const aiInsights = generateExpenseAIInsights(all, (()=>{
+    const g={}; all.forEach(e=>{ const k=(e.notes||'').trim()||'__none__'; (g[k]=g[k]||[]).push(e); }); return g;
+  })());
+  const insightsHTML = aiInsights.length ? `
+  <section class="cx-sec">
+    <div class="cx-sh"><span class="cx-sh-l"><span class="cx-sh-t">${L('Insights','رؤى ذكية')}</span></span></div>
+    <div class="cx-panel">
+      ${aiInsights.map(ins=>`<div class="cx-ins"><span class="cx-ins-l">${ins.label}</span><span class="cx-ins-v"><bdi>${ins.value}</bdi></span></div>`).join('')}
     </div>
-    <div class="ssh-status ${statusOk?'ok':'warn'}">${statusOk?ic('check',12):ic('warning',12)} ${statusOk?L('On track','في المسار'):L('Over budget','تجاوز الميزانية')}</div>
-    <div class="ssh-meta">
-      <div class="ssh-meta-item"><b>${depCount}</b><span>${L('deposits','إيداعات')}</span></div>
-      <div class="ssh-meta-sep"></div>
-      <div class="ssh-meta-item"><b>${all.length}</b><span>${L('expense items','بند مصروف')}</span></div>
-      ${totalWithdrawn>0?`<div class="ssh-meta-sep"></div><div class="ssh-meta-item"><b>${fmtEGP(totalWithdrawn)}</b><span>${L('withdrawn','مسحوب')}</span></div>`:''}
-    </div>
-    ${aiInsights.length?`
-    <div class="ssh-ai">
-      <div class="ssh-ai-label"><span class="ssh-ai-badge">${ic('sparkle',12)} ${L('AI Insights','رؤى ذكية')}</span></div>
-      <div class="ssh-ai-list">
-      ${aiInsights.map(ins=>`
-        <div class="ssh-ai-row">
-          <div class="ssh-ai-icon" style="color:${ins.color};background:${ins.bg}">${ic(ins.icon,15)}</div>
-          <div class="ssh-ai-text">
-            <div class="ssh-ai-text-label">${ins.label}</div>
-            <div class="ssh-ai-text-val">${ins.value}</div>
+  </section>` : '';
+
+  // ── Custody movements (deposits / withdrawals), newest first ────────────
+  const mvSorted=[...deposits].sort((a,b)=>String(b.date||'').localeCompare(String(a.date||''))||String(b.id||'').localeCompare(String(a.id||'')));
+  const ledgerHTML = deposits.length ? `
+  <section class="cx-sec cx-ledger${_cxLedgerOpen?' cx-open':''}">
+    <button type="button" class="cx-sh cx-sh-tap" aria-expanded="${_cxLedgerOpen?'true':'false'}" onclick="_cxToggleLedger(this)">
+      <span class="cx-sh-l"><span class="cx-sh-t">${L('Custody Movements','حركة العهدة')}</span><span class="cx-sh-s">${deposits.length} ${deposits.length===1?L('entry','قيد'):L('entries','قيد')}</span></span>
+      <span class="cx-chev">▾</span>
+    </button>
+    <div class="cx-lbody"><div class="cx-lbody-in">
+      <div class="cx-panel cx-mvlist">
+        ${mvSorted.map(d=>{const isWith=d.type==='with';return `
+        <div class="cx-mv">
+          <span class="cx-mv-ic ${isWith?'with':'dep'}">${isWith?ic('arrow_down',16):ic('arrow_up',16)}</span>
+          <div class="cx-mv-txt">
+            <div class="cx-mv-t">${esc(d.note)||(isWith?L('Withdrawal','سحب'):L('Custody Deposit','إيداع عهدة'))}</div>
+            <div class="cx-mv-d">${d.date||'—'}</div>
           </div>
-        </div>`).join('')}
+          <div class="cx-mv-amt ${isWith?'with':'dep'}" dir="ltr">${isWith?'−':'+'}${_cxMoney(Math.abs(d.amount))}</div>
+          <button type="button" class="cx-icbtn" onclick="editCustodyDeposit('${d.id}')" aria-label="${L('Edit','تعديل')}">${ic('edit',17)}</button>
+          <button type="button" class="cx-icbtn del" onclick="deleteCustodyDeposit('${d.id}')" aria-label="${L('Delete','حذف')}">${ic('trash',17)}</button>
+        </div>`;}).join('')}
       </div>
-    </div>`:''}
-  </div>`;
-  })()}
+    </div></div>
+  </section>` : '';
 
+  return `<div class="screen-wrap cx-wrap">
+  ${heroHTML}
+  ${expensesHTML}
+  ${insightsHTML}
+  ${ledgerHTML}
   </div><!-- /screen-wrap -->`;
 }
 
@@ -27514,6 +27692,92 @@ function toggleNoteGroup(headerEl){
   body.classList.toggle('open',!isOpen);
   if(chev) chev.classList.toggle('open',!isOpen);
 }
+
+// ── Site Custody v2 helpers (UI state only — no data writes) ───────────────
+// Which expense groups are open / whether the movements list is open survives
+// re-renders (edit, delete, save) instead of snapping back to a default.
+const _cxOpenGroups=new Set();
+let _cxLedgerOpen=true;
+let _cxEntryType='dep';
+function _cxMoney(n){ return `<span class="cx-mn"><b>${esc(fmt(n))}</b><small>${esc(curLabel())}</small></span>`; }
+function _cxItemsLabel(n){ return `${n} ${n===1?L('item','بند'):L('items','بند')}`; }
+function _cxToggleGroup(h){
+  toggleNoteGroup(h);
+  const k=h.dataset.gk;
+  if(h.nextElementSibling && h.nextElementSibling.classList.contains('open')) _cxOpenGroups.add(k); else _cxOpenGroups.delete(k);
+}
+function _cxExpandAll(btn){
+  const groups=[...document.querySelectorAll('.cx-glist .note-group')];
+  if(!groups.length) return;
+  const open=groups.some(g=>!g.querySelector('.note-body').classList.contains('open'));
+  groups.forEach(g=>{
+    const h=g.querySelector('.note-header'), body=g.querySelector('.note-body'), chev=g.querySelector('.note-chevron');
+    body.classList.toggle('open',open);
+    if(chev) chev.classList.toggle('open',open);
+    if(open) _cxOpenGroups.add(h.dataset.gk); else _cxOpenGroups.delete(h.dataset.gk);
+  });
+  btn.textContent = open ? L('Collapse all','طي الكل') : L('Expand all','فتح الكل');
+}
+function _cxDeleteGroup(btn){
+  const h=btn.closest('.note-group')?.querySelector('.note-header');
+  if(h) deleteNoteGroup(h.dataset.gk);
+}
+function _cxToggleLedger(h){
+  const sec=h.closest('.cx-sec');
+  _cxLedgerOpen=sec.classList.toggle('cx-open');
+  h.setAttribute('aria-expanded',_cxLedgerOpen?'true':'false');
+}
+// Inline entry panel (Deposit / Withdraw). Reuses addCustodyDeposit() and the
+// same input ids, so validation, persistence and toasts are unchanged.
+function _cxEntrySync(){
+  const p=document.getElementById('cxEntry');
+  const isOpen=!!(p && p.classList.contains('open'));
+  document.querySelectorAll('.cx-act').forEach(b=>b.setAttribute('aria-pressed',(isOpen && b.dataset.t===_cxEntryType)?'true':'false'));
+}
+function _cxEntrySet(t){
+  _cxEntryType=(t==='with')?'with':'dep';
+  const p=document.getElementById('cxEntry');
+  if(!p) return;
+  p.dataset.type=_cxEntryType;
+  p.querySelectorAll('.cx-seg-btn').forEach(b=>b.classList.toggle('on',b.dataset.t===_cxEntryType));
+  const save=document.getElementById('cxSave');
+  if(save) save.textContent=_cxEntryType==='with'?L('Save withdrawal','حفظ السحب'):L('Save deposit','حفظ الإيداع');
+  _cxEntrySync();
+}
+function _cxEntryOpen(t){
+  const p=document.getElementById('cxEntry');
+  if(!p) return;
+  if(p.classList.contains('open') && _cxEntryType===t){ _cxEntryClose(); return; }
+  p.classList.add('open');
+  _cxEntrySet(t);
+  const amt=document.getElementById('custodyDepAmount');
+  if(amt){ try{ amt.focus({preventScroll:true}); }catch(e){ amt.focus(); } }
+  _cxEnsureVisible();
+}
+// The app's custom amount keypad is ~380px tall and its own scroll-into-view
+// centres the field, which leaves the field half-covered on a page-level scroll.
+// After it settles, nudge the page so the whole entry form (incl. Save) sits
+// above the keypad.
+function _cxEnsureVisible(){
+  setTimeout(()=>{
+    const p=document.getElementById('cxEntry');
+    if(!p || !p.classList.contains('open')) return;
+    const kb=document.getElementById('amtKb');
+    const kbH=(kb && kb.classList.contains('open'))?kb.offsetHeight:0;
+    const r=p.getBoundingClientRect();
+    const over=r.bottom-(window.innerHeight-kbH-12);
+    if(over>0) window.scrollBy({top:Math.min(over,Math.max(0,r.top-110)),behavior:'smooth'});
+  },560);
+}
+function _cxEntryClose(){
+  const p=document.getElementById('cxEntry');
+  if(!p) return;
+  p.classList.remove('open');
+  if(document.activeElement && p.contains(document.activeElement)) document.activeElement.blur();
+  _cxEntrySync();
+}
+function _cxEntrySave(){ addCustodyDeposit(_cxEntryType); }
+function _cxEntryKey(e){ if(e.key==='Enter'){ e.preventDefault(); _cxEntrySave(); } }
 
 // ── Bulk "assign category" for the No-Note group ─────────────────────────
 // Lets the person tick a batch of uncategorized expenses and file them all
@@ -27622,7 +27886,19 @@ function _ngApplyCategory(btn){
       const ri = parseInt(chk.dataset.ri,10);
       if(exps[ri]) sum += exps[ri].amount||0;
     });
-    headerMeta.innerHTML = `${remainingChecks.length} ${L('item','بند')} · <b style="color:#dc4f4f">${fmtEGP(sum)}</b>`;
+    const _cntEl=headerMeta.querySelector('.cx-cnt'), _totEl=headerMeta.querySelector('.cx-tot');
+    if(_cntEl && _totEl){
+      // Site Custody v2 header: update count, total and share bar in place
+      _cntEl.textContent = _cxItemsLabel(remainingChecks.length);
+      _totEl.innerHTML = _cxMoney(sum);
+      const _grand = parseFloat(group.closest('.cx-glist')?.dataset.total)||0;
+      const _pct = _grand>0 ? sum/_grand*100 : 0;
+      const _bar = group.querySelector('.cx-share .bar i'), _pctEl = group.querySelector('.cx-share em');
+      if(_bar) _bar.style.width = _pct.toFixed(2)+'%';
+      if(_pctEl) _pctEl.textContent = Math.round(_pct)+'%';
+    } else {
+      headerMeta.innerHTML = `${remainingChecks.length} ${L('item','بند')} · <b style="color:#dc4f4f">${fmtEGP(sum)}</b>`;
+    }
   }
 }
 
@@ -32589,6 +32865,7 @@ function _renderNoteEditorUnlocked(n){
     <input type="file" id="qnFileInput" style="display:none" onchange="_notesHandleGenericFile(this.files)">`;
   document.getElementById('qnBody').addEventListener('click', _notesChecklistClick);
   document.getElementById('qnBody').addEventListener('keydown', _notesChecklistKeydown);
+  document.getElementById('qnBody').addEventListener('paste', _notesPaste);
   _notesAttachKeyboardTracking();
 }
 
@@ -32753,6 +33030,154 @@ function _notesChecklistKeydown(e){
   sel.removeAllRanges();
   sel.addRange(r);
   _notesAutosave();
+}
+
+// ── Smart paste ─────────────────────────────────────────────────────────────
+// Text pasted from outside (ChatGPT, WhatsApp, another notes app, a PDF...) that
+// carries markdown-style structure is rebuilt in the editor's OWN formats:
+//   "- [ ] x" / "- [x] x" (also ☐ ☑ ✅)  → checklist rows (checked state kept)
+//   "# / ## / ###"                          → Title / Heading / Subheading
+//   a short line above a list, after a blank line ("ورق DMA") → Title
+//   "- x" / "1. x"                          → bulleted / numbered list
+//   **bold**, ~~strike~~                    → inline styles
+// Arabic presentation-form glyphs (what PDF/Word copies give, e.g. "ﺷﺮﻛﺔ") are
+// normalised to normal letters. Direction (RTL/LTR) is decided once per paste from
+// the dominant script, so a list never ends up with half its checkboxes on each side.
+// Anything without structure is left to the browser's native paste.
+const _QN_PRES_RE_G=/[\uFB50-\uFDF9\uFE70-\uFEFC]+/g;
+const _QN_PRES_RE_T=/[\uFB50-\uFDF9\uFE70-\uFEFC]/;
+// PDF/Word presentation forms often map to the Persian/Urdu letter variants (ی ک ھ) —
+// fold those back to the Arabic letters (ي ك ه) so the text matches what you'd type.
+function _notesNormalizeArabic(t){
+  return t.replace(_QN_PRES_RE_G,m=>m.normalize('NFKC').replace(/ی/g,'ي').replace(/ک/g,'ك').replace(/ھ/g,'ه'));
+}
+function _notesClassifyLine(l){
+  let m;
+  if(!l.trim() || /^\s*[-*_]{3,}\s*$/.test(l)) return {t:'blank'};
+  if((m=l.match(/^\s*(?:[-*+•]\s+)?\[([ xX✓✔])\]\s?(.*)$/))) return {t:'chk',done:m[1]!==' ',text:m[2].trim()};
+  if((m=l.match(/^\s*(?:[-*+•]\s+)?([☐☑☒✅✔✓])\s?(.*)$/))) return {t:'chk',done:m[1]!=='☐',text:m[2].trim()};
+  if((m=l.match(/^\s{0,3}(#{1,6})\s+(.*?)\s*#*\s*$/))) return {t:'h',lvl:m[1].length,text:m[2]};
+  if((m=l.match(/^\s*[-*+•–—]\s+(.*)$/))) return {t:'ul',text:m[1].trim()};
+  if((m=l.match(/^\s*[0-9٠-٩]+[.)]\s+(.*)$/))) return {t:'ol',text:m[1].trim()};
+  return {t:'p',text:l.trim()};
+}
+function _notesParsePaste(text){
+  const norm=_notesNormalizeArabic(text).replace(/\r\n?/g,'\n').replace(/\u00A0/g,' ');
+  const lines=norm.split('\n').map(s=>s.replace(/[\u200E\u200F\u202A-\u202E\u2066-\u2069\uFEFF\uFE0F]/g,'').replace(/\s+$/,''));
+  const cls=lines.map(_notesClassifyLine);
+  let implicit=0;
+  for(let i=0;i<cls.length;i++){
+    const c=cls[i];
+    if(c.t!=='p') continue;
+    const prevBlank=(i===0)||cls[i-1].t==='blank';
+    const nxt=cls[i+1];
+    if(prevBlank && nxt && (nxt.t==='chk'||nxt.t==='ul'||nxt.t==='ol') && c.text.length<=80){
+      c.t='h'; c.lvl=1; c.text=c.text.replace(/\s*[:：]$/,''); implicit++;
+    }
+  }
+  const nChk=cls.filter(c=>c.t==='chk').length;
+  const nList=cls.filter(c=>c.t==='ul'||c.t==='ol').length;
+  const nHead=cls.filter(c=>c.t==='h').length;
+  const structured = nChk>0 || nHead>0 || nList>=2;
+  const ar=(norm.match(/[\u0600-\u06FF\u0750-\u077F]/g)||[]).length;
+  const la=(norm.match(/[A-Za-z]/g)||[]).length;
+  return {cls,structured,dir:ar>=la?'rtl':'ltr',normalized:norm};
+}
+function _notesBuildPasteFragment(cls,dir){
+  const frag=document.createDocumentFragment();
+  const inline=s=>esc(s).replace(/\*\*(.+?)\*\*/g,'<b>$1</b>').replace(/~~(.+?)~~/g,'<s>$1</s>');
+  let list=null, listType=null;
+  cls.forEach(c=>{
+    if(c.t==='blank'){ list=null; return; }
+    if(c.t==='ul'||c.t==='ol'){
+      if(!list||listType!==c.t){ list=document.createElement(c.t); listType=c.t; list.setAttribute('dir',dir); frag.appendChild(list); }
+      const li=document.createElement('li'); li.innerHTML=inline(c.text)||'<br>'; list.appendChild(li);
+      return;
+    }
+    list=null;
+    let el;
+    if(c.t==='h'){ el=document.createElement('h'+Math.min(Math.max(c.lvl,1),3)); el.innerHTML=inline(c.text)||'<br>'; }
+    else if(c.t==='chk'){
+      el=document.createElement('div'); el.className='qn-chk'+(c.done?' checked':'');
+      el.innerHTML=`<span class="qn-chk-box" contenteditable="false"></span><span class="qn-chk-text">${inline(c.text)||'\u200B'}</span>`;
+    } else { el=document.createElement('div'); el.innerHTML=inline(c.text)||'<br>'; }
+    el.setAttribute('dir',dir);
+    frag.appendChild(el);
+  });
+  return frag;
+}
+function _notesInsertBlocks(body,frag){
+  const last=frag.lastElementChild;
+  if(!last) return;
+  const isBlank=n=>!n.textContent.replace(/[\u200B\s]/g,'') && !n.querySelector('img,table,hr,a');
+  const sel=window.getSelection();
+  let range=(sel && sel.rangeCount && body.contains(sel.anchorNode)) ? sel.getRangeAt(0) : null;
+  if(!range){ body.appendChild(frag); }
+  else {
+    if(!range.collapsed) range.deleteContents();
+    let node=range.startContainer;
+    if(node===body){
+      body.insertBefore(frag, body.childNodes[range.startOffset]||null);
+    } else {
+      while(node && node.parentNode!==body) node=node.parentNode;
+      if(!node){ body.appendChild(frag); }
+      else {
+        if(node.nodeType===3){ const w=document.createElement('div'); node.replaceWith(w); w.appendChild(node); node=w; }
+        if(isBlank(node)){ node.replaceWith(frag); }
+        else if(/^(UL|OL)$/.test(node.tagName)){ node.after(frag); }
+        else {
+          const tailRange=document.createRange();
+          tailRange.selectNodeContents(node);
+          tailRange.setStart(range.startContainer, range.startOffset);
+          const tail=tailRange.extractContents();
+          const tailText=(tail.textContent||'').replace(/\u200B/g,'');
+          let tailBlock=null;
+          if(tailText.trim()||tail.querySelector('img')){
+            if(node.classList && node.classList.contains('qn-chk')){
+              tailBlock=node.cloneNode(false); tailBlock.classList.remove('checked');
+              const box=document.createElement('span'); box.className='qn-chk-box'; box.contentEditable='false';
+              const tx=document.createElement('span'); tx.className='qn-chk-text';
+              const src=tail.querySelector('.qn-chk-text');
+              if(src){ while(src.firstChild) tx.appendChild(src.firstChild); } else tx.appendChild(tail);
+              tailBlock.appendChild(box); tailBlock.appendChild(tx);
+            } else {
+              tailBlock=/^H[1-6]$/.test(node.tagName)?document.createElement('div'):node.cloneNode(false);
+              tailBlock.appendChild(tail);
+            }
+          }
+          const headBlank=isBlank(node);
+          node.after(frag);
+          if(tailBlock) last.after(tailBlock);
+          if(headBlank) node.remove();
+        }
+      }
+    }
+  }
+  // caret to the end of the last inserted block
+  const r=document.createRange();
+  const tx=last.classList&&last.classList.contains('qn-chk')?last.querySelector('.qn-chk-text'):last;
+  r.selectNodeContents(tx); r.collapse(false);
+  if(sel){ sel.removeAllRanges(); sel.addRange(r); }
+  if(last.scrollIntoView) last.scrollIntoView({block:'nearest'});
+}
+function _notesPaste(e){
+  const cd=e.clipboardData;
+  if(!cd) return;
+  const raw=cd.getData('text/plain');
+  if(!raw) return;
+  try{
+    const parsed=_notesParsePaste(raw);
+    const body=document.getElementById('qnBody');
+    if(parsed.structured && body){
+      e.preventDefault();
+      _notesInsertBlocks(body,_notesBuildPasteFragment(parsed.cls,parsed.dir));
+      _notesAutosave();
+    } else if(_QN_PRES_RE_T.test(raw)){
+      e.preventDefault();
+      document.execCommand('insertText',false,parsed.normalized);
+      _notesAutosave();
+    }
+  }catch(err){ _logErr('_notesPaste',err); }
 }
 
 // ── Text styles (Aa menu) — Title/Heading/Subheading/Body + list kinds ──
