@@ -6931,7 +6931,7 @@ button:not(:disabled):active{transform:scale(.97)}
 .banks-v2 .bnk-vc-unionpay i:nth-child(3){background:#007b84}
 /* ── Available Balance / meta / FX block, now embedded inside the visa
    card itself (replaces the separate green balance card). Reuses the
-   existing .bal-avail-*/.bal-meta-*/.bal-fx-* classes (built for a solid
+   existing bal-avail / bal-meta / bal-fx classes (built for a solid
    accent-color card) with light-text-on-dark defaults; the .bnk-vc-light
    modifier flips them to dark-on-light for the pale bank cards (Banque du
    Caire, Banque Misr). */
@@ -6955,6 +6955,20 @@ button:not(:disabled):active{transform:scale(.97)}
 .banks-v2 .bnk-vc-balance.bnk-vc-light .bal-fx-chip-val{color:var(--bnk-num-color,#1c1408);text-shadow:none}
 .banks-v2 .bnk-vc-balance.bnk-vc-light .bal-fx-note{color:rgba(0,0,0,.5)}
 .banks-v2 .bnk-visacard-expanded{margin-bottom:14px}
+/* Labels on the card face were 50–70% opacity at 8px — on light or busy
+   photos they disappeared. Stronger, slightly larger, with a soft halo. */
+.banks-v2 .bnk-vc-balance .bal-avail-label{color:rgba(255,255,255,.92);font-weight:800}
+.banks-v2 .bnk-vc-balance .bal-meta-label{color:rgba(255,255,255,.9);font-size:calc(9px*var(--app-text-scale,1));font-weight:800}
+.banks-v2 .bnk-vc-balance .bal-fx-chip-code{color:rgba(255,255,255,.9);font-size:calc(9px*var(--app-text-scale,1));font-weight:800}
+.banks-v2 .bnk-vc-balance .bal-fx-note{color:rgba(255,255,255,.82);font-size:calc(9px*var(--app-text-scale,1));font-weight:700}
+.banks-v2 .bnk-visacard .bnk-vc-holder-lbl{opacity:.92;font-weight:800}
+.banks-v2 .bnk-vc-balance.bnk-vc-light{--vc-int-lbl:rgba(0,0,0,.78);--vc-int-val:#7a5200}
+.banks-v2 .bnk-vc-balance.bnk-vc-light .bal-avail-label{color:rgba(0,0,0,.78)}
+.banks-v2 .bnk-vc-balance.bnk-vc-light .bal-meta-label{color:rgba(0,0,0,.74)}
+.banks-v2 .bnk-vc-balance.bnk-vc-light .bal-fx-chip-code{color:rgba(0,0,0,.74)}
+.banks-v2 .bnk-vc-balance.bnk-vc-light .bal-fx-note{color:rgba(0,0,0,.68)}
+.banks-v2 .bnk-vc-photo .bal-avail-label,.banks-v2 .bnk-vc-photo .bal-meta-label,.banks-v2 .bnk-vc-photo .bal-fx-chip-code,.banks-v2 .bnk-vc-photo .bal-fx-note,.banks-v2 .bnk-vc-photo .bnk-vc-holder-lbl{text-shadow:0 1px 3px rgba(0,0,0,.45)}
+.banks-v2 .bnk-vc-photo-dark .bal-avail-label,.banks-v2 .bnk-vc-photo-dark .bal-meta-label,.banks-v2 .bnk-vc-photo-dark .bal-fx-chip-code,.banks-v2 .bnk-vc-photo-dark .bal-fx-note,.banks-v2 .bnk-vc-photo-dark .bnk-vc-holder-lbl{text-shadow:0 1px 2px rgba(255,255,255,.6)}
 .banks-v2 .bnk-sc-watermark{position:absolute;z-index:0;pointer-events:none}
 .bcp-vcard-opt{transition:transform .12s ease,box-shadow .12s ease}
 .bcp-vcard-opt:active{transform:scale(.96)}
@@ -21220,7 +21234,7 @@ function previewBankColors(key){
 
   let vis;
   if(vcardKey==='custom' && vcardImage){
-    const light=textMode!=='dark';
+    const light=bnkEffectiveTextLight(vcardImage, textMode);
     vis={ grad:`url('${vcardImage}') center/cover no-repeat`, fg: light?'#ffffff':'#1a1a1a', chip: light?'#e0c07a':'#8a6024', network:'both', light:!light };
   } else if(vcardKey && VCARD_PRESETS[vcardKey]){
     vis=VCARD_PRESETS[vcardKey];
@@ -21436,11 +21450,11 @@ function renderBankMetaRow(bal, key, tot, vis){
   if(hasInt){
     var intVal = vis ? (fmt(monthInt)+' '+cur) : '● ●';
     intItem = '<div class="bal-meta-item">'
-      + '<div class="bal-meta-label" style="color:rgba(255,255,255,.85);display:flex;align-items:center;gap:var(--sp1)">'
+      + '<div class="bal-meta-label" style="color:var(--vc-int-lbl,rgba(255,255,255,.92));display:flex;align-items:center;gap:var(--sp1)">'
       + '<svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>'
       + (lang==='ar' ? 'فائدة شهرية' : 'Monthly Int.')
       + '</div>'
-      + '<div class="bal-meta-value ' + hidCls + '" style="color:rgba(255,220,100,.95)">' + intVal + '</div>'
+      + '<div class="bal-meta-value ' + hidCls + '" style="color:var(--vc-int-val,rgba(255,220,100,.95))">' + intVal + '</div>'
       + '</div>';
   }
 
@@ -22032,12 +22046,12 @@ function walletCardVisualStyle(name, fallbackColor){
 function walletResolveVisualStyle(b, accentColor){
   const c=bankCustomColors[b.key]||{};
   if(c.vcardStyle==='custom' && c.vcardImage){
-    const light = c.vcardTextMode!=='dark';
+    const light = bnkEffectiveTextLight(c.vcardImage, c.vcardTextMode);
     return {
       grad: `url('${c.vcardImage}') center/cover no-repeat`,
       fg: light?'#ffffff':'#1a1a1a',
       chip: light?'#e0c07a':'#8a6024',
-      network:'none', shape:null,
+      network:'none', shape:null, light: !light,
       customPhoto:true,
       scrim: light ? 'rgba(0,0,0,.22)' : 'rgba(255,255,255,.28)',
     };
@@ -22079,11 +22093,67 @@ const VCARD_PRESETS = {
 // a photo of their real card — it becomes the card's background image and
 // all the usual dynamic info (balance, masked number, chip, holder name,
 // network mark) renders on top of it exactly like every other style.
+// ── Custom card photo → readable text ───────────────────────────────────────
+// A user photo can be any brightness. Whatever text mode was saved (default
+// "light"), light text on a bright photo (or dark text on a dark one) makes
+// the small labels vanish. So we measure the photo once (mean relative
+// luminance, cached) and, only when the chosen mode would be hard to read,
+// switch to the one that is — using the same scrim each mode really paints.
+const PhotoLum = (function(){
+  const KEY='wdp_photo_lum_v1'; let cache={};
+  try{ cache = JSON.parse(localStorage.getItem(KEY)||'{}')||{}; }catch(e){ cache={}; }
+  const mem={}, inflight={}; let timer=null;
+  function peek(src){
+    if(!src) return null; const h=LogoNorm.keyOf(src);
+    if(mem[h]!==undefined) return mem[h];
+    if(cache[h]!==undefined){ mem[h]=cache[h]; return mem[h]; }
+    return null;
+  }
+  function lin(v){ v/=255; return v<=0.03928 ? v/12.92 : Math.pow((v+0.055)/1.055,2.4); }
+  function ensure(src){
+    if(!src || peek(src)!==null) return;
+    const h=LogoNorm.keyOf(src); if(inflight[h]) return; inflight[h]=1;
+    const im=new Image();
+    im.onload=()=>{
+      let lum=-1;
+      try{
+        const N=32, c=document.createElement('canvas'); c.width=c.height=N;
+        const g=c.getContext('2d',{willReadFrequently:true}); g.drawImage(im,0,0,N,N);
+        const d=g.getImageData(0,0,N,N).data; let sum=0,n=0;
+        for(let i=0;i<d.length;i+=4){ if(d[i+3]<40) continue; sum+=0.2126*lin(d[i])+0.7152*lin(d[i+1])+0.0722*lin(d[i+2]); n++; }
+        if(n) lum=sum/n;
+      }catch(e){}
+      mem[h]=lum; cache[h]=lum;
+      try{ const ks=Object.keys(cache); if(ks.length>40) ks.slice(0,ks.length-40).forEach(k=>delete cache[k]); localStorage.setItem(KEY,JSON.stringify(cache)); }catch(e){}
+      delete inflight[h];
+      clearTimeout(timer);
+      timer=setTimeout(()=>{
+        try{ if(typeof _bcpCurrentKey!=='undefined' && document.getElementById('bcp-preview')) previewBankColors(_bcpCurrentKey); }catch(e){}
+        try{ if(currentView==='banks') renderView(true); }catch(e){}
+      },60);
+    };
+    im.onerror=()=>{ mem[h]=-1; delete inflight[h]; };
+    im.src=src;
+  }
+  return { peek:peek, ensure:ensure };
+})();
+// → true when TEXT on this photo should be light (white), false for dark.
+function bnkEffectiveTextLight(image, requestedMode){
+  const wantLight = requestedMode!=='dark';
+  const lum = PhotoLum.peek(image);
+  if(lum===null){ PhotoLum.ensure(image); return wantLight; }   // measured next frame
+  if(lum<0) return wantLight;                                    // couldn't measure — keep the choice
+  const ratio=(a,b)=>(Math.max(a,b)+0.05)/(Math.min(a,b)+0.05);
+  const cLight = ratio(1,    lum*(1-0.22));            // white text under the black .22 scrim
+  const cDark  = ratio(0.01, lum+(1-lum)*0.28);        // #1a1a1a text under the white .28 scrim
+  const cWant  = wantLight ? cLight : cDark, cOther = wantLight ? cDark : cLight;
+  return (cWant>=4.5 || cWant>=cOther) ? wantLight : !wantLight;
+}
 function bnkResolveVisualStyle(b, accentColor){
   const c=bankCustomColors[b.key]||{};
   let style;
   if(c.vcardStyle==='custom' && c.vcardImage){
-    const light = c.vcardTextMode!=='dark';
+    const light = bnkEffectiveTextLight(c.vcardImage, c.vcardTextMode);
     style = {
       label:{en:'Custom',ar:'مخصص'},
       grad: `url('${c.vcardImage}') center/cover no-repeat`,
@@ -22252,7 +22322,7 @@ function renderBanks(m){
                balance/meta/FX block built in; e-wallets (no physical-card
                visual) keep the plain accent-colored balance box. -->
           ${!isWallet?`
-          <div class="bnk-visacard bnk-visacard-expanded" style="background:${vcard.grad};color:${vcard.fg}">
+          <div class="bnk-visacard bnk-visacard-expanded${vcard.customPhoto?' bnk-vc-photo'+(vcard.light?' bnk-vc-photo-dark':''):''}" style="background:${vcard.grad};color:${vcard.fg}">
             <div class="bnk-vc-sheen"></div>
             ${vcard.customPhoto?`<div class="bnk-vc-scrim" style="background:${vcard.scrim}"></div>`:''}
             <div class="bnk-vc-top">
@@ -22278,14 +22348,14 @@ function renderBanks(m){
               <div class="bnk-vc-network">${_bnkNetworkMarkHTML(vcard.network,vcard.fg)}</div>
             </div>
           </div>`: simCard ? `
-          <div class="bnk-visacard bnk-visacard-expanded" style="background:${simCard.grad};color:${simCard.fg}">
+          <div class="bnk-visacard bnk-visacard-expanded${simCard.customPhoto?' bnk-vc-photo'+(simCard.light?' bnk-vc-photo-dark':''):''}" style="background:${simCard.grad};color:${simCard.fg}">
             ${simCard.customPhoto?`<div class="bnk-vc-scrim" style="background:${simCard.scrim}"></div>`:''}
             ${_walletSimWatermarkHTML(simCard.shape, simCard.fg, simCard.initials)}
             <div class="bnk-vc-top">
               <div class="bnk-vc-chip" style="background:linear-gradient(135deg,${simCard.chip},${_bnkShade(simCard.chip,-25)})"><span></span><span></span><span></span></div>
               <svg class="bnk-vc-nfc" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="${simCard.fg}" stroke-width="2" stroke-linecap="round"><path d="M8.5 8.5a5 5 0 0 1 0 7"/><path d="M11.5 5.5a9 9 0 0 1 0 13"/><path d="M14.5 2.5a13 13 0 0 1 0 19"/></svg>
             </div>
-            <div class="bnk-vc-balance">
+            <div class="bnk-vc-balance${simCard.light?' bnk-vc-light':''}">
               <div class="bnk-vc-balance-top">
                 <div class="bal-avail-label">${L('Available Balance','الرصيد المتاح')}</div>
                 <button type="button" class="bal-fx-toggle" onclick="event.stopPropagation();fxToggleShow()" title="${L('Show/hide currency conversion','إظهار/إخفاء تحويل العملات')}">
