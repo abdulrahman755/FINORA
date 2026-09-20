@@ -1699,6 +1699,62 @@ tr.row-selected td{background:var(--green-tint)}
 .qn-row-date{flex-shrink:0;font-size:calc(11px*var(--app-text-scale,1));color:var(--muted)}
 .qn-empty{text-align:center;color:var(--muted);font-size:calc(13px*var(--app-text-scale,1));padding:60px 20px}
 
+/* ── Notes — date-group section headers (Pinned / Today / Yesterday / …) ── */
+.qn-section-hdr{
+  padding:14px 2px 6px;
+  font-size:calc(13px*var(--app-text-scale,1));font-weight:900;color:var(--text);
+}
+.qn-section-hdr:first-child{padding-top:4px}
+
+/* ── Notes — selection mode: leading circular check on each row/card ────── */
+.qn-sel-dot{
+  flex-shrink:0;width:20px;height:20px;border-radius:50%;
+  border:1.5px solid var(--border-strong);position:relative;
+}
+.qn-sel-dot.checked{background:var(--green);border-color:var(--green)}
+.qn-sel-dot.checked::after{content:'';position:absolute;left:6px;top:3px;width:5px;height:9px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg)}
+[dir="rtl"] .qn-sel-dot.checked::after{left:auto;right:6px}
+.qn-select-bar{
+  display:flex;align-items:center;justify-content:space-between;gap:8px;
+  padding:10px var(--sp4) calc(10px + env(safe-area-inset-bottom));
+  border-top:1px solid var(--border);background:var(--surface);flex-shrink:0;
+}
+.qn-select-bar-btn{background:none;border:none;color:var(--green-dark);font-size:calc(14px*var(--app-text-scale,1));font-weight:800;cursor:pointer;-webkit-tap-highlight-color:transparent;padding:6px 4px}
+[data-theme="dark"] .qn-select-bar-btn{color:var(--green-light)}
+.qn-select-bar-btn.qn-danger{color:var(--red)}
+.qn-select-bar-btn:disabled{opacity:.4;cursor:default}
+.qn-select-count{font-size:calc(12px*var(--app-text-scale,1));color:var(--muted);font-weight:700}
+
+/* ── Notes — gallery / grid view: 2-column mini-preview cards ───────────── */
+.qn-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:4px 2px 14px}
+.qn-grid-wrap{min-width:0}
+.qn-grid-card{
+  display:flex;flex-direction:column;
+  border:1px solid var(--border);border-radius:var(--radius-md,10px);
+  background:var(--surface);cursor:pointer;overflow:hidden;
+  -webkit-tap-highlight-color:transparent;position:relative;
+}
+.qn-grid-card:active{background:var(--surface2)}
+.qn-grid-card.qn-sel-active{padding-top:26px}
+.qn-grid-card .qn-sel-dot{position:absolute;top:8px;inset-inline-end:8px;background:var(--surface);z-index:1}
+.qn-grid-pin{position:absolute;top:8px;inset-inline-start:8px;color:var(--gold-dark);z-index:1}
+.qn-grid-preview{
+  height:112px;padding:9px 10px 0;overflow:hidden;position:relative;
+  font-size:calc(10.5px*var(--app-text-scale,1));line-height:1.4;color:var(--text2);
+  pointer-events:none;border-bottom:1px solid var(--border);
+}
+.qn-grid-preview::after{content:'';position:absolute;left:0;right:0;bottom:0;height:22px;background:linear-gradient(to bottom,transparent,var(--surface))}
+.qn-grid-preview .qn-chk-box{width:12px;height:12px;margin-top:1px}
+.qn-grid-preview .qn-chk.checked .qn-chk-box::after{left:3px;top:1px;width:3px;height:6px;border-width:0 1.5px 1.5px 0}
+.qn-grid-preview h1{font-size:calc(13px*var(--app-text-scale,1));margin:0 0 3px}
+.qn-grid-preview h2{font-size:calc(11.5px*var(--app-text-scale,1));margin:0 0 3px}
+.qn-grid-preview h3{font-size:calc(10.5px*var(--app-text-scale,1));margin:0 0 3px}
+.qn-grid-preview ul,.qn-grid-preview ol{padding-inline-start:14px;margin:2px 0}
+.qn-grid-preview p,.qn-grid-preview div{margin:0 0 2px}
+.qn-grid-locked{height:112px;display:flex;align-items:center;justify-content:center;color:var(--muted);border-bottom:1px solid var(--border)}
+.qn-grid-title{font-size:calc(12.5px*var(--app-text-scale,1));font-weight:800;color:var(--text);padding:8px 10px 0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.qn-grid-date{font-size:calc(10px*var(--app-text-scale,1));color:var(--muted);padding:2px 10px 9px}
+
 .qn-toolbar{
   display:flex;align-items:center;gap:2px;
   padding:9px 10px;flex-shrink:0;
@@ -8264,6 +8320,9 @@ const _ICONS = {
   worker:     'M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8',
   overview:   'M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z',
   calendar:   'M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z',
+  list:       'M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01',
+  grid:       'M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z',
+  sort:       'M3 7h18M6 12h12M10 17h4',
   payment:    'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z',
   deduction:  'M12 22C6.48 22 2 17.52 2 12S6.48 2 12 2s10 4.48 10 10-4.48 10-10 10zm5-11H7v2h10v-2z',
   addition:   'M12 22C6.48 22 2 17.52 2 12S6.48 2 12 2s10 4.48 10 10-4.48 10-10 10zm1-11v-3h-2v3H8v2h3v3h2v-3h3v-2h-3z',
@@ -32848,6 +32907,87 @@ function _notesInsertTable(){
 // ── Folders — simple named groups, one optional folder per note ─────────
 const NOTES_FOLDERS_KEY = 'wdp_notes_folders_v1';
 let _notesActiveFolder = 'all'; // 'all' | 'none' (unfiled) | a folder id
+
+// ── List display prefs — view mode / grouping / sort, persisted like iPhone Notes ──
+const NOTES_VIEW_MODE_KEY = 'wdp_notes_view_mode_v1';   // 'list' | 'grid'
+const NOTES_GROUP_DATE_KEY = 'wdp_notes_group_date_v1'; // 'on' | 'off'
+const NOTES_SORT_BY_KEY = 'wdp_notes_sort_by_v1';       // 'edited' | 'created' | 'title'
+let _notesViewMode = (()=>{ try{ return localStorage.getItem(NOTES_VIEW_MODE_KEY)==='grid' ? 'grid' : 'list'; }catch(e){ return 'list'; } })();
+let _notesGroupByDate = (()=>{ try{ return localStorage.getItem(NOTES_GROUP_DATE_KEY) !== 'off'; }catch(e){ return true; } })();
+let _notesSortBy = (()=>{ try{ const v=localStorage.getItem(NOTES_SORT_BY_KEY); return (v==='created'||v==='title') ? v : 'edited'; }catch(e){ return 'edited'; } })();
+let _notesSelectMode = false;
+let _notesSelectedIds = new Set();
+function _notesSetViewMode(mode){ _notesViewMode = mode==='grid'?'grid':'list'; try{ localStorage.setItem(NOTES_VIEW_MODE_KEY,_notesViewMode); }catch(e){} renderNotesList(); }
+function _notesSetGroupByDate(on){ _notesGroupByDate = !!on; try{ localStorage.setItem(NOTES_GROUP_DATE_KEY, on?'on':'off'); }catch(e){} renderNotesList(); }
+function _notesSetSortBy(field){ _notesSortBy = field; try{ localStorage.setItem(NOTES_SORT_BY_KEY, field); }catch(e){} renderNotesList(); }
+function _notesSortComparator(){
+  if(_notesSortBy==='title') return (a,b)=>(_notesTitleAndPreview(a).title||'').toLowerCase().localeCompare((_notesTitleAndPreview(b).title||'').toLowerCase());
+  if(_notesSortBy==='created') return (a,b)=>(b.createdAt||0)-(a.createdAt||0);
+  return (a,b)=>(b.updatedAt||b.createdAt||0)-(a.updatedAt||a.createdAt||0);
+}
+// iPhone-Notes-style date bucket for a timestamp: today / yesterday / previous 7 / previous 30 / month-year
+function _notesDateBucket(ts){
+  const d = new Date(ts||Date.now());
+  const startOfDay = dt => new Date(dt.getFullYear(),dt.getMonth(),dt.getDate()).getTime();
+  const todayStart = startOfDay(new Date());
+  const diffDays = Math.round((todayStart - startOfDay(d)) / 86400000);
+  if(diffDays<=0) return {key:'today', label:L('Today','اليوم')};
+  if(diffDays===1) return {key:'yesterday', label:L('Yesterday','أمس')};
+  if(diffDays<=7) return {key:'prev7', label:L('Previous 7 Days','آخر 7 أيام')};
+  if(diffDays<=30) return {key:'prev30', label:L('Previous 30 Days','آخر 30 يومًا')};
+  return {key:d.getFullYear()+'-'+d.getMonth(), label:d.toLocaleDateString(_dtLocale('en-US'),{month:'long',year:'numeric'})};
+}
+// Splits a filtered note list into display sections: an optional "Pinned"
+// section, then either one flat section (grouping off) or consecutive
+// date-bucket sections (grouping on) — each internally ordered by _notesSortBy.
+function _notesBuildSections(list){
+  const cmp = _notesSortComparator();
+  const pinned = list.filter(n=>n.pinned).sort(cmp);
+  const rest = list.filter(n=>!n.pinned);
+  if(!_notesGroupByDate){
+    rest.sort(cmp);
+    return [{label:null, notes:[...pinned, ...rest]}];
+  }
+  const byDate = rest.slice().sort((a,b)=>(b.updatedAt||b.createdAt||0)-(a.updatedAt||a.createdAt||0));
+  const sections = [];
+  if(pinned.length) sections.push({label:L('Pinned','مثبتة'), notes:pinned});
+  let curKey=null, curSection=null;
+  byDate.forEach(n=>{
+    const b=_notesDateBucket(n.updatedAt||n.createdAt);
+    if(b.key!==curKey){ curKey=b.key; curSection={label:b.label, notes:[]}; sections.push(curSection); }
+    curSection.notes.push(n);
+  });
+  sections.forEach(sec=>{ if(sec.label!==L('Pinned','مثبتة')) sec.notes.sort(cmp); });
+  return sections;
+}
+// Selection mode (list-header "Select Notes")
+function _notesEnterSelectMode(){ _notesSelectMode=true; _notesSelectedIds=new Set(); renderNotesList(); }
+function _notesExitSelectMode(){ _notesSelectMode=false; _notesSelectedIds=new Set(); renderNotesList(); }
+function _notesToggleSelected(id){
+  if(_notesSelectedIds.has(id)) _notesSelectedIds.delete(id); else _notesSelectedIds.add(id);
+  renderNotesList();
+}
+function _notesSelectAll(){
+  const list=_notesSorted();
+  if(_notesSelectedIds.size===list.length){ _notesSelectedIds=new Set(); }
+  else{ _notesSelectedIds = new Set(list.map(n=>n.id)); }
+  renderNotesList();
+}
+function _notesDeleteSelected(){
+  const ids=[..._notesSelectedIds];
+  if(!ids.length) return;
+  const locked = ids.map(id=>_notesLoad().find(x=>x.id===id)).filter(n=>n&&n.locked);
+  const proceed=()=>{
+    _notesSave(_notesLoad().filter(x=>!ids.includes(x.id)));
+    if(ids.includes(_notesCurrentId)) _notesCurrentId=null;
+    _notesSelectMode=false; _notesSelectedIds=new Set();
+    renderNotesList();
+    showToast(L('Notes deleted','تم مسح الملاحظات'),'success');
+  };
+  showConfirm(L(`Delete ${ids.length} note(s)?`,`مسح ${ids.length} ملاحظة؟`), ()=>{
+    if(locked.length){ _notesRowUnlock(locked[0], proceed); } else { proceed(); }
+  });
+}
 function _notesFoldersLoad(){
   try{ return JSON.parse(localStorage.getItem(NOTES_FOLDERS_KEY) || '[]'); }
   catch(e){ _logErr('_notesFoldersLoad', e); return []; }
@@ -33013,10 +33153,7 @@ function _notesSorted(){
       return title.includes(q) || body.includes(q);
     });
   }
-  return list.slice().sort((a,b)=>{
-    if(!!b.pinned !== !!a.pinned) return (b.pinned?1:0)-(a.pinned?1:0);
-    return (b.updatedAt||0)-(a.updatedAt||0);
-  });
+  return list;
 }
 function _notesPlainText(el){
   // Block elements have no whitespace between them in the saved HTML, so a plain
@@ -33028,6 +33165,15 @@ function _notesPreview(html){
   const tmp = document.createElement('div');
   tmp.innerHTML = html || '';
   return _notesPlainText(tmp).slice(0,80);
+}
+// Gallery-card mini preview: the note's own rich HTML (so checklist dots and
+// headings render exactly as in the editor), with images/files/tables
+// stripped so a tiny card stays clean — same idea as iPhone Notes' grid cell.
+function _notesCardPreviewHTML(n){
+  const tmp = document.createElement('div');
+  tmp.innerHTML = n.bodyHTML || '';
+  tmp.querySelectorAll('img,.qn-attach-img,.qn-file-chip,table,a[download]').forEach(el=>el.remove());
+  return tmp.innerHTML;
 }
 // List title: the note's own title if the person typed one, otherwise the first
 // heading (Title / Heading / Subheading) inside the note. The heading is left out
@@ -33125,6 +33271,7 @@ function _nswClose(){
 }
 function _nswDown(e){
   if(e.pointerType==='mouse' && e.button!==0) return;
+  if(_notesSelectMode) return; // selection mode: plain tap-to-toggle only, no swipe/long-press
   const wrap=e.target.closest && e.target.closest('.qn-swipe');
   if(!wrap || e.target.closest('.qn-swipe-del')) return;
   _nsw={wrap,row:wrap.querySelector('.qn-row'),id:wrap.dataset.id,pid:e.pointerId,x0:e.clientX,y0:e.clientY,
@@ -33143,7 +33290,7 @@ function _nswMove(e){
   const dx=e.clientX-_nsw.x0, dy=e.clientY-_nsw.y0;
   if(!_nsw.mode && (Math.abs(dx)>8 || Math.abs(dy)>8)){
     clearTimeout(_nsw.timer);
-    if(Math.abs(dx)>Math.abs(dy)+2){
+    if(_nsw.row && Math.abs(dx)>Math.abs(dy)+2){
       _nsw.mode='swipe';
       if(_nswOpen && _nswOpen!==_nsw.wrap) _nswClose();
       _nsw.wrap.classList.add('dragging');
@@ -33334,29 +33481,85 @@ function _notesRowPrint(id){
 }
 
 // ── List view ─────────────────────────────────────────────────────────────
+function _notesRowItemHtml(n){
+  const {title, preview} = _notesTitleAndPreview(n);
+  const dateStr = new Date(n.updatedAt||n.createdAt).toLocaleDateString(_dtLocale('en-US'),{month:'short',day:'numeric'});
+  const sel = _notesSelectMode, checked = _notesSelectedIds.has(n.id);
+  const openAttr = sel ? `onclick="_notesToggleSelected('${n.id}')"` : `onclick="openNoteEditor('${n.id}')"`;
+  return `
+    <div class="qn-swipe" data-id="${n.id}">
+    ${sel ? '' : `<button type="button" class="qn-swipe-del" onclick="_notesSwipeDelete('${n.id}')" aria-label="${L('Delete','مسح')}">${ic('trash',18)}<span>${L('Delete','مسح')}</span></button>`}
+    <div class="qn-row" ${openAttr} role="button" tabindex="0">
+      ${sel ? `<span class="qn-sel-dot${checked?' checked':''}"></span>` : (n.pinned ? `<svg class="qn-pin-dot" width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2c-.6 0-1 .4-1 1v6.2L7.6 12.4c-.4.3-.6.8-.6 1.3v1.3c0 .5.4 1 1 1h3v6l1 2 1-2v-6h3c.6 0 1-.5 1-1v-1.3c0-.5-.2-1-.6-1.3L13 9.2V3c0-.6-.4-1-1-1z"/></svg>` : '')}
+      <div style="flex:1;min-width:0">
+        <div class="qn-row-title">${esc(title) || L('New Note','ملاحظة جديدة')}</div>
+        <div class="qn-row-preview">${n.locked ? `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align:-1px;margin-inline-end:3px"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>${L('Locked','مقفلة')}` : (esc(preview) || L('No additional text','لا يوجد نص إضافي'))}</div>
+      </div>
+      <div class="qn-row-date">${dateStr}</div>
+    </div>
+    </div>`;
+}
+function _notesGridItemHtml(n){
+  const {title} = _notesTitleAndPreview(n);
+  const dateStr = new Date(n.updatedAt||n.createdAt).toLocaleDateString(_dtLocale('en-US'),{month:'short',day:'numeric'});
+  const sel = _notesSelectMode, checked = _notesSelectedIds.has(n.id);
+  const openAttr = sel ? `onclick="_notesToggleSelected('${n.id}')"` : `onclick="openNoteEditor('${n.id}')"`;
+  const previewHtml = n.locked
+    ? `<div class="qn-grid-locked">${ic('lock',20)}</div>`
+    : `<div class="qn-grid-preview">${_notesCardPreviewHTML(n) || `<div style="color:var(--muted)">${esc(L('No additional text','لا يوجد نص إضافي'))}</div>`}</div>`;
+  return `
+    <div class="qn-swipe qn-grid-wrap" data-id="${n.id}">
+      <div class="qn-grid-card${sel?' qn-sel-active':''}" ${openAttr} role="button" tabindex="0">
+        ${sel ? `<span class="qn-sel-dot${checked?' checked':''}"></span>` : (n.pinned ? `<svg class="qn-grid-pin" width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2c-.6 0-1 .4-1 1v6.2L7.6 12.4c-.4.3-.6.8-.6 1.3v1.3c0 .5.4 1 1 1h3v6l1 2 1-2v-6h3c.6 0 1-.5 1-1v-1.3c0-.5-.2-1-.6-1.3L13 9.2V3c0-.6-.4-1-1-1z"/></svg>` : '')}
+        ${previewHtml}
+        <div class="qn-grid-title">${esc(title) || L('New Note','ملاحظة جديدة')}</div>
+        <div class="qn-grid-date">${n.locked ? `${L('Locked','مقفلة')} · ` : ''}${dateStr}</div>
+      </div>
+    </div>`;
+}
+function _notesSectionsHtml(list){
+  if(!list.length) return '';
+  const sections = _notesBuildSections(list);
+  return sections.map(sec => {
+    const itemsHtml = _notesViewMode==='grid'
+      ? `<div class="qn-grid">${sec.notes.map(_notesGridItemHtml).join('')}</div>`
+      : sec.notes.map(_notesRowItemHtml).join('');
+    return `${sec.label ? `<div class="qn-section-hdr">${esc(sec.label)}</div>` : ''}${itemsHtml}`;
+  }).join('');
+}
 function renderNotesList(){
   const list = _notesSorted();
   const allFolders = _notesFoldersLoad();
   _nswOpen = null;
-  const rowsHtml = list.length ? list.map(n => `
-    <div class="qn-swipe" data-id="${n.id}">
-    <button type="button" class="qn-swipe-del" onclick="_notesSwipeDelete('${n.id}')" aria-label="${L('Delete','مسح')}">${ic('trash',18)}<span>${L('Delete','مسح')}</span></button>
-    <div class="qn-row" onclick="openNoteEditor('${n.id}')" role="button" tabindex="0">
-      ${n.pinned ? `<svg class="qn-pin-dot" width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2c-.6 0-1 .4-1 1v6.2L7.6 12.4c-.4.3-.6.8-.6 1.3v1.3c0 .5.4 1 1 1h3v6l1 2 1-2v-6h3c.6 0 1-.5 1-1v-1.3c0-.5-.2-1-.6-1.3L13 9.2V3c0-.6-.4-1-1-1z"/></svg>` : ''}
-      <div style="flex:1;min-width:0">
-        <div class="qn-row-title">${esc(_notesTitleAndPreview(n).title) || L('New Note','ملاحظة جديدة')}</div>
-        <div class="qn-row-preview">${n.locked ? `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align:-1px;margin-inline-end:3px"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>${L('Locked','مقفلة')}` : (esc(_notesTitleAndPreview(n).preview) || L('No additional text','لا يوجد نص إضافي'))}</div>
-      </div>
-      <div class="qn-row-date">${new Date(n.updatedAt||n.createdAt).toLocaleDateString(_dtLocale('en-US'),{month:'short',day:'numeric'})}</div>
-    </div>
-    </div>`).join('') : `<div class="qn-empty">${_notesSearchQuery ? L('No results.','لا نتائج.') : L('No notes yet — tap + to add one.','لا توجد ملاحظات بعد — اضغط + للإضافة.')}</div>`;
+  const bodyHtml = list.length ? _notesSectionsHtml(list) : `<div class="qn-empty">${_notesSearchQuery ? L('No results.','لا نتائج.') : L('No notes yet — tap + to add one.','لا توجد ملاحظات بعد — اضغط + للإضافة.')}</div>`;
+  const sel = _notesSelectMode;
 
-  document.getElementById('notesPageOverlay').innerHTML = `
+  const headerHtml = sel ? `
+    <div class="qn-header">
+      <button type="button" class="icon-btn" onclick="_notesExitSelectMode()" aria-label="${L('Cancel','إلغاء')}" style="width:auto;padding:0 6px;font-weight:800;font-size:calc(14px*var(--app-text-scale,1))">${L('Cancel','إلغاء')}</button>
+      <div class="qn-header-title" style="justify-content:center;font-weight:800;font-size:calc(13px*var(--app-text-scale,1))">${_notesSelectedIds.size ? L(`${_notesSelectedIds.size} Selected`,`تم تحديد ${_notesSelectedIds.size}`) : L('Select Notes','تحديد الملاحظات')}</div>
+      <button type="button" class="icon-btn" onclick="_notesSelectAll()" aria-label="${L('Select All','تحديد الكل')}" style="width:auto;padding:0 6px;font-weight:800;font-size:calc(14px*var(--app-text-scale,1))">${_notesSelectedIds.size===list.length && list.length ? L('None','لا شيء') : L('All','الكل')}</button>
+    </div>` : `
     <div class="qn-header">
       <button type="button" class="icon-btn" onclick="closeNotesModal()" aria-label="${L('Close','إغلاق')}">${ic(_navDirIcon('prev'),18)}</button>
       <div class="qn-header-title">${L('Notes','ملاحظات')}<span class="qn-header-count">${list.length}</span></div>
+      <button type="button" class="icon-btn" onclick="_notesSetViewMode('${_notesViewMode==='grid'?'list':'grid'}')" aria-label="${_notesViewMode==='grid'?L('View as List','عرض كقائمة'):L('View as Gallery','عرض كمعرض')}" title="${_notesViewMode==='grid'?L('View as List','عرض كقائمة'):L('View as Gallery','عرض كمعرض')}">
+        ${ic(_notesViewMode==='grid'?'list':'grid',17)}
+      </button>
+      <button type="button" class="icon-btn" onclick="_notesOpenListMenu()" aria-label="${L('More','المزيد')}">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>
+      </button>
       <button type="button" class="icon-btn" onclick="createNewNote()" aria-label="${L('New note','ملاحظة جديدة')}">${ic('plus',18)}</button>
-    </div>
+    </div>`;
+
+  const selectBarHtml = sel ? `
+    <div class="qn-select-bar">
+      <button type="button" class="qn-select-bar-btn qn-danger" ${_notesSelectedIds.size?'':'disabled'} onclick="_notesDeleteSelected()">${L('Delete','مسح')}</button>
+      <span class="qn-select-count">${_notesSelectedIds.size} ${L('selected','محدد')}</span>
+    </div>` : '';
+
+  document.getElementById('notesPageOverlay').innerHTML = `
+    ${headerHtml}
     <div class="qn-search-wrap">
       <div class="qn-search-bar">
         ${ic('search',15)}
@@ -33369,8 +33572,62 @@ function renderNotesList(){
       <button type="button" class="qn-folder-chip${_notesActiveFolder==='none'?' active':''}" onclick="_notesSwitchFolder('none')">${L('No Folder','بدون مجلد')}</button>
       ${allFolders.map(f => `<button type="button" class="qn-folder-chip${_notesActiveFolder===f.id?' active':''}" onclick="_notesSwitchFolder('${f.id}')">${esc(f.name)}</button>`).join('')}
     </div>
-    <div class="qn-list">${rowsHtml}</div>`;
+    <div class="qn-list">${bodyHtml}</div>
+    ${selectBarHtml}`;
   _notesWireList();
+}
+// ── List header "•••" menu: View as List/Gallery, Select Notes, Sort By, Group By Date, View Attachments ──
+function _notesOpenListMenu(){
+  const row=(icon,label,fn,rightNote)=>`<div class="qn-style-row" onclick="${fn}"><span class="qn-style-row-label" style="display:flex;align-items:center;gap:10px"><span class="qn-more-row-icon">${ic(icon,18)}</span>${label}</span>${rightNote?`<span style="color:var(--muted);font-size:calc(12.5px*var(--app-text-scale,1))">${rightNote}</span>`:''}</div>`;
+  const sortLabel = _notesSortBy==='title' ? L('Title','العنوان') : _notesSortBy==='created' ? L('Date Created','تاريخ الإنشاء') : L('Date Edited','تاريخ التعديل');
+  document.getElementById('modalContent').innerHTML=`
+    <div class="modal-handle"></div>
+    <div class="stt-card">
+      ${row('check',L('Select Notes','تحديد الملاحظات'),`closeModal();_notesEnterSelectMode()`)}
+    </div>
+    <div class="stt-card" style="margin-top:10px">
+      ${row('sort',L('Sort By','ترتيب حسب'),`_notesOpenSortMenu()`,sortLabel)}
+      ${row('calendar',L('Group By Date','تجميع حسب التاريخ'),`closeModal();_notesSetGroupByDate(${!_notesGroupByDate})`,_notesGroupByDate?L('On','مفعّل'):L('Off','معطّل'))}
+    </div>
+    <div class="stt-card" style="margin-top:10px">
+      ${row('photo',L('View Attachments','عرض المرفقات'),`closeModal();_notesOpenAllAttachmentsView()`)}
+    </div>`;
+  document.getElementById('modalOverlay').style.display='flex';
+}
+function _notesOpenSortMenu(){
+  const opt=(field,label)=>`<div class="qn-style-row" onclick="closeModal();_notesSetSortBy('${field}')"><span class="qn-style-row-label">${label}</span>${_notesSortBy===field?ic('check',16):''}</div>`;
+  document.getElementById('modalContent').innerHTML=`
+    <div class="modal-handle"></div>
+    <div class="qn-row-menu-title">${L('Sort By','ترتيب حسب')}</div>
+    <div class="stt-card">
+      ${opt('edited',L('Date Edited','تاريخ التعديل'))}
+      ${opt('created',L('Date Created','تاريخ الإنشاء'))}
+      ${opt('title',L('Title','العنوان'))}
+    </div>`;
+  document.getElementById('modalOverlay').style.display='flex';
+}
+// Attachments across every note currently visible in this folder/search — the
+// list-level counterpart to the per-note "View Attachments" in the editor.
+function _notesOpenAllAttachmentsView(){
+  const notes = _notesSorted().filter(n=>!n.locked);
+  const imgs=[], files=[];
+  notes.forEach(n=>{
+    const tmp=document.createElement('div');
+    tmp.innerHTML=n.bodyHTML||'';
+    tmp.querySelectorAll('img').forEach(img=>imgs.push(img.src));
+    tmp.querySelectorAll('a.qn-file-chip, a[download]').forEach(a=>files.push({href:a.href,name:a.download||a.textContent||''}));
+  });
+  const gridHtml = imgs.length ? `<div class="qn-attach-grid">${imgs.map(src=>`<div class="qn-attach-grid-item"><img src="${src}"></div>`).join('')}</div>` : '';
+  const filesHtml = files.length ? `<div class="stt-card" style="margin-top:10px">${files.map(f=>`<a class="qn-file-chip" href="${f.href}" download="${esc(f.name)}"><span class="qn-file-chip-icon">${ic('note',16)}</span><span class="qn-file-chip-info"><div class="qn-file-chip-name">${esc(f.name)}</div></span></a>`).join('')}</div>` : '';
+  document.getElementById('modalContent').innerHTML=`
+    <div class="modal-handle"></div>
+    <div class="modal-hdr">
+      <div class="modal-hdr-icon" style="background:linear-gradient(135deg,var(--gold),var(--gold-dark))">${ic('photo',20)}</div>
+      <div class="modal-hdr-title">${L('Attachments','المرفقات')}</div>
+    </div>
+    ${gridHtml}${filesHtml}
+    ${(!imgs.length && !files.length) ? `<div class="qn-empty">${L('No attachments.','لا توجد مرفقات.')}</div>` : ''}`;
+  document.getElementById('modalOverlay').style.display='flex';
 }
 function createNewNote(){
   const list = _notesLoad();
