@@ -6056,6 +6056,8 @@ button:not(:disabled):active{transform:scale(.97)}
 .wdash-card-act:hover,.wdash-card-act:active{background:var(--surface3,var(--border));color:var(--text)}
 .wdash-card-act.wdash-card-act-danger:hover,.wdash-card-act.wdash-card-act-danger:active{color:var(--red,#dc4f4f);background:rgba(220,79,79,.12)}
 .wdash-drag-handle{cursor:grab;touch-action:none}
+.wdash-drag-handle{position:relative;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
+.wdash-drag-handle::after{content:'';position:absolute;inset:-5px}
 .wdash-drag-handle:active{cursor:grabbing}
 /* Dragging state for a whole card (not just a row) — same visual language
    as .bank-card/.sd-card/.sav-row drag-dragging, scaled to a section block */
@@ -6936,6 +6938,9 @@ button:not(:disabled):active{transform:scale(.97)}
 .banks-v2 .bnk-card-controls{position:relative;display:flex;align-items:center;gap:2px;flex-shrink:0;margin-inline-start:auto}
 .banks-v2 .bnk-drag{cursor:grab;padding:6px;color:var(--muted);display:flex;align-items:center;border-radius:var(--radius-xs)}
 .banks-v2 .bnk-drag:active{background:var(--surface3);cursor:grabbing}
+.banks-v2 .bnk-drag{position:relative;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
+.banks-v2 .bnk-drag::after{content:'';position:absolute;inset:-6px}
+.banks-v2 .bnk-card.drag-dragging{opacity:.9;box-shadow:var(--shadow-xl);z-index:50;transition:none!important}
 .banks-v2 .bnk-overflow-btn{background:none;border:none;color:var(--muted);cursor:pointer;padding:var(--sp2);border-radius:9px;display:flex;align-items:center;justify-content:center}
 .banks-v2 .bnk-overflow-btn:active{background:var(--surface3)}
 .banks-v2 .bnk-chevron{transition:transform var(--dur-base) var(--ease-standard);color:var(--muted);flex-shrink:0;margin-inline-start:2px}
@@ -13842,116 +13847,166 @@ function wdashSetCardColor(id, color){
 // why — capture is what keeps the gesture reliable on mobile once the
 // finger moves off the handle itself), with the same live-follow-the-finger
 // transform + FLIP animation for displaced sections. ───────────────────────
-let _wdashDragEl=null, _wdashDragHandle=null, _wdashDragPointerId=null, _wdashDragCards=[], _wdashDragStartY=0, _wdashDragCurrentY=0;
+// ── Shared vertical drag-reorder engine (dashboard cards + bank cards) ─────
+// Fixes vs the two earlier copy-pasted versions:
+//  • hit-testing uses LAYOUT positions (offsetTop/offsetHeight — unaffected by
+//    transforms), not getBoundingClientRect, so cards mid-FLIP-animation no
+//    longer confuse the swap decision (that caused swap-back flicker and
+//    cards stacking on top of each other with variable-height cards)
+//  • a card is only swapped once the dragged card's centre passes the
+//    target's midpoint in the direction of travel (hysteresis, no ping-pong)
+//  • edge auto-scroll while dragging (card keeps following the finger)
+//  • FLIP animation continues from the card's CURRENT visual position
+//  • any stuck drag is force-finished before a new one starts; also ends on
+//    lostpointercapture; green "drop line" classes are no longer left behind
+const _VD={s:null};
+function _vdScroller(el){
+  let p=el.parentElement;
+  while(p && p!==document.body && p!==document.documentElement){
+    const oy=getComputedStyle(p).overflowY;
+    if((oy==='auto'||oy==='scroll') && p.scrollHeight>p.clientHeight+1) return p;
+    p=p.parentElement;
+  }
+  return null; // window scrolls
+}
+function _vdScrollTop(sc){ return sc ? sc.scrollTop : (window.pageYOffset||document.documentElement.scrollTop||0); }
+function _vdCurTY(c){
+  const t=getComputedStyle(c).transform;
+  if(!t||t==='none') return 0;
+  try{ return new DOMMatrixReadOnly(t).m42; }catch(_){ return 0; }
+}
+function _vdCards(s){
+  return Array.from(s.el.parentNode.children).filter(c=>c.matches(s.cfg.cardSel));
+}
+function _vdBegin(e,cfg){
+  if(e.pointerType==='mouse' && e.button!==0) return;
+  if(_VD.s) _vdFinish();
+  const handle=e.currentTarget;
+  const el=handle.closest(cfg.cardSel);
+  if(!el || !el.parentNode) return;
+  e.preventDefault();
+  const s=_VD.s={cfg,handle,el,pid:e.pointerId,sc:_vdScroller(el),
+    startY:e.clientY,lastY:e.clientY,startScroll:0,shift:0,raf:0,y:0};
+  s.startScroll=_vdScrollTop(s.sc);
+  s.initialOrder=_vdCards(s).map(cfg.idOf).join('|');
+  try{ handle.setPointerCapture(e.pointerId); }catch(_){}
+  el.classList.add(cfg.dragClass);
+  el.style.transition='none';
+  el.style.transform='translateY(0px)';
+  handle.addEventListener('pointermove',_vdMove,{passive:false});
+  handle.addEventListener('pointerup',_vdEnd);
+  handle.addEventListener('pointercancel',_vdEnd);
+  handle.addEventListener('lostpointercapture',_vdEnd);
+  s.raf=requestAnimationFrame(_vdTick);
+}
+function _vdMove(e){
+  const s=_VD.s;
+  if(!s || e.pointerId!==s.pid) return;
+  e.preventDefault();
+  s.lastY=e.clientY;
+  _vdApply();
+}
+function _vdApply(){
+  const s=_VD.s; if(!s) return;
+  const el=s.el;
+  s.y=(s.lastY-s.startY)+(_vdScrollTop(s.sc)-s.startScroll)-s.shift;
+  el.style.transform=`translateY(${s.y}px)`;
+
+  const cards=_vdCards(s).filter(c=>c===el || c.offsetParent!==null);
+  const elTop=el.offsetTop;
+  const center=elTop+s.y+el.offsetHeight/2;
+  let target=null, after=false;
+  for(const c of cards){
+    if(c===el) continue;
+    const mid=c.offsetTop+c.offsetHeight/2;
+    if(c.offsetTop>elTop){ if(center>mid){ target=c; after=true; } }
+    else if(!target && center<mid){ target=c; after=false; }
+  }
+  if(!target) return;
+
+  const before=new Map();
+  cards.forEach(c=>{ if(c!==el) before.set(c,c.offsetTop); });
+  const elBefore=el.offsetTop;
+  const parent=el.parentNode;
+  if(after) parent.insertBefore(el,target.nextSibling); else parent.insertBefore(el,target);
+  s.shift+=el.offsetTop-elBefore;
+  el.style.transform=`translateY(${(s.lastY-s.startY)+(_vdScrollTop(s.sc)-s.startScroll)-s.shift}px)`;
+
+  cards.forEach(c=>{
+    if(c===el) return;
+    const d=before.get(c)-c.offsetTop;
+    if(!d) return;
+    const cur=_vdCurTY(c);
+    clearTimeout(c._vdT);
+    c.style.transition='none';
+    c.style.transform=`translateY(${cur+d}px)`;
+    void c.offsetHeight; // commit the start position before animating
+    c.style.transition='transform .18s var(--ease-standard,ease)';
+    c.style.transform='translateY(0px)';
+    c._vdT=setTimeout(()=>{ c.style.transition=''; c.style.transform=''; },210);
+  });
+}
+function _vdTick(){
+  const s=_VD.s; if(!s) return;
+  const H=window.innerHeight, TOPZ=170, BOTZ=120, y=s.lastY;
+  let dy=0;
+  if(y<TOPZ) dy=-Math.max(3,Math.round(16*Math.min(1,(TOPZ-y)/TOPZ)));
+  else if(y>H-BOTZ) dy=Math.max(3,Math.round(16*Math.min(1,(y-(H-BOTZ))/BOTZ)));
+  if(dy){
+    const before=_vdScrollTop(s.sc);
+    if(s.sc) s.sc.scrollTop+=dy; else window.scrollBy(0,dy);
+    if(_vdScrollTop(s.sc)!==before) _vdApply();
+  }
+  s.raf=requestAnimationFrame(_vdTick);
+}
+function _vdEnd(e){
+  const s=_VD.s; if(!s) return;
+  if(e && e.pointerId!==undefined && e.pointerId!==s.pid) return;
+  _vdFinish();
+}
+function _vdFinish(){
+  const s=_VD.s; if(!s) return;
+  _VD.s=null;
+  cancelAnimationFrame(s.raf);
+  const h=s.handle;
+  h.removeEventListener('pointermove',_vdMove);
+  h.removeEventListener('pointerup',_vdEnd);
+  h.removeEventListener('pointercancel',_vdEnd);
+  h.removeEventListener('lostpointercapture',_vdEnd);
+  try{ h.releasePointerCapture(s.pid); }catch(_){}
+  const el=s.el, cards=_vdCards(s);
+  cards.forEach(c=>{ clearTimeout(c._vdT); if(c!==el){ c.style.transition=''; c.style.transform=''; } });
+  // ease the dropped card into its slot instead of snapping
+  el.classList.remove(s.cfg.dragClass);
+  el.style.transition='transform .16s var(--ease-standard,ease)';
+  el.style.transform='translateY(0px)';
+  setTimeout(()=>{ el.style.transition=''; el.style.transform=''; },180);
+  document.querySelectorAll('.drag-over-top,.drag-over-bottom,.wdash-drag-over-top,.wdash-drag-over-bottom')
+    .forEach(x=>x.classList.remove('drag-over-top','drag-over-bottom','wdash-drag-over-top','wdash-drag-over-bottom'));
+  if(cards.map(s.cfg.idOf).join('|')!==s.initialOrder) s.cfg.onDrop(cards);
+}
+
+const _WDASH_VD={
+  cardSel:'.wdash-section', dragClass:'wdash-dragging',
+  idOf:c=>c.getAttribute('data-cardid'),
+  onDrop(cards){
+    const prefs=_wdashPrefs();
+    prefs.order=cards.map(c=>c.getAttribute('data-cardid'));
+    _wdashSavePrefs(prefs);
+    if(typeof SoundManager!=='undefined') SoundManager.play(SoundManager.SOUND.UI.DRAG_DROP);
+    renderView(true);
+  }
+};
 function wdashInitDrag(){
   const content=document.getElementById('mainContent');
   if(!content) return;
   content.querySelectorAll('.wdash-drag-handle').forEach(handle=>{
     handle.style.touchAction='none';
     handle.addEventListener('pointerdown', _wdashDragStart, {passive:false});
+    handle.addEventListener('contextmenu', ev=>ev.preventDefault());
   });
 }
-function _wdashDragStart(e){
-  if(e.pointerType==='mouse' && e.button!==0) return;
-  const handle=e.currentTarget;
-  _wdashDragEl=handle.closest('.wdash-section');
-  if(!_wdashDragEl) return;
-  e.preventDefault();
-  _wdashDragHandle=handle;
-  _wdashDragPointerId=e.pointerId;
-  try{ handle.setPointerCapture(e.pointerId); }catch(err){}
-  _wdashDragStartY=e.clientY;
-  _wdashDragCurrentY=0;
-  _wdashDragCards=Array.from(document.querySelectorAll('.wdash-wrap > .wdash-section'));
-  _wdashDragEl.classList.add('wdash-dragging');
-  _wdashDragEl.style.transition='none';
-  _wdashDragEl.style.transform='translateY(0px)';
-  handle.addEventListener('pointermove', _wdashDragMove, {passive:false});
-  handle.addEventListener('pointerup', _wdashDragEnd);
-  handle.addEventListener('pointercancel', _wdashDragEnd);
-}
-function _wdashDragMove(e){
-  if(!_wdashDragEl || e.pointerId!==_wdashDragPointerId) return;
-  e.preventDefault();
-  const y=e.clientY;
-
-  _wdashDragCurrentY = y - _wdashDragStartY;
-  _wdashDragEl.style.transform = `translateY(${_wdashDragCurrentY}px)`;
-
-  const dragRect=_wdashDragEl.getBoundingClientRect();
-  const dragCenter=dragRect.top + dragRect.height/2;
-
-  let targetCard=null, targetPos='bottom';
-  _wdashDragCards.forEach(card=>{
-    if(card===_wdashDragEl) return;
-    const r=card.getBoundingClientRect();
-    if(dragCenter>=r.top && dragCenter<=r.bottom){
-      targetCard=card;
-      targetPos = dragCenter < r.top+r.height/2 ? 'top' : 'bottom';
-    }
-    card.classList.remove('wdash-drag-over-top','wdash-drag-over-bottom');
-  });
-  if(targetCard){
-    targetCard.classList.add(targetPos==='top'?'wdash-drag-over-top':'wdash-drag-over-bottom');
-
-    const beforeRects=new Map();
-    _wdashDragCards.forEach(c=>{ if(c!==_wdashDragEl) beforeRects.set(c, c.getBoundingClientRect()); });
-    const offsetBefore=_wdashDragEl.offsetTop;
-
-    const parent=_wdashDragEl.parentNode;
-    if(targetPos==='top') parent.insertBefore(_wdashDragEl, targetCard);
-    else parent.insertBefore(_wdashDragEl, targetCard.nextSibling);
-
-    const staticShift=_wdashDragEl.offsetTop - offsetBefore;
-    _wdashDragCurrentY -= staticShift;
-    _wdashDragEl.style.transform = `translateY(${_wdashDragCurrentY}px)`;
-
-    beforeRects.forEach((before,c)=>{
-      const after=c.getBoundingClientRect();
-      const delta=before.top-after.top;
-      if(delta){
-        clearTimeout(c._dragFlipTimer);
-        c.style.transition='none';
-        c.style.transform=`translateY(${delta}px)`;
-        requestAnimationFrame(()=>{
-          c.style.transition='transform .18s var(--ease-standard,ease)';
-          c.style.transform='';
-          c._dragFlipTimer=setTimeout(()=>{ c.style.transition=''; },190);
-        });
-      }
-    });
-  }
-}
-function _wdashDragEnd(){
-  if(!_wdashDragEl){ _cleanupWdashDragListeners(); return; }
-
-  if(_wdashDragHandle){
-    _wdashDragHandle.removeEventListener('pointermove', _wdashDragMove);
-    _wdashDragHandle.removeEventListener('pointerup', _wdashDragEnd);
-    _wdashDragHandle.removeEventListener('pointercancel', _wdashDragEnd);
-    if(_wdashDragPointerId!=null){ try{ _wdashDragHandle.releasePointerCapture(_wdashDragPointerId); }catch(err){} }
-  }
-
-  _wdashDragEl.classList.remove('wdash-dragging');
-  _wdashDragEl.style.transform='';
-  document.querySelectorAll('.wdash-section.wdash-drag-over-top,.wdash-section.wdash-drag-over-bottom').forEach(el=>{
-    el.classList.remove('wdash-drag-over-top','wdash-drag-over-bottom');
-  });
-  const newOrder = Array.from(document.querySelectorAll('.wdash-wrap > .wdash-section')).map(el=>el.getAttribute('data-cardid'));
-  const prefs = _wdashPrefs();
-  prefs.order = newOrder;
-  _wdashSavePrefs(prefs);
-  if(typeof SoundManager!=='undefined') SoundManager.play(SoundManager.SOUND.UI.DRAG_DROP);
-  _wdashDragEl=null; _wdashDragCards=[]; _wdashDragHandle=null; _wdashDragPointerId=null;
-  renderView(true);
-}
-function _cleanupWdashDragListeners(){
-  if(_wdashDragHandle){
-    _wdashDragHandle.removeEventListener('pointermove', _wdashDragMove);
-    _wdashDragHandle.removeEventListener('pointerup', _wdashDragEnd);
-    _wdashDragHandle.removeEventListener('pointercancel', _wdashDragEnd);
-  }
-}
+function _wdashDragStart(e){ _vdBegin(e,_WDASH_VD); }
 
 // ── Dashboard Performance Monitor (Phase 4 · Commit 8 · developer-only) ─────
 // Presentation/tooling only — zero business-logic changes. Records timing
@@ -20321,154 +20376,27 @@ function persistBanksOrder(){
 // (rebased on every DOM swap using offsetTop, which transforms don't
 // affect), and every displaced card gets a quick FLIP animation into its
 // new slot.
-let _dragKey=null, _dragEl=null, _dragHandle=null, _dragPointerId=null, _dragStartY=0, _dragCurrentY=0;
-let _dragCards=[], _dragOrder=[];
-
+// Bank cards are rendered as `.bnk-card` (Banks v2). The previous drag code
+// still queried the old `.bank-card` class, so closest() returned null and
+// every drag silently did nothing — now uses the shared engine on `.bnk-card`.
+const _BANK_VD={
+  cardSel:'.bnk-card[id^="bcard-"]', dragClass:'drag-dragging',
+  idOf:c=>c.id.replace('bcard-',''),
+  onDrop(cards){
+    banksOrder=cards.map(c=>c.id.replace('bcard-',''));
+    persistBanksOrder();
+  }
+};
 function initBankDrag(){
   const content=document.getElementById('mainContent');
   if(!content) return;
-
   content.querySelectorAll('.drag-handle').forEach(handle=>{
     handle.style.touchAction='none';
     handle.addEventListener('pointerdown', _dragStart, {passive:false});
+    handle.addEventListener('contextmenu', ev=>ev.preventDefault());
   });
 }
-
-function _dragStart(e){
-  if(e.pointerType==='mouse' && e.button!==0) return;
-  const handle=e.currentTarget;
-  _dragKey=handle.getAttribute('data-key');
-  _dragEl=handle.closest('.bank-card');
-  if(!_dragEl) return;
-
-  e.preventDefault();
-  _dragHandle=handle;
-  _dragPointerId=e.pointerId;
-  try{ handle.setPointerCapture(e.pointerId); }catch(err){}
-  _dragStartY=e.clientY;
-  _dragCurrentY=0;
-
-  // Snapshot all bank cards and their order
-  _dragCards=Array.from(document.querySelectorAll('.bank-card[id^="bcard-"]'));
-  _dragOrder=_dragCards.map(c=>c.id.replace('bcard-',''));
-
-  // Visual feedback
-  _dragEl.classList.add('drag-dragging');
-  _dragEl.style.transition='none';
-  _dragEl.style.transform='translateY(0px)';
-  handle.style.cursor='grabbing';
-
-  handle.addEventListener('pointermove', _dragMove, {passive:false});
-  handle.addEventListener('pointerup', _dragEnd);
-  handle.addEventListener('pointercancel', _dragEnd);
-}
-
-function _dragMove(e){
-  if(!_dragEl || e.pointerId!==_dragPointerId) return;
-  e.preventDefault();
-  const y=e.clientY;
-
-  // Follow the finger 1:1 — without this the card only ever appears to move
-  // the instant a swap threshold is crossed, which is what reads as
-  // unresponsive/hard-to-control.
-  _dragCurrentY = y - _dragStartY;
-  _dragEl.style.transform = `translateY(${_dragCurrentY}px)`;
-
-  // Scroll page if near edges
-  const SCROLL_ZONE=80;
-  const vh=window.innerHeight;
-  if(y < SCROLL_ZONE) window.scrollBy(0,-8);
-  else if(y > vh-SCROLL_ZONE) window.scrollBy(0,8);
-
-  // Find which card the dragged card's current (transformed) center is over
-  const dragRect=_dragEl.getBoundingClientRect();
-  const dragCenter=dragRect.top + dragRect.height/2;
-
-  let targetCard=null, targetPos='bottom';
-  _dragCards.forEach(card=>{
-    if(card===_dragEl) return;
-    const r=card.getBoundingClientRect();
-    if(dragCenter >= r.top && dragCenter <= r.bottom){
-      targetCard=card;
-      targetPos = dragCenter < r.top+r.height/2 ? 'top' : 'bottom';
-    }
-    card.classList.remove('drag-over-top','drag-over-bottom');
-  });
-
-  if(targetCard){
-    targetCard.classList.add(targetPos==='top'?'drag-over-top':'drag-over-bottom');
-
-    // FLIP the cards that are about to be displaced, so they slide into
-    // their new slot instead of jumping there instantly.
-    const beforeRects=new Map();
-    _dragCards.forEach(c=>{ if(c!==_dragEl) beforeRects.set(c, c.getBoundingClientRect()); });
-    const dragOffsetTopBefore=_dragEl.offsetTop;
-
-    const parent=_dragEl.parentNode;
-    if(targetPos==='top'){
-      parent.insertBefore(_dragEl, targetCard);
-    } else {
-      parent.insertBefore(_dragEl, targetCard.nextSibling);
-    }
-
-    // The dragged card's static (layout) position just shifted because of
-    // the DOM move — offsetTop isn't affected by transform, so use it to
-    // measure exactly how much, and subtract that out of the transform we're
-    // already applying. Net effect: the card stays glued to the finger with
-    // zero visual jump across the swap.
-    const staticShift=_dragEl.offsetTop - dragOffsetTopBefore;
-    _dragCurrentY -= staticShift;
-    _dragEl.style.transform = `translateY(${_dragCurrentY}px)`;
-
-    beforeRects.forEach((before,c)=>{
-      const after=c.getBoundingClientRect();
-      const delta=before.top-after.top;
-      if(delta){
-        clearTimeout(c._dragFlipTimer);
-        c.style.transition='none';
-        c.style.transform=`translateY(${delta}px)`;
-        requestAnimationFrame(()=>{
-          c.style.transition='transform .18s var(--ease-standard,ease)';
-          c.style.transform='';
-          c._dragFlipTimer=setTimeout(()=>{ c.style.transition=''; }, 190);
-        });
-      }
-    });
-  }
-}
-
-function _dragEnd(e){
-  if(!_dragEl) return;
-
-  if(_dragHandle){
-    _dragHandle.removeEventListener('pointermove', _dragMove);
-    _dragHandle.removeEventListener('pointerup', _dragEnd);
-    _dragHandle.removeEventListener('pointercancel', _dragEnd);
-    if(_dragPointerId!=null){ try{ _dragHandle.releasePointerCapture(_dragPointerId); }catch(err){} }
-    _dragHandle.style.cursor='grab';
-  }
-
-  // Drop the dragging class first — the base .bank-card rule already has a
-  // transform transition, and .drag-dragging overrides it to `none
-  // !important` while active, so the class must come off before we clear
-  // the transform or the card would snap back instead of easing into place.
-  _dragEl.classList.remove('drag-dragging');
-  _dragEl.style.transform='';
-
-  // Clean up visual states
-  document.querySelectorAll('.drag-over-top,.drag-over-bottom').forEach(el=>{
-    el.classList.remove('drag-over-top','drag-over-bottom');
-  });
-
-  // Read new order from DOM
-  const newOrder=Array.from(document.querySelectorAll('.bank-card[id^="bcard-"]'))
-    .map(c=>c.id.replace('bcard-',''));
-
-  banksOrder=newOrder;
-  persistBanksOrder();
-
-  _dragKey=null; _dragEl=null; _dragHandle=null; _dragPointerId=null;
-}
+function _dragStart(e){ _vdBegin(e,_BANK_VD); }
 // ── Bank Color & Text Customizer ─────────────────────────────────────────────
 const BANK_CUSTOM_COLORS_KEY='wdp_bank_colors_v1';
 let bankCustomColors={};
