@@ -8218,6 +8218,48 @@ button.cx-sh-tap{width:100%;background:none;border:0;font-family:inherit;color:i
 .cx-mv-amt.with{color:var(--red)}
 .cx-mv-amt .cx-mn small{color:inherit;opacity:.7}
 .cx-wrap .cst-empty-state{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:28px 18px}
+/* ── My Requests (استلاماتي) — a tab inside Site Custody ─────────────────────
+   Same quiet language as .cx-*: hairline borders, no gradients/glow. Status is
+   carried only by a 4px inline-start rule + the existing .cx-chip colours
+   (green = received, gold = received with notes, red = not received). */
+.cx-tabs{margin-bottom:-4px}
+.rq-stats{display:grid;grid-template-columns:repeat(4,1fr);background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.rq-stat{appearance:none;-webkit-appearance:none;border:0;border-inline-start:1px solid var(--border);background:transparent;font-family:inherit;padding:12px 4px 10px;min-height:66px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;cursor:pointer;color:var(--muted);transition:background-color .15s}
+.rq-stat:first-child{border-inline-start:0}
+.rq-stat b{font-size:calc(19px*var(--app-text-scale,1));font-weight:800;line-height:1;color:var(--text);font-variant-numeric:tabular-nums}
+.rq-stat span{font-size:calc(11px*var(--app-text-scale,1));font-weight:700;line-height:1.25;text-align:center}
+.rq-stat.ok b{color:var(--green)}
+.rq-stat.low b{color:var(--gold)}
+.rq-stat.over b{color:var(--red)}
+.rq-stat.on{background:var(--surface2);box-shadow:inset 0 -2.5px 0 var(--text)}
+.rq-stat.ok.on{box-shadow:inset 0 -2.5px 0 var(--green)}
+.rq-stat.low.on{box-shadow:inset 0 -2.5px 0 var(--gold)}
+.rq-stat.over.on{box-shadow:inset 0 -2.5px 0 var(--red)}
+.rq-add{display:inline-flex;align-items:center;gap:6px;height:38px;padding:0 14px;border:0;border-radius:99px;background:var(--green);color:#fff;font-family:inherit;font-size:calc(13px*var(--app-text-scale,1));font-weight:800;cursor:pointer;white-space:nowrap}
+.rq-add:active{transform:scale(.96)}
+.rq-list{display:flex;flex-direction:column;gap:10px}
+.rq-card{--rq-c:var(--border);background:var(--surface);border:1px solid var(--border);border-inline-start:4px solid var(--rq-c);border-radius:var(--radius);padding:14px 16px 6px}
+.rq-card.ok{--rq-c:var(--green)}
+.rq-card.low{--rq-c:var(--gold)}
+.rq-card.over{--rq-c:var(--red)}
+.rq-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.rq-top .cx-chip{flex:none}
+.rq-co{min-width:0;font-size:calc(16px*var(--app-text-scale,1));font-weight:800;line-height:1.35;color:var(--text);overflow-wrap:anywhere}
+.rq-type{margin-top:3px;font-size:calc(13.5px*var(--app-text-scale,1));font-weight:600;color:var(--sub);overflow-wrap:anywhere}
+.rq-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px 14px;margin:12px 0 0;padding:12px 0 0;border-top:1px solid var(--border)}
+.rq-grid>div{min-width:0}
+.rq-grid dt{margin:0 0 2px;font-size:calc(11.5px*var(--app-text-scale,1));font-weight:600;color:var(--muted)}
+.rq-grid dd{margin:0;font-size:calc(14px*var(--app-text-scale,1));font-weight:700;color:var(--text);overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
+.rq-notes{margin-top:12px;padding:10px 12px;background:var(--surface2);border-radius:var(--radius-xs);font-size:calc(13px*var(--app-text-scale,1));line-height:1.55;color:var(--sub);white-space:pre-wrap;overflow-wrap:anywhere}
+.rq-foot{display:flex;justify-content:flex-end;margin-top:6px;margin-inline-end:-8px}
+/* form sheet (lives in #modalContent, outside .cx-wrap) */
+.rq-seg{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.rq-stbtn{min-height:56px;padding:8px 6px;border:1.5px solid var(--border);border-radius:var(--radius-sm);background:var(--surface);color:var(--muted);font-family:inherit;font-size:calc(12.5px*var(--app-text-scale,1));font-weight:800;line-height:1.3;text-align:center;cursor:pointer;transition:background-color .15s,border-color .15s,color .15s}
+.rq-stbtn.ok.on{background:var(--green-tint);border-color:var(--green);color:var(--green)}
+.rq-stbtn.low.on{background:var(--gold-tint);border-color:var(--gold);color:var(--gold)}
+.rq-stbtn.over.on{background:var(--red-tint);border-color:var(--red);color:var(--red)}
+.rq-row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.rq-row2 .field{min-width:0}
 @media (prefers-reduced-motion:reduce){
   .cx-entry,.cx-lbody,.cx-chev,.cx-act,.cx-save{transition:none}
 }
@@ -11137,6 +11179,7 @@ function setView(v){
   // instantly (no fade — we're already navigating) on every view change.
   _fpFabPickerRemoveNow();
   if(typeof SoundManager!=='undefined' && v!==currentView) SoundManager.play('screen_open');
+  if(v==='expenses') _cxTab='custody'; // entry points (nav, global search, quick-add) always land on the Custody tab
   currentView=v;
   applyWorkspaceNav();
   // Update individual nav item active states
@@ -27897,6 +27940,7 @@ function generateExpenseAIInsights(exps, groups){
 // (addCustodyDeposit, editCustodyDeposit, deleteCustodyDeposit, openEdit('exp'),
 // deleteExp, deleteNoteGroup, _ng* categorize) are untouched.
 function renderExpenses(m){
+  if(_cxTab==='requests') return renderMyRequests();
   const all=m?.site_expenses||[];
   const exps=all.filter(e=>!searchQ||(e.description||'').toLowerCase().includes(searchQ.toLowerCase())||(e.notes||'').toLowerCase().includes(searchQ.toLowerCase())||String(e.amount).includes(searchQ)||_smartSearchHit(e,e.description,searchQ));
   const total=exps.reduce((s,e)=>s+(e.amount||0),0);      // list scope (respects search)
@@ -28133,11 +28177,197 @@ function renderExpenses(m){
   </section>` : '';
 
   return `<div class="screen-wrap cx-wrap">
+  ${_cxTabsHTML()}
   ${heroHTML}
   ${expensesHTML}
   ${insightsHTML}
   ${ledgerHTML}
   </div><!-- /screen-wrap -->`;
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// MY REQUESTS (استلاماتي) — receipt/inspection log, a tab inside Site Custody
+// Flat store (not month-scoped, like Notes): each record is one card with
+// company, handing-over engineer, date, receipt type, plot no., form/model and a
+// status of received / received with notes / not received (+ optional notes).
+// Persisted to its own localStorage key; touches no finance data.
+// ══════════════════════════════════════════════════════════════════════════════
+const _RQ_KEY='wdp_receipts_v1';
+const _RQ_STATUS={
+  received:{cls:'ok',  en:'Received',            ar:'تم الاستلام'},
+  notes:   {cls:'low', en:'Received with notes', ar:'تم مع الملاحظات'},
+  rejected:{cls:'over',en:'Not received',        ar:'لم يتم الاستلام'}
+};
+let _cxTab='custody';
+let _rqFilter='all';
+let _rqEditId=null;
+let _rqStatusSel='received';
+
+function _rqLoad(){
+  try{
+    const raw=localStorage.getItem(_RQ_KEY);
+    const arr=raw?JSON.parse(raw):[];
+    return Array.isArray(arr)?arr.filter(r=>r&&typeof r==='object'&&r.id):[];
+  }catch(e){ _logErr('_rqLoad',e); return []; }
+}
+function _rqSave(list){
+  try{ localStorage.setItem(_RQ_KEY,JSON.stringify(list)); }
+  catch(e){ _logErr('_rqSave',e); showToast(L('Could not save','تعذّر الحفظ'),'warn'); }
+}
+function _rqNewId(){ return 'rq'+Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
+function _rqStatusLabel(k){ const s=_RQ_STATUS[k]||_RQ_STATUS.received; return L(s.en,s.ar); }
+
+function _cxTabsHTML(){
+  const t=(k,lbl)=>`<button type="button" role="tab" class="cx-seg-btn${_cxTab===k?' on':''}" aria-selected="${_cxTab===k?'true':'false'}" onclick="_cxSetTab('${k}')">${lbl}</button>`;
+  return `<div class="cx-seg cx-tabs" role="tablist">${t('custody',L('Custody','العهدة'))}${t('requests',L('My Requests','استلاماتي'))}</div>`;
+}
+function _cxSetTab(k){
+  const nk=(k==='requests')?'requests':'custody';
+  if(nk===_cxTab) return;
+  _cxTab=nk; searchQ='';
+  renderView();
+}
+function _rqSetFilter(f){ _rqFilter=f; renderView(); }
+
+function renderMyRequests(){
+  const all=_rqLoad();
+  const counts={received:0,notes:0,rejected:0};
+  all.forEach(r=>{ if(counts[r.status]!==undefined) counts[r.status]++; });
+  const q=(searchQ||'').trim().toLowerCase();
+  let list=all.filter(r=>_rqFilter==='all'||r.status===_rqFilter);
+  if(q) list=list.filter(r=>[r.company,r.engineer,r.type,r.plot,r.model,r.notes,r.date].some(v=>String(v||'').toLowerCase().includes(q)));
+  list.sort((a,b)=>String(b.date||'').localeCompare(String(a.date||''))||((b.createdAt||0)-(a.createdAt||0)));
+
+  const stat=(f,cls,n,lbl)=>`<button type="button" class="rq-stat ${cls}${_rqFilter===f?' on':''}" aria-pressed="${_rqFilter===f?'true':'false'}" onclick="_rqSetFilter('${f}')"><b>${n}</b><span>${lbl}</span></button>`;
+  const statsHTML=all.length?`<div class="rq-stats">
+    ${stat('all','all',all.length,L('All','الكل'))}
+    ${stat('received','ok',counts.received,_rqStatusLabel('received'))}
+    ${stat('notes','low',counts.notes,_rqStatusLabel('notes'))}
+    ${stat('rejected','over',counts.rejected,_rqStatusLabel('rejected'))}
+  </div>`:'';
+
+  const cell=(lbl,val,ltr)=>val?`<div><dt>${lbl}</dt><dd${ltr?' dir="ltr" style="text-align:start"':''}>${esc(val)}</dd></div>`:'';
+  const cardsHTML=list.map(r=>{
+    const st=_RQ_STATUS[r.status]||_RQ_STATUS.received;
+    return `
+    <article class="rq-card ${st.cls}">
+      <div class="rq-top">
+        <div style="min-width:0">
+          <div class="rq-co">${esc(r.company)}</div>
+          ${r.type?`<div class="rq-type">${esc(r.type)}</div>`:''}
+        </div>
+        <span class="cx-chip ${st.cls}">${_rqStatusLabel(r.status)}</span>
+      </div>
+      <dl class="rq-grid">
+        ${cell(L('Engineer','المهندس'),r.engineer)}
+        ${cell(L('Date','التاريخ'),r.date,true)}
+        ${cell(L('Plot No.','رقم القطعة'),r.plot)}
+        ${cell(L('Form / Model','النموذج'),r.model)}
+      </dl>
+      ${r.notes?`<div class="rq-notes">${esc(r.notes)}</div>`:''}
+      <div class="rq-foot">
+        <button type="button" class="cx-icbtn" onclick="openRequestModal('${r.id}')" aria-label="${L('Edit','تعديل')}">${ic('edit',17)}</button>
+        <button type="button" class="cx-icbtn del" onclick="deleteRequest('${r.id}')" aria-label="${L('Delete','حذف')}">${ic('trash',17)}</button>
+      </div>
+    </article>`;
+  }).join('');
+
+  const emptyHTML=all.length===0
+    ? `<div class="cst-empty-state">
+         <div class="cst-empty-icon">${ic('clipboard',26)}</div>
+         <div class="cst-empty-title">${L('No receipts logged yet','لسه مفيش استلامات')}</div>
+         <div class="cst-empty-sub">${L('Log each receipt you take from a company: company, engineer, type, plot and form.','سجّل كل استلامة بتستلمها من الشركات: الشركة، المهندس، نوع الاستلامة، رقم القطعة والنموذج.')}</div>
+         <button type="button" class="cst-empty-cta" onclick="openRequestModal(null)">${ic('plus',13)} ${L('New receipt','استلامة جديدة')}</button>
+       </div>`
+    : `<div class="cx-none">${L('No results','لا نتائج')}</div>`;
+
+  const shown=(q||_rqFilter!=='all')?`${list.length} / ${all.length}`:String(all.length);
+  return `<div class="screen-wrap cx-wrap">
+  ${_cxTabsHTML()}
+  <section class="cx-sec">
+    <div class="cx-sh">
+      <span class="cx-sh-l"><span class="cx-sh-t">${L('My Requests','استلاماتي')}</span><span class="cx-sh-s">${shown} ${L('receipts','استلامة')}</span></span>
+      ${all.length?`<button type="button" class="rq-add" onclick="openRequestModal(null)">${ic('plus',15)} ${L('New','جديد')}</button>`:''}
+    </div>
+    ${statsHTML}
+    ${all.length?`<div class="sc-search cx-search"><span class="cx-sbox">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
+      <input placeholder="${L('Search receipts...','ابحث في الاستلامات...')}" value="${esc(searchQ)}" oninput="doSearch(this.value)"/>
+    </span></div>`:''}
+    ${list.length?`<div class="rq-list">${cardsHTML}</div>`:emptyHTML}
+  </section>
+  </div>`;
+}
+
+function openRequestModal(id){
+  const list=_rqLoad();
+  const r=id?list.find(x=>x.id===id):null;
+  _rqEditId=r?r.id:null;
+  _rqStatusSel=(r&&_RQ_STATUS[r.status])?r.status:'received';
+  const uniq=k=>[...new Set(list.map(x=>String(x[k]||'').trim()).filter(Boolean))];
+  const dl=(idn,k)=>`<datalist id="${idn}">${uniq(k).map(v=>`<option value="${esc(v)}"></option>`).join('')}</datalist>`;
+  const stBtns=Object.keys(_RQ_STATUS).map(k=>`<button type="button" class="rq-stbtn ${_RQ_STATUS[k].cls}${_rqStatusSel===k?' on':''}" data-s="${k}" onclick="_rqPickStatus('${k}')">${_rqStatusLabel(k)}</button>`).join('');
+  document.getElementById('modalContent').innerHTML=`
+    <div class="modal-handle"></div>
+    <div class="modal-hdr">
+      <div class="modal-hdr-icon" style="background:linear-gradient(135deg,#0f7a55,#0a5c40)">${ic('clipboard',22)}</div>
+      <div>
+        <div class="modal-hdr-title">${r?L('Edit Receipt','تعديل استلامة'):L('New Receipt','استلامة جديدة')}</div>
+        <div class="modal-hdr-sub">${L('My Requests','استلاماتي')}</div>
+      </div>
+    </div>
+    <div class="field"><label>${L('Company','اسم الشركة')} <span class="f-req">*</span></label>
+      <input type="text" id="rqCompany" list="rqDlCo" dir="auto" autocomplete="off" value="${esc(r?.company||'')}">${dl('rqDlCo','company')}</div>
+    <div class="field"><label>${L('Engineer handing over','المهندس المُسلِّم')}</label>
+      <input type="text" id="rqEngineer" list="rqDlEng" dir="auto" autocomplete="off" value="${esc(r?.engineer||'')}">${dl('rqDlEng','engineer')}</div>
+    <div class="rq-row2">
+      <div class="field"><label>${L('Date','التاريخ')}</label><input type="date" id="rqDate" value="${esc(r?.date||today())}"></div>
+      <div class="field"><label>${L('Plot No.','رقم القطعة')}</label><input type="text" id="rqPlot" dir="auto" autocomplete="off" value="${esc(r?.plot||'')}"></div>
+    </div>
+    <div class="field"><label>${L('Receipt type','نوع الاستلامة')}</label>
+      <input type="text" id="rqType" list="rqDlType" dir="auto" autocomplete="off" value="${esc(r?.type||'')}">${dl('rqDlType','type')}</div>
+    <div class="field"><label>${L('Form / Model','النموذج')}</label>
+      <input type="text" id="rqModel" list="rqDlModel" dir="auto" autocomplete="off" value="${esc(r?.model||'')}">${dl('rqDlModel','model')}</div>
+    <div class="field"><label>${L('Status','الحالة')}</label><div class="rq-seg">${stBtns}</div></div>
+    <div class="field"><label>${L('Notes','ملاحظات')} <span class="f-opt">(${L('optional','اختياري')})</span></label>
+      <textarea id="rqNotes" rows="3" dir="auto">${esc(r?.notes||'')}</textarea></div>
+    <div class="modal-btns"><button class="mbtn save" onclick="saveRequest()">${L('Save','حفظ')}</button><button class="mbtn cancel" onclick="closeModal()">${L('Cancel','إلغاء')}</button></div>`;
+  document.getElementById('modalOverlay').style.display='flex';
+}
+function _rqPickStatus(k){
+  if(!_RQ_STATUS[k]) return;
+  _rqStatusSel=k;
+  document.querySelectorAll('.rq-stbtn').forEach(b=>b.classList.toggle('on',b.dataset.s===k));
+}
+function saveRequest(){
+  const g=id=>(document.getElementById(id)?.value||'').trim();
+  const company=g('rqCompany');
+  if(!company){
+    showToast(L('Enter the company name','اكتب اسم الشركة'),'warn');
+    document.getElementById('rqCompany')?.focus();
+    return;
+  }
+  const rec={company,engineer:g('rqEngineer'),date:g('rqDate')||today(),type:g('rqType'),plot:g('rqPlot'),model:g('rqModel'),status:_rqStatusSel,notes:g('rqNotes')};
+  const list=_rqLoad();
+  const editing=!!_rqEditId;
+  if(editing){
+    const i=list.findIndex(x=>x.id===_rqEditId);
+    if(i>=0) list[i]={...list[i],...rec,updatedAt:Date.now()};
+    else list.push({id:_rqNewId(),...rec,createdAt:Date.now(),updatedAt:Date.now()});
+  } else {
+    list.push({id:_rqNewId(),...rec,createdAt:Date.now(),updatedAt:Date.now()});
+  }
+  _rqSave(list);
+  _rqEditId=null;
+  showToast(editing?L('Updated ✓','تم التحديث ✓'):L('Added ✓','تمت الإضافة ✓'),'success');
+  closeModal(); renderView();
+}
+function deleteRequest(id){
+  showConfirm(L('Delete this receipt?','حذف هذه الاستلامة؟'),function(){
+    _rqSave(_rqLoad().filter(x=>x.id!==id));
+    showToast(L('Deleted','تم الحذف'),'info');
+    renderView();
+  });
 }
 
 function toggleNoteGroup(headerEl){
@@ -29157,6 +29387,7 @@ function openFabPicker(e){
 }
 function openExpPicker(e){
   e && e.stopPropagation();
+  if(_cxTab==='requests'){ openRequestModal(null); return; }
   _fpFabPickerRemoveNow();
   const picker=document.createElement('div');
   picker.className='fab-picker';
@@ -29241,7 +29472,7 @@ function closeFabPicker(){
   setTimeout(()=>{ picker?.remove(); bd?.remove(); },130);
 }
 function openAddTx(){openAdd();}
-function openAdd(){editTarget=null;if(currentView==='transactions') showTxModal(null);else if(currentView==='expenses') showExpModal(null);}
+function openAdd(){editTarget=null;if(currentView==='transactions') showTxModal(null);else if(currentView==='expenses'){ if(_cxTab==='requests') openRequestModal(null); else showExpModal(null); }}
 function openEdit(type,idx){editTarget={type,idx};if(type==='tx') showTxModal(DATA[activeMonth].transactions[idx]);else showExpModal(DATA[activeMonth].site_expenses[idx]);}
 
 // ── AI Quick Entry (UI only — no AI parsing yet) ────────────────────────────
