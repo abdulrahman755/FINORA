@@ -13835,43 +13835,45 @@ function wdashSetCardColor(id, color){
   renderView(true);
 }
 
-// ── Dashboard Card Customization — drag-to-reorder (touch + mouse), same
-// pattern as Savings/Site Diary drag-reorder, adapted to whole card blocks
-// instead of list rows. Reordering only writes prefs.order and re-renders —
-// no card's own data or calculations are touched. Uses the same
-// live-follow-the-finger + FLIP technique as the bank cards above: the
-// section tracks the pointer via transform, rebased on every DOM swap using
-// offsetTop, and displaced sections animate into their new slot. ──────────
-let _wdashDragEl=null, _wdashDragCards=[], _wdashDragStartY=0, _wdashDragCurrentY=0;
+// ── Dashboard Card Customization — drag-to-reorder, adapted to whole card
+// blocks instead of list rows. Reordering only writes prefs.order and
+// re-renders — no card's own data or calculations are touched. Built on
+// Pointer Events with pointer capture (see the bank-card drag above for
+// why — capture is what keeps the gesture reliable on mobile once the
+// finger moves off the handle itself), with the same live-follow-the-finger
+// transform + FLIP animation for displaced sections. ───────────────────────
+let _wdashDragEl=null, _wdashDragHandle=null, _wdashDragPointerId=null, _wdashDragCards=[], _wdashDragStartY=0, _wdashDragCurrentY=0;
 function wdashInitDrag(){
   const content=document.getElementById('mainContent');
   if(!content) return;
   content.querySelectorAll('.wdash-drag-handle').forEach(handle=>{
-    handle.addEventListener('mousedown', _wdashDragStart, {passive:false});
-    handle.addEventListener('touchstart', _wdashDragStart, {passive:false});
+    handle.style.touchAction='none';
+    handle.addEventListener('pointerdown', _wdashDragStart, {passive:false});
   });
 }
 function _wdashDragStart(e){
+  if(e.pointerType==='mouse' && e.button!==0) return;
   const handle=e.currentTarget;
   _wdashDragEl=handle.closest('.wdash-section');
   if(!_wdashDragEl) return;
   e.preventDefault();
-  const touch=e.touches?e.touches[0]:e;
-  _wdashDragStartY=touch.clientY;
+  _wdashDragHandle=handle;
+  _wdashDragPointerId=e.pointerId;
+  try{ handle.setPointerCapture(e.pointerId); }catch(err){}
+  _wdashDragStartY=e.clientY;
   _wdashDragCurrentY=0;
   _wdashDragCards=Array.from(document.querySelectorAll('.wdash-wrap > .wdash-section'));
   _wdashDragEl.classList.add('wdash-dragging');
+  _wdashDragEl.style.transition='none';
   _wdashDragEl.style.transform='translateY(0px)';
-  document.addEventListener('mousemove', _wdashDragMove, {passive:false});
-  document.addEventListener('touchmove', _wdashDragMove, {passive:false});
-  document.addEventListener('mouseup', _wdashDragEnd);
-  document.addEventListener('touchend', _wdashDragEnd);
+  handle.addEventListener('pointermove', _wdashDragMove, {passive:false});
+  handle.addEventListener('pointerup', _wdashDragEnd);
+  handle.addEventListener('pointercancel', _wdashDragEnd);
 }
 function _wdashDragMove(e){
-  if(!_wdashDragEl) return;
+  if(!_wdashDragEl || e.pointerId!==_wdashDragPointerId) return;
   e.preventDefault();
-  const touch=e.touches?e.touches[0]:e;
-  const y=touch.clientY;
+  const y=e.clientY;
 
   _wdashDragCurrentY = y - _wdashDragStartY;
   _wdashDragEl.style.transform = `translateY(${_wdashDragCurrentY}px)`;
@@ -13922,6 +13924,14 @@ function _wdashDragMove(e){
 }
 function _wdashDragEnd(){
   if(!_wdashDragEl){ _cleanupWdashDragListeners(); return; }
+
+  if(_wdashDragHandle){
+    _wdashDragHandle.removeEventListener('pointermove', _wdashDragMove);
+    _wdashDragHandle.removeEventListener('pointerup', _wdashDragEnd);
+    _wdashDragHandle.removeEventListener('pointercancel', _wdashDragEnd);
+    if(_wdashDragPointerId!=null){ try{ _wdashDragHandle.releasePointerCapture(_wdashDragPointerId); }catch(err){} }
+  }
+
   _wdashDragEl.classList.remove('wdash-dragging');
   _wdashDragEl.style.transform='';
   document.querySelectorAll('.wdash-section.wdash-drag-over-top,.wdash-section.wdash-drag-over-bottom').forEach(el=>{
@@ -13932,15 +13942,15 @@ function _wdashDragEnd(){
   prefs.order = newOrder;
   _wdashSavePrefs(prefs);
   if(typeof SoundManager!=='undefined') SoundManager.play(SoundManager.SOUND.UI.DRAG_DROP);
-  _wdashDragEl=null; _wdashDragCards=[];
-  _cleanupWdashDragListeners();
+  _wdashDragEl=null; _wdashDragCards=[]; _wdashDragHandle=null; _wdashDragPointerId=null;
   renderView(true);
 }
 function _cleanupWdashDragListeners(){
-  document.removeEventListener('mousemove',_wdashDragMove);
-  document.removeEventListener('touchmove',_wdashDragMove);
-  document.removeEventListener('mouseup',_wdashDragEnd);
-  document.removeEventListener('touchend',_wdashDragEnd);
+  if(_wdashDragHandle){
+    _wdashDragHandle.removeEventListener('pointermove', _wdashDragMove);
+    _wdashDragHandle.removeEventListener('pointerup', _wdashDragEnd);
+    _wdashDragHandle.removeEventListener('pointercancel', _wdashDragEnd);
+  }
 }
 
 // ── Dashboard Performance Monitor (Phase 4 · Commit 8 · developer-only) ─────
@@ -17479,41 +17489,43 @@ If the image doesn't look like a receipt, still return your best-effort guess wi
   }
 }
 
-// ── Savings rows: drag-to-reorder (touch + mouse) ────────────────────────────
-// Same live-follow-the-finger + FLIP technique as the bank cards (see
-// _dragMove above) — the row tracks the pointer via transform, rebased on
-// every DOM swap using offsetTop, and displaced rows animate into place.
-let _savDragEl=null, _savDragType=null, _savDragRows=[], _savDragStartY=0, _savDragCurrentY=0;
+// ── Savings rows: drag-to-reorder ─────────────────────────────────────────
+// Built on Pointer Events with pointer capture (see the bank-card drag for
+// why), with the row tracking the pointer via transform (rebased on every
+// DOM swap using offsetTop) and FLIP-animated displaced rows.
+let _savDragEl=null, _savDragType=null, _savDragHandle=null, _savDragPointerId=null, _savDragRows=[], _savDragStartY=0, _savDragCurrentY=0;
 function savInitDrag(){
   const content=document.getElementById('mainContent');
   if(!content) return;
   content.querySelectorAll('.sav-drag-handle').forEach(handle=>{
-    handle.addEventListener('mousedown', _savDragStart, {passive:false});
-    handle.addEventListener('touchstart', _savDragStart, {passive:false});
+    handle.style.touchAction='none';
+    handle.addEventListener('pointerdown', _savDragStart, {passive:false});
   });
 }
 function _savDragStart(e){
+  if(e.pointerType==='mouse' && e.button!==0) return;
   const handle=e.currentTarget;
   _savDragType=handle.getAttribute('data-savtype');
   _savDragEl=handle.closest('.sav-row');
   if(!_savDragEl) return;
   e.preventDefault();
-  const touch=e.touches?e.touches[0]:e;
-  _savDragStartY=touch.clientY;
+  _savDragHandle=handle;
+  _savDragPointerId=e.pointerId;
+  try{ handle.setPointerCapture(e.pointerId); }catch(err){}
+  _savDragStartY=e.clientY;
   _savDragCurrentY=0;
   _savDragRows=Array.from(document.querySelectorAll(`.sav-row[data-savtype="${_savDragType}"]`));
   _savDragEl.classList.add('drag-dragging');
+  _savDragEl.style.transition='none';
   _savDragEl.style.transform='translateY(0px)';
-  document.addEventListener('mousemove', _savDragMove, {passive:false});
-  document.addEventListener('touchmove', _savDragMove, {passive:false});
-  document.addEventListener('mouseup', _savDragEnd);
-  document.addEventListener('touchend', _savDragEnd);
+  handle.addEventListener('pointermove', _savDragMove, {passive:false});
+  handle.addEventListener('pointerup', _savDragEnd);
+  handle.addEventListener('pointercancel', _savDragEnd);
 }
 function _savDragMove(e){
-  if(!_savDragEl) return;
+  if(!_savDragEl || e.pointerId!==_savDragPointerId) return;
   e.preventDefault();
-  const touch=e.touches?e.touches[0]:e;
-  const y=touch.clientY;
+  const y=e.clientY;
 
   _savDragCurrentY = y - _savDragStartY;
   _savDragEl.style.transform = `translateY(${_savDragCurrentY}px)`;
@@ -17564,6 +17576,14 @@ function _savDragMove(e){
 }
 function _savDragEnd(){
   if(!_savDragEl){ _cleanupSavDragListeners(); return; }
+
+  if(_savDragHandle){
+    _savDragHandle.removeEventListener('pointermove', _savDragMove);
+    _savDragHandle.removeEventListener('pointerup', _savDragEnd);
+    _savDragHandle.removeEventListener('pointercancel', _savDragEnd);
+    if(_savDragPointerId!=null){ try{ _savDragHandle.releasePointerCapture(_savDragPointerId); }catch(err){} }
+  }
+
   _savDragEl.classList.remove('drag-dragging');
   _savDragEl.style.transform='';
   document.querySelectorAll('.sav-row.drag-over-top,.sav-row.drag-over-bottom').forEach(el=>{
@@ -17579,15 +17599,15 @@ function _savDragEnd(){
     reordered.forEach(x=>arr.push(x));
     saveSavings();
   }
-  _savDragEl=null; _savDragType=null; _savDragRows=[];
-  _cleanupSavDragListeners();
+  _savDragEl=null; _savDragType=null; _savDragRows=[]; _savDragHandle=null; _savDragPointerId=null;
   renderView();
 }
 function _cleanupSavDragListeners(){
-  document.removeEventListener('mousemove',_savDragMove);
-  document.removeEventListener('touchmove',_savDragMove);
-  document.removeEventListener('mouseup',_savDragEnd);
-  document.removeEventListener('touchend',_savDragEnd);
+  if(_savDragHandle){
+    _savDragHandle.removeEventListener('pointermove', _savDragMove);
+    _savDragHandle.removeEventListener('pointerup', _savDragEnd);
+    _savDragHandle.removeEventListener('pointercancel', _savDragEnd);
+  }
 }
 
 // ── § OVERVIEW / ANALYTICS DASHBOARD ─────────────────────────────────────────
@@ -20289,13 +20309,19 @@ function loadBanksOrder(){
 function persistBanksOrder(){
   try{ localStorage.setItem(BANKS_ORDER_KEY, JSON.stringify(banksOrder)); }catch(e){_logErr('saveBanksOrder:setItem',e);}
 }
-// ── Bank Drag & Drop (touch + mouse) ─────────────────────────────────────────
-// The dragged card tracks the pointer 1:1 via transform:translateY (rebased on
-// every DOM swap using offsetTop, which transforms don't affect), and every
-// displaced card gets a quick FLIP animation into its new slot — this is what
-// makes the reorder feel connected to the finger instead of only "snapping"
-// once a swap threshold is crossed.
-let _dragKey=null, _dragEl=null, _dragStartY=0, _dragCurrentY=0;
+// ── Bank Drag & Drop ──────────────────────────────────────────────────────
+// Rewritten on Pointer Events with pointer capture (instead of parallel
+// mouse/touch handlers on `document`): once the handle captures the
+// pointer, every subsequent move/up for that gesture is delivered to it
+// directly regardless of what the finger ends up over, which is what makes
+// this reliable on mobile Safari — the previous document-level touchmove
+// listener could be starved by the browser's own gesture handling before
+// preventDefault ever ran, which read as the card not moving at all.
+// The dragged card still tracks the pointer 1:1 via transform:translateY
+// (rebased on every DOM swap using offsetTop, which transforms don't
+// affect), and every displaced card gets a quick FLIP animation into its
+// new slot.
+let _dragKey=null, _dragEl=null, _dragHandle=null, _dragPointerId=null, _dragStartY=0, _dragCurrentY=0;
 let _dragCards=[], _dragOrder=[];
 
 function initBankDrag(){
@@ -20303,20 +20329,23 @@ function initBankDrag(){
   if(!content) return;
 
   content.querySelectorAll('.drag-handle').forEach(handle=>{
-    handle.addEventListener('mousedown', _dragStart, {passive:false});
-    handle.addEventListener('touchstart', _dragStart, {passive:false});
+    handle.style.touchAction='none';
+    handle.addEventListener('pointerdown', _dragStart, {passive:false});
   });
 }
 
 function _dragStart(e){
+  if(e.pointerType==='mouse' && e.button!==0) return;
   const handle=e.currentTarget;
   _dragKey=handle.getAttribute('data-key');
   _dragEl=handle.closest('.bank-card');
   if(!_dragEl) return;
 
   e.preventDefault();
-  const touch=e.touches?e.touches[0]:e;
-  _dragStartY=touch.clientY;
+  _dragHandle=handle;
+  _dragPointerId=e.pointerId;
+  try{ handle.setPointerCapture(e.pointerId); }catch(err){}
+  _dragStartY=e.clientY;
   _dragCurrentY=0;
 
   // Snapshot all bank cards and their order
@@ -20329,17 +20358,15 @@ function _dragStart(e){
   _dragEl.style.transform='translateY(0px)';
   handle.style.cursor='grabbing';
 
-  document.addEventListener('mousemove', _dragMove, {passive:false});
-  document.addEventListener('touchmove', _dragMove, {passive:false});
-  document.addEventListener('mouseup', _dragEnd);
-  document.addEventListener('touchend', _dragEnd);
+  handle.addEventListener('pointermove', _dragMove, {passive:false});
+  handle.addEventListener('pointerup', _dragEnd);
+  handle.addEventListener('pointercancel', _dragEnd);
 }
 
 function _dragMove(e){
-  if(!_dragEl) return;
+  if(!_dragEl || e.pointerId!==_dragPointerId) return;
   e.preventDefault();
-  const touch=e.touches?e.touches[0]:e;
-  const y=touch.clientY;
+  const y=e.clientY;
 
   // Follow the finger 1:1 — without this the card only ever appears to move
   // the instant a swap threshold is crossed, which is what reads as
@@ -20413,6 +20440,14 @@ function _dragMove(e){
 function _dragEnd(e){
   if(!_dragEl) return;
 
+  if(_dragHandle){
+    _dragHandle.removeEventListener('pointermove', _dragMove);
+    _dragHandle.removeEventListener('pointerup', _dragEnd);
+    _dragHandle.removeEventListener('pointercancel', _dragEnd);
+    if(_dragPointerId!=null){ try{ _dragHandle.releasePointerCapture(_dragPointerId); }catch(err){} }
+    _dragHandle.style.cursor='grab';
+  }
+
   // Drop the dragging class first — the base .bank-card rule already has a
   // transform transition, and .drag-dragging overrides it to `none
   // !important` while active, so the class must come off before we clear
@@ -20424,7 +20459,6 @@ function _dragEnd(e){
   document.querySelectorAll('.drag-over-top,.drag-over-bottom').forEach(el=>{
     el.classList.remove('drag-over-top','drag-over-bottom');
   });
-  document.querySelectorAll('.drag-handle').forEach(h=>h.style.cursor='grab');
 
   // Read new order from DOM
   const newOrder=Array.from(document.querySelectorAll('.bank-card[id^="bcard-"]'))
@@ -20433,12 +20467,7 @@ function _dragEnd(e){
   banksOrder=newOrder;
   persistBanksOrder();
 
-  _dragKey=null; _dragEl=null;
-
-  document.removeEventListener('mousemove',_dragMove);
-  document.removeEventListener('touchmove',_dragMove);
-  document.removeEventListener('mouseup',_dragEnd);
-  document.removeEventListener('touchend',_dragEnd);
+  _dragKey=null; _dragEl=null; _dragHandle=null; _dragPointerId=null;
 }
 // ── Bank Color & Text Customizer ─────────────────────────────────────────────
 const BANK_CUSTOM_COLORS_KEY='wdp_bank_colors_v1';
