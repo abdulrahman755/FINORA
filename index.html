@@ -28222,6 +28222,64 @@ function _rqSave(list){
 function _rqNewId(){ return 'rq'+Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
 function _rqStatusLabel(k){ const s=_RQ_STATUS[k]||_RQ_STATUS.received; return L(s.en,s.ar); }
 
+// Card fields are shown translated into whichever language the app is
+// currently in (lang), regardless of what language they were typed in —
+// this covers records saved before this feature existed and records that
+// stay in their original language because the app was switched afterwards.
+// Translations are cached per record (r.tr[lang][field]) so the API is only
+// hit once per record/field/language, then reused (and persisted) after that.
+const _RQ_TR_FIELDS=['company','engineer','type','model','notes'];
+const _rqTrPending=new Set();
+const _RQ_EAST_DIGITS='٠١٢٣٤٥٦٧٨٩', _RQ_WEST_DIGITS='0123456789';
+function _rqDigitsConvert(str,target){
+  return target==='ar'
+    ? str.replace(/[0-9]/g,d=>_RQ_EAST_DIGITS[+d])
+    : str.replace(/[\u0660-\u0669]/g,d=>_RQ_WEST_DIGITS[_RQ_EAST_DIGITS.indexOf(d)]);
+}
+function _rqIsNumericish(str){ return /^[\d\u0660-\u0669\s\-\/.,]*$/.test(str); }
+function _rqNormalizePlot(el){
+  if(_rqIsNumericish(el.value)) el.value=_rqDigitsConvert(el.value,lang);
+}
+function _rqDisplayValue(r,key){
+  const raw=(r[key]||'').toString();
+  if(!raw.trim()) return '';
+  if(key==='plot' && _rqIsNumericish(raw)) return _rqDigitsConvert(raw,lang);
+  const detected=_atDetectLang(raw);
+  if(!detected || detected===lang) return raw;
+  const cached=r.tr && r.tr[lang] && r.tr[lang][key];
+  if(cached) return cached;
+  _rqQueueTranslate(r.id,lang);
+  return raw; // shown as typed until the queued translation lands, then a re-render swaps it in
+}
+function _rqQueueTranslate(id,targetLang){
+  const key=id+'|'+targetLang;
+  if(_rqTrPending.has(key)) return;
+  _rqTrPending.add(key);
+  _rqRunTranslate(id,targetLang).finally(()=>_rqTrPending.delete(key));
+}
+async function _rqRunTranslate(id,targetLang){
+  const list=_rqLoad();
+  const r=list.find(x=>x.id===id);
+  if(!r) return;
+  const out=(r.tr && r.tr[targetLang]) ? {...r.tr[targetLang]} : {};
+  let changed=false;
+  for(const f of _RQ_TR_FIELDS){
+    if(out[f]) continue;
+    const raw=(r[f]||'').toString();
+    if(!raw.trim()) continue;
+    if(f==='plot' && _rqIsNumericish(raw)) continue; // handled locally, not cached
+    const detected=_atDetectLang(raw);
+    if(!detected || detected===targetLang) continue;
+    try{ out[f]=await _atTranslate(raw,targetLang); changed=true; }
+    catch(e){ _logErr('_rqRunTranslate',e); }
+  }
+  if(!changed) return;
+  r.tr=r.tr||{};
+  r.tr[targetLang]=out;
+  _rqSave(list);
+  if(currentView==='expenses' && _cxTab==='requests') renderView();
+}
+
 function _cxTabsHTML(){
   const t=(k,lbl)=>`<button type="button" role="tab" class="cx-seg-btn${_cxTab===k?' on':''}" aria-selected="${_cxTab===k?'true':'false'}" onclick="_cxSetTab('${k}')">${lbl}</button>`;
   return `<div class="cx-seg cx-tabs" role="tablist">${t('custody',L('Custody','العهدة'))}${t('requests',L('My Requests','استلاماتي'))}</div>`;
@@ -28254,22 +28312,25 @@ function renderMyRequests(){
   const cell=(lbl,val,ltr)=>val?`<div><dt>${lbl}</dt><dd${ltr?' dir="ltr" style="text-align:start"':''}>${esc(val)}</dd></div>`:'';
   const cardsHTML=list.map(r=>{
     const st=_RQ_STATUS[r.status]||_RQ_STATUS.received;
+    const dCompany=_rqDisplayValue(r,'company'), dType=_rqDisplayValue(r,'type'),
+          dEngineer=_rqDisplayValue(r,'engineer'), dPlot=_rqDisplayValue(r,'plot'),
+          dModel=_rqDisplayValue(r,'model'), dNotes=_rqDisplayValue(r,'notes');
     return `
     <article class="rq-card ${st.cls}">
       <div class="rq-top">
         <div style="min-width:0">
-          <div class="rq-co">${esc(r.company)}</div>
-          ${r.type?`<div class="rq-type">${esc(r.type)}</div>`:''}
+          <div class="rq-co">${esc(dCompany)}</div>
+          ${dType?`<div class="rq-type">${esc(dType)}</div>`:''}
         </div>
         <span class="cx-chip ${st.cls}">${_rqStatusLabel(r.status)}</span>
       </div>
       <dl class="rq-grid">
-        ${cell(L('Engineer','المهندس'),r.engineer)}
+        ${cell(L('Engineer','المهندس'),dEngineer)}
         ${cell(L('Date','التاريخ'),r.date,true)}
-        ${cell(L('Plot No.','رقم القطعة'),r.plot)}
-        ${cell(L('Form / Model','النموذج'),r.model)}
+        ${cell(L('Plot No.','رقم القطعة'),dPlot)}
+        ${cell(L('Form / Model','النموذج'),dModel)}
       </dl>
-      ${r.notes?`<div class="rq-notes">${esc(r.notes)}</div>`:''}
+      ${dNotes?`<div class="rq-notes">${esc(dNotes)}</div>`:''}
       <div class="rq-foot">
         <button type="button" class="cx-icbtn" onclick="openRequestModal('${r.id}')" aria-label="${L('Edit','تعديل')}">${ic('edit',17)}</button>
         <button type="button" class="cx-icbtn del" onclick="deleteRequest('${r.id}')" aria-label="${L('Delete','حذف')}">${ic('trash',17)}</button>
@@ -28322,17 +28383,17 @@ function openRequestModal(id){
       </div>
     </div>
     <div class="field"><label>${L('Company','اسم الشركة')} <span class="f-req">*</span></label>
-      <input type="text" id="rqCompany" list="rqDlCo" dir="auto" autocomplete="off" value="${esc(r?.company||'')}">${dl('rqDlCo','company')}</div>
+      <input type="text" id="rqCompany" list="rqDlCo" dir="auto" autocomplete="off" data-autotranslate="1" value="${esc(r?.company||'')}">${dl('rqDlCo','company')}<div class="at-status" data-at-for="rqCompany"></div></div>
     <div class="field"><label>${L('Engineer handing over','المهندس المُسلِّم')}</label>
-      <input type="text" id="rqEngineer" list="rqDlEng" dir="auto" autocomplete="off" value="${esc(r?.engineer||'')}">${dl('rqDlEng','engineer')}</div>
+      <input type="text" id="rqEngineer" list="rqDlEng" dir="auto" autocomplete="off" data-autotranslate="1" value="${esc(r?.engineer||'')}">${dl('rqDlEng','engineer')}<div class="at-status" data-at-for="rqEngineer"></div></div>
     <div class="rq-row2">
       <div class="field"><label>${L('Date','التاريخ')}</label><input type="date" id="rqDate" value="${esc(r?.date||today())}"></div>
-      <div class="field"><label>${L('Plot No.','رقم القطعة')}</label><input type="text" id="rqPlot" dir="auto" autocomplete="off" value="${esc(r?.plot||'')}"></div>
+      <div class="field"><label>${L('Plot No.','رقم القطعة')}</label><input type="text" id="rqPlot" dir="auto" autocomplete="off" oninput="_rqNormalizePlot(this)" value="${esc(r?.plot||'')}"></div>
     </div>
     <div class="field"><label>${L('Receipt type','نوع الاستلامة')}</label>
-      <input type="text" id="rqType" list="rqDlType" dir="auto" autocomplete="off" value="${esc(r?.type||'')}">${dl('rqDlType','type')}</div>
+      <input type="text" id="rqType" list="rqDlType" dir="auto" autocomplete="off" data-autotranslate="1" value="${esc(r?.type||'')}">${dl('rqDlType','type')}<div class="at-status" data-at-for="rqType"></div></div>
     <div class="field"><label>${L('Form / Model','النموذج')}</label>
-      <input type="text" id="rqModel" list="rqDlModel" dir="auto" autocomplete="off" value="${esc(r?.model||'')}">${dl('rqDlModel','model')}</div>
+      <input type="text" id="rqModel" list="rqDlModel" dir="auto" autocomplete="off" data-autotranslate="1" value="${esc(r?.model||'')}">${dl('rqDlModel','model')}<div class="at-status" data-at-for="rqModel"></div></div>
     <div class="field"><label>${L('Status','الحالة')}</label><div class="rq-seg">${stBtns}</div></div>
     <div class="field"><label>${L('Notes','ملاحظات')} <span class="f-opt">(${L('optional','اختياري')})</span></label>
       <textarea id="rqNotes" rows="3" dir="auto" data-autotranslate="1">${esc(r?.notes||'')}</textarea><div class="at-status" data-at-for="rqNotes"></div></div>
