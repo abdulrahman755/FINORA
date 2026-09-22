@@ -8260,6 +8260,11 @@ button.cx-sh-tap{width:100%;background:none;border:0;font-family:inherit;color:i
 .rq-stbtn.over.on{background:var(--red-tint);border-color:var(--red);color:var(--red)}
 .rq-row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .rq-row2 .field{min-width:0}
+.at-status{min-height:15px;margin-top:4px;font-size:calc(11px*var(--app-text-scale,1));font-weight:600;color:var(--muted);display:flex;align-items:center;gap:5px}
+.at-status:empty{margin-top:0}
+.at-status.busy::before{content:'';width:8px;height:8px;border-radius:50%;border:1.5px solid var(--muted);border-inline-end-color:transparent;animation:atSpin .6s linear infinite;flex:none}
+.at-status.err{color:var(--gold)}
+@keyframes atSpin{to{transform:rotate(360deg)}}
 @media (prefers-reduced-motion:reduce){
   .cx-entry,.cx-lbody,.cx-chev,.cx-act,.cx-save{transition:none}
 }
@@ -19511,7 +19516,7 @@ function tlShowModal(idx){
     <!-- ── Group: Notes ────────────────────────────────────────── -->
     <div class="field" style="margin-bottom:6px">
       <label>${L('Note','ملاحظة')} <span class="f-opt">(${L('optional','اختياري')})</span></label>
-      <textarea id="tlNote" rows="2" style="font-size:var(--desc-size)" placeholder="${L('Optional details…','تفاصيل اختيارية…')}">${esc(it.note||'')}</textarea>
+      <textarea id="tlNote" rows="2" data-autotranslate="1" style="font-size:var(--desc-size)" placeholder="${L('Optional details…','تفاصيل اختيارية…')}">${esc(it.note||'')}</textarea><div class="at-status" data-at-for="tlNote"></div>
     </div>
 
     <div class="modal-btns" style="flex-direction:column">
@@ -28330,7 +28335,7 @@ function openRequestModal(id){
       <input type="text" id="rqModel" list="rqDlModel" dir="auto" autocomplete="off" value="${esc(r?.model||'')}">${dl('rqDlModel','model')}</div>
     <div class="field"><label>${L('Status','الحالة')}</label><div class="rq-seg">${stBtns}</div></div>
     <div class="field"><label>${L('Notes','ملاحظات')} <span class="f-opt">(${L('optional','اختياري')})</span></label>
-      <textarea id="rqNotes" rows="3" dir="auto">${esc(r?.notes||'')}</textarea></div>
+      <textarea id="rqNotes" rows="3" dir="auto" data-autotranslate="1">${esc(r?.notes||'')}</textarea><div class="at-status" data-at-for="rqNotes"></div></div>
     <div class="modal-btns"><button class="mbtn save" onclick="saveRequest()">${L('Save','حفظ')}</button><button class="mbtn cancel" onclick="closeModal()">${L('Cancel','إلغاء')}</button></div>`;
   document.getElementById('modalOverlay').style.display='flex';
 }
@@ -28369,6 +28374,83 @@ function deleteRequest(id){
     renderView();
   });
 }
+
+// ══════════════════════════════════════════════════════════════════════════════
+// AUTO-TRANSLATE FOR NOTES FIELDS
+// Any <textarea>/<input> marked data-autotranslate="1" is auto-translated, on
+// leaving the field, INTO the app's current display language (`lang`) if what
+// was typed was written in the other language — so an Arabic note typed while
+// the app is in English becomes English, and vice versa. Scoped today to the
+// two free-text notes fields (My Requests notes, Timeline note); add the
+// attribute + a sibling `<div class="at-status" data-at-for="ID">` to opt more
+// fields in later.
+// Network-dependent (public translation endpoints, no key) — on failure or
+// while offline it leaves the text exactly as typed and shows a quiet inline
+// notice instead of blocking or losing anything.
+function _atDetectLang(str){
+  if(/[\u0600-\u06FF]/.test(str)) return 'ar';
+  if(/[A-Za-z]/.test(str)) return 'en';
+  return null; // digits/symbols only — nothing to translate
+}
+async function _atTranslateGoogle(text,target){
+  const source=target==='ar'?'en':'ar';
+  const url=`https://translate.googleapis.com/translate_a/single?client=gtx&sl=${source}&tl=${target}&dt=t&q=${encodeURIComponent(text)}`;
+  const res=await fetch(url);
+  if(!res.ok) throw new Error('gtx http '+res.status);
+  const data=await res.json();
+  const out=(data&&data[0]||[]).map(chunk=>chunk[0]).join('');
+  if(!out.trim()) throw new Error('gtx empty');
+  return out;
+}
+async function _atTranslateMyMemory(text,target){
+  const source=target==='ar'?'en':'ar';
+  const url=`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${source}|${target}`;
+  const res=await fetch(url);
+  if(!res.ok) throw new Error('mymemory http '+res.status);
+  const data=await res.json();
+  const out=data&&data.responseData&&data.responseData.translatedText;
+  if(!out||!out.trim()) throw new Error('mymemory empty');
+  return out;
+}
+async function _atTranslate(text,target){
+  try{ return await _atTranslateGoogle(text,target); }
+  catch(e1){ return await _atTranslateMyMemory(text,target); }
+}
+function _atStatusEl(el){
+  const id=el.id;
+  return id ? document.querySelector(`.at-status[data-at-for="${id}"]`) : null;
+}
+async function _atHandleFieldOut(el){
+  if(el.dataset.atBusy==='1') return;
+  const raw=(el.value||'').trim();
+  if(!raw) return;
+  const target=lang; // translate INTO whichever language the app is showing right now
+  const detected=_atDetectLang(raw);
+  if(!detected || detected===target) return;
+  el.dataset.atBusy='1';
+  const status=_atStatusEl(el);
+  if(status){ status.textContent=L('Translating…','جارِ الترجمة…'); status.classList.add('busy'); status.classList.remove('err'); }
+  try{
+    const translated=await _atTranslate(raw,target);
+    if(document.contains(el) && el.value.trim()===raw && translated && translated.trim()){
+      el.value=translated.trim();
+    }
+    if(status){ status.textContent=''; status.classList.remove('busy'); }
+  }catch(e){
+    _logErr('autotranslate',e);
+    if(status){
+      status.textContent=L('Could not auto-translate (offline?)','تعذّر الترجمة التلقائية (تأكد من الاتصال)');
+      status.classList.remove('busy'); status.classList.add('err');
+      setTimeout(()=>{ if(document.contains(status)) status.textContent=''; },3500);
+    }
+  }finally{
+    el.dataset.atBusy='0';
+  }
+}
+document.addEventListener('focusout',function(e){
+  const el=e.target;
+  if(el && el.matches && el.matches('[data-autotranslate="1"]')) _atHandleFieldOut(el);
+});
 
 function toggleNoteGroup(headerEl){
   const body=headerEl.nextElementSibling;
