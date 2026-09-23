@@ -226,30 +226,26 @@
 }
 [data-theme="dark"]{
   color-scheme:dark;
-  /* FINORA Dark Mode — Instagram/Facebook-style layered neutral surfaces
-     (near-black → dark gray → white text), with FINORA's own emerald/gold
-     kept as small semantic accents instead of large surfaces. Light Mode
+  /* FINORA Dark Mode — Instagram/Facebook-style monochrome redesign.
+     Restrained grayscale hierarchy (near-black → dark gray → white) in
+     place of the previous emerald-ink/gold "vault" theme. Light Mode
      above is completely untouched — this block only. */
-  --bg:#000000;--bg2:#0D0D0D;--surface:#121212;--surface2:#181818;--surface3:#1F1F1F;
+  --bg:#0B0B0B;--bg2:#101010;--surface:#121212;--surface2:#181818;--surface3:#1F1F1F;
   --border:#2A2A2A;--border-strong:#3A3A3A;
   --card-marble:#242424;
 
-  /* --green / --gold are the app's two "theme" accent colors (emerald +
-     gold), consumed app-wide for primary buttons, active nav/tab states,
-     chips, icons, badges and glows via existing var(--green)/var(--gold)
-     references. They previously resolved to white/light-gray here, which
-     turned every one of those consumers (hundreds of buttons/chips) into
-     a large near-white surface — the "white button" Dark Mode bug. They
-     now resolve to a brightened emerald/gold tuned for legibility on a
-     near-black background, so those same components render as normal
-     colored accents (small semantic fills), never as white surfaces.
-     Glows stay a plain neutral black shadow (no colored glow); tints are
-     a faint translucent wash of the accent itself, used only for small
-     pills/badges, never full surfaces. */
-  --green:#22C58F;--green-light:#5EDDB2;--green-dark:#0F7A55;
-  --green-glow:rgba(0,0,0,.38);--green-tint:rgba(34,197,143,.14);
-  --gold:#D9B54B;--gold-light:#E8CD74;--gold-dark:#A97C1F;
-  --gold-glow:rgba(0,0,0,.32);--gold-tint:rgba(217,181,75,.12);
+  /* --green / --gold were the app's two "theme" accent colors (emerald +
+     gold), consumed app-wide for buttons, active nav/tab states, chips,
+     icons, badges and glows via existing var(--green)/var(--gold)
+     references. Repointing them to a white→light-gray→mid-gray scale
+     converts nearly all of those consumers to monochrome automatically,
+     with zero change to markup, logic, or the Light Mode values above.
+     Glows lose all color tint (plain soft black shadow instead); tints
+     become a faint translucent white overlay instead of a colored wash. */
+  --green:#FFFFFF;--green-light:#E4E4E4;--green-dark:#B0B0B0;
+  --green-glow:rgba(0,0,0,.38);--green-tint:rgba(255,255,255,.08);
+  --gold:#D6D6D6;--gold-light:#E8E8E8;--gold-dark:#9E9E9E;
+  --gold-glow:rgba(0,0,0,.32);--gold-tint:rgba(255,255,255,.06);
 
   /* Status/semantic accents (error, warning, info, category tags, chart
      segments) keep their hue — this is functional color coding, not
@@ -261,21 +257,13 @@
   --orange:#D3934F;--orange-light:#E3B078;--orange-tint:rgba(211,147,79,.16);
   --purple:#A48BCB;--purple-tint:rgba(164,139,203,.16);
 
-  /* Finance-summary quartet (Income/Outcome/Assets/Net Worth) — this was
-     the direct source of the "Income/Outcome/Asset/Transfer buttons
-     turning white" bug: these tokens are consumed as TEXT/icon color in
-     most places (KPI values, chart bars, card labels — fine as white),
-     but .fin-qa-chip-primary (the big Income/Outcome quick-action pills)
-     consumes the same token as its full background fill via var(--qc).
-     Restoring distinct, muted semantic colors here fixes both at once —
-     the numbers/icons regain their semantic meaning, and the pill fill
-     is no longer white. (No purple/lavender per the brand brief — Assets
-     uses the gold accent instead; Net Worth uses a calm informational
-     blue, distinct from the brand gold used for FAB/nav.) */
-  --fin-income:#22C58F;--fin-income-tint:rgba(34,197,143,.12);
-  --fin-outcome:#E5776B;--fin-outcome-tint:rgba(229,119,107,.12);
-  --fin-assets:#D9B54B;--fin-assets-tint:rgba(217,181,75,.12);
-  --fin-networth:#7FB0E0;--fin-networth-tint:rgba(127,176,224,.10);
+  /* Finance-summary quartet (Income/Outcome/Assets/Net Worth) — no longer
+     a 4-color "rainbow"; every hero tile reads white-on-dark-gray, told
+     apart by icon/label, not hue. */
+  --fin-income:#FFFFFF;--fin-income-tint:rgba(255,255,255,.09);
+  --fin-outcome:#FFFFFF;--fin-outcome-tint:rgba(255,255,255,.09);
+  --fin-assets:#FFFFFF;--fin-assets-tint:rgba(255,255,255,.09);
+  --fin-networth:#FFFFFF;--fin-networth-tint:rgba(255,255,255,.09);
 
   /* Text — pure white primary, muted-gray secondary/tertiary. No warm
      ivory/sage tint. */
@@ -302,13 +290,55 @@
   --glow-brand-4:rgba(0,0,0,.32);
 }
 [data-theme="dark"] body{background-blend-mode:normal;background-image:none;}
-/* The old monochrome redesign's white/light-gray --green/--gold forced a
-   companion block that overrode ~40 button/chip/badge selectors' label
-   color to dark, to avoid white-text-on-white-surface. Now that --green/
-   --gold above are real accent colors again, those components' own
-   hardcoded color:#fff labels are correct as-is (white text on a colored
-   fill, same as Light Mode), so that override block has been removed
-   rather than left stacked on top of a token fix. */
+/* ── Dark Mode monochrome redesign — contrast fixes ──────────────────────
+   The buttons/chips/badges below pair background:var(--green) or
+   background:var(--gold) (or a gradient of one) with a hardcoded white
+   label (color:#fff), written when --green/--gold were dark brand colors.
+   Now that dark-mode --green/--gold resolve to white/light-gray, those
+   same rules would render white-on-white. This block (additive, dark-mode
+   only, touches no Light Mode rule) swaps the label to a dark color for
+   exactly those selectors so every one of them still reads as a proper
+   "white/light-gray surface + dark text" button in Dark Mode. */
+[data-theme="dark"] .add-bank-btn:hover,
+[data-theme="dark"] .add-btn-small,
+[data-theme="dark"] .amt-kb-key.amt-kb-eq,
+[data-theme="dark"] .banks-v2 .bnk-tl-empty-btn,
+[data-theme="dark"] .cx-wrap .ng-select-btn.cx-gbtn.active,
+[data-theme="dark"] .empty-action:active,
+[data-theme="dark"] .f-action-btn.primary,
+[data-theme="dark"] .lock-credit-badge,
+[data-theme="dark"] .mbtn.save,
+[data-theme="dark"] .miora-act-btn.primary,
+[data-theme="dark"] .miora-bubble-u,
+[data-theme="dark"] .miora-head-icon,
+[data-theme="dark"] .miora-send-btn,
+[data-theme="dark"] .month-active-btn,
+[data-theme="dark"] .month-dd-item.active,
+[data-theme="dark"] .month-tab.active,
+[data-theme="dark"] .ng-apply-btn,
+[data-theme="dark"] .ng-select-btn.active,
+[data-theme="dark"] .notif-btn-primary,
+[data-theme="dark"] .qn-folder-chip.active,
+[data-theme="dark"] .row-add-btn:active,
+[data-theme="dark"] .rq-add,
+[data-theme="dark"] .sc-ai-badge,
+[data-theme="dark"] .sc-bottom .sc-btn.primary:active,
+[data-theme="dark"] .sc-btn.primary,
+[data-theme="dark"] .sd-chip-add-btn,
+[data-theme="dark"] .sms-queue-bar button,
+[data-theme="dark"] .stt-save-btn,
+[data-theme="dark"] .toast-item:not(.toast-error):not(.toast-warn):not(.toast-info),
+[data-theme="dark"] .tour-btn-next,
+[data-theme="dark"] .tx-type-toggle button.active,
+[data-theme="dark"] .txlg-seg button.active,
+[data-theme="dark"] .wm-approver-actions button.appr-yes.on,
+[data-theme="dark"] .wm-avatar,
+[data-theme="dark"] .wm-fchip.on,
+[data-theme="dark"] .wm-save-btn,
+[data-theme="dark"] .wm-select-btn.on,
+[data-theme="dark"] .wm-tab.active,
+[data-theme="dark"] .wm-toggle button.active,
+[data-theme="dark"] .ws-btn-primary{color:var(--bg)!important}
 [data-theme="dark"] .bal-box.available{box-shadow:0 2px 16px rgba(0,0,0,.4)}
 
 /* Dark-mode only: small uppercase "eyebrow/kicker" section labels (e.g.
@@ -400,11 +430,7 @@
 [data-theme="dark"] .bnk-empty-cta{background:var(--surface3)!important;color:var(--text)!important}
 [data-theme="dark"] .empty-hero-hint{background:var(--surface3)!important;color:var(--text)!important}
 [data-theme="dark"] .fin-qa-chip{background:var(--surface3)!important;color:var(--text)!important;border-color:var(--border-strong)!important}
-/* Income/Outcome/Transfer/Scan Receipt — was a full var(--qc) color fill
-   (white once --fin-income/outcome resolved to white). Now a dark flat
-   surface; the action's color survives only as the border + label/icon
-   tint, per "accents as small indicators, not large surfaces". */
-[data-theme="dark"] .fin-qa-chip.fin-qa-chip-primary{background:#161616!important;color:var(--qc)!important;border-color:var(--qc)!important;box-shadow:none!important}
+[data-theme="dark"] .fin-qa-chip.fin-qa-chip-primary{background:var(--qc)!important;color:#fff!important;border-color:var(--qc)!important}
 
 /* ── Semantic Theme Token layer ───────────────────────────────────────────
    Additive only — every token below is a pure alias onto the existing,
@@ -980,7 +1006,7 @@ button:disabled{opacity:.5;cursor:not-allowed;pointer-events:none}
   transform:translateZ(0);will-change:transform;
   display:flex;flex-direction:column;align-items:stretch;gap:var(--s-1);
 }
-[data-theme="dark"] .app-header{background:rgba(13,13,13,.94)}
+[data-theme="dark"] .app-header{background:rgba(15,32,24,.94)}
 .app-header::after{
   content:'';position:absolute;left:0;right:0;bottom:0;height:2px;
   background:linear-gradient(90deg,var(--green),var(--gold));opacity:.5;
@@ -1179,28 +1205,7 @@ button:disabled{opacity:.5;cursor:not-allowed;pointer-events:none}
      bar shadow. */
   box-shadow:0 -1px 0 var(--gold-glow),var(--shadow-lg);
 }
-[data-theme="dark"] .bottom-nav{background:#101010;border-top:1px solid rgba(255,255,255,.08)}
-/* Dashboard center button — was a white→light-gray gradient squircle
-   (the brightest single element in Dark Mode, called out as the biggest
-   visual problem). Now a dark elevated control matching the FAB/floating
-   controls below; the icon stays pure white for visibility, and the
-   accent (--green) is kept only as the small text label under it, not as
-   the button's fill. */
-[data-theme="dark"] .nav-home-icon-wrap{
-  background:#1A1A1A;
-  border:1px solid rgba(255,255,255,.12);
-  box-shadow:0 8px 24px rgba(0,0,0,.45);
-}
-/* Active (non-home) nav item — dark gray pill + white label/icon instead
-   of a colored tint, matching the rest of the bottom nav system. */
-[data-theme="dark"] .nav-btn.active{color:var(--text);background:#1A1A1A}
-[data-theme="dark"] .nav-btn:not(.active){color:#737373}
-/* Primary CTA buttons (Save/submit-style, e.g. .ws-btn-primary, .sc-btn.primary)
-   — flatten the shared gradient fill to a plain dark surface for Dark Mode
-   only; Light Mode keeps its gradient untouched. Accent survives as the
-   label color, not the fill. */
-[data-theme="dark"] .ws-btn-primary{background:#171717;box-shadow:none;color:var(--green)}
-[data-theme="dark"] .sc-btn.primary{background:#171717;color:var(--green);box-shadow:none}
+[data-theme="dark"] .bottom-nav{background:rgba(15,32,24,0.94)}
 /* Dashboard/home anchor — squircle instead of a plain circle (matches the
    app's new, less-bubbly radius language) with a thin gold edge ring in
    addition to the emerald gradient fill, so the one deliberately-raised
@@ -28570,6 +28575,34 @@ function openRequestModal(id){
       <textarea id="rqNotes" rows="3" dir="auto" data-autotranslate="1">${esc(r?.notes||'')}</textarea><div class="at-status" data-at-for="rqNotes"></div></div>
     <div class="modal-btns"><button class="mbtn save" onclick="saveRequest()">${L('Save','حفظ')}</button><button class="mbtn cancel" onclick="closeModal()">${L('Cancel','إلغاء')}</button></div>`;
   document.getElementById('modalOverlay').style.display='flex';
+  _bindBulletNotes(document.getElementById('rqNotes'));
+}
+// Auto-bullet behavior for a notes <textarea>: first keystroke starts the
+// line with "• "; Enter closes the current line with "." (if it doesn't
+// already end with sentence punctuation) then starts the next line with
+// "• ". Purely a typing convenience — doesn't touch the stored value beyond
+// what the user would've typed themselves, so saveRequest()/notes storage
+// are unaffected.
+function _bindBulletNotes(ta){
+  if(!ta || ta._bulletBound) return;
+  ta._bulletBound=true;
+  ta.addEventListener('focus',function(){
+    if(!ta.value){ ta.value='• '; ta.setSelectionRange(ta.value.length,ta.value.length); }
+  });
+  ta.addEventListener('keydown',function(e){
+    if(e.key!=='Enter') return;
+    e.preventDefault();
+    const start=ta.selectionStart, end=ta.selectionEnd;
+    let before=ta.value.slice(0,start);
+    const after=ta.value.slice(end);
+    before=before.replace(/[ \t]+$/,'');
+    if(before && !/[.!؟?]$/.test(before)) before+='.';
+    const insert=before+'\n• ';
+    ta.value=insert+after;
+    const pos=insert.length;
+    ta.setSelectionRange(pos,pos);
+    ta.dispatchEvent(new Event('input',{bubbles:true}));
+  });
 }
 function _rqPickStatus(k){
   if(!_RQ_STATUS[k]) return;
