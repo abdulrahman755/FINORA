@@ -28403,11 +28403,60 @@ function _rqStatusLabel(k){ const s=_RQ_STATUS[k]||_RQ_STATUS.received; return L
 // Translations are cached per record (r.tr[lang][field]) so the API is only
 // hit once per record/field/language, then reused (and persisted) after that.
 const _RQ_TR_FIELDS=['type','notes','engineer']; // company, plot & model stay exactly as typed — MT mangles proper names/codes; engineer is translated (transliterated) into the current app language
+// Phonetic Arabic→Latin transliteration (NOT machine translation) — used
+// only for the company name on cards, so "الشروق" reads as "El Shrouk" in
+// English mode instead of Google Translate's literal meaning ("Sunrise").
+// Purely a local letter-by-letter/heuristic mapping, no network call: Arabic
+// script omits short vowels, so this is an approximate, natural-looking
+// Egyptian-style spelling, not an exact academic transliteration.
+const _AR_LATIN_MAP={
+  'ب':'b','ت':'t','ث':'th','ج':'g','ح':'h','خ':'kh','د':'d','ذ':'z',
+  'ر':'r','ز':'z','س':'s','ش':'sh','ص':'s','ض':'d','ط':'t','ظ':'z',
+  'ع':'aa','غ':'gh','ف':'f','ق':'q','ك':'k','ل':'l','م':'m','ن':'n',
+  'ه':'h','ء':"'",'ئ':"'",'ؤ':"'",
+};
+function _transliterateArabicWord(word){
+  // Leading definite article "ال" → "El " (Egyptian convention) rather than
+  // spelling out the letters or transliterating it as "Al-".
+  let w=word, prefix='';
+  if(w.startsWith('ال') && w.length>2){ prefix='El '; w=w.slice(2); }
+  let out='';
+  for(let i=0;i<w.length;i++){
+    const ch=w[i], prev=w[i-1];
+    if(ch==='ا'){ out+=(i===0?'A':'a'); continue; }
+    if(ch==='و'){
+      // Long vowel ("ou") between two consonants; consonant "w" otherwise.
+      const actsAsVowel=prev && i<w.length-1 && !'اويىة'.includes(prev);
+      out+=actsAsVowel?'ou':'w'; continue;
+    }
+    if(ch==='ي'){
+      const actsAsVowel=prev && !'اويىة'.includes(prev);
+      out+=actsAsVowel?'i':'y'; continue;
+    }
+    if(ch==='ى'){ out+='a'; continue; }
+    if(ch==='ة'){ out+=(i===w.length-1?'a':'t'); continue; }
+    if(_AR_LATIN_MAP[ch]!==undefined){ out+=_AR_LATIN_MAP[ch]; continue; }
+    if(/[\u0600-\u06FF]/.test(ch)) continue; // drop diacritics/unmapped marks
+    out+=ch; // digits, spaces, punctuation, already-Latin chars pass through
+  }
+  return prefix+(out.charAt(0).toUpperCase()+out.slice(1));
+}
+function _transliterateArabic(str){
+  return str.split(/(\s+)/).map(part=>/[\u0600-\u06FF]/.test(part)?_transliterateArabicWord(part):part).join('');
+}
 const _rqTrPending=new Set();
 function _rqDisplayValue(r,key){
   const raw=(r[key]||'').toString();
   if(!raw.trim()) return '';
-  if(key==='plot'||key==='model'||key==='company') return raw; // left exactly as entered — MT mangles proper names/codes
+  if(key==='plot'||key==='model') return raw; // left exactly as entered — MT mangles proper names/codes
+  if(key==='company'){
+    // Never run through machine translation here — that turns a proper
+    // name into its literal meaning (e.g. "الشروق" → "Sunrise"). In English
+    // mode, show a phonetic transliteration instead ("El Shrouk"); in
+    // Arabic mode, or if it's already Latin script, show exactly as typed.
+    if(lang==='en' && _atDetectLang(raw)==='ar') return _transliterateArabic(raw);
+    return raw;
+  }
   const detected=_atDetectLang(raw);
   if(!detected || detected===lang) return raw;
   const cached=r.tr && r.tr[lang] && r.tr[lang][key];
