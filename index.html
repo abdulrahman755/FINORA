@@ -226,13 +226,16 @@
 }
 [data-theme="dark"]{
   color-scheme:dark;
-  /* FINORA Dark Mode — near-black/dark-gray surfaces, original emerald +
-     gold brand accents restored (previously flattened to white/gray by a
-     monochrome redesign; reverted per request — colors looked washed out
-     and inconsistent). Light Mode above is completely untouched. */
-  --bg:#0B0B0B;--bg2:#101010;--surface:#121212;--surface2:#181818;--surface3:#1F1F1F;
+  /* FINORA Dark Mode — X (Twitter)-style: true OLED black background,
+     white text everywhere. Brand green/gold stay reserved for things that
+     carry real meaning (Income/Outcome/Transfer, Deposit, Over-custody,
+     success toasts, the AI/Premium badge) — everyday action buttons
+     (Save, Add, tabs, chips, FAB-style icons) switch to a plain white
+     outline pill instead of a filled brand-color button, same as X's
+     Share/Edit Profile buttons. Light Mode above is untouched. */
+  --bg:#000000;--bg2:#000000;--surface:#0A0A0A;--surface2:#141414;--surface3:#1C1C1C;
   --border:#2A2A2A;--border-strong:#3A3A3A;
-  --card-marble:#242424;
+  --card-marble:#0A0A0A;
 
   /* Status/semantic accents (error, warning, info, category tags, chart
      segments) keep their hue — this is functional color coding, not
@@ -249,8 +252,7 @@
   --text:#FFFFFF;--text2:#E5E5E5;--sub:#A8A8A8;--muted:#8A8A8A;
   --desc-color:#E5E5E5;
 
-  /* Shadows — already neutral black; kept, just slightly lighter than
-     before now that surfaces themselves carry no color tint to hide behind. */
+  /* Shadows — neutral black, kept light since surfaces are now true black. */
   --shadow-xs:0 1px 3px rgba(0,0,0,.34);
   --shadow-sm:0 4px 14px rgba(0,0,0,.32);
   --shadow-md:0 12px 32px rgba(0,0,0,.38);
@@ -259,6 +261,61 @@
 }
 [data-theme="dark"] body{background-blend-mode:normal;background-image:none;}
 [data-theme="dark"] .bal-box.available{box-shadow:0 2px 16px rgba(0,0,0,.4)}
+
+/* ── Dark Mode, X-style: everyday action buttons/chips/badges become a
+   plain white-outline pill (transparent fill, white border+text) instead
+   of a filled brand-green button — the same visual demotion X gives
+   "Share Profile"/"Edit Profile" next to its one colorful accent (the
+   heart, the verified badge). Deliberately excluded (stay colored,
+   listed further below): Income/Outcome/Transfer quick-action chips,
+   Deposit + its Save-custody confirm button, the default/success toast,
+   and the AI/Premium badge — each of those carries real financial or
+   alert meaning, not just "this is a button". */
+[data-theme="dark"] .add-bank-btn:hover,
+[data-theme="dark"] .add-btn-small,
+[data-theme="dark"] .amt-kb-key.amt-kb-eq,
+[data-theme="dark"] .banks-v2 .bnk-tl-empty-btn,
+[data-theme="dark"] .cx-wrap .ng-select-btn.cx-gbtn.active,
+[data-theme="dark"] .empty-action:active,
+[data-theme="dark"] .f-action-btn.primary,
+[data-theme="dark"] .lock-credit-badge,
+[data-theme="dark"] .mbtn.save,
+[data-theme="dark"] .miora-act-btn.primary,
+[data-theme="dark"] .miora-bubble-u,
+[data-theme="dark"] .miora-head-icon,
+[data-theme="dark"] .miora-send-btn,
+[data-theme="dark"] .month-active-btn,
+[data-theme="dark"] .month-dd-item.active,
+[data-theme="dark"] .month-tab.active,
+[data-theme="dark"] .ng-apply-btn,
+[data-theme="dark"] .ng-select-btn.active,
+[data-theme="dark"] .notif-btn-primary,
+[data-theme="dark"] .qn-folder-chip.active,
+[data-theme="dark"] .row-add-btn:active,
+[data-theme="dark"] .rq-add,
+[data-theme="dark"] .sc-bottom .sc-btn.primary:active,
+[data-theme="dark"] .sc-btn.primary,
+[data-theme="dark"] .sc-header-action,
+[data-theme="dark"] .sd-chip-add-btn,
+[data-theme="dark"] .sms-queue-bar button,
+[data-theme="dark"] .stt-save-btn,
+[data-theme="dark"] .tour-btn-next,
+[data-theme="dark"] .tx-type-toggle button.active,
+[data-theme="dark"] .txlg-seg button.active,
+[data-theme="dark"] .wm-approver-actions button.appr-yes.on,
+[data-theme="dark"] .wm-avatar,
+[data-theme="dark"] .wm-fchip.on,
+[data-theme="dark"] .wm-save-btn,
+[data-theme="dark"] .wm-select-btn.on,
+[data-theme="dark"] .wm-tab.active,
+[data-theme="dark"] .wm-toggle button.active,
+[data-theme="dark"] .ws-btn-primary{
+  background:transparent!important;
+  border:1.5px solid rgba(255,255,255,.5)!important;
+  color:var(--text)!important;
+  box-shadow:none!important;
+}
+
 
 /* Dark-mode only: the bank/wallet account row's collapsed front face (name,
    "Balance" label, balance number, "Updated ... ago" text) always switches
@@ -8019,7 +8076,6 @@ button:not(:disabled):active{transform:scale(.97)}
 .cx-act.with svg{color:var(--red)}
 .cx-act[aria-pressed="true"]{box-shadow:0 0 0 3px var(--green-glow)}
 .cx-act.with[aria-pressed="true"]{box-shadow:0 0 0 3px var(--red-tint);border-color:var(--red)}
-[data-theme="dark"] .cx-act.dep,[data-theme="dark"] .cx-save{color:#07150F}
 
 /* Inline entry panel */
 .cx-entry{display:grid;grid-template-rows:0fr;transition:grid-template-rows .28s cubic-bezier(.32,1,.32,1)}
@@ -27985,10 +28041,6 @@ function renderExpenses(m){
     <div class="cx-entry" id="cxEntry" data-type="dep">
       <div class="cx-entry-in">
         <div class="cx-form">
-          <div class="cx-seg" role="group">
-            <button type="button" class="cx-seg-btn on" data-t="dep" onclick="_cxEntrySet('dep')">${L('Deposit','إيداع')}</button>
-            <button type="button" class="cx-seg-btn" data-t="with" onclick="_cxEntrySet('with')">${L('Withdrawal','سحب')}</button>
-          </div>
           <input type="text" inputmode="decimal" id="custodyDepAmount" class="cx-in cx-in-amt" data-calc autocomplete="off" placeholder="${L('Amount','المبلغ')} (${esc(curLabel())})" onfocus="_cxEnsureVisible()" onblur="applyFormula(this)" onkeydown="_cxEntryKey(event)">
           <div class="cx-row2">
             <input type="date" id="custodyDepDate" class="cx-in" value="${today()}">
