@@ -226,26 +226,13 @@
 }
 [data-theme="dark"]{
   color-scheme:dark;
-  /* FINORA Dark Mode — Instagram/Facebook-style monochrome redesign.
-     Restrained grayscale hierarchy (near-black → dark gray → white) in
-     place of the previous emerald-ink/gold "vault" theme. Light Mode
-     above is completely untouched — this block only. */
+  /* FINORA Dark Mode — near-black/dark-gray surfaces, original emerald +
+     gold brand accents restored (previously flattened to white/gray by a
+     monochrome redesign; reverted per request — colors looked washed out
+     and inconsistent). Light Mode above is completely untouched. */
   --bg:#0B0B0B;--bg2:#101010;--surface:#121212;--surface2:#181818;--surface3:#1F1F1F;
   --border:#2A2A2A;--border-strong:#3A3A3A;
   --card-marble:#242424;
-
-  /* --green / --gold were the app's two "theme" accent colors (emerald +
-     gold), consumed app-wide for buttons, active nav/tab states, chips,
-     icons, badges and glows via existing var(--green)/var(--gold)
-     references. Repointing them to a white→light-gray→mid-gray scale
-     converts nearly all of those consumers to monochrome automatically,
-     with zero change to markup, logic, or the Light Mode values above.
-     Glows lose all color tint (plain soft black shadow instead); tints
-     become a faint translucent white overlay instead of a colored wash. */
-  --green:#FFFFFF;--green-light:#E4E4E4;--green-dark:#B0B0B0;
-  --green-glow:rgba(0,0,0,.38);--green-tint:rgba(255,255,255,.08);
-  --gold:#D6D6D6;--gold-light:#E8E8E8;--gold-dark:#9E9E9E;
-  --gold-glow:rgba(0,0,0,.32);--gold-tint:rgba(255,255,255,.06);
 
   /* Status/semantic accents (error, warning, info, category tags, chart
      segments) keep their hue — this is functional color coding, not
@@ -256,14 +243,6 @@
   --yellow:#DFBE5A;--yellow-tint:rgba(223,190,90,.15);
   --orange:#D3934F;--orange-light:#E3B078;--orange-tint:rgba(211,147,79,.16);
   --purple:#A48BCB;--purple-tint:rgba(164,139,203,.16);
-
-  /* Finance-summary quartet (Income/Outcome/Assets/Net Worth) — no longer
-     a 4-color "rainbow"; every hero tile reads white-on-dark-gray, told
-     apart by icon/label, not hue. */
-  --fin-income:#FFFFFF;--fin-income-tint:rgba(255,255,255,.09);
-  --fin-outcome:#FFFFFF;--fin-outcome-tint:rgba(255,255,255,.09);
-  --fin-assets:#FFFFFF;--fin-assets-tint:rgba(255,255,255,.09);
-  --fin-networth:#FFFFFF;--fin-networth-tint:rgba(255,255,255,.09);
 
   /* Text — pure white primary, muted-gray secondary/tertiary. No warm
      ivory/sage tint. */
@@ -277,111 +256,9 @@
   --shadow-md:0 12px 32px rgba(0,0,0,.38);
   --shadow-lg:0 24px 58px rgba(0,0,0,.46);
   --shadow-xl:0 32px 80px rgba(0,0,0,.54);
-
-  /* A handful of spots (logo mark shadow, MIORA header-button hover/pulse,
-     empty-state CTA, the "active month" pill) hardcode the old brand-green
-     as a literal rgba() glow rather than a var() — each was given a
-     var(--glow-brand-N, <same literal>) fallback so Light Mode is
-     byte-for-byte unchanged; these four tokens are what Dark Mode actually
-     uses, turning those glows neutral/white instead of green. */
-  --glow-brand-1:rgba(0,0,0,.30);
-  --glow-brand-2:rgba(0,0,0,.32);
-  --glow-brand-3:rgba(255,255,255,.16);
-  --glow-brand-4:rgba(0,0,0,.32);
 }
 [data-theme="dark"] body{background-blend-mode:normal;background-image:none;}
-/* ── Dark Mode monochrome redesign — contrast fixes ──────────────────────
-   The buttons/chips/badges below pair background:var(--green) or
-   background:var(--gold) (or a gradient of one) with a hardcoded white
-   label (color:#fff), written when --green/--gold were dark brand colors.
-   Now that dark-mode --green/--gold resolve to white/light-gray, those
-   same rules would render white-on-white. This block (additive, dark-mode
-   only, touches no Light Mode rule) swaps the label to a dark color for
-   exactly those selectors so every one of them still reads as a proper
-   "white/light-gray surface + dark text" button in Dark Mode. */
-[data-theme="dark"] .add-bank-btn:hover,
-[data-theme="dark"] .add-btn-small,
-[data-theme="dark"] .amt-kb-key.amt-kb-eq,
-[data-theme="dark"] .banks-v2 .bnk-tl-empty-btn,
-[data-theme="dark"] .cx-wrap .ng-select-btn.cx-gbtn.active,
-[data-theme="dark"] .empty-action:active,
-[data-theme="dark"] .f-action-btn.primary,
-[data-theme="dark"] .fin-qa-chip.fin-qa-chip-primary,
-[data-theme="dark"] .lock-credit-badge,
-[data-theme="dark"] .mbtn.save,
-[data-theme="dark"] .miora-act-btn.primary,
-[data-theme="dark"] .miora-bubble-u,
-[data-theme="dark"] .miora-head-icon,
-[data-theme="dark"] .miora-send-btn,
-[data-theme="dark"] .month-active-btn,
-[data-theme="dark"] .month-dd-item.active,
-[data-theme="dark"] .month-tab.active,
-[data-theme="dark"] .ng-apply-btn,
-[data-theme="dark"] .ng-select-btn.active,
-[data-theme="dark"] .notif-btn-primary,
-[data-theme="dark"] .qn-folder-chip.active,
-[data-theme="dark"] .row-add-btn:active,
-[data-theme="dark"] .rq-add,
-[data-theme="dark"] .sc-ai-badge,
-[data-theme="dark"] .sc-bottom .sc-btn.primary:active,
-[data-theme="dark"] .sc-btn.primary,
-[data-theme="dark"] .sc-header-action,
-[data-theme="dark"] .sd-chip-add-btn,
-[data-theme="dark"] .sms-queue-bar button,
-[data-theme="dark"] .stt-save-btn,
-[data-theme="dark"] .toast-item:not(.toast-error):not(.toast-warn):not(.toast-info),
-[data-theme="dark"] .tour-btn-next,
-[data-theme="dark"] .tx-type-toggle button.active,
-[data-theme="dark"] .txlg-seg button.active,
-[data-theme="dark"] .wm-approver-actions button.appr-yes.on,
-[data-theme="dark"] .wm-avatar,
-[data-theme="dark"] .wm-fchip.on,
-[data-theme="dark"] .wm-save-btn,
-[data-theme="dark"] .wm-select-btn.on,
-[data-theme="dark"] .wm-tab.active,
-[data-theme="dark"] .wm-toggle button.active,
-[data-theme="dark"] .ws-btn-primary{color:var(--bg)!important}
 [data-theme="dark"] .bal-box.available{box-shadow:0 2px 16px rgba(0,0,0,.4)}
-
-/* Dark-mode only: small uppercase "eyebrow/kicker" section labels (e.g.
-   "Warehouse", "Company Ledger", "Supplier Profile") normally render in
-   brand green in light mode — in dark mode they switch to pure white to
-   match the flat, high-contrast Apple Pay / Apple Wallet numeral style.
-   Light mode is untouched; colored amounts (deposits/withdrawals, income/
-   expense, status KPIs, etc.) are NOT covered by this rule and keep their
-   semantic colors in both themes. */
-[data-theme="dark"] .sec-title,
-[data-theme="dark"] .sc-header-eyebrow,
-[data-theme="dark"] .sc-main-title,
-[data-theme="dark"] .sc-sec-label,
-[data-theme="dark"] .sc-eyebrow-accent,
-[data-theme="dark"] .dv3-daily-chart-title,
-[data-theme="dark"] .mdp-section-title,
-[data-theme="dark"] .pxi-widget-title,
-[data-theme="dark"] .wm-mc-title,
-[data-theme="dark"] .wm-title small,
-[data-theme="dark"] .empty-hero-eyebrow,
-[data-theme="dark"] .dash-hero-eyebrow-v2,
-[data-theme="dark"] .nav-drop-title,
-[data-theme="dark"] .tlx-month-label,
-[data-theme="dark"] .tlx-today-caption,
-[data-theme="dark"] .bnk-analytics-stat-lbl,
-[data-theme="dark"] .sc-kpi-val,
-[data-theme="dark"] .wm-donut-num{color:var(--text)!important}
-
-/* Dark-mode only: aggregate/summary KPI numbers and their icon badges that
-   are NOT a single deposit/withdrawal or income/expense transaction figure
-   (Spent/Target/Remaining/Saved strip, Banks/Custody tiles, supplier
-   Total Purchases/Paid/Outstanding Balance, quick-action button labels) —
-   these switch to plain white/neutral to match the flat Apple Pay/Apple
-   Wallet numeral look. Actual per-transaction deposit/withdrawal and
-   income/expense figures are untouched and keep their green/red coding. */
-[data-theme="dark"] .kpi3-val,
-[data-theme="dark"] .dfp-kpi3-val.kpi-neutral-dark,
-[data-theme="dark"] .sc-summary-tile-val,
-[data-theme="dark"] .fp-qa-label{color:var(--text)!important}
-[data-theme="dark"] .kpi3-icon,
-[data-theme="dark"] .dfp-kpi3-icon.kpi-neutral-dark{background:var(--surface3)!important;color:var(--text)!important}
 
 /* Dark-mode only: the bank/wallet account row's collapsed front face (name,
    "Balance" label, balance number, "Updated ... ago" text) always switches
@@ -395,43 +272,6 @@
 [data-theme="dark"] .banks-v2 .bnk-card-balance-lbl,
 [data-theme="dark"] .banks-v2 .bnk-card-lasttx,
 [data-theme="dark"] .banks-v2 .bnk-card-balance{color:var(--text)!important}
-
-/* Dark-mode only: large icon badges (empty-state hero icon, and the
-   Income/Outcome/Assets/Net Worth summary-card icons) switch from their
-   accent-color tint to a flat dark-gray-and-white treatment, matching the
-   Apple Pay/Apple Wallet look. This is a shared component used across
-   every empty state in the app (assets, debts, income, suppliers,
-   transactions, etc.), so one rule covers all of them consistently. */
-[data-theme="dark"] .empty-hero-icon{background:var(--surface3)!important;color:var(--text)!important;box-shadow:none!important}
-[data-theme="dark"] .fin-card-icon{background:var(--surface3)!important;color:var(--text)!important}
-[data-theme="dark"] .fin-hero-icon{background:var(--surface3)!important;color:var(--text)!important}
-
-/* Dark-mode only: the main floating "+" action button, its popup choice
-   icons, and every "+ Add"-style button (card-add-btn green/purple/
-   emerald variants, empty-hero-btn) switch from their accent-color fill
-   to a flat dark-gray-and-white treatment, same Apple Pay/Apple Wallet
-   look as the icon badges above. */
-[data-theme="dark"] .fab,
-[data-theme="dark"] .fab.fab-daily{background:var(--surface3)!important;color:var(--text)!important;box-shadow:0 6px 24px rgba(0,0,0,.4),0 0 0 3px rgba(255,255,255,.08)!important}
-[data-theme="dark"] .fab.dragging,
-[data-theme="dark"] .fab:active:not(.dragging){box-shadow:0 2px 8px rgba(0,0,0,.4)!important}
-[data-theme="dark"] .fab-choice .fc-icon{background:var(--surface3)!important;color:var(--text)!important}
-[data-theme="dark"] .card-add-btn.green,
-[data-theme="dark"] .card-add-btn.purple,
-[data-theme="dark"] .card-add-btn.emerald{background:var(--surface3)!important;color:var(--text)!important}
-[data-theme="dark"] .empty-hero-btn{background:var(--surface3)!important;color:var(--text)!important;box-shadow:none!important}
-
-/* Dark-mode only: remaining accent-colored icon badges and CTA buttons in
-   other empty-state / quick-action components that don't share the
-   .empty-hero-icon/.card-add-btn classes above (Custody & Site Expenses
-   empty states, Banks "Add Your First Account", Warehouse Quick Actions
-   grid, Material Details Page quick-action buttons) — same flat
-   dark-gray-and-white treatment. */
-[data-theme="dark"] .cst-empty-icon{background:var(--surface3)!important;color:var(--text)!important;box-shadow:none!important}
-[data-theme="dark"] .cst-empty-cta{background:var(--surface3)!important;color:var(--text)!important;box-shadow:none!important}
-[data-theme="dark"] .bnk-empty-cta{background:var(--surface3)!important;color:var(--text)!important}
-[data-theme="dark"] .empty-hero-hint{background:var(--surface3)!important;color:var(--text)!important}
-[data-theme="dark"] .fin-qa-chip{background:var(--surface3)!important;color:var(--text)!important;border-color:var(--border-strong)!important}
 
 /* ── Semantic Theme Token layer ───────────────────────────────────────────
    Additive only — every token below is a pure alias onto the existing,
