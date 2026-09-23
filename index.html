@@ -226,52 +226,120 @@
 }
 [data-theme="dark"]{
   color-scheme:dark;
-  /* FINORA dark mode — built directly from the logo's own background
-     gradient (#0C2B21 → #05130E, deep emerald-ink "vault" tone) rather
-     than a neutral iOS charcoal. Surfaces step up through the same
-     emerald-ink family instead of gray; borders take a faint gold tint
-     to echo the logo's gold monogram; the bright logo emerald (#2BC48C)
-     becomes the dark-mode primary accent and the logo's light gold
-     (#F3D580) becomes the dark-mode gold accent — both read clearly
-     against the deep ink ground the way they do in the mark itself. */
-  --bg:#070E0B;--bg2:#0A1712;--surface:#0F2018;--surface2:#16291F;--surface3:#1E3427;
-  --border:rgba(212,175,55,.14);--border-strong:rgba(212,175,55,.26);
-  --card-marble:#2A2416;
+  /* FINORA Dark Mode — Instagram/Facebook-style monochrome redesign.
+     Restrained grayscale hierarchy (near-black → dark gray → white) in
+     place of the previous emerald-ink/gold "vault" theme. Light Mode
+     above is completely untouched — this block only. */
+  --bg:#0B0B0B;--bg2:#101010;--surface:#121212;--surface2:#181818;--surface3:#1F1F1F;
+  --border:#2A2A2A;--border-strong:#3A3A3A;
+  --card-marble:#242424;
 
+  /* --green / --gold were the app's two "theme" accent colors (emerald +
+     gold), consumed app-wide for buttons, active nav/tab states, chips,
+     icons, badges and glows via existing var(--green)/var(--gold)
+     references. Repointing them to a white→light-gray→mid-gray scale
+     converts nearly all of those consumers to monochrome automatically,
+     with zero change to markup, logic, or the Light Mode values above.
+     Glows lose all color tint (plain soft black shadow instead); tints
+     become a faint translucent white overlay instead of a colored wash. */
+  --green:#FFFFFF;--green-light:#E4E4E4;--green-dark:#B0B0B0;
+  --green-glow:rgba(0,0,0,.38);--green-tint:rgba(255,255,255,.08);
+  --gold:#D6D6D6;--gold-light:#E8E8E8;--gold-dark:#9E9E9E;
+  --gold-glow:rgba(0,0,0,.32);--gold-tint:rgba(255,255,255,.06);
+
+  /* Status/semantic accents (error, warning, info, category tags, chart
+     segments) keep their hue — this is functional color coding, not
+     decorative theme color, and stays legible/meaningful per-status.
+     Already muted, dark-surface-appropriate tones; unchanged. */
   --blue:#5C93C9;--blue-light:#8DBBE3;--blue-tint:rgba(92,147,201,.18);
-  --green:#2BC48C;--green-light:#5FE3B0;--green-dark:#0F6B4A;
-  --green-glow:rgba(43,196,140,.24);--green-tint:rgba(43,196,140,.15);
-  --gold:#F3D580;--gold-light:#F7E3A8;--gold-dark:#D4AF37;
-  --gold-glow:rgba(243,213,128,.24);--gold-tint:rgba(243,213,128,.14);
   --red:#DD766B;--red-light:#EA9A91;--red-tint:rgba(221,118,107,.16);
   --yellow:#DFBE5A;--yellow-tint:rgba(223,190,90,.15);
   --orange:#D3934F;--orange-light:#E3B078;--orange-tint:rgba(211,147,79,.16);
   --purple:#A48BCB;--purple-tint:rgba(164,139,203,.16);
 
-  /* Same coordinated finance-card quartet, mapped onto the FINORA dark set */
-  --fin-income:#3ED696;--fin-income-tint:rgba(62,214,150,.18);
-  --fin-outcome:#DD766B;--fin-outcome-tint:rgba(221,118,107,.18);
-  --fin-assets:#A48BCB;--fin-assets-tint:rgba(164,139,203,.18);
-  --fin-networth:#5C93C9;--fin-networth-tint:rgba(92,147,201,.18);
+  /* Finance-summary quartet (Income/Outcome/Assets/Net Worth) — no longer
+     a 4-color "rainbow"; every hero tile reads white-on-dark-gray, told
+     apart by icon/label, not hue. */
+  --fin-income:#FFFFFF;--fin-income-tint:rgba(255,255,255,.09);
+  --fin-outcome:#FFFFFF;--fin-outcome-tint:rgba(255,255,255,.09);
+  --fin-assets:#FFFFFF;--fin-assets-tint:rgba(255,255,255,.09);
+  --fin-networth:#FFFFFF;--fin-networth-tint:rgba(255,255,255,.09);
 
-  /* Primary / secondary / tertiary / muted text — warm ivory label (ties
-     back to the light-mode bg family) instead of pure white, with soft
-     sage-tinted secondary/muted tones instead of neutral gray. */
-  --text:#F6F1E2;--text2:#E4DCC3;--sub:#B7C2B9;--muted:#89988D;
-  --desc-color:#E4DCC3;
+  /* Text — pure white primary, muted-gray secondary/tertiary. No warm
+     ivory/sage tint. */
+  --text:#FFFFFF;--text2:#E5E5E5;--sub:#A8A8A8;--muted:#8A8A8A;
+  --desc-color:#E5E5E5;
 
-  /* Deeper, longer-throw shadows for the dark "vault" surfaces — pure
-     black ambient (no color tint needed; the surfaces themselves already
-     carry the emerald-ink hue) with more dramatic elevation than the
-     previous flat iOS dark shadows. */
-  --shadow-xs:0 1px 3px rgba(0,0,0,.38);
-  --shadow-sm:0 4px 14px rgba(0,0,0,.36);
-  --shadow-md:0 12px 32px rgba(0,0,0,.42);
-  --shadow-lg:0 24px 58px rgba(0,0,0,.50);
-  --shadow-xl:0 32px 80px rgba(0,0,0,.58);
+  /* Shadows — already neutral black; kept, just slightly lighter than
+     before now that surfaces themselves carry no color tint to hide behind. */
+  --shadow-xs:0 1px 3px rgba(0,0,0,.34);
+  --shadow-sm:0 4px 14px rgba(0,0,0,.32);
+  --shadow-md:0 12px 32px rgba(0,0,0,.38);
+  --shadow-lg:0 24px 58px rgba(0,0,0,.46);
+  --shadow-xl:0 32px 80px rgba(0,0,0,.54);
+
+  /* A handful of spots (logo mark shadow, MIORA header-button hover/pulse,
+     empty-state CTA, the "active month" pill) hardcode the old brand-green
+     as a literal rgba() glow rather than a var() — each was given a
+     var(--glow-brand-N, <same literal>) fallback so Light Mode is
+     byte-for-byte unchanged; these four tokens are what Dark Mode actually
+     uses, turning those glows neutral/white instead of green. */
+  --glow-brand-1:rgba(0,0,0,.30);
+  --glow-brand-2:rgba(0,0,0,.32);
+  --glow-brand-3:rgba(255,255,255,.16);
+  --glow-brand-4:rgba(0,0,0,.32);
 }
 [data-theme="dark"] body{background-blend-mode:normal;background-image:none;}
-[data-theme="dark"] .bal-box.available{box-shadow:0 2px 16px #1fbe8226}
+/* ── Dark Mode monochrome redesign — contrast fixes ──────────────────────
+   The buttons/chips/badges below pair background:var(--green) or
+   background:var(--gold) (or a gradient of one) with a hardcoded white
+   label (color:#fff), written when --green/--gold were dark brand colors.
+   Now that dark-mode --green/--gold resolve to white/light-gray, those
+   same rules would render white-on-white. This block (additive, dark-mode
+   only, touches no Light Mode rule) swaps the label to a dark color for
+   exactly those selectors so every one of them still reads as a proper
+   "white/light-gray surface + dark text" button in Dark Mode. */
+[data-theme="dark"] .add-bank-btn:hover,
+[data-theme="dark"] .add-btn-small,
+[data-theme="dark"] .amt-kb-key.amt-kb-eq,
+[data-theme="dark"] .banks-v2 .bnk-tl-empty-btn,
+[data-theme="dark"] .cx-wrap .ng-select-btn.cx-gbtn.active,
+[data-theme="dark"] .empty-action:active,
+[data-theme="dark"] .f-action-btn.primary,
+[data-theme="dark"] .lock-credit-badge,
+[data-theme="dark"] .mbtn.save,
+[data-theme="dark"] .miora-act-btn.primary,
+[data-theme="dark"] .miora-bubble-u,
+[data-theme="dark"] .miora-head-icon,
+[data-theme="dark"] .miora-send-btn,
+[data-theme="dark"] .month-active-btn,
+[data-theme="dark"] .month-dd-item.active,
+[data-theme="dark"] .month-tab.active,
+[data-theme="dark"] .ng-apply-btn,
+[data-theme="dark"] .ng-select-btn.active,
+[data-theme="dark"] .notif-btn-primary,
+[data-theme="dark"] .qn-folder-chip.active,
+[data-theme="dark"] .row-add-btn:active,
+[data-theme="dark"] .rq-add,
+[data-theme="dark"] .sc-ai-badge,
+[data-theme="dark"] .sc-bottom .sc-btn.primary:active,
+[data-theme="dark"] .sc-btn.primary,
+[data-theme="dark"] .sd-chip-add-btn,
+[data-theme="dark"] .sms-queue-bar button,
+[data-theme="dark"] .stt-save-btn,
+[data-theme="dark"] .toast-item:not(.toast-error):not(.toast-warn):not(.toast-info),
+[data-theme="dark"] .tour-btn-next,
+[data-theme="dark"] .tx-type-toggle button.active,
+[data-theme="dark"] .txlg-seg button.active,
+[data-theme="dark"] .wm-approver-actions button.appr-yes.on,
+[data-theme="dark"] .wm-avatar,
+[data-theme="dark"] .wm-fchip.on,
+[data-theme="dark"] .wm-save-btn,
+[data-theme="dark"] .wm-select-btn.on,
+[data-theme="dark"] .wm-tab.active,
+[data-theme="dark"] .wm-toggle button.active,
+[data-theme="dark"] .ws-btn-primary{color:var(--bg)!important}
+[data-theme="dark"] .bal-box.available{box-shadow:0 2px 16px rgba(0,0,0,.4)}
 
 /* Dark-mode only: small uppercase "eyebrow/kicker" section labels (e.g.
    "Warehouse", "Company Ledger", "Supplier Profile") normally render in
@@ -780,7 +848,8 @@ button:disabled{opacity:.5;cursor:not-allowed;pointer-events:none}
 .wa-body{fill:var(--green);transform-origin:50px 43px}
 .wa-flap{fill:rgba(255,255,255,.16);transform-origin:50px 20px}
 .wa-clasp{fill:#F3D580}
-[data-theme="dark"] .wa-body{fill:#0f6b4a}
+/* Wallet coin-drop icon: no dark-only override needed — .wa-body already
+   reads fill:var(--green), which now resolves to white in Dark Mode. */
 
 /* Soft contact shadow just inside the wallet mouth — grows/darkens as the
    coin approaches (sells the "landing" weight) and fades with it. */
@@ -947,7 +1016,7 @@ button:disabled{opacity:.5;cursor:not-allowed;pointer-events:none}
 .header-toprow{display:flex;align-items:center;gap:var(--s-1);flex-wrap:nowrap;flex-shrink:1}
 .header-searchrow{display:flex;align-items:center;gap:var(--s-1);width:100%}
 .app-brand{display:flex;align-items:center;gap:var(--s-1);min-width:0;flex:1 1 auto}
-.app-brand img{width:26px;height:26px;border-radius:var(--radius-xs);box-shadow:0 1px 4px rgba(15,122,85,.22);flex-shrink:0}
+.app-brand img{width:26px;height:26px;border-radius:var(--radius-xs);box-shadow:0 1px 4px var(--glow-brand-1,rgba(15,122,85,.22));flex-shrink:0}
 .app-brand-text{min-width:0;flex:1 1 auto}
 .app-brand .logo-text{font-family:var(--font-display);font-size:calc(16px*var(--app-text-scale,1));font-weight:600;background:linear-gradient(135deg,var(--ws-primary,var(--green)),var(--ws-primary-light,var(--gold)));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:0;white-space:nowrap;line-height:1.2;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 .app-brand .logo-sub{display:none}
@@ -1096,7 +1165,7 @@ button:disabled{opacity:.5;cursor:not-allowed;pointer-events:none}
 .month-tab{flex-shrink:0;padding:6px 14px;border-radius:var(--radius-pill);border:1.5px solid var(--border);background:var(--surface);color:var(--muted);font-size:calc(11px*var(--app-text-scale,1));font-weight:700;cursor:pointer;transition:all .2s;letter-spacing:.3px;box-shadow:var(--shadow-xs)}
 .month-tab.active{background:var(--green);color:#fff;border-color:var(--green);box-shadow:0 2px 12px var(--green-glow),0 0 0 3px var(--green-tint)}
 .month-selector-wrap{position:relative;display:inline-block}
-.month-active-btn{display:flex;align-items:center;gap:6px;padding:5px 12px;border-radius:var(--radius-pill);border:none;background:linear-gradient(135deg,var(--green-dark),var(--green) 70%);color:#fff;font-size:calc(11px*var(--app-text-scale,1));font-weight:800;letter-spacing:.3px;cursor:pointer;box-shadow:0 3px 10px rgba(15,122,80,.28)}
+.month-active-btn{display:flex;align-items:center;gap:6px;padding:5px 12px;border-radius:var(--radius-pill);border:none;background:linear-gradient(135deg,var(--green-dark),var(--green) 70%);color:#fff;font-size:calc(11px*var(--app-text-scale,1));font-weight:800;letter-spacing:.3px;cursor:pointer;box-shadow:0 3px 10px var(--glow-brand-4,rgba(15,122,80,.28))}
 .month-active-btn .chevron{font-size:calc(10px*var(--app-text-scale,1));transition:transform .2s}
 .month-active-btn.open .chevron{transform:rotate(180deg)}
 .month-dropdown{position:absolute;top:calc(100% - 4px);right:0;background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow-xl);z-index:60;min-width:170px;max-height:280px;overflow-y:auto;padding:var(--sp2);display:flex;flex-direction:column;gap:2px}
@@ -3552,12 +3621,12 @@ tr.row-selected td{background:var(--green-tint)}
   transition:transform .15s ease,box-shadow var(--dur-base) var(--ease-standard);
 }
 .miora-header-btn svg{flex-shrink:0;color:var(--green)}
-.miora-header-btn:hover{box-shadow:0 2px 10px rgba(15,122,85,.28)}
+.miora-header-btn:hover{box-shadow:0 2px 10px var(--glow-brand-2,rgba(15,122,85,.28))}
 .miora-header-btn:active{transform:scale(.92)}
 .miora-header-btn:focus-visible{outline:var(--focus-ring-width,2px) solid var(--focus-ring-color,var(--green));outline-offset:2px}
 .miora-header-btn.miora-attn{animation:mioraPulse 1.4s ease-in-out infinite}
 @keyframes mioraPulse{
-  0%,100%{box-shadow:0 0 0 0 rgba(15,122,85,.30)}
+  0%,100%{box-shadow:0 0 0 0 var(--glow-brand-3,rgba(15,122,85,.30))}
   50%{box-shadow:0 0 0 6px rgba(15,122,85,0)}
 }
 @media (prefers-reduced-motion:reduce){ .miora-header-btn.miora-attn{animation:none} }
@@ -4158,7 +4227,7 @@ body[data-workspace] .wdash-wrap .rpt-card{--rpt-accent:var(--ws-primary);--rpt-
   margin-top:12px;display:inline-flex;align-items:center;gap:6px;
   background:var(--green);color:#fff;font-size:calc(11.5px*var(--app-text-scale,1));font-weight:800;
   padding:7px 16px;border-radius:var(--radius-pill);border:none;cursor:pointer;
-  box-shadow:0 4px 12px rgba(15,122,85,.28);transition:transform var(--dur-fast) ease;
+  box-shadow:0 4px 12px var(--glow-brand-2,rgba(15,122,85,.28));transition:transform var(--dur-fast) ease;
 }
 .cst-empty-cta:active{transform:scale(.96)}
 
@@ -8884,7 +8953,7 @@ function fpInitSmartHeader(){
       </div>
     </div>
     <div class="header-searchrow">
-      <button class="header-searchbar" onclick="openGlobalSearch()">
+      <button class="header-searchbar" onclick="headerSearchClick()">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
         <span id="headerSearchLabel">Search...</span>
         <span class="gsearch-kbd-hint">⌘K</span>
@@ -10577,6 +10646,26 @@ function gSearchUseRecent(q){
 }
 let _gResultsFlat = []; // flat, index-addressable list of currently rendered results (avoids any HTML-attribute escaping issues)
 
+// Pages that already render their own in-page search field (Daily/
+// Transactions, and Site Custody — which covers both its Custody tab and the
+// My Requests tab, since only one ".sc-search input" is on screen at a time)
+// get the header search bar wired straight to THAT field, so it searches
+// whatever's actually open instead of jumping to the separate "search
+// everything" overlay. Any other page (Banks, Savings, Dashboard, Reports,
+// Planner…) doesn't have a page-local search yet, so it falls back to the
+// existing global search exactly as before — no regression there.
+const _HEADER_SEARCH_LOCAL_VIEWS=['transactions','expenses','banks','savings'];
+function headerSearchClick(){
+  if(_HEADER_SEARCH_LOCAL_VIEWS.includes(currentView)){
+    const input=document.querySelector('.sc-search input');
+    if(input){
+      input.scrollIntoView({block:'center',behavior:'smooth'});
+      setTimeout(()=>{ input.focus(); if(input.select) input.select(); },150);
+      return;
+    }
+  }
+  openGlobalSearch();
+}
 function openGlobalSearch(){
   const ov = document.getElementById('gSearchOverlay');
   if(!ov) return;
@@ -10719,7 +10808,7 @@ document.addEventListener('keydown', e=>{
 document.addEventListener('keydown', e=>{
   if((e.metaKey||e.ctrlKey) && (e.key==='k'||e.key==='K')){
     e.preventDefault();
-    openGlobalSearch();
+    headerSearchClick();
   }
 });
 
@@ -11194,6 +11283,7 @@ function setView(v){
   // instantly (no fade — we're already navigating) on every view change.
   _fpFabPickerRemoveNow();
   if(typeof SoundManager!=='undefined' && v!==currentView) SoundManager.play('screen_open');
+  if(v!==currentView) searchQ=''; // each page's own search box starts empty when you navigate to it fresh
   if(v==='expenses') _cxTab='custody'; // entry points (nav, global search, quick-add) always land on the Custody tab
   currentView=v;
   applyWorkspaceNav();
@@ -16736,7 +16826,14 @@ function renderSavings(){
 
   // Rows keep the user's saved (drag-reorderable) order — no auto-sort,
   // so dragging a row actually sticks after saveSavings().
-  const incomeRows = visIncomes.length ? visIncomes.map(({x,idx})=>{
+  const _savQ=(searchQ||'').trim().toLowerCase();
+  const _savMatch=(fields)=>fields.some(v=>String(v||'').toLowerCase().includes(_savQ));
+  const visIncomesF  = _savQ ? visIncomes.filter(p=>_savMatch([p.x.source,p.x.note,p.x.date])) : visIncomes;
+  const visOutcomesF = _savQ ? visOutcomes.filter(p=>_savMatch([p.x.source,p.x.note,p.x.date])) : visOutcomes;
+  const visAssetsF   = _savQ ? visAssets.filter(p=>_savMatch([p.x.name,p.x.note,p.x.date])) : visAssets;
+  const visDebtsF    = _savQ ? visDebts.filter(p=>_savMatch([p.x.person,p.x.note,p.x.date])) : visDebts;
+
+  const incomeRows = visIncomesF.length ? visIncomesF.map(({x,idx})=>{
     const _incDisplay = savResolveIconDisplay('inc', x.source||'', x.iconOverride||null);
     return `
     <div class="sav-row" id="savrow-inc-${idx}" data-savtype="inc" data-savidx="${idx}">
@@ -16756,7 +16853,7 @@ function renderSavings(){
     </div>`;
   }).join('') : _savEmptyState('income');
 
-  const outcomeRows = visOutcomes.length ? visOutcomes.map(({x,idx})=>{
+  const outcomeRows = visOutcomesF.length ? visOutcomesF.map(({x,idx})=>{
     const _outDisplay = savResolveIconDisplay('out', x.source||'', x.iconOverride||null);
     return `
     <div class="sav-row" id="savrow-out-${idx}" data-savtype="out" data-savidx="${idx}">
@@ -16776,7 +16873,7 @@ function renderSavings(){
     </div>`;
   }).join('') : _savEmptyState('outcome');
 
-  const assetRows = visAssets.length ? visAssets.map(({x,idx})=>{
+  const assetRows = visAssetsF.length ? visAssetsF.map(({x,idx})=>{
     const t = SAV_ASSET_TYPES[x.type]||SAV_ASSET_TYPES.other;
     const meta = savAssetCardMeta(x);
     const metaBadges = [
@@ -16820,7 +16917,7 @@ function renderSavings(){
   const totalOwedByMe = visDebts.filter(p=>p.x.direction==='by_me').reduce((s,p)=>s+(p.x.amount||0),0);
   const netDebt = totalOwedToMe - totalOwedByMe;
   const todayStr = today();
-  const debtRows = visDebts.length ? visDebts.map(({x,idx})=>{
+  const debtRows = visDebtsF.length ? visDebtsF.map(({x,idx})=>{
     const isToMe = x.direction==='to_me';
     const accent = isToMe ? 'var(--fin-income)' : 'var(--fin-outcome)';
     const _debtDisplay = savResolveIconDisplay('debt', x.person||'', x.iconOverride||null);
@@ -16921,6 +17018,11 @@ function renderSavings(){
       <button type="button" class="fin-qa-chip" style="--qc:#c17d0a;--qc-tint:#c17d0a1a" onclick="savScanReceipt()">${ic('photo',12)} ${L('Scan Receipt','مسح إيصال')}</button>
       <button type="button" class="fin-qa-chip" style="--qc:#b45309;--qc-tint:#b453091a" onclick="savAddDebt()">${ic('scale',12)} ${L('Debt','مديونية')}</button>
     </div>
+
+    <div class="sc-search cx-search"><span class="cx-sbox">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
+      <input placeholder="${L('Search savings...','ابحث في المدخرات...')}" value="${esc(searchQ)}" oninput="doSearch(this.value)"/>
+    </span></div>
 
     <div class="sc-card">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px">
@@ -22422,7 +22524,13 @@ function renderBanks(m){
   let _topAccount=null;
   banks.forEach(b=>{ const bal=_bkBalByKey.get(b.key); if(!_topAccount||bal>_topAccount.bal) _topAccount={name:bankDisplayName(b.name),bal}; });
 
-  const bankCardsHTML = banks.map((b,idx)=>{
+  // Search only narrows which account CARDS are shown below — the hero
+  // total, the monthly-change chip and the transactions timeline further
+  // down all stay computed from every account, unaffected by the filter.
+  const _bnkQ=(searchQ||'').trim().toLowerCase();
+  const banksForCards=_bnkQ ? banks.filter(b=>(bankDisplayName(b.name)||b.name||'').toLowerCase().includes(_bnkQ)) : banks;
+
+  const bankCardsHTML = banksForCards.map((b,idx)=>{
     const bal=_bkBalByKey.get(b.key);
     const tot=getTxTotals(m,b.key);
     const moves=(m?.bank_movements||[]).filter(mv=>mv.bank===b.key);
@@ -22702,8 +22810,12 @@ function renderBanks(m){
 
   <!-- 2. ACCOUNTS ─────────────────────────────────────────────── -->
   <div class="bnk-section-title">${ic('bank',14,'aria-hidden="true"')} ${L('Accounts','الحسابات')}</div>
+  ${banks.length>1?`<div class="sc-search cx-search"><span class="cx-sbox">
+    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
+    <input placeholder="${L('Search accounts...','ابحث في الحسابات...')}" value="${esc(searchQ)}" oninput="doSearch(this.value)"/>
+  </span></div>`:''}
   <div class="bnk-accounts">
-    ${bankCardsHTML}
+    ${banksForCards.length?bankCardsHTML:`<div class="cx-none">${L('No results','لا نتائج')}</div>`}
   </div>
 
   <!-- 3. TRANSACTIONS (aggregated timeline) ──────────────────── -->
@@ -28218,6 +28330,58 @@ let _rqFilter='all';
 let _rqEditId=null;
 let _rqStatusSel='received';
 
+// Company logos for receipts — same idea as the bank logo upload: no backend
+// to auto-import, so the person picks an image from their device. Stored
+// once per company name (lowercased) and reused on every receipt from that
+// company, rather than per-record, so re-typing the same company elsewhere
+// shows the same badge automatically.
+const _RQ_CO_LOGO_KEY='wdp_rq_co_logos_v1';
+let _rqCoLogos={};
+try{ const _r=localStorage.getItem(_RQ_CO_LOGO_KEY); if(_r) _rqCoLogos=JSON.parse(_r); }catch(e){_logErr('_rqCoLogos:read',e);}
+function _rqCoLogoKey(name){ return String(name||'').trim().toLowerCase(); }
+function _rqPersistCoLogos(){ try{ localStorage.setItem(_RQ_CO_LOGO_KEY,JSON.stringify(_rqCoLogos)); }catch(e){ _logErr('_rqPersistCoLogos',e); } }
+function _rqCoLogoSrc(name){ const k=_rqCoLogoKey(name); return k?(_rqCoLogos[k]||''):''; }
+let _rqPendingCoLogo=undefined; // undefined = no change this edit; null = explicit removal; string = new data URL
+function _rqCoLogoRowHTML(companyName){
+  const existing=_rqCoLogoSrc(companyName);
+  const previewHTML=existing?bankLogoHTML(existing,36,{alt:''}):ic('photo',15);
+  return `<div class="field">
+    <label>${L('Company logo','لوجو الشركة')} <span class="f-opt">(${L('optional','اختياري')})</span></label>
+    <div class="bnk-custom-logo-row">
+      <div class="bnk-custom-logo-actions">
+        <div id="rqCoLogoPreview" class="bnk-custom-logo-preview">${previewHTML}</div>
+        <label class="bnk-custom-logo-btn">
+          ${ic('upload',13)} ${L('Upload logo','رفع لوجو')}
+          <input type="file" accept="image/*" style="display:none" onchange="rqHandleCoLogoUpload(this)">
+        </label>
+        ${existing?`<button type="button" onclick="rqRemoveCoLogo()" class="bnk-custom-logo-btn">${ic('trash',13)} ${L('Remove','حذف')}</button>`:''}
+      </div>
+    </div>
+  </div>`;
+}
+function rqHandleCoLogoUpload(inputEl){
+  const file=inputEl.files && inputEl.files[0];
+  if(!file) return;
+  if(file.size>500*1024){
+    showToast(L('⚠️ Image too large (max 500KB)','⚠️ الصورة كبيرة جداً (٥٠٠ كيلوبايت كحد أقصى)'),'warn');
+    inputEl.value=''; return;
+  }
+  const reader=new FileReader();
+  reader.onload=()=>{
+    _rqPendingCoLogo=reader.result;
+    const preview=document.getElementById('rqCoLogoPreview');
+    if(preview) preview.innerHTML=bankLogoHTML(reader.result,36,{alt:''});
+  };
+  reader.onerror=()=>{ showToast(L('⚠️ Could not read image','⚠️ تعذّرت قراءة الصورة'),'warn'); };
+  reader.readAsDataURL(file);
+  inputEl.value='';
+}
+function rqRemoveCoLogo(){
+  _rqPendingCoLogo=null;
+  const preview=document.getElementById('rqCoLogoPreview');
+  if(preview) preview.innerHTML=ic('photo',15);
+}
+
 function _rqLoad(){
   try{
     const raw=localStorage.getItem(_RQ_KEY);
@@ -28238,12 +28402,12 @@ function _rqStatusLabel(k){ const s=_RQ_STATUS[k]||_RQ_STATUS.received; return L
 // stay in their original language because the app was switched afterwards.
 // Translations are cached per record (r.tr[lang][field]) so the API is only
 // hit once per record/field/language, then reused (and persisted) after that.
-const _RQ_TR_FIELDS=['type','notes']; // company, engineer, plot & model stay exactly as typed — MT mangles proper names/codes
+const _RQ_TR_FIELDS=['type','notes','engineer']; // company, plot & model stay exactly as typed — MT mangles proper names/codes; engineer is translated (transliterated) into the current app language
 const _rqTrPending=new Set();
 function _rqDisplayValue(r,key){
   const raw=(r[key]||'').toString();
   if(!raw.trim()) return '';
-  if(key==='plot'||key==='model'||key==='company'||key==='engineer') return raw; // left exactly as entered — MT mangles proper names/codes
+  if(key==='plot'||key==='model'||key==='company') return raw; // left exactly as entered — MT mangles proper names/codes
   const detected=_atDetectLang(raw);
   if(!detected || detected===lang) return raw;
   const cached=r.tr && r.tr[lang] && r.tr[lang][key];
@@ -28327,7 +28491,7 @@ function renderMyRequests(){
     return `
     <article class="rq-card ${st.cls}">
       <div class="rq-top">
-        <div class="rq-avatar">${ic('building',17)}</div>
+        <div class="rq-avatar">${_rqCoLogoSrc(r.company)?bankLogoHTML(_rqCoLogoSrc(r.company),36,{alt:dCompany}):ic('building',17)}</div>
         <div class="rq-head">
           <div class="rq-co">${esc(dCompany)}</div>
           ${dType?`<div class="rq-type">${esc(dType)}</div>`:''}
@@ -28380,6 +28544,7 @@ function openRequestModal(id){
   const r=id?list.find(x=>x.id===id):null;
   _rqEditId=r?r.id:null;
   _rqStatusSel=(r&&_RQ_STATUS[r.status])?r.status:'received';
+  _rqPendingCoLogo=undefined;
   const uniq=k=>[...new Set(list.map(x=>String(x[k]||'').trim()).filter(Boolean))];
   const dl=(idn,k)=>`<datalist id="${idn}">${uniq(k).map(v=>`<option value="${esc(v)}"></option>`).join('')}</datalist>`;
   const stBtns=Object.keys(_RQ_STATUS).map(k=>`<button type="button" class="rq-stbtn ${_RQ_STATUS[k].cls}${_rqStatusSel===k?' on':''}" data-s="${k}" onclick="_rqPickStatus('${k}')">${_rqStatusLabel(k)}</button>`).join('');
@@ -28394,6 +28559,7 @@ function openRequestModal(id){
     </div>
     <div class="field"><label>${L('Company','اسم الشركة')} <span class="f-req">*</span></label>
       <input type="text" id="rqCompany" list="rqDlCo" dir="auto" autocomplete="off" value="${esc(r?.company||'')}">${dl('rqDlCo','company')}</div>
+    ${_rqCoLogoRowHTML(r?.company||'')}
     <div class="field"><label>${L('Engineer handing over','المهندس المُسلِّم')}</label>
       <input type="text" id="rqEngineer" list="rqDlEng" dir="auto" autocomplete="off" value="${esc(r?.engineer||'')}">${dl('rqDlEng','engineer')}</div>
     <div class="rq-row2">
@@ -28422,6 +28588,15 @@ function saveRequest(){
     showToast(L('Enter the company name','اكتب اسم الشركة'),'warn');
     document.getElementById('rqCompany')?.focus();
     return;
+  }
+  if(_rqPendingCoLogo!==undefined){
+    const coKey=_rqCoLogoKey(company);
+    if(coKey){
+      if(_rqPendingCoLogo===null) delete _rqCoLogos[coKey];
+      else _rqCoLogos[coKey]=_rqPendingCoLogo;
+      _rqPersistCoLogos();
+    }
+    _rqPendingCoLogo=undefined;
   }
   const rec={company,engineer:g('rqEngineer'),date:g('rqDate')||today(),type:g('rqType'),plot:g('rqPlot'),model:g('rqModel'),status:_rqStatusSel,notes:g('rqNotes')};
   const list=_rqLoad();
