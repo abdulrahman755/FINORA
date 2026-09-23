@@ -8238,20 +8238,30 @@ button.cx-sh-tap{width:100%;background:none;border:0;font-family:inherit;color:i
 .rq-add{display:inline-flex;align-items:center;gap:6px;height:38px;padding:0 14px;border:0;border-radius:99px;background:var(--green);color:#fff;font-family:inherit;font-size:calc(13px*var(--app-text-scale,1));font-weight:800;cursor:pointer;white-space:nowrap}
 .rq-add:active{transform:scale(.96)}
 .rq-list{display:flex;flex-direction:column;gap:10px}
-.rq-card{--rq-c:var(--border);background:var(--surface);border:1px solid var(--border);border-inline-start:4px solid var(--rq-c);border-radius:var(--radius);padding:14px 16px 6px}
+.rq-card{--rq-c:var(--border);background:var(--surface);border:1px solid var(--border);border-inline-start:4px solid var(--rq-c);border-radius:var(--radius);padding:15px 16px 8px;box-shadow:var(--shadow-xs);transition:transform .15s var(--ease-standard,ease),box-shadow .15s var(--ease-standard,ease)}
+.rq-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-md)}
+.rq-card:active{transform:translateY(0);box-shadow:var(--shadow-xs)}
 .rq-card.ok{--rq-c:var(--green)}
 .rq-card.low{--rq-c:var(--gold)}
 .rq-card.over{--rq-c:var(--red)}
-.rq-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
-.rq-top .cx-chip{flex:none}
-.rq-co{min-width:0;font-size:calc(16px*var(--app-text-scale,1));font-weight:800;line-height:1.35;color:var(--text);overflow-wrap:anywhere}
-.rq-type{margin-top:3px;font-size:calc(13.5px*var(--app-text-scale,1));font-weight:600;color:var(--sub);overflow-wrap:anywhere}
-.rq-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px 14px;margin:12px 0 0;padding:12px 0 0;border-top:1px solid var(--border)}
+.rq-top{display:flex;align-items:flex-start;gap:11px}
+.rq-avatar{flex:none;width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:var(--radius-sm);background:var(--surface2);color:var(--muted);box-shadow:var(--shadow-xs)}
+.rq-card.ok .rq-avatar{background:var(--green-tint);color:var(--green)}
+.rq-card.low .rq-avatar{background:var(--gold-tint);color:var(--gold)}
+.rq-card.over .rq-avatar{background:var(--red-tint);color:var(--red)}
+.rq-head{flex:1;min-width:0;padding-top:1px}
+.rq-top .cx-chip{flex:none;margin-top:2px}
+.rq-co{min-width:0;font-size:calc(16px*var(--app-text-scale,1));font-weight:800;line-height:1.3;color:var(--text);overflow-wrap:anywhere}
+.rq-type{margin-top:2px;font-size:calc(13px*var(--app-text-scale,1));font-weight:600;color:var(--sub);line-height:1.4;overflow-wrap:anywhere}
+.rq-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px 14px;margin:13px 0 0;padding:12px 0 0;border-top:1px solid var(--border)}
 .rq-grid>div{min-width:0}
-.rq-grid dt{margin:0 0 2px;font-size:calc(11.5px*var(--app-text-scale,1));font-weight:600;color:var(--muted)}
+.rq-grid dt{display:flex;align-items:center;gap:5px;margin:0 0 3px;font-size:calc(11px*var(--app-text-scale,1));font-weight:600;letter-spacing:.1px;color:var(--muted)}
+.rq-grid dt svg{flex:none;opacity:.8}
 .rq-grid dd{margin:0;font-size:calc(14px*var(--app-text-scale,1));font-weight:700;color:var(--text);overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
-.rq-notes{margin-top:12px;padding:10px 12px;background:var(--surface2);border-radius:var(--radius-xs);font-size:calc(13px*var(--app-text-scale,1));line-height:1.55;color:var(--sub);white-space:pre-wrap;overflow-wrap:anywhere}
-.rq-foot{display:flex;justify-content:flex-end;margin-top:6px;margin-inline-end:-8px}
+.rq-notes{display:flex;gap:8px;align-items:flex-start;margin-top:12px;padding:10px 12px;background:var(--surface2);border-radius:var(--radius-xs);font-size:calc(13px*var(--app-text-scale,1));line-height:1.55;color:var(--sub)}
+.rq-notes svg{flex:none;margin-top:2px;opacity:.7}
+.rq-notes span{min-width:0;white-space:pre-wrap;overflow-wrap:anywhere}
+.rq-foot{display:flex;justify-content:flex-end;gap:2px;margin-top:8px;padding-top:6px;border-top:1px solid var(--border);margin-inline-end:-8px}
 /* form sheet (lives in #modalContent, outside .cx-wrap) */
 .rq-seg{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
 .rq-stbtn{min-height:56px;padding:8px 6px;border:1.5px solid var(--border);border-radius:var(--radius-sm);background:var(--surface);color:var(--muted);font-family:inherit;font-size:calc(12.5px*var(--app-text-scale,1));font-weight:800;line-height:1.3;text-align:center;cursor:pointer;transition:background-color .15s,border-color .15s,color .15s}
@@ -28228,22 +28238,12 @@ function _rqStatusLabel(k){ const s=_RQ_STATUS[k]||_RQ_STATUS.received; return L
 // stay in their original language because the app was switched afterwards.
 // Translations are cached per record (r.tr[lang][field]) so the API is only
 // hit once per record/field/language, then reused (and persisted) after that.
-const _RQ_TR_FIELDS=['company','engineer','type','model','notes'];
+const _RQ_TR_FIELDS=['type','notes']; // company, engineer, plot & model stay exactly as typed — MT mangles proper names/codes
 const _rqTrPending=new Set();
-const _RQ_EAST_DIGITS='٠١٢٣٤٥٦٧٨٩', _RQ_WEST_DIGITS='0123456789';
-function _rqDigitsConvert(str,target){
-  return target==='ar'
-    ? str.replace(/[0-9]/g,d=>_RQ_EAST_DIGITS[+d])
-    : str.replace(/[\u0660-\u0669]/g,d=>_RQ_WEST_DIGITS[_RQ_EAST_DIGITS.indexOf(d)]);
-}
-function _rqIsNumericish(str){ return /^[\d\u0660-\u0669\s\-\/.,]*$/.test(str); }
-function _rqNormalizePlot(el){
-  if(_rqIsNumericish(el.value)) el.value=_rqDigitsConvert(el.value,lang);
-}
 function _rqDisplayValue(r,key){
   const raw=(r[key]||'').toString();
   if(!raw.trim()) return '';
-  if(key==='plot' && _rqIsNumericish(raw)) return _rqDigitsConvert(raw,lang);
+  if(key==='plot'||key==='model'||key==='company'||key==='engineer') return raw; // left exactly as entered — MT mangles proper names/codes
   const detected=_atDetectLang(raw);
   if(!detected || detected===lang) return raw;
   const cached=r.tr && r.tr[lang] && r.tr[lang][key];
@@ -28267,7 +28267,6 @@ async function _rqRunTranslate(id,targetLang){
     if(out[f]) continue;
     const raw=(r[f]||'').toString();
     if(!raw.trim()) continue;
-    if(f==='plot' && _rqIsNumericish(raw)) continue; // handled locally, not cached
     const detected=_atDetectLang(raw);
     if(!detected || detected===targetLang) continue;
     try{ out[f]=await _atTranslate(raw,targetLang); changed=true; }
@@ -28291,6 +28290,16 @@ function _cxSetTab(k){
   renderView();
 }
 function _rqSetFilter(f){ _rqFilter=f; renderView(); }
+function _rqSearchHaystack(r){
+  // Matches on every raw field (whatever language it was recorded in) PLUS
+  // any already-cached translation for type/notes, so a search matches
+  // whichever text — original or currently-shown-translated — the person
+  // is remembering, without triggering a fresh translate call from search.
+  const vals=[r.company,r.engineer,r.type,r.plot,r.model,r.notes,r.date];
+  const cached=r.tr && r.tr[lang];
+  if(cached) for(const f of _RQ_TR_FIELDS) if(cached[f]) vals.push(cached[f]);
+  return vals;
+}
 
 function renderMyRequests(){
   const all=_rqLoad();
@@ -28298,7 +28307,7 @@ function renderMyRequests(){
   all.forEach(r=>{ if(counts[r.status]!==undefined) counts[r.status]++; });
   const q=(searchQ||'').trim().toLowerCase();
   let list=all.filter(r=>_rqFilter==='all'||r.status===_rqFilter);
-  if(q) list=list.filter(r=>[r.company,r.engineer,r.type,r.plot,r.model,r.notes,r.date].some(v=>String(v||'').toLowerCase().includes(q)));
+  if(q) list=list.filter(r=>_rqSearchHaystack(r).some(v=>String(v||'').toLowerCase().includes(q)));
   list.sort((a,b)=>String(b.date||'').localeCompare(String(a.date||''))||((b.createdAt||0)-(a.createdAt||0)));
 
   const stat=(f,cls,n,lbl)=>`<button type="button" class="rq-stat ${cls}${_rqFilter===f?' on':''}" aria-pressed="${_rqFilter===f?'true':'false'}" onclick="_rqSetFilter('${f}')"><b>${n}</b><span>${lbl}</span></button>`;
@@ -28309,7 +28318,7 @@ function renderMyRequests(){
     ${stat('rejected','over',counts.rejected,_rqStatusLabel('rejected'))}
   </div>`:'';
 
-  const cell=(lbl,val,ltr)=>val?`<div><dt>${lbl}</dt><dd${ltr?' dir="ltr" style="text-align:start"':''}>${esc(val)}</dd></div>`:'';
+  const cell=(icon,lbl,val,ltr)=>val?`<div><dt>${icon}${lbl}</dt><dd${ltr?' dir="ltr" style="text-align:start"':''}>${esc(val)}</dd></div>`:'';
   const cardsHTML=list.map(r=>{
     const st=_RQ_STATUS[r.status]||_RQ_STATUS.received;
     const dCompany=_rqDisplayValue(r,'company'), dType=_rqDisplayValue(r,'type'),
@@ -28318,19 +28327,20 @@ function renderMyRequests(){
     return `
     <article class="rq-card ${st.cls}">
       <div class="rq-top">
-        <div style="min-width:0">
+        <div class="rq-avatar">${ic('building',17)}</div>
+        <div class="rq-head">
           <div class="rq-co">${esc(dCompany)}</div>
           ${dType?`<div class="rq-type">${esc(dType)}</div>`:''}
         </div>
         <span class="cx-chip ${st.cls}">${_rqStatusLabel(r.status)}</span>
       </div>
       <dl class="rq-grid">
-        ${cell(L('Engineer','المهندس'),dEngineer)}
-        ${cell(L('Date','التاريخ'),r.date,true)}
-        ${cell(L('Plot No.','رقم القطعة'),dPlot)}
-        ${cell(L('Form / Model','النموذج'),dModel)}
+        ${cell(ic('hardhat',12),L('Engineer','المهندس'),dEngineer)}
+        ${cell(ic('calendar',12),L('Date','التاريخ'),r.date,true)}
+        ${cell(ic('pin',12),L('Plot No.','رقم القطعة'),dPlot)}
+        ${cell(ic('clipboard',12),L('Form / Model','النموذج'),dModel)}
       </dl>
-      ${dNotes?`<div class="rq-notes">${esc(dNotes)}</div>`:''}
+      ${dNotes?`<div class="rq-notes">${ic('message',13)}<span>${esc(dNotes)}</span></div>`:''}
       <div class="rq-foot">
         <button type="button" class="cx-icbtn" onclick="openRequestModal('${r.id}')" aria-label="${L('Edit','تعديل')}">${ic('edit',17)}</button>
         <button type="button" class="cx-icbtn del" onclick="deleteRequest('${r.id}')" aria-label="${L('Delete','حذف')}">${ic('trash',17)}</button>
@@ -28383,17 +28393,17 @@ function openRequestModal(id){
       </div>
     </div>
     <div class="field"><label>${L('Company','اسم الشركة')} <span class="f-req">*</span></label>
-      <input type="text" id="rqCompany" list="rqDlCo" dir="auto" autocomplete="off" data-autotranslate="1" value="${esc(r?.company||'')}">${dl('rqDlCo','company')}<div class="at-status" data-at-for="rqCompany"></div></div>
+      <input type="text" id="rqCompany" list="rqDlCo" dir="auto" autocomplete="off" value="${esc(r?.company||'')}">${dl('rqDlCo','company')}</div>
     <div class="field"><label>${L('Engineer handing over','المهندس المُسلِّم')}</label>
-      <input type="text" id="rqEngineer" list="rqDlEng" dir="auto" autocomplete="off" data-autotranslate="1" value="${esc(r?.engineer||'')}">${dl('rqDlEng','engineer')}<div class="at-status" data-at-for="rqEngineer"></div></div>
+      <input type="text" id="rqEngineer" list="rqDlEng" dir="auto" autocomplete="off" value="${esc(r?.engineer||'')}">${dl('rqDlEng','engineer')}</div>
     <div class="rq-row2">
       <div class="field"><label>${L('Date','التاريخ')}</label><input type="date" id="rqDate" value="${esc(r?.date||today())}"></div>
-      <div class="field"><label>${L('Plot No.','رقم القطعة')}</label><input type="text" id="rqPlot" dir="auto" autocomplete="off" oninput="_rqNormalizePlot(this)" value="${esc(r?.plot||'')}"></div>
+      <div class="field"><label>${L('Plot No.','رقم القطعة')}</label><input type="text" id="rqPlot" dir="auto" autocomplete="off" value="${esc(r?.plot||'')}"></div>
     </div>
     <div class="field"><label>${L('Receipt type','نوع الاستلامة')}</label>
       <input type="text" id="rqType" list="rqDlType" dir="auto" autocomplete="off" data-autotranslate="1" value="${esc(r?.type||'')}">${dl('rqDlType','type')}<div class="at-status" data-at-for="rqType"></div></div>
     <div class="field"><label>${L('Form / Model','النموذج')}</label>
-      <input type="text" id="rqModel" list="rqDlModel" dir="auto" autocomplete="off" data-autotranslate="1" value="${esc(r?.model||'')}">${dl('rqDlModel','model')}<div class="at-status" data-at-for="rqModel"></div></div>
+      <input type="text" id="rqModel" list="rqDlModel" dir="auto" autocomplete="off" value="${esc(r?.model||'')}">${dl('rqDlModel','model')}</div>
     <div class="field"><label>${L('Status','الحالة')}</label><div class="rq-seg">${stBtns}</div></div>
     <div class="field"><label>${L('Notes','ملاحظات')} <span class="f-opt">(${L('optional','اختياري')})</span></label>
       <textarea id="rqNotes" rows="3" dir="auto" data-autotranslate="1">${esc(r?.notes||'')}</textarea><div class="at-status" data-at-for="rqNotes"></div></div>
