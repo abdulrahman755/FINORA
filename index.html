@@ -8197,29 +8197,27 @@ button.cx-sh-tap{width:100%;background:none;border:0;font-family:inherit;color:i
    carried only by a 4px inline-start rule + the existing .cx-chip colours
    (green = received, gold = received with notes, red = not received). */
 .cx-tabs{margin-bottom:-4px}
-.rq-stats{display:grid;grid-template-columns:repeat(4,1fr);background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
-.rq-stat{appearance:none;-webkit-appearance:none;border:0;border-inline-start:1px solid var(--border);background:transparent;font-family:inherit;padding:12px 4px 10px;min-height:66px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;cursor:pointer;color:var(--muted);transition:background-color .15s}
-.rq-stat:first-child{border-inline-start:0}
-.rq-stat b{font-size:calc(19px*var(--app-text-scale,1));font-weight:800;line-height:1;color:var(--text);font-variant-numeric:tabular-nums}
-.rq-stat span{font-size:calc(11px*var(--app-text-scale,1));font-weight:700;line-height:1.25;text-align:center}
+.rq-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.rq-stat{appearance:none;-webkit-appearance:none;border:1.5px solid var(--border);background:var(--surface);border-radius:var(--radius-sm);font-family:inherit;padding:13px 4px 11px;min-height:70px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;cursor:pointer;color:var(--muted);box-shadow:var(--shadow-xs);transition:background-color .15s,border-color .15s,transform .12s,box-shadow .15s}
+.rq-stat:active{transform:scale(.96)}
+.rq-stat b{font-size:calc(20px*var(--app-text-scale,1));font-weight:800;line-height:1;color:var(--text);font-variant-numeric:tabular-nums}
+.rq-stat span{font-size:calc(10.5px*var(--app-text-scale,1));font-weight:700;line-height:1.25;text-align:center}
 .rq-stat.ok b{color:var(--green)}
 .rq-stat.low b{color:var(--gold)}
 .rq-stat.over b{color:var(--red)}
-.rq-stat.on{background:var(--surface2);box-shadow:inset 0 -2.5px 0 var(--text)}
-.rq-stat.ok.on{box-shadow:inset 0 -2.5px 0 var(--green)}
-.rq-stat.low.on{box-shadow:inset 0 -2.5px 0 var(--gold)}
-.rq-stat.over.on{box-shadow:inset 0 -2.5px 0 var(--red)}
-.rq-add{display:inline-flex;align-items:center;gap:6px;height:38px;padding:0 14px;border:0;border-radius:99px;background:var(--green);color:#fff;font-family:inherit;font-size:calc(13px*var(--app-text-scale,1));font-weight:800;cursor:pointer;white-space:nowrap}
-.rq-add:active{transform:scale(.96)}
-.rq-list{display:flex;flex-direction:column;gap:10px}
-.rq-card{--rq-c:var(--border);background:var(--surface);border:1px solid var(--border);border-inline-start:4px solid var(--rq-c);border-radius:var(--radius);padding:15px 16px 8px;box-shadow:var(--shadow-xs);transition:transform .15s var(--ease-standard,ease),box-shadow .15s var(--ease-standard,ease)}
+.rq-stat.on{background:var(--surface2);border-color:var(--text)}
+.rq-stat.ok.on{background:var(--green-tint);border-color:var(--green)}
+.rq-stat.low.on{background:var(--gold-tint);border-color:var(--gold)}
+.rq-stat.over.on{background:var(--red-tint);border-color:var(--red)}
+.rq-list{display:flex;flex-direction:column;gap:12px}
+.rq-card{--rq-c:var(--border);background:var(--surface);border:1px solid var(--border);border-inline-start:4px solid var(--rq-c);border-radius:var(--radius);padding:16px 17px 9px;box-shadow:var(--shadow-sm);transition:transform .15s var(--ease-standard,ease),box-shadow .15s var(--ease-standard,ease)}
 .rq-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-md)}
 .rq-card:active{transform:translateY(0);box-shadow:var(--shadow-xs)}
 .rq-card.ok{--rq-c:var(--green)}
 .rq-card.low{--rq-c:var(--gold)}
 .rq-card.over{--rq-c:var(--red)}
 .rq-top{display:flex;align-items:flex-start;gap:11px}
-.rq-avatar{flex:none;width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:var(--radius-sm);background:var(--surface2);color:var(--muted);box-shadow:var(--shadow-xs)}
+.rq-avatar{flex:none;width:40px;height:40px;display:flex;align-items:center;justify-content:center;border-radius:12px;background:var(--surface2);color:var(--muted);box-shadow:var(--shadow-xs);overflow:hidden}
 .rq-card.ok .rq-avatar{background:var(--green-tint);color:var(--green)}
 .rq-card.low .rq-avatar{background:var(--gold-tint);color:var(--gold)}
 .rq-card.over .rq-avatar{background:var(--red-tint);color:var(--red)}
@@ -8227,15 +8225,15 @@ button.cx-sh-tap{width:100%;background:none;border:0;font-family:inherit;color:i
 .rq-top .cx-chip{flex:none;margin-top:2px}
 .rq-co{min-width:0;font-size:calc(16px*var(--app-text-scale,1));font-weight:800;line-height:1.3;color:var(--text);overflow-wrap:anywhere}
 .rq-type{margin-top:2px;font-size:calc(13px*var(--app-text-scale,1));font-weight:600;color:var(--sub);line-height:1.4;overflow-wrap:anywhere}
-.rq-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px 14px;margin:13px 0 0;padding:12px 0 0;border-top:1px solid var(--border)}
+.rq-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px 14px;margin:14px 0 0;padding:13px 0 0;border-top:1px solid var(--border)}
 .rq-grid>div{min-width:0}
-.rq-grid dt{display:flex;align-items:center;gap:5px;margin:0 0 3px;font-size:calc(11px*var(--app-text-scale,1));font-weight:600;letter-spacing:.1px;color:var(--muted)}
+.rq-grid dt{display:flex;align-items:center;gap:5px;margin:0 0 4px;font-size:calc(10.5px*var(--app-text-scale,1));font-weight:700;letter-spacing:.3px;text-transform:uppercase;color:var(--muted)}
 .rq-grid dt svg{flex:none;opacity:.8}
-.rq-grid dd{margin:0;font-size:calc(14px*var(--app-text-scale,1));font-weight:700;color:var(--text);overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
-.rq-notes{display:flex;gap:8px;align-items:flex-start;margin-top:12px;padding:10px 12px;background:var(--surface2);border-radius:var(--radius-xs);font-size:calc(13px*var(--app-text-scale,1));line-height:1.55;color:var(--sub)}
+.rq-grid dd{margin:0;font-size:calc(14.5px*var(--app-text-scale,1));font-weight:700;color:var(--text);overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
+.rq-notes{display:flex;gap:9px;align-items:flex-start;margin-top:13px;padding:11px 13px;background:var(--surface2);border-inline-start:3px solid var(--border-strong);border-radius:var(--radius-xs);font-size:calc(13px*var(--app-text-scale,1));line-height:1.6;color:var(--sub)}
 .rq-notes svg{flex:none;margin-top:2px;opacity:.7}
 .rq-notes span{min-width:0;white-space:pre-wrap;overflow-wrap:anywhere}
-.rq-foot{display:flex;justify-content:flex-end;gap:2px;margin-top:8px;padding-top:6px;border-top:1px solid var(--border);margin-inline-end:-8px}
+.rq-foot{display:flex;justify-content:flex-end;gap:4px;margin-top:10px;padding-top:7px;border-top:1px solid var(--border);margin-inline-end:-8px}
 /* form sheet (lives in #modalContent, outside .cx-wrap) */
 .rq-seg{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
 .rq-stbtn{min-height:56px;padding:8px 6px;border:1.5px solid var(--border);border-radius:var(--radius-sm);background:var(--surface);color:var(--muted);font-family:inherit;font-size:calc(12.5px*var(--app-text-scale,1));font-weight:800;line-height:1.3;text-align:center;cursor:pointer;transition:background-color .15s,border-color .15s,color .15s}
@@ -8248,6 +8246,38 @@ button.cx-sh-tap{width:100%;background:none;border:0;font-family:inherit;color:i
 .rq-sugg-row:empty{margin-top:0}
 .rq-sugg-chip{padding:6px 12px;border-radius:99px;border:1.5px solid var(--border);background:var(--surface2);color:var(--text2);font-family:inherit;font-size:calc(11.5px*var(--app-text-scale,1));font-weight:700;white-space:nowrap;cursor:pointer;transition:all .15s}
 .rq-sugg-chip:active{transform:scale(.96);background:var(--green-tint);border-color:var(--green);color:var(--green)}
+.rq-sugg-select{width:100%;padding:10px 12px;border-radius:var(--radius-sm);border:1.5px solid var(--border);background:var(--surface2);color:var(--text2);font-family:inherit;font-size:calc(12.5px*var(--app-text-scale,1));font-weight:700;cursor:pointer;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23999' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-inline-end:34px}
+[dir="rtl"] .rq-sugg-select{background-position:left 12px center;padding-inline-end:12px;padding-inline-start:34px}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   New/Edit Receipt modal — modern card layout, scoped to .rq-modal only so
+   nothing shared (.field/.mbtn/.modal-hdr etc.) shifts anywhere else in app.
+   ══════════════════════════════════════════════════════════════════════════ */
+.rq-modal{display:flex;flex-direction:column;gap:14px}
+.rq-modal .modal-hdr{margin-bottom:0}
+.rq-sec{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:14px;display:flex;flex-direction:column}
+.rq-sec-hdr{display:flex;align-items:center;gap:8px;margin-bottom:12px;color:var(--text2)}
+.rq-sec-hdr svg{color:var(--green);flex-shrink:0}
+.rq-sec-hdr span{font-size:calc(11.5px*var(--app-text-scale,1));font-weight:800;text-transform:uppercase;letter-spacing:.6px}
+.rq-modal .field{margin-bottom:12px}
+.rq-modal .field:last-child{margin-bottom:0}
+.rq-modal .field label{font-size:calc(10.5px*var(--app-text-scale,1));letter-spacing:.5px}
+.rq-modal .field input,.rq-modal .field textarea,.rq-modal .field select{
+  background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius-sm);
+  box-shadow:var(--shadow-xs);transition:border-color .15s,box-shadow .15s;
+}
+.rq-modal .field input:focus,.rq-modal .field textarea:focus,.rq-modal .field select:focus{
+  border-color:var(--green);box-shadow:0 0 0 3px var(--green-glow);
+}
+.rq-modal .rq-row2{gap:10px}
+.rq-modal .rq-sugg-row{margin-top:10px}
+.rq-modal .rq-sugg-chip{background:var(--surface);box-shadow:var(--shadow-xs)}
+.rq-modal .rq-sugg-select{margin-top:10px;box-shadow:var(--shadow-xs)}
+.rq-modal .rq-seg{gap:8px}
+.rq-modal .rq-stbtn{border-radius:var(--radius);box-shadow:var(--shadow-xs)}
+.rq-modal .bnk-custom-logo-row{background:var(--surface);border:1.5px dashed var(--border-strong);border-radius:var(--radius-sm);padding:10px}
+.rq-modal .modal-btns{margin-top:4px}
+
 .at-status{min-height:15px;margin-top:4px;font-size:calc(11px*var(--app-text-scale,1));font-weight:600;color:var(--muted);display:flex;align-items:center;gap:5px}
 .at-status:empty{margin-top:0}
 .at-status.busy::before{content:'';width:8px;height:8px;border-radius:50%;border:1.5px solid var(--muted);border-inline-end-color:transparent;animation:atSpin .6s linear infinite;flex:none}
@@ -28240,6 +28270,24 @@ let _rqStatusSel='received';
 // selected. Matching is case-insensitive on the type text; CPP/CPR share one
 // list, IR gets its own. Both are pure UI helpers — clicking a chip just
 // appends a bullet line into the notes textarea, nothing is stored separately.
+// Sub-type quick picks shown only once Receipt type is IR (Inspection
+// Request) — the element/work the inspection covers. Same idea as
+// _RQ_TYPE_QUICK: fixed set of chips + whatever the user has typed before,
+// stored/learned exactly like Company/Engineer/Model via _rqFieldOptions /
+// _rqLearnField under the 'irtype' key.
+const _RQ_IR_SUBTYPE_QUICK=[
+  {en:'Roof',ar:'سقف'},
+  {en:'Columns',ar:'أعمدة'},
+  {en:'Formwork – strengthening',ar:'نجارة تقويات'},
+  {en:'Formwork – placement',ar:'نجارة حطط'},
+  {en:'Formwork – foundations',ar:'نجارة قواعد'},
+  {en:'Rebar – columns',ar:'حدادة أعمدة'},
+  {en:'Rebar – roof 1st layer',ar:'حدادة رقة أولى سقف'},
+  {en:'Rebar – roof 2nd layer',ar:'حدادة رقة تانية'},
+  {en:'Rebar – reinforcements',ar:'حدادة مسلحات'},
+  {en:'Waterproofing / Insulation',ar:'عزل'}
+];
+function _rqIsIrType(typeVal){ return String(typeVal||'').trim().toLowerCase()==='ir'; }
 const _RQ_TYPE_QUICK=[
   'CPP','CPR','IR',
   'WIR','MIR','RFI','TQ','MAR',
@@ -28299,6 +28347,34 @@ function _rqExtractNotesLines(text){
 }
 // Called on save: any notes line not already in that type's suggestion list
 // (built-in or previously learned) gets remembered as a new custom chip.
+// Company / Engineer / Form-Model values the user has typed, persisted
+// independently of the receipts list so a value is still offered as a
+// suggestion later even if the receipt that first used it gets deleted.
+// One shared store keyed by field name, same idea for all three fields.
+const _RQ_CUSTOM_FIELDS_KEY='wdp_rq_custom_fields_v1';
+let _rqCustomFields={company:[],engineer:[],model:[],irtype:[]};
+try{ const _f=localStorage.getItem(_RQ_CUSTOM_FIELDS_KEY); if(_f){ const p=JSON.parse(_f)||{}; _rqCustomFields={company:p.company||[],engineer:p.engineer||[],model:p.model||[],irtype:p.irtype||[]}; } }catch(e){_logErr('_rqCustomFields:read',e);}
+function _rqPersistCustomFields(){ try{ localStorage.setItem(_RQ_CUSTOM_FIELDS_KEY,JSON.stringify(_rqCustomFields)); }catch(e){ _logErr('_rqPersistCustomFields',e); } }
+function _rqFieldOptions(field,historyVals){
+  const seen=new Set();
+  const out=[];
+  for(const v of [...(historyVals||[]),...(_rqCustomFields[field]||[])]){
+    const t=String(v||'').trim();
+    if(!t) continue;
+    const k=t.toLowerCase();
+    if(seen.has(k)) continue;
+    seen.add(k); out.push(t);
+  }
+  return out;
+}
+function _rqLearnField(field,val){
+  const t=String(val||'').trim();
+  if(!t||!_rqCustomFields[field]) return;
+  const k=t.toLowerCase();
+  if(_rqCustomFields[field].some(v=>v.toLowerCase()===k)) return;
+  _rqCustomFields[field].push(t);
+  _rqPersistCustomFields();
+}
 function _rqLearnCommentSuggestions(typeVal,notesVal){
   const k=String(typeVal||'').trim().toLowerCase();
   if(!k) return;
@@ -28494,7 +28570,7 @@ function _rqSearchHaystack(r){
   // any already-cached translation for type/notes, so a search matches
   // whichever text — original or currently-shown-translated — the person
   // is remembering, without triggering a fresh translate call from search.
-  const vals=[r.company,r.engineer,r.type,r.plot,r.model,r.notes,r.date];
+  const vals=[r.company,r.engineer,r.type,r.plot,r.model,r.irType,r.notes,r.date];
   const cached=r.tr && r.tr[lang];
   if(cached) for(const f of _RQ_TR_FIELDS) if(cached[f]) vals.push(cached[f]);
   return vals;
@@ -28538,6 +28614,7 @@ function renderMyRequests(){
         ${cell(ic('calendar',12),L('Date','التاريخ'),r.date,true)}
         ${cell(ic('pin',12),L('Plot No.','رقم القطعة'),dPlot)}
         ${cell(ic('clipboard',12),L('Form / Model','النموذج'),dModel)}
+        ${_rqIsIrType(r.type)?cell(ic('type',12),L('IR type','نوع الـ IR'),r.irType||''):''}
       </dl>
       ${dNotes?`<div class="rq-notes">${ic('message',13)}<span>${esc(dNotes)}</span></div>`:''}
       <div class="rq-foot">
@@ -28562,7 +28639,6 @@ function renderMyRequests(){
   <section class="cx-sec">
     <div class="cx-sh">
       <span class="cx-sh-l"><span class="cx-sh-t">${L('My Requests','استلاماتي')}</span><span class="cx-sh-s">${shown} ${L('receipts','استلامة')}</span></span>
-      ${all.length?`<button type="button" class="rq-add" onclick="openRequestModal(null)">${ic('plus',15)} ${L('New','جديد')}</button>`:''}
     </div>
     ${statsHTML}
     ${all.length?`<div class="sc-search cx-search"><span class="cx-sbox">
@@ -28585,6 +28661,7 @@ function openRequestModal(id){
   const stBtns=Object.keys(_RQ_STATUS).map(k=>`<button type="button" class="rq-stbtn ${_RQ_STATUS[k].cls}${_rqStatusSel===k?' on':''}" data-s="${k}" onclick="_rqPickStatus('${k}')">${_rqStatusLabel(k)}</button>`).join('');
   document.getElementById('modalContent').innerHTML=`
     <div class="modal-handle"></div>
+    <div class="rq-modal">
     <div class="modal-hdr">
       <div class="modal-hdr-icon" style="background:linear-gradient(135deg,#0f7a55,#0a5c40)">${ic('clipboard',22)}</div>
       <div>
@@ -28592,25 +28669,46 @@ function openRequestModal(id){
         <div class="modal-hdr-sub">${L('My Requests','استلاماتي')}</div>
       </div>
     </div>
-    <div class="field"><label>${L('Company','اسم الشركة')} <span class="f-req">*</span></label>
-      <input type="text" id="rqCompany" list="rqDlCo" dir="auto" autocomplete="off" value="${esc(r?.company||'')}">${dl('rqDlCo','company')}</div>
-    ${_rqCoLogoRowHTML(r?.company||'')}
-    <div class="field"><label>${L('Engineer handing over','المهندس المُسلِّم')}</label>
-      <input type="text" id="rqEngineer" list="rqDlEng" dir="auto" autocomplete="off" value="${esc(r?.engineer||'')}">${dl('rqDlEng','engineer')}</div>
-    <div class="rq-row2">
-      <div class="field"><label>${L('Date','التاريخ')}</label><input type="date" id="rqDate" value="${esc(r?.date||today())}"></div>
-      <div class="field"><label>${L('Plot No.','رقم القطعة')}</label><input type="text" id="rqPlot" dir="auto" autocomplete="off" value="${esc(r?.plot||'')}"></div>
+
+    <div class="rq-sec">
+      <div class="rq-sec-hdr">${ic('building',15)}<span>${L('Company & handover','الشركة والتسليم')}</span></div>
+      <div class="field"><label>${L('Company','اسم الشركة')} <span class="f-req">*</span></label>
+        <input type="text" id="rqCompany" list="rqDlCo" dir="auto" autocomplete="off" value="${esc(r?.company||'')}"><datalist id="rqDlCo">${_rqFieldOptions('company',uniq('company')).map(v=>`<option value="${esc(v)}"></option>`).join('')}</datalist></div>
+      ${_rqCoLogoRowHTML(r?.company||'')}
+      <div class="field"><label>${L('Engineer handing over','المهندس المُسلِّم')}</label>
+        <input type="text" id="rqEngineer" list="rqDlEng" dir="auto" autocomplete="off" value="${esc(r?.engineer||'')}"><datalist id="rqDlEng">${_rqFieldOptions('engineer',uniq('engineer')).map(v=>`<option value="${esc(v)}"></option>`).join('')}</datalist></div>
     </div>
-    <div class="field"><label>${L('Receipt type','نوع الاستلامة')}</label>
-      <input type="text" id="rqType" list="rqDlType" dir="auto" autocomplete="off" data-autotranslate="1" value="${esc(r?.type||'')}" oninput="_rqRenderCommentSuggestions()">${dl('rqDlType','type')}<div class="at-status" data-at-for="rqType"></div>
-      <div class="rq-sugg-row" id="rqTypeQuick">${_rqTypeQuickChipsHTML(uniq('type'))}</div></div>
-    <div class="field"><label>${L('Form / Model','النموذج')}</label>
-      <input type="text" id="rqModel" list="rqDlModel" dir="auto" autocomplete="off" value="${esc(r?.model||'')}">${dl('rqDlModel','model')}</div>
-    <div class="field"><label>${L('Status','الحالة')}</label><div class="rq-seg">${stBtns}</div></div>
-    <div class="field"><label>${L('Notes','ملاحظات')} <span class="f-opt">(${L('optional','اختياري')})</span></label>
-      <textarea id="rqNotes" rows="3" dir="auto" data-autotranslate="1">${esc(r?.notes||'')}</textarea><div class="at-status" data-at-for="rqNotes"></div>
-      <div class="rq-sugg-row" id="rqCommentSugg"></div></div>
-    <div class="modal-btns"><button class="mbtn save" onclick="saveRequest()">${L('Save','حفظ')}</button><button class="mbtn cancel" onclick="closeModal()">${L('Cancel','إلغاء')}</button></div>`;
+
+    <div class="rq-sec">
+      <div class="rq-sec-hdr">${ic('clipboard',15)}<span>${L('Request details','تفاصيل الطلب')}</span></div>
+      <div class="rq-row2">
+        <div class="field"><label>${L('Date','التاريخ')}</label><input type="date" id="rqDate" value="${esc(r?.date||today())}"></div>
+        <div class="field"><label>${L('Plot No.','رقم القطعة')}</label><input type="text" id="rqPlot" dir="auto" autocomplete="off" value="${esc(r?.plot||'')}"></div>
+      </div>
+      <div class="field"><label>${L('Receipt type','نوع الاستلامة')}</label>
+        <input type="text" id="rqType" list="rqDlType" dir="auto" autocomplete="off" data-autotranslate="1" value="${esc(r?.type||'')}" oninput="_rqOnTypeInput()">${dl('rqDlType','type')}<div class="at-status" data-at-for="rqType"></div>
+        <div class="rq-sugg-row" id="rqTypeQuick">${_rqTypeQuickChipsHTML(uniq('type'))}</div></div>
+      <div class="field" id="rqIrTypeWrap" style="${_rqIsIrType(r?.type||'')?'':'display:none'}"><label>${L('IR type','نوع الـ IR')}</label>
+        <input type="text" id="rqIrType" list="rqDlIrType" dir="auto" autocomplete="off" value="${esc(r?.irType||'')}"><datalist id="rqDlIrType">${_rqFieldOptions('irtype',uniq('irType')).map(v=>`<option value="${esc(v)}"></option>`).join('')}</datalist>
+        <div class="rq-sugg-row" id="rqIrTypeQuick">${_rqIrSubtypeChipsHTML(uniq('irType'))}</div></div>
+      <div class="field"><label>${L('Form / Model','النموذج')}</label>
+        <input type="text" id="rqModel" list="rqDlModel" dir="auto" autocomplete="off" value="${esc(r?.model||'')}"><datalist id="rqDlModel">${_rqFieldOptions('model',uniq('model')).map(v=>`<option value="${esc(v)}"></option>`).join('')}</datalist></div>
+    </div>
+
+    <div class="rq-sec">
+      <div class="rq-sec-hdr">${ic('flag',15)}<span>${L('Status','الحالة')}</span></div>
+      <div class="field"><div class="rq-seg">${stBtns}</div></div>
+    </div>
+
+    <div class="rq-sec">
+      <div class="rq-sec-hdr">${ic('note',15)}<span>${L('Notes','ملاحظات')}</span></div>
+      <div class="field"><label>${L('Notes','ملاحظات')} <span class="f-opt">(${L('optional','اختياري')})</span></label>
+        <textarea id="rqNotes" rows="3" dir="auto" data-autotranslate="1">${esc(r?.notes||'')}</textarea><div class="at-status" data-at-for="rqNotes"></div>
+        <div class="rq-sugg-row" id="rqCommentSugg"></div></div>
+    </div>
+
+    <div class="modal-btns"><button class="mbtn save" onclick="saveRequest()">${L('Save','حفظ')}</button><button class="mbtn cancel" onclick="closeModal()">${L('Cancel','إلغاء')}</button></div>
+    </div>`;
   document.getElementById('modalOverlay').style.display='flex';
   _bindBulletNotes(document.getElementById('rqNotes'));
   _rqRenderCommentSuggestions();
@@ -28628,17 +28726,49 @@ function _rqPickType(v){
   const inp=document.getElementById('rqType');
   if(!inp) return;
   inp.value=v;
-  _rqRenderCommentSuggestions();
+  _rqOnTypeInput();
 }
-// Comment suggestion chips under Notes — refreshed whenever the Receipt type
-// field changes. Clicking a chip appends it as a new bullet line in Notes,
-// reusing the same auto-bullet punctuation/formatting as manual typing.
+// Fires on every keystroke/pick in the Receipt type field: refreshes the
+// comment suggestions (existing behavior) and shows/hides the IR sub-type
+// field depending on whether the typed value is IR.
+function _rqOnTypeInput(){
+  _rqRenderCommentSuggestions();
+  _rqToggleIrTypeField();
+}
+function _rqToggleIrTypeField(){
+  const wrap=document.getElementById('rqIrTypeWrap');
+  if(!wrap) return;
+  const typeVal=document.getElementById('rqType')?.value||'';
+  wrap.style.display=_rqIsIrType(typeVal)?'':'none';
+}
+function _rqIrSubtypeChipsHTML(historyVals){
+  const fixed=_RQ_IR_SUBTYPE_QUICK.map(o=>L(o.en,o.ar));
+  const seen=new Set(fixed.map(v=>v.toLowerCase()));
+  const extra=(historyVals||[]).filter(v=>!seen.has(String(v).trim().toLowerCase()));
+  const all=[...fixed,...extra];
+  if(!all.length) return '';
+  return all.map(v=>`<button type="button" class="rq-sugg-chip" onclick="_rqPickIrSubtype('${esc(v).replace(/'/g,"\\'")}')">${esc(v)}</button>`).join('');
+}
+function _rqPickIrSubtype(v){
+  const inp=document.getElementById('rqIrType');
+  if(!inp) return;
+  inp.value=v;
+}
+// Comment suggestions under Notes, as a dropdown — refreshed whenever the
+// Receipt type field changes. Picking an option appends it as a new bullet
+// line in Notes (same auto-bullet punctuation/formatting as manual typing),
+// then the dropdown resets to its placeholder so it's ready to pick again.
 function _rqRenderCommentSuggestions(){
   const host=document.getElementById('rqCommentSugg');
   if(!host) return;
   const typeVal=document.getElementById('rqType')?.value||'';
   const list=_rqCommentSuggestionsFor(typeVal);
-  host.innerHTML=list.map(c=>`<button type="button" class="rq-sugg-chip" onclick="_rqAddComment('${esc(c).replace(/'/g,"\\'")}')">${esc(c)}</button>`).join('');
+  if(!list.length){ host.innerHTML=''; return; }
+  const opts=list.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('');
+  host.innerHTML=`<select class="rq-sugg-select" onchange="if(this.value){_rqAddComment(this.value);this.selectedIndex=0;}">
+    <option value="" selected>${L('+ Add suggested comment…','+ إضافة كومنت مقترح…')}</option>
+    ${opts}
+  </select>`;
 }
 function _rqAddComment(text){
   const ta=document.getElementById('rqNotes');
@@ -28704,8 +28834,12 @@ function saveRequest(){
     }
     _rqPendingCoLogo=undefined;
   }
-  const rec={company,engineer:g('rqEngineer'),date:g('rqDate')||today(),type:g('rqType'),plot:g('rqPlot'),model:g('rqModel'),status:_rqStatusSel,notes:g('rqNotes')};
+  const rec={company,engineer:g('rqEngineer'),date:g('rqDate')||today(),type:g('rqType'),plot:g('rqPlot'),model:g('rqModel'),irType:_rqIsIrType(g('rqType'))?g('rqIrType'):'',status:_rqStatusSel,notes:g('rqNotes')};
   _rqLearnCommentSuggestions(rec.type,rec.notes);
+  _rqLearnField('company',rec.company);
+  _rqLearnField('engineer',rec.engineer);
+  _rqLearnField('model',rec.model);
+  _rqLearnField('irtype',rec.irType);
   const list=_rqLoad();
   const editing=!!_rqEditId;
   if(editing){
