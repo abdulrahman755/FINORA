@@ -28768,7 +28768,7 @@ function openRequestModal(id){
     <div class="rq-sec">
       <div class="rq-sec-hdr">${ic('note',15)}<span>${L('Notes','ملاحظات')}</span></div>
       <div class="field"><label>${L('Notes','ملاحظات')} <span class="f-opt">(${L('optional','اختياري')})</span></label>
-        <textarea id="rqNotes" rows="3" dir="auto" data-autotranslate="1">${esc(r?.notes||'')}</textarea><div class="at-status" data-at-for="rqNotes"></div>
+        <textarea id="rqNotes" rows="3" dir="auto" data-autotranslate="1" data-at-target="en" data-at-mode="lines">${esc(r?.notes||'')}</textarea><div class="at-status" data-at-for="rqNotes"></div>
         <div class="rq-sugg-row" id="rqCommentSugg"></div></div>
     </div>
 
@@ -28972,19 +28972,80 @@ function _atStatusEl(el){
   const id=el.id;
   return id ? document.querySelector(`.at-status[data-at-for="${id}"]`) : null;
 }
+// Translates only the lines that actually need it (language differs from
+// target), each in parallel and independently, and returns a new array of
+// lines with just those replaced. A leading "• "/"- " bullet marker is kept
+// as-is and only the text after it is sent for translation, so bulleted
+// notes keep their exact structure — each line translated on its own is
+// also more accurate than sending a whole mixed-language block in one call,
+// since a short standalone sentence has far less room for the translator to
+// mis-merge or drop lines than a multi-bullet paragraph does. Lines already
+// in the target language (e.g. a bullet picked from an English suggestion
+// chip) are left completely untouched. A line that fails to translate is
+// also left as-is rather than blocking the rest.
+async function _atTranslateLines(lines,target){
+  const out=lines.slice();
+  const jobs=[];
+  lines.forEach((line,i)=>{
+    const m=line.match(/^([•\-]\s*)(.*)$/);
+    const prefix=m?m[1]:'';
+    const body=(m?m[2]:line).trim();
+    if(!body) return;
+    const detected=_atDetectLang(body);
+    if(!detected||detected===target) return;
+    jobs.push(_atTranslate(body,target).then(tr=>{
+      if(tr&&tr.trim()) out[i]=prefix+tr.trim();
+    }).catch(e=>{ _logErr('autotranslate:line',e); }));
+  });
+  await Promise.all(jobs);
+  return out;
+}
 async function _atHandleFieldOut(el){
   if(el.dataset.atBusy==='1') return;
-  const raw=(el.value||'').trim();
-  if(!raw) return;
-  const target=lang; // translate INTO whichever language the app is showing right now
-  const detected=_atDetectLang(raw);
-  if(!detected || detected===target) return;
-  el.dataset.atBusy='1';
+  const raw=el.value||'';
+  if(!raw.trim()) return;
+  // Target language: a field can pin its own target via data-at-target
+  // (e.g. Receipt notes always translate INTO English regardless of which
+  // language the app UI is currently showing); otherwise it follows the
+  // app's current display language like before.
+  const target=el.dataset.atTarget||lang;
   const status=_atStatusEl(el);
+  if(el.dataset.atMode==='lines'){
+    const lines=raw.split('\n');
+    const needsWork=lines.some(l=>{
+      const body=l.replace(/^[•\-]\s*/,'').trim();
+      const d=_atDetectLang(body);
+      return d&&d!==target;
+    });
+    if(!needsWork) return;
+    el.dataset.atBusy='1';
+    if(status){ status.textContent=L('Translating…','جارِ الترجمة…'); status.classList.add('busy'); status.classList.remove('err'); }
+    try{
+      const translatedLines=await _atTranslateLines(lines,target);
+      if(document.contains(el) && el.value===raw){
+        el.value=translatedLines.join('\n');
+      }
+      if(status){ status.textContent=''; status.classList.remove('busy'); }
+    }catch(e){
+      _logErr('autotranslate',e);
+      if(status){
+        status.textContent=L('Could not auto-translate (offline?)','تعذّر الترجمة التلقائية (تأكد من الاتصال)');
+        status.classList.remove('busy'); status.classList.add('err');
+        setTimeout(()=>{ if(document.contains(status)) status.textContent=''; },3500);
+      }
+    }finally{
+      el.dataset.atBusy='0';
+    }
+    return;
+  }
+  const trimmed=raw.trim();
+  const detected=_atDetectLang(trimmed);
+  if(!detected||detected===target) return;
+  el.dataset.atBusy='1';
   if(status){ status.textContent=L('Translating…','جارِ الترجمة…'); status.classList.add('busy'); status.classList.remove('err'); }
   try{
-    const translated=await _atTranslate(raw,target);
-    if(document.contains(el) && el.value.trim()===raw && translated && translated.trim()){
+    const translated=await _atTranslate(trimmed,target);
+    if(document.contains(el) && el.value.trim()===trimmed && translated && translated.trim()){
       el.value=translated.trim();
     }
     if(status){ status.textContent=''; status.classList.remove('busy'); }
