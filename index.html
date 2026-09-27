@@ -7420,6 +7420,11 @@ button:not(:disabled):active{transform:scale(.97)}
 .txlg-clear-all{background:none;border:none;color:var(--red);font-size:calc(10px*var(--app-text-scale,1));font-weight:800;cursor:pointer;padding:4px 4px}
 
 .txlg-timeline{padding:0 var(--sp3) var(--sp2)}
+.txlg-buy-list{padding:0 var(--sp3) var(--sp2);display:flex;flex-direction:column}
+.txlg-buy-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 2px;border-bottom:1px solid var(--border)}
+.txlg-buy-row:last-child{border-bottom:0}
+.txlg-buy-name{min-width:0;flex:1;font-size:calc(13px*var(--app-text-scale,1));font-weight:700;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.txlg-buy-price{flex:none;font-size:calc(13px*var(--app-text-scale,1));font-weight:800;color:var(--orange);font-variant-numeric:tabular-nums}
 .txlg-group-label{
   font-size:calc(9.5px*var(--app-text-scale,1));font-weight:900;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;
   padding:var(--s-2) var(--sp1) var(--s-half);
@@ -14250,6 +14255,32 @@ const fmt=n=>{
 // because they already render their own +/- prefix) pass Math.abs(n) in
 // themselves instead of relying on fmtEGP to do it silently.
 const fmtEGP=n=>fmt(n||0)+' '+curLabel();
+// Lightweight, display-only "product name" extractor for the My Purchases
+// section (see renderTransactions): strips a leading purchase-verb phrase
+// ("اشتريت", "bought", ...) and cuts off trailing clauses that describe the
+// merchant/location ("من محل زيدان"), a flavor/descriptor ("بطعم الجبنة"),
+// or an inline price mention — keeping just the core item. Never touches
+// the stored transaction note itself; only used to decide what this one
+// section shows, so the original full text is always still visible in the
+// Timeline row for the same entry.
+function _txlgItemName(raw){
+  let s=String(raw||'').trim();
+  if(!s) return s;
+  const leadVerbs=['اشتريت','أشتريت','اشترت','اشتري','شريت','جبت','جبتلي','خدت','اخدت','أخدت','هاتيت','bought','purchased','picked up','buy','got'];
+  for(const v of leadVerbs){
+    const re=new RegExp('^\\s*'+v+'\\s+','i');
+    if(re.test(s)){ s=s.replace(re,''); break; }
+  }
+  const cutMarkers=[/\sمن\s/, /\s(بطعم|طعم)\s/, /\s(بسعر)\s?\d/, /\sب\s?\d/, /\s(from|at)\s/i];
+  let cutIdx=-1;
+  for(const re of cutMarkers){
+    const m=s.match(re);
+    if(m && m.index>0 && (cutIdx===-1||m.index<cutIdx)) cutIdx=m.index;
+  }
+  if(cutIdx>0) s=s.slice(0,cutIdx);
+  s=s.trim().replace(/[،,.\-–]+$/,'').trim();
+  return s||String(raw||'').trim();
+}
 // Splits an fmtEGP()-style string ("1,234 EGP" / "1,234 ج.م") into an
 // amount span + a smaller currency-suffix span, for the kpi3 KPI cards.
 // Falls back to a single span for placeholder text like '—'.
@@ -27655,6 +27686,36 @@ function renderTransactions(m){
       return txFilterVariance==='under' ? diff>=0 : diff<0;
     });
 
+  // ── "My Purchases" (مشترياتي) — auto-derived, presentation-only: takes the
+  // already-filtered txns list (same search/period/variance filters as the
+  // Timeline below) and picks out only the expense-classified entries,
+  // showing each one's own description as the item name and its amount as
+  // the price — nothing new to type, nothing written back to DATA. Newest
+  // first, capped so a big month doesn't render an unbounded list.
+  const PURCHASES_CAP = 60;
+  const purchaseRowsAll = txns
+    .filter(t=>_aiaClassify(t).type==='expense')
+    .slice()
+    .reverse();
+  const purchaseRows = purchaseRowsAll.slice(0, PURCHASES_CAP);
+  const purchasesHTML = purchaseRows.length ? `
+  <div class="sc-card sc-main">
+    <div class="sc-main-header" style="cursor:default">
+      <div class="sc-main-title">${ic('shopping_bag',14)} ${L('My Purchases','مشترياتي')} <span style="font-size:calc(9px*var(--app-text-scale,1));font-weight:700;color:var(--muted);background:var(--surface);border:1px solid var(--border);padding:1px 7px;border-radius:99px">${purchaseRowsAll.length}</span></div>
+    </div>
+    <div class="txlg-buy-list">
+      ${purchaseRows.map(t=>`
+      <div class="txlg-buy-row">
+        <span class="txlg-buy-name">${esc(_txlgItemName(t.notes))||L('Untitled item','عنصر بدون اسم')}</span>
+        <span class="txlg-buy-price">${fmtEGP(t.payment)}</span>
+      </div>`).join('')}
+    </div>
+    ${purchaseRowsAll.length>PURCHASES_CAP?`
+    <div style="text-align:center;padding:10px var(--sp4);border-top:1px solid var(--border)">
+      <span style="font-size:calc(11px*var(--app-text-scale,1));font-weight:700;color:var(--muted)">${L('Showing latest','يعرض الأحدث')} ${PURCHASES_CAP} ${L('of','من')} ${purchaseRowsAll.length}</span>
+    </div>`:''}
+  </div>` : '';
+
   const totalAll=all.reduce((s,t)=>s+(t.payment||0),0);
   // FIX (KPI strip Target/Remaining/Saved stuck empty): this used to sum the
   // per-transaction `t.target` field (an optional planned-vs-actual value on
@@ -27919,6 +27980,9 @@ function renderTransactions(m){
       </button>
     </div>`:''}
   </div>
+
+  <!-- 3b. MY PURCHASES — auto-classified item/price list (see purchasesHTML above) -->
+  ${purchasesHTML}
 
   <!-- Daily Screen Redesign (Commit 1) — Analytics horizontal cards, Monthly
        Budget Card, Smart Spending AI compact card, Insights card, and the AI
