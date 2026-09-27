@@ -27686,15 +27686,16 @@ function renderTransactions(m){
       return txFilterVariance==='under' ? diff>=0 : diff<0;
     });
 
-  // ── "My Purchases" (مشترياتي) — auto-derived, presentation-only: takes the
-  // already-filtered txns list (same search/period/variance filters as the
-  // Timeline below) and picks out only the expense-classified entries,
-  // showing each one's own description as the item name and its amount as
-  // the price — nothing new to type, nothing written back to DATA. Newest
-  // first, capped so a big month doesn't render an unbounded list.
+  // ── "My Purchases" (مشترياتي) — presentation-only: takes the already-
+  // filtered txns list (same search/period/variance filters as the Timeline
+  // below) and picks out only entries the person explicitly marked with the
+  // "Product purchase" checkbox in the transaction form (t.isProduct) —
+  // deliberately NOT every expense, so bills/transport/insurance/etc. never
+  // show up here unless marked as a product. Newest first, capped so a big
+  // month doesn't render an unbounded list.
   const PURCHASES_CAP = 60;
   const purchaseRowsAll = txns
-    .filter(t=>_aiaClassify(t).type==='expense')
+    .filter(t=>!!t.isProduct)
     .slice()
     .reverse();
   const purchaseRows = purchaseRowsAll.slice(0, PURCHASES_CAP);
@@ -33169,6 +33170,12 @@ function showTxModal(tx){
       <div id="aipCard-tx" class="aip-card" data-ctx="tx"></div>
       <div id="sdeBox-tx" class="sde-box" data-field="mNotes" data-ctx="tx" style="margin-top:6px"></div>
     </div>
+    <div class="field">
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:700" for="mIsProduct">
+        <input type="checkbox" id="mIsProduct" ${tx?.isProduct?'checked':''} style="width:18px;height:18px;accent-color:var(--green);margin:0">
+        <span style="display:flex;align-items:center;gap:6px">${ic('shopping_bag',15)} ${L('Product purchase — add to My Purchases','منتج — يضاف لقائمة مشترياتي')}</span>
+      </label>
+    </div>
     <div id="txStatusCard" style="display:none;border-radius:var(--radius-sm);padding:11px 14px;margin-bottom:4px;font-size:calc(12px*var(--app-text-scale,1));line-height:1.6"></div>
     <div class="modal-btns"><button class="mbtn save" onclick="saveTx()">${L('Save','حفظ')}</button><button class="mbtn cancel" onclick="closeModal()">${L('Cancel','إلغاء')}</button></div>`;
   document.getElementById('modalOverlay').style.display='flex';
@@ -33570,6 +33577,7 @@ function saveTx(){
     target: dayTarget,
     provided: prvVal,
     notes: notesVal,
+    isProduct: !!document.getElementById('mIsProduct')?.checked,
     ...(sdeMeta ? {
       smartCategory:    sdeMeta.category.en,
       smartSubcategory: sdeMeta.subcategory.en,
