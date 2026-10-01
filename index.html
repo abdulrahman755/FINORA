@@ -13465,7 +13465,14 @@ function _dfpMonthlyProfitSeries(m, count){
 // that month; this = what was actually sitting in the banks at month-end).
 function _dfpMonthlyBalanceSeries(m, count){
   count = count || 6;
-  const idx = MONTHS_ORDER.indexOf(m);
+  // BUGFIX (bars not showing): `m` here is the active month's DATA OBJECT
+  // (DATA[activeMonth]), same convention as every other render function in
+  // this file (renderCustodyDashboardCard(m), etc.) — NOT the MONTHS_ORDER
+  // string key. MONTHS_ORDER.indexOf(m) against an object was always -1,
+  // so this silently returned [] and the chart never rendered. The active
+  // month's own string key is the global `activeMonth`, not derivable from
+  // `m` itself, so use that directly instead of trying to index by `m`.
+  const idx = MONTHS_ORDER.indexOf(activeMonth);
   if(idx === -1) return [];
   const start = Math.max(0, idx - (count - 1));
   const keys = MONTHS_ORDER.slice(start, idx + 1);
