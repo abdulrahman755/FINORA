@@ -7421,10 +7421,17 @@ button:not(:disabled):active{transform:scale(.97)}
 
 .txlg-timeline{padding:0 var(--sp3) var(--sp2)}
 .txlg-buy-list{padding:0 var(--sp3) var(--sp2);display:flex;flex-direction:column}
-.txlg-buy-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 2px;border-bottom:1px solid var(--border)}
-.txlg-buy-row:last-child{border-bottom:0}
+.txlg-buy-row-wrap{position:relative;overflow:hidden;touch-action:pan-y;border-bottom:1px solid var(--border)}
+.txlg-buy-row-wrap:last-child{border-bottom:0}
+.txlg-buy-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 2px;background:var(--surface);position:relative;transition:transform var(--dur-fast,.15s) var(--ease-standard,ease)}
+.txlg-buy-row-wrap.txlg-buy-swiped .txlg-buy-row{transform:translateX(-44px)}
+[dir="rtl"] .txlg-buy-row-wrap.txlg-buy-swiped .txlg-buy-row{transform:translateX(44px)}
 .txlg-buy-name{min-width:0;flex:1;font-size:calc(13px*var(--app-text-scale,1));font-weight:700;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .txlg-buy-price{flex:none;font-size:calc(13px*var(--app-text-scale,1));font-weight:800;color:var(--orange);font-variant-numeric:tabular-nums}
+.txlg-buy-del{position:absolute;top:0;bottom:0;inset-inline-end:0;width:44px;background:none;border:none;color:var(--sub);cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity var(--dur-fast,.15s) var(--ease-standard,ease)}
+@media(hover:hover){ .txlg-buy-row-wrap:hover .txlg-buy-del{opacity:1;pointer-events:auto} }
+.txlg-buy-row-wrap.txlg-buy-swiped .txlg-buy-del{opacity:1;pointer-events:auto}
+.txlg-buy-del:active{color:var(--red)}
 .txlg-group-label{
   font-size:calc(9.5px*var(--app-text-scale,1));font-weight:900;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;
   padding:var(--s-2) var(--sp1) var(--s-half);
@@ -8282,6 +8289,36 @@ button.cx-sh-tap{width:100%;background:none;border:0;font-family:inherit;color:i
 .rq-modal .rq-stbtn{border-radius:var(--radius);box-shadow:var(--shadow-xs)}
 .rq-modal .bnk-custom-logo-row{background:var(--surface);border:1.5px dashed var(--border-strong);border-radius:var(--radius-sm);padding:10px}
 .rq-modal .modal-btns{margin-top:4px}
+
+/* ── Receipt modal v2: clearer, more premium (scoped to .rq-modal) ───────── */
+.rq-modal{gap:16px}
+.rq-modal .modal-hdr{padding-bottom:4px}
+.rq-sec{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-hero);padding:16px;box-shadow:var(--shadow-sm);position:relative;overflow:hidden}
+.rq-sec::before{content:"";position:absolute;inset-inline-start:0;top:14px;bottom:14px;width:3px;border-radius:0 3px 3px 0;background:linear-gradient(180deg,var(--green),var(--gold))}
+[dir="rtl"] .rq-sec::before{border-radius:3px 0 0 3px}
+.rq-sec-hdr{gap:10px;margin-bottom:14px;padding-bottom:12px;border-bottom:1px dashed var(--border)}
+.rq-sec-hdr svg{width:30px;height:30px;padding:7px;border-radius:10px;background:var(--green-tint);color:var(--green);box-sizing:border-box}
+.rq-sec-hdr span{font-size:calc(12.5px*var(--app-text-scale,1));letter-spacing:.5px;color:var(--text)}
+.rq-modal .field label{color:var(--sub);font-size:calc(10.5px*var(--app-text-scale,1))}
+.rq-modal .field input,.rq-modal .field textarea,.rq-modal .field select{background:var(--surface2);min-height:48px;box-shadow:none}
+.rq-modal .field input:focus,.rq-modal .field textarea:focus,.rq-modal .field select:focus{background:var(--surface)}
+.rq-selwrap{position:relative}
+.rq-selwrap::after{content:"";position:absolute;top:50%;inset-inline-end:16px;width:8px;height:8px;margin-top:-6px;border-right:2.5px solid var(--green);border-bottom:2.5px solid var(--green);transform:rotate(45deg);pointer-events:none}
+.rq-modal .rq-typesel{width:100%;padding-inline-end:40px;font-weight:700;color:var(--muted);cursor:pointer;text-overflow:ellipsis}
+.rq-modal .rq-typesel.has-val{color:var(--text);border-color:var(--green);background:var(--green-tint)}
+.rq-custom-wrap{margin-top:10px}
+.rq-sugg-panel{border:1px solid var(--border);border-radius:var(--radius);background:var(--surface2);overflow:hidden}
+.rq-sugg-panel-hdr{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 12px;font-size:calc(11.5px*var(--app-text-scale,1));font-weight:800;color:var(--text2);border-bottom:1px solid var(--border)}
+.rq-sugg-panel-hdr span{display:flex;align-items:center;gap:6px;min-width:0}
+.rq-sugg-panel-hdr svg{color:var(--green);flex-shrink:0}
+.rq-sugg-panel-hdr b{color:var(--green)}
+.rq-sugg-panel-hdr em{font-style:normal;min-width:22px;text-align:center;padding:2px 8px;border-radius:99px;background:var(--green-tint);color:var(--green);font-size:calc(11px*var(--app-text-scale,1))}
+.rq-sugg-panel-body{display:flex;flex-direction:column;gap:6px;padding:10px;max-height:240px;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.rq-modal .rq-sugg-panel .rq-sugg-chip{white-space:normal;text-align:start;border-radius:var(--radius-sm);padding:9px 12px;line-height:1.4;font-weight:600;background:var(--surface)}
+.rq-modal .rq-sugg-panel .rq-sugg-chip.added{background:var(--green-tint);border-color:var(--green);color:var(--green);opacity:.75}
+.rq-modal .rq-sugg-panel .rq-sugg-chip.added::before{content:"✓ "}
+.rq-sugg-hint{padding:0 12px 10px;font-size:calc(10.5px*var(--app-text-scale,1));color:var(--muted)}
+.rq-modal .rq-stbtn{min-height:60px}
 
 .at-status{min-height:15px;margin-top:4px;font-size:calc(11px*var(--app-text-scale,1));font-weight:600;color:var(--muted);display:flex;align-items:center;gap:5px}
 .at-status:empty{margin-top:0}
@@ -11363,7 +11400,7 @@ function renderReportsSheetCards(){
         <div class="rpt-sub">${L(c.subEN,c.subAR)}</div>
       </div>
       <svg class="rpt-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
-    </button>`).join('');
+    </button>`).join('') + (typeof _msrReportsCardHTML==='function' ? _msrReportsCardHTML() : '');
 }
 function openReportsSheet(){
   navCloseAll();
@@ -14342,6 +14379,102 @@ function _txlgItemName(raw){
   if(cutIdx>0) s=s.slice(0,cutIdx);
   s=s.trim().replace(/[،,.\-–]+$/,'').trim();
   return s||String(raw||'').trim();
+}
+// Which SmartDescriptionEngine categories count as an actual product
+// (food/drink/clothing) for "My Purchases" — shared by the collector below.
+const BUY_PURCHASE_CATEGORIES=['Food','Shopping'];
+// Collects every transaction, across ALL months on record (not just the
+// active one), that's both marked "Product purchase" (t.isProduct) and
+// classified under a product category — newest first (months walked
+// newest→oldest, each month's own transactions walked back-to-front) — then
+// dedupes by cleaned item name (_txlgItemName, case-insensitive), keeping
+// only the first (= most recent) hit for each name. Each surviving row
+// carries {monthKey, idx} so a swipe-delete on it can reach back into the
+// exact transaction it came from, even though it's being shown outside
+// that month's own page.
+function _buyCollectAllProducts(){
+  const rows=[];
+  const keys=(MONTHS_ORDER||[]).slice().reverse();
+  keys.forEach(mk=>{
+    const mm=DATA[mk];
+    if(!mm || !mm.transactions) return;
+    for(let i=mm.transactions.length-1;i>=0;i--){
+      const t=mm.transactions[i];
+      if(!t || !t.isProduct) continue;
+      const c=_aiaClassify(t).category;
+      const name=typeof c==='string' ? c : (c && c.en) || '';
+      if(!BUY_PURCHASE_CATEGORIES.includes(name)) continue;
+      rows.push({monthKey:mk, idx:i, t});
+    }
+  });
+  const seen=new Set();
+  const out=[];
+  for(const row of rows){
+    const name=_txlgItemName(row.t.notes)||'';
+    const key=name.toLowerCase();
+    if(seen.has(key)) continue;
+    seen.add(key);
+    out.push(row);
+  }
+  return out;
+}
+// Removes one item from My Purchases by un-marking it as a product on its
+// source transaction (not deleting the transaction/expense itself — the
+// spending record stays exactly as it was, it just stops showing up here).
+function _buyRemoveItem(monthKey, idx){
+  const mm=DATA[monthKey];
+  const t=mm && mm.transactions && mm.transactions[idx];
+  if(!t) return;
+  if(!canMutateMonth(monthKey)) return;
+  t.isProduct=false;
+  persistData();
+  showToast(L('Removed from My Purchases','اتشال من مشترياتي'), 'info');
+  renderView();
+}
+// Expand/collapse the My Purchases list — state remembered across re-renders
+// (this view re-renders on nearly every interaction) via localStorage, a
+// device-level display preference like theme/language, not month data.
+const BUY_FOLD_KEY='wdp_buy_collapsed_v1';
+function _buyIsCollapsed(){ try{ return localStorage.getItem(BUY_FOLD_KEY)==='1'; }catch(e){ return false; } }
+// Mirrors the existing .sc-collapse-chev/.sc-collapsible toggle used
+// elsewhere in this file (plain inline onclick on the header), just also
+// remembering the open/closed state in localStorage so it survives this
+// view's frequent re-renders instead of resetting open every time.
+function _buyToggleFold(headerEl){
+  const body=headerEl.nextElementSibling;
+  const chev=headerEl.querySelector('.sc-collapse-chev');
+  if(!body||!chev) return;
+  const open=body.classList.toggle('open');
+  chev.classList.toggle('open', open);
+  try{ localStorage.setItem(BUY_FOLD_KEY, open?'0':'1'); }catch(e){}
+}
+// Swipe-left-to-reveal-delete on a My Purchases row — same gesture/feel as
+// the Timeline's own swipe-to-delete, kept as a separate, simpler handler
+// (no long-press menu) since each row here can belong to a different month
+// than the one currently open, and carries its own {monthKey, idx} instead
+// of an index into DATA[activeMonth].
+let _buySwipe={active:false,startX:0,startY:0,wrap:null,moved:false};
+function _buyTouchStart(ev){
+  if(ev.touches && ev.touches.length>1) return;
+  const t=ev.touches[0];
+  const wrap=ev.currentTarget.closest('.txlg-buy-row-wrap');
+  _buySwipe={active:true, startX:t.clientX, startY:t.clientY, wrap, moved:false};
+}
+function _buyTouchMove(ev){
+  if(!_buySwipe.active) return;
+  const t=ev.touches[0];
+  const dx=t.clientX-_buySwipe.startX;
+  const dy=t.clientY-_buySwipe.startY;
+  if(Math.abs(dx)>8||Math.abs(dy)>8) _buySwipe.moved=true;
+  if(Math.abs(dx)>Math.abs(dy) && _buySwipe.wrap){
+    _buySwipe.wrap.classList.toggle('txlg-buy-swiped', dx<-30);
+  }
+}
+function _buyTouchEnd(){ _buySwipe.active=false; }
+function _buyTouchCancel(){ _buySwipe.active=false; }
+function _buyRowClick(ev){
+  const wrap=ev.currentTarget.closest('.txlg-buy-row-wrap');
+  if(wrap && wrap.classList.contains('txlg-buy-swiped')){ wrap.classList.remove('txlg-buy-swiped'); }
 }
 // Splits an fmtEGP()-style string ("1,234 EGP" / "1,234 ج.م") into an
 // amount span + a smaller currency-suffix span, for the kpi3 KPI cards.
@@ -24400,6 +24533,7 @@ function checkMonthlyReportReminder(){
 function checkPeriodicReminders(){
   checkWeeklyReportReminder();
   checkMonthlyReportReminder();
+  checkMonthEndSpendingReport();
 }
 
 function checkBackupReminder() {
@@ -27790,43 +27924,41 @@ function renderTransactions(m){
       return txFilterVariance==='under' ? diff>=0 : diff<0;
     });
 
-  // ── "My Purchases" (مشترياتي) — presentation-only: takes the already-
-  // filtered txns list (same search/period/variance filters as the Timeline
-  // below) and picks out only entries that are BOTH (a) explicitly marked
-  // with the "Product purchase" checkbox in the transaction form
-  // (t.isProduct) AND (b) auto-classified under the Food or Shopping
-  // category — i.e. an actual food/drink/clothing item, not a service
-  // (Transport, Utilities) or paperwork (Other) that happened to get the
-  // checkbox ticked too. Newest first, capped so a big month doesn't
-  // render an unbounded list.
-  const PURCHASES_CATEGORIES = ['Food','Shopping'];
+  // ── "My Purchases" (مشترياتي) — collapsible, aggregated across EVERY
+  // month on record (not scoped to the Timeline's current search/period
+  // filters below): every transaction marked "Product purchase" AND
+  // classified Food/Shopping, deduped by item name (repeats auto-dropped,
+  // most recent kept), newest first. See _buyCollectAllProducts above for
+  // the collection/dedupe logic. Capped so a long history doesn't render an
+  // unbounded list. Swipe a row left to reveal a delete button.
   const PURCHASES_CAP = 60;
-  const purchaseRowsAll = txns
-    .filter(t=>{
-      if(!t.isProduct) return false;
-      const c=_aiaClassify(t).category;
-      const name=typeof c==='string' ? c : (c && c.en) || '';
-      return PURCHASES_CATEGORIES.includes(name);
-    })
-    .slice()
-    .reverse();
+  const purchaseRowsAll = _buyCollectAllProducts();
   const purchaseRows = purchaseRowsAll.slice(0, PURCHASES_CAP);
-  const purchasesHTML = purchaseRows.length ? `
+  const buyOpen = !_buyIsCollapsed();
+  const purchasesHTML = purchaseRowsAll.length ? `
   <div class="sc-card sc-main">
-    <div class="sc-main-header" style="cursor:default">
+    <div class="sc-main-header" onclick="_buyToggleFold(this)">
       <div class="sc-main-title">${ic('shopping_bag',14)} ${L('My Purchases','مشترياتي')} <span style="font-size:calc(9px*var(--app-text-scale,1));font-weight:700;color:var(--muted);background:var(--surface);border:1px solid var(--border);padding:1px 7px;border-radius:99px">${purchaseRowsAll.length}</span></div>
+      <span class="sc-collapse-chev${buyOpen?' open':''}">›</span>
     </div>
+    <div class="sc-collapsible${buyOpen?' open':''}">
     <div class="txlg-buy-list">
-      ${purchaseRows.map(t=>`
-      <div class="txlg-buy-row">
-        <span class="txlg-buy-name">${esc(_txlgItemName(t.notes))||L('Untitled item','عنصر بدون اسم')}</span>
-        <span class="txlg-buy-price">${fmtEGP(t.payment)}</span>
+      ${purchaseRows.map(row=>`
+      <div class="txlg-buy-row-wrap"
+        ontouchstart="_buyTouchStart(event)" ontouchmove="_buyTouchMove(event)" ontouchend="_buyTouchEnd(event)" ontouchcancel="_buyTouchCancel(event)"
+        onclick="_buyRowClick(event)">
+        <div class="txlg-buy-row">
+          <span class="txlg-buy-name">${esc(_txlgItemName(row.t.notes))||L('Untitled item','عنصر بدون اسم')}</span>
+          <span class="txlg-buy-price">${fmtEGP(row.t.payment)}</span>
+        </div>
+        <button type="button" class="txlg-buy-del" onclick="event.stopPropagation();_buyRemoveItem('${esc(row.monthKey)}',${row.idx})" title="${L('Remove','حذف')}">${ic('trash',14)}</button>
       </div>`).join('')}
     </div>
     ${purchaseRowsAll.length>PURCHASES_CAP?`
     <div style="text-align:center;padding:10px var(--sp4);border-top:1px solid var(--border)">
       <span style="font-size:calc(11px*var(--app-text-scale,1));font-weight:700;color:var(--muted)">${L('Showing latest','يعرض الأحدث')} ${PURCHASES_CAP} ${L('of','من')} ${purchaseRowsAll.length}</span>
     </div>`:''}
+    </div>
   </div>` : '';
 
   const totalAll=all.reduce((s,t)=>s+(t.payment||0),0);
@@ -28453,17 +28585,34 @@ let _rqStatusSel='received';
 // stored/learned exactly like Company/Engineer/Model via _rqFieldOptions /
 // _rqLearnField under the 'irtype' key.
 const _RQ_IR_SUBTYPE_QUICK=[
-  {en:'Roof',ar:'سقف'},
-  {en:'Columns',ar:'أعمدة'},
-  {en:'Formwork – strengthening',ar:'نجارة تقويات'},
-  {en:'Formwork – placement',ar:'نجارة حطط'},
-  {en:'Formwork – foundations',ar:'نجارة قواعد'},
-  {en:'Rebar – columns',ar:'حدادة أعمدة'},
-  {en:'Rebar – roof 1st layer',ar:'حدادة رقة أولى سقف'},
-  {en:'Rebar – roof 2nd layer',ar:'حدادة رقة تانية'},
-  {en:'Rebar – reinforcements',ar:'حدادة مسلحات'},
-  {en:'Waterproofing / Insulation',ar:'عزل'}
+  {key:'column-reinforcement',  en:'Column Reinforcement',        ar:'حديد الأعمدة'},
+  {key:'column-formwork',       en:'Column Formwork',             ar:'نجارة الأعمدة'},
+  {key:'slab-reinforcement',    en:'Slab Reinforcement',          ar:'حديد السقف'},
+  {key:'beam-reinforcement',    en:'Beam Reinforcement',          ar:'حديد الكمرات'},
+  {key:'slab-formwork',         en:'Slab Formwork',               ar:'نجارة السقف'},
+  {key:'concrete-casting',      en:'Concrete Casting',            ar:'الصبة'},
+  {key:'column-casting',        en:'Column Casting',              ar:'صبة الأعمدة'},
+  {key:'slab-casting',          en:'Slab Casting',                ar:'صبة السقف'},
+  {key:'honeycomb-repair',      en:'Honeycomb / Concrete Repair', ar:'معالجة الخرسانة'},
+  {key:'slab-cleaning',         en:'Slab Cleaning',               ar:'نظافة السقف قبل الصب'},
+  {key:'waterproofing-membrane',en:'Waterproofing / Membrane',    ar:'الممبرين'},
+  {key:'cartonal',              en:'Cartonal',                    ar:'الكرتونال'},
+  {key:'first-coat',            en:'First Coat',                  ar:'الطرطشة / الطبقة الأولى'},
+  {key:'plaster-masonry',       en:'Plaster / Masonry',           ar:'المباني والمحارة'},
+  {key:'surveying-works',       en:'Surveying Works',             ar:'الأعمال المساحية'},
+  {key:'general-all-works',     en:'General / All Works',         ar:'تعليقات عامة'}
 ];
+// Resolves whatever text sits in the IR-type field (a picked chip, in
+// either language, or something the person typed/picked from history) to
+// the stable key _RQ_IR_SUBTYPE_COMMENTS is indexed by. Unmatched text
+// (a custom subtype the person typed themselves) returns null — comment
+// suggestions then fall back to just the "most important" list below.
+function _rqIrSubtypeKeyFromLabel(label){
+  const v=String(label||'').trim().toLowerCase();
+  if(!v) return null;
+  const hit=_RQ_IR_SUBTYPE_QUICK.find(o=>o.en.toLowerCase()===v||o.ar.toLowerCase()===v);
+  return hit?hit.key:null;
+}
 function _rqIsIrType(typeVal){ return String(typeVal||'').trim().toLowerCase()==='ir'; }
 const _RQ_TYPE_QUICK=[
   'CPP','CPR','IR',
@@ -28480,38 +28629,236 @@ const _RQ_COMMENT_SUGGESTIONS={
   cpr:[
     'Adjust civil follow IR comments',
     'Adjust strengthening under contractor responsibilities'
+  ]
+};
+// Always-relevant comments regardless of receipt type or IR sub-type —
+// shown first in every suggestions dropdown.
+const _RQ_MOST_IMPORTANT_COMMENTS=[
+  'Strengthening under Contractor’s responsibility.',
+  'Follow IR comments.',
+  'Ensure proper alignment and verticality.',
+  'Maintain specified concrete cover.',
+  'Execute works as per approved shop drawings and project specifications.'
+];
+// Per-IR-sub-type comment lists, keyed by the stable `key` in
+// _RQ_IR_SUBTYPE_QUICK (see _rqIrSubtypeKeyFromLabel above).
+const _RQ_IR_SUBTYPE_COMMENTS={
+  'column-reinforcement':[
+    'Ensure proper column reinforcement alignment.',
+    'Ensure proper spacing of reinforcement bars.',
+    'Ensure proper tying of reinforcement.',
+    'Increase tying at laps and connection joints.',
+    'Ensure specified lap length is maintained.',
+    'Ensure proper anchorage length.',
+    'Ensure specified concrete cover is maintained.',
+    'Ensure proper verticality of column starter bars.',
+    'Ensure proper position of column starter bars.',
+    'Ensure reinforcement is as per approved shop drawings.',
+    'Provide additional spacers as required.',
+    'Ensure reinforcement is clean and free from loose materials.'
   ],
-  ir:[
-    'Adjust strengthening for formwork',
-    'Adjust boundaries of slabs as per shop drawings',
-    'Adjust first layer increase tying',
-    'Adjust second layer up for first mesh',
-    'Adjust increase tying for additional rebars',
-    'Ensure maintaining concrete cover',
-    'Adjust increase for overlapping and connection joints',
-    'Form work adjust increase strengthening for form work',
-    'Adjust verticality of columns under contractor responsibility',
-    'First coat adjust treatment any honeycomb',
-    'Second coat adjust touch any messy',
-    'Membrane adjust ensure welding at joints and maintaining overlap as specifications'
+  'column-formwork':[
+    'Ensure column dimensions as per approved shop drawings.',
+    'Ensure proper column verticality.',
+    'Ensure proper alignment of column forms.',
+    'Increase column ties as required.',
+    'Maintain proper spacing between column ties.',
+    'Ensure adequate bracing and support.',
+    'Ensure formwork is rigid and stable.',
+    'Ensure proper sealing of formwork joints.',
+    'Ensure specified concrete cover is maintained.',
+    'Ensure column level is as per approved drawings.',
+    'Ensure formwork is properly cleaned before casting.',
+    'Ensure column starter bars are properly aligned and vertical.'
+  ],
+  'slab-reinforcement':[
+    'Adjust slab boundaries as per approved shop drawings.',
+    'Ensure proper reinforcement distribution.',
+    'Ensure specified spacing between reinforcement bars.',
+    'Increase tying of the first reinforcement mesh.',
+    'Increase tying of additional reinforcement bars.',
+    'Ensure proper distribution of beam reinforcement.',
+    'Ensure proper positioning of additional reinforcement.',
+    'Maintain specified concrete cover.',
+    'Ensure proper anchorage and development length.',
+    'Ensure reinforcement is properly secured against displacement.',
+    'Ensure reinforcement is as per approved shop drawings.',
+    'Provide additional spacers/chairs as required.',
+    'Ensure openings and embedded items are properly coordinated.'
+  ],
+  'beam-reinforcement':[
+    'Ensure proper beam reinforcement distribution.',
+    'Ensure specified spacing between stirrups.',
+    'Ensure proper positioning of additional reinforcement.',
+    'Ensure proper anchorage of beam reinforcement.',
+    'Ensure specified lap length is maintained.',
+    'Increase tying at laps and connection joints.',
+    'Ensure proper concrete cover.',
+    'Ensure stirrups are properly aligned and secured.',
+    'Ensure beam reinforcement is as per approved shop drawings.'
+  ],
+  'slab-formwork':[
+    'Ensure slab dimensions and levels as per approved shop drawings.',
+    'Ensure proper alignment and level of formwork.',
+    'Increase formwork strengthening as required.',
+    'Ensure adequate props and supports.',
+    'Ensure proper spacing between props.',
+    'Ensure proper bracing of formwork.',
+    'Ensure formwork is rigid and stable.',
+    'Ensure proper sealing of joints.',
+    'Ensure slab thickness is maintained.',
+    'Ensure required beam dimensions are maintained.',
+    'Ensure formwork is clean before casting.',
+    'Ensure proper camber where required.'
+  ],
+  'concrete-casting':[
+    'Use mechanical vibrator during concrete casting.',
+    'Alternative methods of compaction are not permitted.',
+    'Ensure proper vibration of concrete.',
+    'Avoid excessive vibration and segregation.',
+    'Maintain continuous and uniform concrete placement.',
+    'Ensure proper concrete cover during casting.',
+    'Prevent displacement of reinforcement during casting.',
+    'Ensure column starter bars remain vertical during casting.',
+    'Ensure proper concrete level during casting.',
+    'Ensure construction joints are treated as per specifications.',
+    'Ensure concrete is properly compacted around reinforcement.',
+    'Protect embedded items during casting.',
+    'Ensure proper curing after casting.'
+  ],
+  'column-casting':[
+    'Ensure column verticality during casting.',
+    'Ensure column starter bars remain vertical during casting.',
+    'Use mechanical vibrator during casting.',
+    'Alternative methods of compaction are not permitted.',
+    'Ensure proper vibration without segregation.',
+    'Prevent displacement of reinforcement during casting.',
+    'Ensure proper concrete level.',
+    'Ensure formwork remains stable during casting.',
+    'Monitor formwork for any movement or leakage during casting.'
+  ],
+  'slab-casting':[
+    'Ensure reinforcement is secured before casting.',
+    'Ensure specified concrete cover is maintained.',
+    'Use mechanical vibrator during casting.',
+    'Alternative methods of compaction are not permitted.',
+    'Ensure proper vibration and compaction.',
+    'Avoid concrete segregation.',
+    'Maintain required slab level during casting.',
+    'Ensure proper concrete distribution.',
+    'Prevent displacement of reinforcement during casting.',
+    'Ensure proper finishing and leveling of concrete.',
+    'Ensure proper curing after casting.'
+  ],
+  'honeycomb-repair':[
+    'Survey and identify all honeycombed areas.',
+    'Remove all loose and defective concrete.',
+    'Prepare the affected areas before treatment.',
+    'Treat honeycombed areas as per approved repair method.',
+    'Ensure proper bonding of repair material.',
+    'Repair works shall be under Contractor’s responsibility.'
+  ],
+  'slab-cleaning':[
+    'Ensure proper cleaning of the slab before casting.',
+    'Remove all debris and loose materials.',
+    'Remove excessive concrete and mortar residues.',
+    'Remove excess column necks above the required level.',
+    'Ensure slab surface is free from dust and debris.',
+    'Ensure formwork is clean before casting.'
+  ],
+  'waterproofing-membrane':[
+    'Ensure proper surface preparation before application.',
+    'Ensure proper welding of membrane joints.',
+    'Maintain required overlap as per specifications.',
+    'Ensure all joints are properly sealed.',
+    'Ensure membrane is free from damage and punctures.',
+    'Repair any damaged areas before proceeding.',
+    'Protect the membrane from damage during subsequent works.'
+  ],
+  'cartonal':[
+    'Ensure proper surface preparation.',
+    'Ensure proper welding of joints.',
+    'Maintain required overlap as per specifications.',
+    'Ensure all joints are properly sealed.',
+    'Ensure proper fixing and alignment.',
+    'Protect the material from damage during subsequent works.'
+  ],
+  'first-coat':[
+    'Ensure proper surface preparation.',
+    'Touch up all missing areas.',
+    'Ensure uniform coverage.',
+    'Ensure proper bonding with the substrate.',
+    'Ensure no loose or hollow areas.',
+    'Ensure proper curing as required.'
+  ],
+  'plaster-masonry':[
+    'Ensure proper line, level and verticality.',
+    'Maintain specified joint thickness.',
+    'Ensure proper bonding between blocks.',
+    'Ensure proper connection with structural elements.',
+    'Provide ties/anchors as per approved details.',
+    'Ensure openings and dimensions are as per approved shop drawings.',
+    'Ensure plaster thickness is maintained.',
+    'Ensure corners and edges are properly aligned.',
+    'Ensure proper surface preparation before plastering.'
+  ],
+  'surveying-works':[
+    'Surveying works shall be under the responsibility of the Surveying Office.',
+    'Ensure all levels are verified before proceeding.',
+    'Ensure proper setting out as per approved shop drawings.',
+    'Verify column locations and grid lines.',
+    'Verify slab levels and dimensions.',
+    'Verify column verticality and alignment.'
+  ],
+  'general-all-works':[
+    'Execute works as per approved shop drawings and project specifications.',
+    'Follow previous IR comments.',
+    'Rectify all outstanding comments prior to inspection.',
+    'All dimensions and levels shall be verified before proceeding.',
+    'Any required adjustment shall be under Contractor’s responsibility.',
+    'Works shall be completed to the Engineer’s satisfaction.',
+    'Ensure proper coordination with all relevant disciplines.'
   ]
 };
 // Custom comment suggestions the user has typed themselves (not from the
-// built-in list above), learned per receipt-type on save and persisted so
-// they show up as chips next time that type is picked. Keyed the same way
-// as _RQ_COMMENT_SUGGESTIONS (lowercased type text).
+// built-in lists above), learned per receipt-type — or per IR sub-type,
+// composite-keyed as "ir:<subtype-key>" — on save, and persisted so they
+// show up as chips next time that type/sub-type is picked.
 const _RQ_CUSTOM_SUGG_KEY='wdp_rq_custom_sugg_v1';
 let _rqCustomSugg={};
 try{ const _s=localStorage.getItem(_RQ_CUSTOM_SUGG_KEY); if(_s) _rqCustomSugg=JSON.parse(_s)||{}; }catch(e){_logErr('_rqCustomSugg:read',e);}
 function _rqPersistCustomSugg(){ try{ localStorage.setItem(_RQ_CUSTOM_SUGG_KEY,JSON.stringify(_rqCustomSugg)); }catch(e){ _logErr('_rqPersistCustomSugg',e); } }
-function _rqCommentSuggestionsFor(typeVal){
+// The composite key used to store/retrieve learned comments: for IR, keyed
+// by its resolved sub-type (or a generic bucket if the sub-type is custom
+// text that doesn't match any fixed one); for every other receipt type,
+// just the lowercased type text, same as before.
+function _rqSuggKey(typeVal,irTypeVal){
+  const k=String(typeVal||'').trim().toLowerCase();
+  if(k!=='ir') return k;
+  const subKey=_rqIrSubtypeKeyFromLabel(irTypeVal);
+  return 'ir:'+(subKey||'_generic');
+}
+function _rqCommentSuggestionsFor(typeVal,irTypeVal){
   const k=String(typeVal||'').trim().toLowerCase();
   if(!k) return [];
-  const builtin=_RQ_COMMENT_SUGGESTIONS[k]||[];
-  const custom=_rqCustomSugg[k]||[];
-  const seen=new Set(builtin.map(v=>v.toLowerCase()));
-  const extra=custom.filter(v=>!seen.has(v.toLowerCase()));
-  return [...builtin,...extra];
+  let builtin;
+  if(k==='ir'){
+    const subKey=_rqIrSubtypeKeyFromLabel(irTypeVal);
+    builtin=subKey?(_RQ_IR_SUBTYPE_COMMENTS[subKey]||[]):[];
+  }else{
+    builtin=_RQ_COMMENT_SUGGESTIONS[k]||[];
+  }
+  const suggKey=_rqSuggKey(typeVal,irTypeVal);
+  const custom=_rqCustomSugg[suggKey]||[];
+  const merged=[..._RQ_MOST_IMPORTANT_COMMENTS,...builtin,...custom];
+  const seen=new Set();
+  const out=[];
+  for(const v of merged){
+    const lk=v.toLowerCase();
+    if(seen.has(lk)) continue;
+    seen.add(lk); out.push(v);
+  }
+  return out;
 }
 // Pulls each bullet line out of the Notes textarea (stripping the leading
 // "• " and a trailing sentence period added by the auto-bullet typing
@@ -28552,18 +28899,19 @@ function _rqLearnField(field,val){
   _rqCustomFields[field].push(t);
   _rqPersistCustomFields();
 }
-function _rqLearnCommentSuggestions(typeVal,notesVal){
+function _rqLearnCommentSuggestions(typeVal,irTypeVal,notesVal){
   const k=String(typeVal||'').trim().toLowerCase();
   if(!k) return;
   const lines=_rqExtractNotesLines(notesVal);
   if(!lines.length) return;
-  const existing=_rqCommentSuggestionsFor(typeVal).map(v=>v.toLowerCase());
+  const suggKey=_rqSuggKey(typeVal,irTypeVal);
+  const existing=_rqCommentSuggestionsFor(typeVal,irTypeVal).map(v=>v.toLowerCase());
   const known=new Set(existing);
   let changed=false;
   for(const line of lines){
     if(known.has(line.toLowerCase())) continue;
     known.add(line.toLowerCase());
-    (_rqCustomSugg[k]=_rqCustomSugg[k]||[]).push(line);
+    (_rqCustomSugg[suggKey]=_rqCustomSugg[suggKey]||[]).push(line);
     changed=true;
   }
   if(changed) _rqPersistCustomSugg();
@@ -28863,11 +29211,12 @@ function openRequestModal(id){
         <div class="field"><label>${L('Plot No.','رقم القطعة')}</label><input type="text" id="rqPlot" dir="auto" autocomplete="off" value="${esc(r?.plot||'')}"></div>
       </div>
       <div class="field"><label>${L('Receipt type','نوع الاستلامة')}</label>
-        <input type="text" id="rqType" list="rqDlType" dir="auto" autocomplete="off" data-autotranslate="1" value="${esc(r?.type||'')}" oninput="_rqOnTypeInput()">${dl('rqDlType','type')}<div class="at-status" data-at-for="rqType"></div>
-        <div class="rq-sugg-row" id="rqTypeQuick">${_rqTypeQuickChipsHTML(uniq('type'))}</div></div>
-      <div class="field" id="rqIrTypeWrap" style="${_rqIsIrType(r?.type||'')?'':'display:none'}"><label>${L('IR type','نوع الـ IR')}</label>
-        <input type="text" id="rqIrType" list="rqDlIrType" dir="auto" autocomplete="off" value="${esc(r?.irType||'')}"><datalist id="rqDlIrType">${_rqFieldOptions('irtype',uniq('irType')).map(v=>`<option value="${esc(v)}"></option>`).join('')}</datalist>
-        <div class="rq-sugg-row" id="rqIrTypeQuick">${_rqIrSubtypeChipsHTML(uniq('irType'))}</div></div>
+        <div class="rq-selwrap"><select id="rqTypeSel" class="rq-typesel${_rqTypeSelInitial(r)?' has-val':''}" onchange="_rqTypeSelChange(this)">${_rqTypeSelectOptionsHTML(r,uniq('type'))}</select></div>
+        <div id="rqTypeCustomWrap" class="rq-custom-wrap" style="${_rqTypeSelInitial(r)==='_other'?'':'display:none'}">
+          <input type="text" id="rqType" list="rqDlType" dir="auto" autocomplete="off" data-autotranslate="1" placeholder="${L('Type the receipt type…','اكتب نوع الاستلامة…')}" value="${esc(r?.type||'')}" oninput="_rqOnTypeInput()">${dl('rqDlType','type')}<div class="at-status" data-at-for="rqType"></div>
+        </div></div>
+      <div class="field rq-custom-wrap" id="rqIrTypeWrap" style="${_rqTypeSelInitial(r)==='ir:_other'?'':'display:none'}"><label>${L('IR type','نوع الـ IR')}</label>
+        <input type="text" id="rqIrType" list="rqDlIrType" dir="auto" autocomplete="off" placeholder="${L('Type the IR work type…','اكتب نوع الشغل…')}" value="${esc(r?.irType||'')}" oninput="_rqRenderCommentSuggestions()"><datalist id="rqDlIrType">${_rqFieldOptions('irtype',uniq('irType')).map(v=>`<option value="${esc(v)}"></option>`).join('')}</datalist></div>
       <div class="field"><label>${L('Form / Model','النموذج')}</label>
         <input type="text" id="rqModel" list="rqDlModel" dir="auto" autocomplete="off" value="${esc(r?.model||'')}"><datalist id="rqDlModel">${_rqFieldOptions('model',uniq('model')).map(v=>`<option value="${esc(v)}"></option>`).join('')}</datalist></div>
     </div>
@@ -28888,7 +29237,70 @@ function openRequestModal(id){
     </div>`;
   document.getElementById('modalOverlay').style.display='flex';
   _bindBulletNotes(document.getElementById('rqNotes'));
+  document.getElementById('rqNotes')?.addEventListener('input',_rqMarkAddedComments);
   _rqRenderCommentSuggestions();
+}
+// ── Receipt type dropdown ────────────────────────────────────────────────
+// One grouped <select> replaces the free-text field + 18 chips. The stored
+// shape is unchanged: #rqType holds the type text ("IR", "CPP", custom…) and
+// #rqIrType holds the IR work type — the select just fills them in, so
+// saveRequest()/comment learning/cards keep working exactly as before.
+function _rqTypeSelInitial(r){
+  const t=String(r?.type||'').trim();
+  if(!t) return '';
+  if(_rqIsIrType(t)){
+    const sk=_rqIrSubtypeKeyFromLabel(r?.irType||'');
+    return sk?('ir:'+sk):'ir:_other';
+  }
+  const hit=_RQ_TYPE_QUICK.find(v=>v.toLowerCase()===t.toLowerCase());
+  return hit||'_other';
+}
+// (a custom/history-typed type opens as "Other…" with its text visible, so nothing is lost)
+function _rqTypeSelectOptionsHTML(r,historyVals){
+  const cur=_rqTypeSelInitial(r);
+  const o=(v,label)=>`<option value="${esc(v)}"${cur===v?' selected':''}>${esc(label)}</option>`;
+  const plain=_RQ_TYPE_QUICK.filter(v=>!_rqIsIrType(v));
+  const hasCur=r&&r.type&&cur==='_other';
+  return `<option value=""${cur===''?' selected':''}>${L('Select receipt type…','اختر نوع الاستلامة…')}</option>
+    <optgroup label="${L('Inspection Request (IR) — work','طلب فحص (IR) — نوع الشغل')}">
+      ${_RQ_IR_SUBTYPE_QUICK.map(x=>o('ir:'+x.key,'IR · '+L(x.en,x.ar))).join('')}
+      ${o('ir:_other','IR · '+L('Other work…','شغل آخر…'))}
+    </optgroup>
+    <optgroup label="${L('Requests & submittals','الطلبات والتسليمات')}">
+      ${plain.map(v=>o(v,v)).join('')}
+    </optgroup>
+    <optgroup label="${L('Other','أخرى')}">
+      ${o('_other',hasCur?String(r.type):L('Other…','نوع آخر…'))}
+    </optgroup>`;
+}
+function _rqTypeSelChange(sel){
+  const v=sel.value||'';
+  const typeInp=document.getElementById('rqType');
+  const irInp=document.getElementById('rqIrType');
+  const cw=document.getElementById('rqTypeCustomWrap');
+  const iw=document.getElementById('rqIrTypeWrap');
+  if(!typeInp||!irInp) return;
+  let showCustom=false, showIr=false;
+  if(v===''){ typeInp.value=''; irInp.value=''; }
+  else if(v==='ir:_other'){
+    typeInp.value='IR';
+    if(_rqIrSubtypeKeyFromLabel(irInp.value)) irInp.value='';
+    showIr=true;
+  }
+  else if(v.indexOf('ir:')===0){
+    const hit=_RQ_IR_SUBTYPE_QUICK.find(x=>'ir:'+x.key===v);
+    typeInp.value='IR';
+    irInp.value=hit?L(hit.en,hit.ar):'';
+  }
+  else if(v==='_other'){
+    typeInp.value=''; irInp.value=''; showCustom=true;
+  }
+  else { typeInp.value=v; irInp.value=''; }
+  if(cw) cw.style.display=showCustom?'':'none';
+  if(iw) iw.style.display=showIr?'':'none';
+  sel.classList.toggle('has-val',!!v);
+  _rqRenderCommentSuggestions();
+  if(showCustom) typeInp.focus(); else if(showIr) irInp.focus();
 }
 // Quick-pick chips for Receipt type: the fixed CPP/CPR/IR set plus any other
 // values the user has typed before (from history), deduped, fixed set first.
@@ -28916,7 +29328,8 @@ function _rqToggleIrTypeField(){
   const wrap=document.getElementById('rqIrTypeWrap');
   if(!wrap) return;
   const typeVal=document.getElementById('rqType')?.value||'';
-  wrap.style.display=_rqIsIrType(typeVal)?'':'none';
+  const selV=document.getElementById('rqTypeSel')?.value||'';
+  wrap.style.display=(selV==='ir:_other'||(selV==='_other'&&_rqIsIrType(typeVal)))?'':'none';
 }
 function _rqIrSubtypeChipsHTML(historyVals){
   const fixed=_RQ_IR_SUBTYPE_QUICK.map(o=>L(o.en,o.ar));
@@ -28930,6 +29343,7 @@ function _rqPickIrSubtype(v){
   const inp=document.getElementById('rqIrType');
   if(!inp) return;
   inp.value=v;
+  _rqRenderCommentSuggestions();
 }
 // Comment suggestions under Notes, as a dropdown — refreshed whenever the
 // Receipt type field changes. Picking an option appends it as a new bullet
@@ -28939,13 +29353,37 @@ function _rqRenderCommentSuggestions(){
   const host=document.getElementById('rqCommentSugg');
   if(!host) return;
   const typeVal=document.getElementById('rqType')?.value||'';
-  const list=_rqCommentSuggestionsFor(typeVal);
+  const irTypeVal=document.getElementById('rqIrType')?.value||'';
+  const list=_rqCommentSuggestionsFor(typeVal,irTypeVal);
   if(!list.length){ host.innerHTML=''; return; }
-  const opts=list.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('');
-  host.innerHTML=`<select class="rq-sugg-select" onchange="if(this.value){_rqAddComment(this.value);this.selectedIndex=0;}">
-    <option value="" selected>${L('+ Add suggested comment…','+ إضافة كومنت مقترح…')}</option>
-    ${opts}
-  </select>`;
+  const sk=_rqIrSubtypeKeyFromLabel(irTypeVal);
+  const hit=sk?_RQ_IR_SUBTYPE_QUICK.find(o=>o.key===sk):null;
+  const ctx=hit?L(hit.en,hit.ar):typeVal;
+  const chips=list.map((c,i)=>`<button type="button" class="rq-sugg-chip rq-cmt-chip" data-i="${i}" onclick="_rqTapComment(this)">${esc(c)}</button>`).join('');
+  host.innerHTML=`<div class="rq-sugg-panel">
+    <div class="rq-sugg-panel-hdr"><span>${ic('note',13)} ${L('Suggested comments','كومنتات مقترحة')}${ctx?` · <b>${esc(ctx)}</b>`:''}</span><em>${list.length}</em></div>
+    <div class="rq-sugg-panel-body">${chips}</div>
+    <div class="rq-sugg-hint">${L('Tap to add to notes','اضغط للإضافة في الملاحظات')}</div>
+  </div>`;
+  host._list=list;
+  _rqMarkAddedComments();
+}
+function _rqTapComment(btn){
+  const host=document.getElementById('rqCommentSugg');
+  const text=host&&host._list?host._list[+btn.dataset.i]:'';
+  if(!text) return;
+  if(btn.classList.contains('added')) return;
+  _rqAddComment(text);
+}
+function _rqMarkAddedComments(){
+  const host=document.getElementById('rqCommentSugg');
+  const ta=document.getElementById('rqNotes');
+  if(!host||!ta||!host._list) return;
+  const have=new Set(_rqExtractNotesLines(ta.value).map(v=>v.toLowerCase()));
+  host.querySelectorAll('.rq-cmt-chip').forEach(b=>{
+    const t=String(host._list[+b.dataset.i]||'').replace(/[.]$/,'').trim().toLowerCase();
+    b.classList.toggle('added',have.has(t));
+  });
 }
 function _rqAddComment(text){
   const ta=document.getElementById('rqNotes');
@@ -29012,7 +29450,7 @@ function saveRequest(){
     _rqPendingCoLogo=undefined;
   }
   const rec={company,engineer:g('rqEngineer'),date:g('rqDate')||today(),type:g('rqType'),plot:g('rqPlot'),model:g('rqModel'),irType:_rqIsIrType(g('rqType'))?g('rqIrType'):'',status:_rqStatusSel,notes:g('rqNotes')};
-  _rqLearnCommentSuggestions(rec.type,rec.notes);
+  _rqLearnCommentSuggestions(rec.type,rec.irType,rec.notes);
   _rqLearnField('company',rec.company);
   _rqLearnField('engineer',rec.engineer);
   _rqLearnField('model',rec.model);
@@ -37803,6 +38241,8 @@ function renderMonthlyReport(){
     </div>
   </div>`;
 
+  h+=`<button class="mr-export-btn" onclick="msrOpen('${mKey}')" style="width:100%;background:var(--green-tint);color:var(--green);margin-bottom:2px">${ic('chart',15)} ${L('Spending by category & saving tips','المصروفات حسب الفئة واقتراحات التوفير')}</button>`;
+
   if(!hasData){
     h+=`<div class="sc-card"><div style="text-align:center;padding:32px 20px">
       <div style="font-size:calc(36px*var(--app-text-scale,1));margin-bottom:10px">${ic('folder',34)}</div>
@@ -41074,6 +41514,435 @@ function _aiaRenderModalHTML(monthKey, dateStr){
 }
 // ══════════════════════════════════════════════════════════════════════════════
 // END AI FINANCIAL ASSISTANT V1
+// ══════════════════════════════════════════════════════════════════════════════
+
+// ══════════════════════════════════════════════════════════════════════════════
+// MONTH-END SPENDING REPORT (تقرير آخر الشهر)
+// 100% additive + offline. Reads the Daily page's transactions only (Site
+// expenses stay separate — same rule as the Monthly Report) and reuses
+// _aiaClassify() for categorisation, so old entries without a stored category
+// are classified live from their notes. Never writes to DATA.
+//   msrCompute(monthKey)      → per-category totals for one month
+//   _msrSuggestions(...)      → rule-based saving tips (bilingual)
+//   msrOpen(monthKey)         → bottom-sheet report (header "Month" picker included)
+// Delivered by checkMonthlyReportReminder() near month-end / month-start, and
+// reachable from the Monthly Report screen and the Reports sheet.
+// ══════════════════════════════════════════════════════════════════════════════
+const MSR_BUCKETS = {
+  transport: { icon:'bus',          color:'#2563eb', en:'Transport',         ar:'مواصلات' },
+  food:      { icon:'utensils',     color:'#ea580c', en:'Eating out',        ar:'أكل ومطاعم' },
+  groceries: { icon:'store',        color:'#16a34a', en:'Groceries',         ar:'بقالة' },
+  drinks:    { icon:'coffee_cup',   color:'#78350f', en:'Drinks & coffee',   ar:'مشروبات وقهوة' },
+  snacks:    { icon:'popcorn',      color:'#f97316', en:'Snacks',            ar:'سناكس' },
+  clothes:   { icon:'gem',          color:'#a21caf', en:'Clothes',           ar:'لبس' },
+  shopping:  { icon:'shopping_bag', color:'#db2777', en:'Shopping',          ar:'تسوق' },
+  health:    { icon:'heart',        color:'#dc2626', en:'Health',            ar:'صحة' },
+  fun:       { icon:'popcorn',      color:'#eab308', en:'Entertainment',     ar:'ترفيه' },
+  bills:     { icon:'electrical',   color:'#f59e0b', en:'Bills & utilities', ar:'فواتير ومرافق' },
+  home:      { icon:'site',         color:'#78716c', en:'Home',              ar:'سكن' },
+  care:      { icon:'sparkle',      color:'#be185d', en:'Personal care',     ar:'عناية شخصية' },
+  education: { icon:'grad',         color:'#2563eb', en:'Education',         ar:'تعليم' },
+  travel:    { icon:'plane',        color:'#0ea5e9', en:'Travel',            ar:'سفر' },
+  gifts:     { icon:'package',      color:'#ec4899', en:'Gifts & donations', ar:'هدايا وتبرعات' },
+  work:      { icon:'crane',        color:'#78716c', en:'Work & site',       ar:'شغل وموقع' },
+  other:     { icon:'items',        color:'#64748b', en:'Other',             ar:'أخرى' }
+};
+
+// Maps the SmartDescriptionEngine category/subcategory (English names) to a
+// report bucket. Anything unrecognised lands in "other" — never dropped, so the
+// report total always equals the Daily page's Spent total.
+function _msrBucketOf(cls){
+  const c = String((cls && cls.category) || '').trim().toLowerCase();
+  const s = String((cls && cls.subcategory) || '').trim().toLowerCase();
+  switch(c){
+    case 'transportation': return 'transport';
+    case 'food':
+      if(/drink|coffee|tea/.test(s)) return 'drinks';
+      if(/snack/.test(s))            return 'snacks';
+      if(/grocer/.test(s))           return 'groceries';
+      return 'food';
+    case 'shopping':
+      if(/cloth/.test(s))                return 'clothes';
+      if(/supermarket|retail/.test(s))   return 'groceries';
+      return 'shopping';
+    case 'health':            return 'health';
+    case 'entertainment':     return 'fun';
+    case 'utilities':         return 'bills';
+    case 'home':              return 'home';
+    case 'personal care':     return 'care';
+    case 'education':         return 'education';
+    case 'travel':            return 'travel';
+    case 'gifts & donations': return 'gifts';
+    case 'materials': case 'labor': case 'equipment': case 'tools': case 'office': return 'work';
+    default: return 'other';
+  }
+}
+
+function _msrDaysCounted(monthKey){
+  const MON = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+  const parts = String(monthKey||'').split('-');
+  const mi = MON.indexOf(parts[0]), yr = parseInt(parts[1],10);
+  if(mi<0 || isNaN(yr)) return 30;
+  const dim = new Date(yr, mi+1, 0).getDate();
+  const now = new Date();
+  return (now.getFullYear()===yr && now.getMonth()===mi) ? Math.max(1, now.getDate()) : dim;
+}
+
+function msrCompute(monthKey){
+  const txns = (DATA[monthKey] && DATA[monthKey].transactions) || [];
+  const buckets = {};
+  const small = {amount:0,count:0}, delivery = {amount:0,count:0}, rides = {amount:0,count:0};
+  let total = 0, count = 0;
+  for(let i=0;i<txns.length;i++){
+    const t = txns[i];
+    const amt = Number(t && t.payment) || 0;
+    if(amt <= 0) continue;
+    let cls = null;
+    try{ cls = _aiaClassify(t); }catch(e){ cls = null; }
+    const key = _msrBucketOf(cls);
+    const b = buckets[key] || (buckets[key] = {key:key, amount:0, count:0});
+    b.amount += amt; b.count++;
+    total += amt; count++;
+    if(amt <= 50){ small.amount += amt; small.count++; }
+    const note = String((t && t.notes) || '');
+    if(/طلبات|talabat|ديليفري|delivery|elmenus|توصيل أكل/i.test(note)){ delivery.amount += amt; delivery.count++; }
+    if(key==='transport' && /uber|أوبر|اوبر|كريم|careem|تاكسي|taxi|مشوار|indrive|إندرايف/i.test(note)){ rides.amount += amt; rides.count++; }
+  }
+  const list = Object.keys(buckets).map(k=>buckets[k]).sort((a,b)=>b.amount-a.amount);
+  list.forEach(b=>{ b.pct = total ? Math.round(b.amount/total*100) : 0; });
+  return { monthKey:monthKey, total:total, count:count, buckets:buckets, list:list,
+           small:small, delivery:delivery, rides:rides,
+           avgDaily: total/_msrDaysCounted(monthKey) };
+}
+
+function _msrName(key){ const m = MSR_BUCKETS[key] || MSR_BUCKETS.other; return L(m.en, m.ar); }
+
+// Rule-based saving tips. Every `saving` is a rough estimate built from the
+// reduction the sentence itself states (30% / half / etc.). Tips with
+// saving:null are observations and are NOT added to the potential-savings total.
+function _msrSuggestions(stat, prev){
+  const f   = n => fmtEGP(Math.round(n||0));
+  const B   = k => (stat.buckets[k] && stat.buckets[k].amount) || 0;
+  const N   = k => (stat.buckets[k] && stat.buckets[k].count)  || 0;
+  const sh  = k => stat.total ? Math.round(B(k)/stat.total*100) : 0;
+  const out = [];
+
+  // Drinks & coffee
+  if(B('drinks')>=150 && (sh('drinks')>=5 || N('drinks')>=8)){
+    const avg = B('drinks')/Math.max(1,N('drinks')), sav = B('drinks')*0.3;
+    out.push({icon:'target', color:'#0f7a55', saving:sav,
+      text: L(`Drinks & coffee took ${f(B('drinks'))} (${sh('drinks')}%) over ${N('drinks')} purchases, about ${f(avg)} each. Cutting 30% would save around ${f(sav)} a month.`,
+              `المشروبات والقهوة خدت ${f(B('drinks'))} (${sh('drinks')}%) في ${N('drinks')} مرة، يعني حوالي ${f(avg)} للمرة. لو نزّلتها 30% توفر حوالي ${f(sav)} في الشهر.`)});
+  }
+  // Online food orders
+  if(stat.delivery.amount>=150 || stat.delivery.count>=4){
+    const sav = stat.delivery.amount*0.25;
+    out.push({icon:'target', color:'#0f7a55', saving:sav,
+      text: L(`Food delivery cost ${f(stat.delivery.amount)} over ${stat.delivery.count} orders. Delivery and service fees add up — halving the orders and cooking or packing food at home would save about ${f(sav)}.`,
+              `طلبات الأكل أونلاين خدت ${f(stat.delivery.amount)} في ${stat.delivery.count} طلبات. الديليفري والخدمة بيزودوا على السعر — لو قللت الطلبات للنص وبدّلتها بأكل بيتي توفر حوالي ${f(sav)}.`)});
+  }
+  // Eating out (excluding delivery, already covered above)
+  const eatOut = Math.max(0, B('food') - stat.delivery.amount);
+  if(sh('food')>=20 && eatOut>=300){
+    const sav = eatOut*0.2;
+    out.push({icon:'target', color:'#0f7a55', saving:sav,
+      text: L(`Eating out took ${f(B('food'))} (${sh('food')}%). Swapping two meals a week for home food would save around ${f(sav)}.`,
+              `الأكل برة خد ${f(B('food'))} (${sh('food')}%). لو بدّلت وجبتين في الأسبوع بأكل بيتي توفر حوالي ${f(sav)}.`)});
+  }
+  // Transport
+  if(stat.rides.amount>=300 || (B('transport')>0 && stat.rides.amount>=150 && stat.rides.amount/B('transport')>=0.4)){
+    const sav = stat.rides.amount*0.25;
+    out.push({icon:'target', color:'#0f7a55', saving:sav,
+      text: L(`Taxi/ride-hailing cost ${f(stat.rides.amount)} over ${stat.rides.count} rides. Combining trips or taking the metro/microbus for some of them would save about ${f(sav)}.`,
+              `مشاوير التاكسي/أوبر خدت ${f(stat.rides.amount)} في ${stat.rides.count} مشاوير. لو جمّعت المشاوير أو بدّلت بعضها بمترو/ميكروباص توفر حوالي ${f(sav)}.`)});
+  } else if(sh('transport')>=15 && B('transport')>=400){
+    const sav = B('transport')*0.1;
+    out.push({icon:'target', color:'#0f7a55', saving:sav,
+      text: L(`Transport took ${f(B('transport'))} (${sh('transport')}%). Grouping errands into the same trip could save around ${f(sav)}.`,
+              `المواصلات خدت ${f(B('transport'))} (${sh('transport')}%). لو جمّعت مشاويرك في نفس الطريق توفر حوالي ${f(sav)}.`)});
+  }
+  // Clothes
+  if(B('clothes')>0 && (sh('clothes')>=10 || B('clothes')>=500)){
+    const sav = B('clothes')*0.3;
+    out.push({icon:'target', color:'#0f7a55', saving:sav,
+      text: L(`Clothes took ${f(B('clothes'))} (${sh('clothes')}%). Wait for sales and set a monthly cap for non-essentials — cutting 30% saves about ${f(sav)}.`,
+              `اللبس خد ${f(B('clothes'))} (${sh('clothes')}%). استنى العروض والأوكازيون وحط حد شهري للّبس غير الضروري — لو نزّلته 30% توفر حوالي ${f(sav)}.`)});
+  }
+  // Snacks
+  if(B('snacks')>=100 && (sh('snacks')>=3 || N('snacks')>=8)){
+    const sav = B('snacks')*0.5;
+    out.push({icon:'target', color:'#0f7a55', saving:sav,
+      text: L(`Snacks cost ${f(B('snacks'))} over ${N('snacks')} purchases — small buys that add up. Halving them saves about ${f(sav)}.`,
+              `السناكس خدت ${f(B('snacks'))} في ${N('snacks')} مرة — حاجات صغيرة بتتجمع. لو قللتها للنص توفر حوالي ${f(sav)}.`)});
+  }
+  // Entertainment
+  if(sh('fun')>=8 && B('fun')>=300){
+    const sav = B('fun')*0.2;
+    out.push({icon:'target', color:'#0f7a55', saving:sav,
+      text: L(`Entertainment took ${f(B('fun'))} (${sh('fun')}%). Set a fixed monthly amount and cancel subscriptions you don't use — about ${f(sav)} saved at 20% less.`,
+              `الترفيه خد ${f(B('fun'))} (${sh('fun')}%). حط مبلغ شهري ثابت والغي الاشتراكات اللي مش بتستخدمها — لو نزّلته 20% توفر حوالي ${f(sav)}.`)});
+  }
+
+  // Observations (not counted in the savings total)
+  if(prev && prev.total>0){
+    const spikes = [];
+    Object.keys(stat.buckets).forEach(k=>{
+      if(k==='work' || k==='other') return;
+      const cur = B(k), old = (prev.buckets[k] && prev.buckets[k].amount) || 0;
+      if(old>=100 && cur>=old*1.3 && cur-old>=150) spikes.push({k:k, cur:cur, old:old, d:cur-old});
+    });
+    spikes.sort((a,b)=>b.d-a.d).slice(0,2).forEach(s=>{
+      const p = Math.round((s.cur-s.old)/s.old*100);
+      out.push({icon:'trend_up', color:'#dc4f4f', saving:null,
+        text: L(`${_msrName(s.k)} is up ${p}% on last month (${f(s.old)} → ${f(s.cur)}). Check what changed — back at last month's level you'd keep ${f(s.d)}.`,
+                `${_msrName(s.k)} زاد ${p}% عن الشهر اللي فات (من ${f(s.old)} لـ ${f(s.cur)}). راجع إيه اللي اتغير — لو رجّعته لمستواه السابق توفر ${f(s.d)}.`)});
+    });
+  }
+  if(stat.small.count>=20 && stat.small.amount>=stat.total*0.05){
+    out.push({icon:'hint', color:'#c17d0a', saving:null,
+      text: L(`${stat.small.count} small purchases (50 or less) added up to ${f(stat.small.amount)}. Small amounts slip by unnoticed — worth a look.`,
+              `${stat.small.count} عملية صغيرة (50 أو أقل) مجموعها ${f(stat.small.amount)}. المبالغ الصغيرة بتعدّي من غير ما تحس — راجعها.`)});
+  }
+
+  out.sort((a,b)=>(b.saving||0)-(a.saving||0));
+  if(!out.length){
+    out.push({icon:'check', color:'#0f7a55', saving:null,
+      text: L('Nothing stands out as overspending this month. To save more, set a weekly cap on your top two categories and review it every Thursday.',
+              'مفيش فئة بتبرز كمصروف زيادة الشهر ده. لو عايز توفر أكتر، حط حد أسبوعي لأعلى فئتين وراجعه كل خميس.')});
+  }
+  return out.slice(0,6);
+}
+
+function _msrDefaultMonth(){
+  try{
+    const cur = _currentRealMonthKey();
+    if(new Date().getDate() <= 2){
+      const p = _calendarPrevMonthKey(cur);
+      if(p && DATA[p]) return p;
+    }
+    if(cur && DATA[cur]) return cur;
+  }catch(e){ _logErr('msrDefaultMonth', e); }
+  return activeMonth;
+}
+
+function _msrHTML(monthKey){
+  const stat = msrCompute(monthKey);
+  const pk   = _calendarPrevMonthKey(monthKey);
+  const prev = (pk && DATA[pk]) ? msrCompute(pk) : null;
+  const mName = MONTH_NAMES[monthKey] || monthKey;
+  const f = n => fmtEGP(Math.round(n||0));
+  const fs = (px) => `calc(${px}px*var(--app-text-scale,1))`;
+
+  let budget = 0;
+  try{ budget = (mrCompute(monthKey,'daily').budget) || 0; }catch(e){ budget = 0; }
+
+  const monthOpts = MONTHS_ORDER.map(k=>`<option value="${esc(k)}" ${k===monthKey?'selected':''}>${esc(MONTH_NAMES[k]||k)}</option>`).join('');
+  const chrome = `
+    <div class="bs-chrome">
+      <div class="ds-row-12">
+        <div style="width:36px;height:36px;border-radius:10px;background:#A97C1F;display:flex;align-items:center;justify-content:center;flex-shrink:0">${ic('chart',18)}</div>
+        <div style="min-width:0">
+          <div class="ds-title-sm">${L('Month-End Spending Report','تقرير آخر الشهر')}</div>
+          <div style="font-size:${fs(11)};color:var(--muted);margin-top:1px">${esc(mName)} · ${L('Daily page','صفحة اليومي')}</div>
+        </div>
+        <button class="sheet-close-btn sq" onclick="closeModal()" aria-label="${L('Close','إغلاق')}">${ic('close',16)}</button>
+      </div>
+    </div>`;
+  const footer = `
+    <div class="bs-footer">
+      <button class="bs-cancel-btn" onclick="closeModal()">${L('Close','إغلاق')}</button>
+    </div>`;
+  const picker = `
+    <select onchange="msrSetMonth(this.value)" aria-label="${L('Month','الشهر')}"
+      style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:10px;background:var(--surface2);color:var(--text);font-size:${fs(12)};font-weight:700;margin-bottom:12px">${monthOpts}</select>`;
+
+  if(!stat.total){
+    return chrome + `<div class="bs-body">${picker}
+      <div style="text-align:center;padding:28px 12px;color:var(--muted)">
+        <div style="margin-bottom:8px">${ic('chart',26)}</div>
+        <div style="font-size:${fs(13)};font-weight:800;color:var(--text);margin-bottom:4px">${L('No Daily spending recorded for this month','مفيش مصاريف يومية متسجلة للشهر ده')}</div>
+        <div style="font-size:${fs(12)};line-height:1.6">${L('Add transactions on the Daily page and the report will fill in.','سجّل معاملات في صفحة اليومي والتقرير هيتعبّى لوحده.')}</div>
+      </div></div>` + footer;
+  }
+
+  // ── Hero: total spent + change vs last month ────────────────────────────
+  let deltaLine = '';
+  if(prev && prev.total>0){
+    const d = Math.round((stat.total-prev.total)/prev.total*100);
+    if(Math.abs(d)<2) deltaLine = L('About the same as last month','تقريباً زي الشهر اللي فات');
+    else deltaLine = `<span style="color:${d>0?'#dc4f4f':'#0f7a55'};font-weight:800">${d>0?'▲':'▼'} ${Math.abs(d)}%</span> ${L('vs last month','عن الشهر اللي فات')} (${f(prev.total)})`;
+  }
+  let budgetLine = '';
+  if(budget>0){
+    budgetLine = stat.total>budget
+      ? `<span style="color:#dc4f4f;font-weight:800">${L('Over budget by','عديت الميزانية بـ')} ${f(stat.total-budget)}</span>`
+      : `<span style="color:#0f7a55;font-weight:800">${L('Within budget — left','في حدود الميزانية — فاضل')} ${f(budget-stat.total)}</span>`;
+  }
+  const top = stat.list[0];
+  const sec = (label, val) => `
+    <div style="flex:1;text-align:center;padding:10px 6px;min-width:0">
+      <div style="font-size:${fs(13)};font-weight:800;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${val}</div>
+      <div style="font-size:${fs(10)};color:var(--muted);font-weight:700;margin-top:2px">${label}</div>
+    </div>`;
+  const hero = `
+    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:6px">
+      <div style="padding:14px 14px 10px">
+        <div style="font-size:${fs(11)};color:var(--muted);font-weight:700;margin-bottom:2px">${L('Total spent','إجمالي المصروف')}</div>
+        <div style="font-size:${fs(26)};font-weight:900;color:var(--text);line-height:1.2">${f(stat.total)}</div>
+        ${deltaLine ? `<div style="font-size:${fs(12)};color:var(--sub);margin-top:6px">${deltaLine}</div>` : ''}
+        ${budgetLine ? `<div style="font-size:${fs(12)};margin-top:4px">${budgetLine}</div>` : ''}
+      </div>
+      <div style="display:flex;border-top:1px solid var(--border)">
+        ${sec(L('Per day','في اليوم'), f(stat.avgDaily))}
+        <div style="width:1px;background:var(--border)"></div>
+        ${sec(L('Purchases','عملية'), stat.count)}
+        <div style="width:1px;background:var(--border)"></div>
+        ${sec(L('Top category','أكبر فئة'), esc(_msrName(top.key)))}
+      </div>
+    </div>`;
+
+  // ── Category rows ───────────────────────────────────────────────────────
+  const chip = b => {
+    if(!prev || !prev.total) return '';
+    const p = (prev.buckets[b.key] && prev.buckets[b.key].amount) || 0;
+    if(!p) return `<span style="font-size:${fs(10)};font-weight:800;color:#c17d0a">${L('New','جديد')}</span>`;
+    const d = Math.round((b.amount-p)/p*100);
+    if(Math.abs(d)<5) return '';
+    return `<span style="font-size:${fs(10)};font-weight:800;color:${d>0?'#dc4f4f':'#0f7a55'}">${d>0?'▲':'▼'} ${Math.abs(d)}%</span>`;
+  };
+  const rows = stat.list.map(b=>{
+    const m = MSR_BUCKETS[b.key] || MSR_BUCKETS.other;
+    return `
+    <div style="padding:10px 0;border-bottom:1px solid var(--border)">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="width:34px;height:34px;border-radius:10px;background:${m.color}1a;color:${m.color};display:flex;align-items:center;justify-content:center;flex-shrink:0">${ic(m.icon,17)}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:${fs(13)};font-weight:800;color:var(--text)">${esc(L(m.en,m.ar))}</div>
+          <div style="font-size:${fs(10.5)};color:var(--muted);font-weight:600;margin-top:1px">${b.count} ${L('purchases','عملية')} · ${b.pct}%</div>
+        </div>
+        <div style="text-align:end;flex-shrink:0">
+          <div style="font-size:${fs(13)};font-weight:900;color:var(--text);white-space:nowrap">${f(b.amount)}</div>
+          <div style="margin-top:1px">${chip(b)}</div>
+        </div>
+      </div>
+      <div style="height:5px;border-radius:99px;background:var(--border);overflow:hidden;margin-top:8px">
+        <div style="height:100%;width:${Math.max(3,b.pct)}%;border-radius:99px;background:${m.color}"></div>
+      </div>
+    </div>`;
+  }).join('');
+
+  // ── Saving suggestions ──────────────────────────────────────────────────
+  const tips = _msrSuggestions(stat, prev);
+  const potential = Math.min(tips.reduce((s,t)=>s+(t.saving||0),0), stat.total*0.35);
+  const tipCards = tips.map(t=>`
+    <div style="display:flex;align-items:flex-start;gap:9px;padding:10px 11px;margin-bottom:7px;border-radius:10px;background:var(--surface2);border-inline-start:3px solid ${t.color}">
+      <span style="color:${t.color};flex-shrink:0;margin-top:1px">${ic(t.icon,14)}</span>
+      <div style="font-size:${fs(12)};color:var(--text);font-weight:600;line-height:1.6">${esc(t.text)}</div>
+    </div>`).join('');
+  const potentialBox = potential>=50 ? `
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;margin-bottom:10px;border-radius:10px;border:1px solid #0f7a5555;background:var(--surface)">
+      <div style="font-size:${fs(12)};font-weight:700;color:var(--sub)">${L('Possible monthly saving (rough estimate)','التوفير المحتمل في الشهر (تقدير تقريبي)')}</div>
+      <div style="font-size:${fs(15)};font-weight:900;color:#0f7a55;white-space:nowrap">${f(potential)}</div>
+    </div>` : '';
+  const sectionTitle = (icon,label) => `
+    <div style="font-size:${fs(11)};font-weight:800;color:var(--muted);margin:16px 0 8px;display:flex;align-items:center;gap:6px">${ic(icon,13)} ${label}</div>`;
+
+  return chrome + `
+    <div class="bs-body">
+      ${picker}
+      ${hero}
+      ${sectionTitle('chart', L('Where your money went','فلوسك راحت فين'))}
+      ${rows}
+      ${sectionTitle('hint', L('Saving suggestions','اقتراحات التوفير'))}
+      ${potentialBox}
+      ${tipCards}
+      <div style="font-size:${fs(10)};color:var(--muted);text-align:center;margin-top:14px;font-weight:600">${L('Based on Daily page entries only · Site expenses are separate · Categories come from your descriptions','من معاملات صفحة اليومي بس · مصاريف الموقع منفصلة · الفئات متحددة من وصف المعاملة')}</div>
+    </div>` + footer;
+}
+
+function msrOpen(monthKey){
+  try{
+    const key = (monthKey && DATA[monthKey]) ? monthKey : _msrDefaultMonth();
+    document.getElementById('modalContent').innerHTML = _msrHTML(key);
+    _sheetOpen();
+  }catch(e){
+    _logErr('msrOpen', e);
+    try{ showToast(L('Could not open the report','تعذّر فتح التقرير'),'error'); }catch(_){}
+  }
+}
+function msrSetMonth(v){
+  try{
+    if(!v || !DATA[v]) return;
+    document.getElementById('modalContent').innerHTML = _msrHTML(v);
+  }catch(e){ _logErr('msrSetMonth', e); }
+}
+
+// Headline numbers for the month-end notification card.
+function _msrNoticeBody(monthKey, stat, isFinal){
+  const f = n => fmtEGP(Math.round(n||0));
+  const mName = MONTH_NAMES[monthKey] || monthKey;
+  const top = stat.list[0];
+  const pct = top ? top.pct : 0, nm = top ? _msrName(top.key) : '';
+  return isFinal
+    ? L(`You spent ${f(stat.total)} in ${mName}. Biggest category: ${nm} (${pct}%). Open the report for the full breakdown and saving tips.`,
+        `صرفت ${f(stat.total)} في ${mName}. أكتر فئة: ${nm} (${pct}%). افتح التقرير تشوف التفاصيل واقتراحات التوفير.`)
+    : L(`You've spent ${f(stat.total)} so far in ${mName}. Biggest category: ${nm} (${pct}%). Open the report for the breakdown and saving tips.`,
+        `صرفت ${f(stat.total)} لحد دلوقتي في ${mName}. أكتر فئة: ${nm} (${pct}%). افتح التقرير تشوف التفاصيل واقتراحات التوفير.`);
+}
+
+// Entry card for the Reports sheet (same .rpt-card look as the other reports).
+function _msrReportsCardHTML(){
+  return `<button class="rpt-card" style="--rpt-accent:#0F7A55;--rpt-shadow:rgba(15,122,85,.35)" onclick="closeReportsSheet();msrOpen()">
+      <div class="rpt-icon">${ic('money',20)}</div>
+      <div class="rpt-text">
+        <div class="rpt-title">${L('Month-End Spending','تقرير آخر الشهر')}</div>
+        <div class="rpt-sub">${L('Spending by category & saving tips','المصروفات حسب الفئة واقتراحات التوفير')}</div>
+      </div>
+      <svg class="rpt-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
+    </button>`;
+}
+// ── Month-end spending report → bell notification ───────────────────────────
+// Its own card (id 'month-end-spending'), independent of the generic monthly
+// reminder. Window: the last 2 days of a month through the 5th of the next one.
+// Notification items live in memory only, so the card is rebuilt on every app
+// load inside the window and stays until the user opens it or taps Hide
+// (remembered per month in localStorage) — it never gets lost on reload.
+const MSR_DONE_KEY = 'msr_notif_done_v1';
+function msrNotifDone(monthKey){
+  try{ localStorage.setItem(MSR_DONE_KEY, monthKey); }catch(e){ _logErr('msrNotifDone',e); }
+  notifDismiss('month-end-spending');
+}
+function checkMonthEndSpendingReport(nowOverride){
+  try{
+    const now = nowOverride || new Date();
+    const lastDay = new Date(now.getFullYear(), now.getMonth()+1, 0).getDate();
+    const inClosingDays = now.getDate() >= lastDay-1;
+    const inNewMonth    = now.getDate() <= 5;
+    if(!inClosingDays && !inNewMonth) return;
+    const ABBR = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+    let rk = ABBR[now.getMonth()]+'-'+now.getFullYear();
+    if(inNewMonth && !inClosingDays) rk = _calendarPrevMonthKey(rk);
+    if(!rk || !DATA[rk]) return;
+    let done = ''; try{ done = localStorage.getItem(MSR_DONE_KEY) || ''; }catch(e){}
+    if(done === rk) return;
+    const st = msrCompute(rk);
+    if(st.total <= 0) return;
+    notifPush({
+      id:'month-end-spending',
+      icon: ic('chart',15),
+      iconBg:'linear-gradient(135deg,#A97C1F,#D4AF37)',
+      title: L('Month-End Spending Report','تقرير آخر الشهر'),
+      sub: MONTH_NAMES[rk] || rk,
+      body: _msrNoticeBody(rk, st, inNewMonth && !inClosingDays),
+      primaryLabel:`${ic('chart',12)} ${L('View Report','اعرض التقرير')}`,
+      primaryFn:`msrNotifDone('${rk}');msrOpen('${rk}');`,
+      secondaryLabel:L('Hide','إخفاء'),
+      secondaryFn:`msrNotifDone('${rk}')`
+    });
+  }catch(e){ _logErr('checkMonthEndSpendingReport',e); }
+}
+// ══════════════════════════════════════════════════════════════════════════════
+// END MONTH-END SPENDING REPORT
 // ══════════════════════════════════════════════════════════════════════════════
 
 // ══════════════════════════════════════════════════════════════════════
