@@ -233,9 +233,9 @@
      (Save, Add, tabs, chips, FAB-style icons) switch to a plain white
      outline pill instead of a filled brand-color button, same as X's
      Share/Edit Profile buttons. Light Mode above is untouched. */
-  --bg:#000000;--bg2:#000000;--surface:#0A0A0A;--surface2:#141414;--surface3:#1C1C1C;
-  --border:#2A2A2A;--border-strong:#3A3A3A;
-  --card-marble:#0A0A0A;
+  --bg:#101112;--bg2:#101112;--surface:#18191B;--surface2:#202124;--surface3:#26272A;
+  --border:rgba(255,255,255,.08);--border-strong:rgba(255,255,255,.14);
+  --card-marble:#18191B;
   /* --green-tint/--gold-tint are opaque light-pastel hex in Light Mode
      (#E3F2EA/#FAF1D8), meant to sit on a white page. Left unset here they'd
      inherit that same opaque value and show up as a glaring cream/white box
@@ -257,13 +257,13 @@
 
   /* Text — pure white primary, muted-gray secondary/tertiary. No warm
      ivory/sage tint. */
-  --text:#FFFFFF;--text2:#E5E5E5;--sub:#A8A8A8;--muted:#8A8A8A;
-  --desc-color:#E5E5E5;
+  --text:#F5F5F5;--text2:#E0E0E2;--sub:#A7A7AA;--muted:#737579;
+  --desc-color:#E0E0E2;
 
   /* Shadows — neutral black, kept light since surfaces are now true black. */
-  --shadow-xs:0 1px 3px rgba(0,0,0,.34);
-  --shadow-sm:0 4px 14px rgba(0,0,0,.32);
-  --shadow-md:0 12px 32px rgba(0,0,0,.38);
+  --shadow-xs:none;
+  --shadow-sm:0 2px 8px rgba(0,0,0,.18);
+  --shadow-md:0 8px 24px rgba(0,0,0,.28);
   --shadow-lg:0 24px 58px rgba(0,0,0,.46);
   --shadow-xl:0 32px 80px rgba(0,0,0,.54);
 }
@@ -912,7 +912,8 @@ button:disabled{opacity:.5;cursor:not-allowed;pointer-events:none}
   transform:translateZ(0);will-change:transform;
   display:flex;flex-direction:column;align-items:stretch;gap:var(--s-1);
 }
-[data-theme="dark"] .app-header{background:rgba(15,32,24,.94)}
+[data-theme="dark"] .app-header{background:var(--bg);backdrop-filter:none;-webkit-backdrop-filter:none;border-bottom:1px solid var(--border);border-radius:0;box-shadow:none}
+[data-theme="dark"] .app-header::after{display:none}
 .app-header::after{
   content:'';position:absolute;left:0;right:0;bottom:0;height:2px;
   background:linear-gradient(90deg,var(--green),var(--gold));opacity:.5;
@@ -1111,7 +1112,12 @@ button:disabled{opacity:.5;cursor:not-allowed;pointer-events:none}
      bar shadow. */
   box-shadow:0 -1px 0 var(--gold-glow),var(--shadow-lg);
 }
-[data-theme="dark"] .bottom-nav{background:rgba(15,32,24,0.94)}
+[data-theme="dark"] .bottom-nav{background:var(--surface);backdrop-filter:none;-webkit-backdrop-filter:none;border-top:1px solid var(--border);border-radius:0;box-shadow:none}
+[data-theme="dark"] .nav-btn.active{background:none;color:var(--green-light)}
+[data-theme="dark"] .nav-btn.active::after{background:var(--green-light);width:14px;height:2px}
+[data-theme="dark"] .nav-home-icon-wrap{width:48px;height:48px;border-radius:16px;background:var(--green);box-shadow:0 0 0 4px var(--surface)}
+[data-theme="dark"] .nav-btn-home{margin-top:-18px}
+[data-theme="dark"] .nav-btn-home span{color:var(--green-light)}
 /* Dashboard/home anchor — squircle instead of a plain circle (matches the
    app's new, less-bubbly radius language) with a thin gold edge ring in
    addition to the emerald gradient fill, so the one deliberately-raised
@@ -7877,7 +7883,7 @@ html.wdash-sheet-lock,html.wdash-sheet-lock body{overflow:hidden}
 .wdash-wrap.dv3-dark-v2 .dfp-hero-v2.dv3-hero{min-height:0;border-color:var(--border);box-shadow:var(--shadow-xs);border-radius:var(--radius);transition:none}
 .wdash-wrap.dv3-dark-v2 .dfp-hero-v2.dv3-hero:hover{transform:none;box-shadow:var(--shadow-xs)}
 .wdash-wrap.dv3-dark-v2 .dfp-hero-v2.dv3-hero:active{transform:none}
-.wdash-wrap.dv3-dark-v2 .dfp-hero-v2.dv3-hero::before{display:block;content:"";position:absolute;top:0;inset-inline-start:var(--sp4);width:28px;height:3px;background:var(--green);border-radius:0 0 3px 3px}
+.wdash-wrap.dv3-dark-v2 .dfp-hero-v2.dv3-hero::before{display:block;content:"";filter:none;inset-inline-end:auto;position:absolute;top:0;inset-inline-start:var(--sp4);width:28px;height:3px;background:var(--green);border-radius:0 0 3px 3px}
 .wdash-wrap.dv3-dark-v2 .dv3-hero .dv3-hero-inner{padding:var(--sp4) var(--sp4) var(--sp3)}
 .wdash-wrap.dv3-dark-v2 .dash-hero-head{margin-bottom:var(--sp2)}
 .wdash-wrap.dv3-dark-v2 .dash-hero-eyebrow{font-weight:600;opacity:.85}
@@ -7978,6 +7984,9 @@ html.wdash-sheet-lock,html.wdash-sheet-lock body{overflow:hidden}
 .notes-edge-label{font-weight:600;transition:max-width .32s cubic-bezier(.22,1,.36,1),opacity .24s ease .06s,margin .32s cubic-bezier(.22,1,.36,1)}
 .notes-edge-tab.armed .notes-edge-label,.notes-edge-tab.open .notes-edge-label{max-width:56px;opacity:1;margin-inline-start:var(--sp2)}
 @media(prefers-reduced-motion:reduce){.notes-edge-tab,.notes-edge-label{transition:none}}
+/* Dark QA: list shares the hero/KPI surface level; AI icon gold readable on dark */
+[data-theme="dark"] .wdash-apps{background:var(--surface3)}
+[data-theme="dark"] .wdash-tile[data-cardid="sysintel"] .wdash-tile-ico{--tc-d:var(--gold-light)}
 /* ── 4) Small-screen density pass — 16px → 12px between stacked cards.
    Scoped to the two containers that actually stack whole cards vertically
    (.screen-wrap and the dashboard's .wdash-section); nothing inside a
@@ -8456,6 +8465,47 @@ button.cx-sh-tap{width:100%;background:none;border:0;font-family:inherit;color:i
 @media (prefers-reduced-motion:reduce){
   .cx-entry,.cx-lbody,.cx-chev,.cx-act,.cx-save{transition:none}
 }
+
+/* ── FINORA Dark Mode — premium refinement (scoped to [data-theme="dark"]; Light untouched) ──
+   Surface hierarchy over borders/shadows; brand green = accent, not surface. */
+/* My Savings — Net Worth hero */
+[data-theme="dark"] .fin-hero-card{background:var(--surface);border:1px solid var(--border);box-shadow:none;padding:20px 18px 18px}
+[data-theme="dark"] .fin-hero-card::before{display:none}
+[data-theme="dark"] .fin-hero-icon{background:var(--surface2);color:var(--sub)}
+[data-theme="dark"] .fin-hero-label{color:var(--sub);letter-spacing:1px}
+[data-theme="dark"] .fin-hero-amount{font-size:calc(34px*var(--app-text-scale,1));margin-top:12px}
+/* Summary cards: semantic color only in amount/icon; Assets neutral */
+[data-theme="dark"] .fin-card{box-shadow:none}
+[data-theme="dark"] .fin-card:hover{transform:none;box-shadow:none;border-color:var(--border-strong)}
+[data-theme="dark"] .fin-card-title{color:var(--sub)}
+[data-theme="dark"] .fin-secondary-grid .fin-card:nth-child(3){--fc:var(--sub)!important;--fc-tint:var(--surface2)!important}
+/* Quick Actions: Income primary, Outcome/Transfer secondary, rest tertiary */
+[data-theme="dark"] .fin-qa-row .fin-qa-chip{min-height:34px;box-shadow:none;font-weight:700;background:transparent;color:var(--sub);border:1px solid var(--border)}
+[data-theme="dark"] .fin-qa-row .fin-qa-chip:nth-child(1){background:var(--green);border-color:var(--green);color:#fff;font-weight:800}
+[data-theme="dark"] .fin-qa-row .fin-qa-chip:nth-child(2),
+[data-theme="dark"] .fin-qa-row .fin-qa-chip:nth-child(3){background:var(--surface2);border-color:var(--border-strong);color:var(--text)}
+[data-theme="dark"] .fin-qa-row .fin-qa-chip:nth-child(2) svg{color:var(--red)}
+[data-theme="dark"] .fin-qa-row .fin-qa-chip:nth-child(3) svg{color:var(--sub)}
+/* Site Custody */
+[data-theme="dark"] .cx-hero{box-shadow:none}
+[data-theme="dark"] .cx-act{border-color:var(--border-strong);background:transparent}
+[data-theme="dark"] .cx-act.dep{background:var(--green);border-color:var(--green);color:#fff}
+/* My Requests: 1px card, status carried by pill/avatar instead of a colored edge */
+[data-theme="dark"] .rq-card{border-inline-start:1px solid var(--border);box-shadow:none;padding:18px 18px 10px}
+[data-theme="dark"] .rq-card:hover{transform:none;box-shadow:none}
+[data-theme="dark"] .rq-stat{border-width:1px;box-shadow:none}
+[data-theme="dark"] .rq-grid{border-top-color:var(--divider,rgba(255,255,255,.06));gap:16px 14px}
+[data-theme="dark"] .rq-grid dd{font-weight:600}
+[data-theme="dark"] .rq-notes{border-inline-start-width:2px;background:var(--surface2)}
+[data-theme="dark"] .rq-foot{border-top-color:rgba(255,255,255,.06)}
+/* Banks */
+[data-theme="dark"] .banks-v2 .bnk-hero{background:var(--surface);border:1px solid var(--border);box-shadow:none}
+[data-theme="dark"] .banks-v2 .bnk-hero::before{display:none}
+[data-theme="dark"] .banks-v2 .bnk-card{box-shadow:none}
+[data-theme="dark"] .banks-v2 .bnk-card-badge:not([style*="green-tint"]){background:var(--surface2)!important;color:var(--sub)!important}
+/* Notes edge tab: readable "open" state on dark */
+[data-theme="dark"] .notes-edge-tab{box-shadow:none}
+[data-theme="dark"] .notes-edge-tab.open{color:var(--green-light)}
 </style>
 <script>
 // Suppress cross-origin Script errors (in-app browsers like TikTok/Instagram)
