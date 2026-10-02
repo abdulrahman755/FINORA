@@ -7918,6 +7918,66 @@ html.wdash-sheet-lock,html.wdash-sheet-lock body{overflow:hidden}
 /* Header + notes tab: lighter weight, same structure/behaviour */
 .header-searchbar{background:var(--surface);box-shadow:none;font-weight:500}
 .notes-edge-tab{box-shadow:none;opacity:.85}
+/* ══ FINORA — Premium Visual Refinement (visual only · solid colors · existing tokens) ══ */
+/* Hero: the balance is the loudest thing; everything around it is quieter */
+.wdash-wrap.dv3-dark-v2 .dfp-hero-v2.dv3-hero{border-color:var(--border);box-shadow:none}
+.wdash-wrap.dv3-dark-v2 .dfp-hero-v2.dv3-hero:hover{box-shadow:none}
+.wdash-wrap.dv3-dark-v2 .dv3-hero .dv3-hero-inner{padding:var(--sp5) var(--sp4) var(--sp4)}
+.wdash-wrap.dv3-dark-v2 .dash-hero-main-val{font-size:calc(42px*var(--app-text-scale,1));font-weight:700;letter-spacing:-1.4px}
+.wdash-wrap.dv3-dark-v2 .dash-hero-main-lbl{margin-bottom:var(--sp2)}
+.wdash-wrap.dv3-dark-v2 .dv3h-stat-row{margin-top:var(--sp4);padding-top:var(--sp3)}
+.wdash-wrap.dv3-dark-v2 .dv3h-stat-lbl{font-weight:500;opacity:.9}
+.wdash-wrap.dv3-dark-v2 .dv3h-stat-val{font-size:calc(12.5px*var(--app-text-scale,1));font-weight:500}
+.wdash-wrap.dv3-dark-v2 .dv3h-stat-val.up,.wdash-wrap.dv3-dark-v2 .dv3h-stat-val.down{font-weight:500}
+@media(max-width:430px){.wdash-wrap.dv3-dark-v2 .dash-hero-main-val{font-size:calc(34px*var(--app-text-scale,1))}.wdash-wrap.dv3-dark-v2 .dv3h-stat-val{font-size:calc(12px*var(--app-text-scale,1))}}
+@media(max-width:360px){.wdash-wrap.dv3-dark-v2 .dash-hero-main-val{font-size:calc(28px*var(--app-text-scale,1))}}
+/* Summary: one quiet surface with hairlines instead of four separate cards */
+.wdash-wrap.dv3-dark-v2 > .dv3-kpi-row{gap:0;margin:0 0 var(--sp3);background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+[data-theme="dark"] .wdash-wrap.dv3-dark-v2 > .dv3-kpi-row{background:var(--surface3)}
+.wdash-wrap.dv3-dark-v2 > .dv3-kpi-row .dfp-kpi3-card,[data-theme="dark"] .wdash-wrap.dv3-dark-v2 > .dv3-kpi-row .dfp-kpi3-card{background:transparent!important;border:0;border-radius:0;min-height:56px;padding:var(--sp3)}
+.wdash-wrap.dv3-dark-v2 > .dv3-kpi-row .dfp-kpi3-card:nth-child(odd){border-inline-end:1px solid var(--border)}
+.wdash-wrap.dv3-dark-v2 > .dv3-kpi-row .dfp-kpi3-card:nth-child(-n+2){border-bottom:1px solid var(--border)}
+.wdash-wrap.dv3-dark-v2 > .dv3-kpi-row .dfp-kpi3-card:hover{background:var(--surface2)!important}
+.wdash-wrap.dv3-dark-v2 .dfp-kpi3-icon{width:24px;height:24px}
+.wdash-wrap.dv3-dark-v2 .dfp-kpi3-icon svg{width:13px;height:13px}
+.wdash-wrap.dv3-dark-v2 .dv3-kpi-text{gap:2px}
+.wdash-wrap.dv3-dark-v2 .dfp-kpi3-lbl{font-size:calc(8.5px*var(--app-text-scale,1));font-weight:500;letter-spacing:.5px;opacity:.9}
+.wdash-wrap.dv3-dark-v2 .dfp-kpi3-val{font-size:calc(15px*var(--app-text-scale,1));font-weight:700;letter-spacing:-.2px}
+/* Quick actions: neutral label, green icon (meaning lives in the pages they open) */
+.wdash-wrap.dv3-dark-v2 .fp-qa-ico{color:var(--green)!important}
+.wdash-wrap.dv3-dark-v2 .fp-qa-label{color:var(--text2)!important;font-weight:500}
+/* Dashboard list: icons green / neutral, no tint boxes competing with text */
+.wdash-tile-ico{background:var(--surface2);color:var(--tc,var(--tc-d))}
+.wdash-tile[data-cardid="sysintel"] .wdash-tile-ico{background:color-mix(in srgb,var(--gold) 10%,transparent)}
+.wdash-tile-lbl{font-weight:500}
+/* Dashboard modules (inside the sheet): hairline borders, thin accent, clearer type */
+.wdash-sheet-panel{box-shadow:0 -4px 24px rgba(0,0,0,.14);border-radius:var(--radius) var(--radius) 0 0}
+.wdash-sheet-hdr{position:relative;padding:var(--sp2) var(--sp4) var(--sp3)}
+.wdash-sheet-hdr::after{content:"";position:absolute;bottom:-1px;inset-inline-start:var(--sp4);width:28px;height:2px;background:var(--green)}
+.wdash-sheet-title{font-size:calc(15px*var(--app-text-scale,1));font-weight:700;letter-spacing:-.1px}
+.wdash-sheet-body .sc-card{border-color:var(--border);box-shadow:none}
+.wdash-sheet-body .sc-card[onclick]:hover{box-shadow:none}
+.wdash-sheet-body .dfp-card-title{font-size:calc(11px*var(--app-text-scale,1));font-weight:600;letter-spacing:.6px;text-transform:uppercase;color:var(--muted)}
+/* Bottom nav: quieter, flat, subtle active state — same buttons, same handlers */
+.bottom-nav{backdrop-filter:none;-webkit-backdrop-filter:none;border-top:1px solid var(--border);box-shadow:none;border-radius:var(--radius) var(--radius) 0 0}
+.bottom-nav .nav-btn.active{background:none}
+.bottom-nav .nav-btn.active::after{background:var(--green);width:4px;height:4px;top:auto;bottom:1px}
+.bottom-nav .nav-btn .nav-icon{opacity:.55}
+.bottom-nav .nav-btn.active .nav-icon{transform:none;stroke-width:2}
+.bottom-nav .nav-btn span{font-weight:500}
+.bottom-nav .nav-btn.active span{font-weight:600}
+.nav-btn-home{margin-top:-10px;margin-inline:var(--sp1)}
+.nav-home-icon-wrap{width:44px;height:44px;border-radius:14px;background:var(--green);box-shadow:none}
+.nav-btn-home .nav-icon{width:21px;height:21px}
+.nav-btn-home span{font-weight:600}
+.bottom-nav .nav-btn-home.active::after{display:none!important}
+/* Notes edge tab: tiny neutral icon → morphs to "Notes" → opens */
+.notes-edge-tab{height:36px;min-width:36px;padding:0 10px;justify-content:center;border-radius:10px 0 0 10px;background:var(--surface);color:var(--muted);box-shadow:none;opacity:.8;transition:min-width .32s cubic-bezier(.22,1,.36,1),padding .32s cubic-bezier(.22,1,.36,1),opacity .2s ease,color .2s ease}
+.notes-edge-tab svg{width:16px;height:16px;flex-shrink:0}
+.notes-edge-tab.armed,.notes-edge-tab.open{min-width:88px;padding:0 12px;opacity:1;color:var(--text2);border-color:var(--border-strong,var(--border))}
+.notes-edge-label{font-weight:600;transition:max-width .32s cubic-bezier(.22,1,.36,1),opacity .24s ease .06s,margin .32s cubic-bezier(.22,1,.36,1)}
+.notes-edge-tab.armed .notes-edge-label,.notes-edge-tab.open .notes-edge-label{max-width:56px;opacity:1;margin-inline-start:var(--sp2)}
+@media(prefers-reduced-motion:reduce){.notes-edge-tab,.notes-edge-label{transition:none}}
 /* ── 4) Small-screen density pass — 16px → 12px between stacked cards.
    Scoped to the two containers that actually stack whole cards vertically
    (.screen-wrap and the dashboard's .wdash-section); nothing inside a
@@ -9021,7 +9081,7 @@ function fpInitSmartHeader(){
        word "Notes" while that sheet is open, then springs back to icon-only
        the moment it's closed (see closeNotesModal()). Independent of the
        nav/FAB — pure presentation, its own tiny localStorage-backed list. -->
-  <button type="button" class="notes-edge-tab" id="notesEdgeTab" onclick="toggleNotesModal()" aria-label="Notes" title="Notes" data-i18n-attr="title,aria-label" data-i18n-title-en="Notes" data-i18n-title-ar="ملاحظات" data-i18n-aria-label-en="Notes" data-i18n-aria-label-ar="ملاحظات">
+  <button type="button" class="notes-edge-tab" id="notesEdgeTab" onclick="notesEdgeTap()" aria-label="Notes" title="Notes" data-i18n-attr="title,aria-label" data-i18n-title-en="Notes" data-i18n-title-ar="ملاحظات" data-i18n-aria-label-en="Notes" data-i18n-aria-label-ar="ملاحظات">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/><path d="M15.5 6.5l2 2-5.4 5.4-2.6.6.6-2.6z"/></svg>
     <span class="notes-edge-label" id="notesEdgeLabel" data-i18n-en="Notes" data-i18n-ar="ملاحظات">Notes</span>
   </button>
@@ -34957,6 +35017,24 @@ function closeNotesModal(){
   document.getElementById('notesPageOverlay').style.display = 'none';
   const tab = document.getElementById('notesEdgeTab');
   if(tab) tab.classList.remove('open');
+}
+// Edge tab, two-step: tap 1 morphs the small icon into "Notes" (auto-relaxes
+// after 3.5s), tap 2 opens the page, tap 3 (page open) closes it and the tab
+// returns to the small icon. open/close/toggle themselves are unchanged.
+let _notesArmTimer = null;
+function notesEdgeTap(){
+  const tab = document.getElementById('notesEdgeTab');
+  const overlay = document.getElementById('notesPageOverlay');
+  const isOpen = overlay && overlay.style.display !== 'none' && overlay.style.display !== '';
+  clearTimeout(_notesArmTimer);
+  if(isOpen){ if(tab) tab.classList.remove('armed'); closeNotesModal(); return; }
+  if(tab && !tab.classList.contains('armed')){
+    tab.classList.add('armed');
+    _notesArmTimer = setTimeout(function(){ tab.classList.remove('armed'); }, 3500);
+    return;
+  }
+  if(tab) tab.classList.remove('armed');
+  openNotesModal();
 }
 function toggleNotesModal(){
   const overlay = document.getElementById('notesPageOverlay');
