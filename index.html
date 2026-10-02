@@ -6142,19 +6142,6 @@ button:not(:disabled):active{transform:scale(.97)}
    to the same 12px rhythm used everywhere else in this dashboard. */
 
 /* ── Dashboard icon-grid launcher + sheet ───────────────────────────────── */
-.wdash-apps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:20px 6px;padding:20px 2px 10px}
-@media(max-width:340px){.wdash-apps{grid-template-columns:repeat(3,minmax(0,1fr))}}
-@media(min-width:700px){.wdash-apps{grid-template-columns:repeat(6,minmax(0,1fr))}}
-.wdash-tile{display:flex;flex-direction:column;align-items:center;gap:7px;min-width:0;padding:0;border:0;background:none;font-family:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
-.wdash-tile-ico{width:62px;height:62px;border-radius:20px;display:flex;align-items:center;justify-content:center;color:#fff;
-  background:var(--tc);box-shadow:0 8px 18px rgba(0,0,0,.16);
-  background:linear-gradient(150deg,color-mix(in srgb,var(--tc) 72%,#fff) 0%,var(--tc) 52%,color-mix(in srgb,var(--tc) 78%,#000) 100%);
-  box-shadow:0 8px 18px color-mix(in srgb,var(--tc) 34%,transparent),inset 0 1px 0 rgba(255,255,255,.38);
-  transition:transform .15s ease,box-shadow .15s ease}
-.wdash-tile:active .wdash-tile-ico{transform:scale(.9)}
-.wdash-tile:focus-visible .wdash-tile-ico{outline:3px solid var(--green-glow);outline-offset:3px}
-.wdash-tile-lbl{max-width:100%;font-size:calc(11px*var(--app-text-scale,1));font-weight:800;line-height:1.25;color:var(--text);text-align:center;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.wdash-tile-sum{max-width:100%;font-size:calc(9.5px*var(--app-text-scale,1));font-weight:700;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 /* Off-screen but still laid out, so charts keep a real width before opening */
 .wdash-vault{position:absolute;inset-inline-start:-10000px;top:0;width:min(100vw,960px);height:0;overflow:hidden;visibility:hidden;pointer-events:none}
 .wdash-sheet{position:fixed;inset:0;z-index:500;display:flex;align-items:flex-end;justify-content:center;visibility:hidden;pointer-events:none}
@@ -6165,15 +6152,16 @@ button:not(:disabled):active{transform:scale(.97)}
 .wdash-sheet.open .wdash-sheet-panel{transform:translateY(0)}
 .wdash-sheet-grab{width:42px;height:5px;border-radius:99px;background:var(--border-strong,var(--border));margin:9px auto 2px;flex-shrink:0}
 .wdash-sheet-hdr{display:flex;align-items:center;gap:10px;padding:8px 14px 12px;border-bottom:1px solid var(--border);flex-shrink:0}
-.wdash-sheet-ico{width:38px;height:38px;border-radius:12px;display:flex;align-items:center;justify-content:center;color:#fff;background:var(--tc,var(--green));flex-shrink:0}
-.wdash-sheet-ico svg{width:20px;height:20px}
+.wdash-sheet-ico{width:34px;height:34px;border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;color:var(--tc,var(--green));background:color-mix(in srgb,var(--tc,var(--green)) 12%,transparent);flex-shrink:0}
+.wdash-sheet-ico.gold{color:var(--tc,var(--gold-dark,var(--gold)))}
+.wdash-sheet-ico svg{width:18px;height:18px}
 .wdash-sheet-title{flex:1;min-width:0;font-size:calc(16px*var(--app-text-scale,1));font-weight:900;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .wdash-sheet-body.wdash-wrap{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:14px 12px calc(24px + env(safe-area-inset-bottom));max-width:none;margin:0;animation:none!important}
 .wdash-sheet-body .wdash-section{background:transparent!important;border:0!important;box-shadow:none!important;padding:0!important;margin:0!important}
 .wdash-sheet-body .wdash-section-head{display:none}
 .wdash-sheet-body .wdash-foldable .wdash-fold-body{max-height:none;opacity:1;overflow:visible;margin-top:0}
 html.wdash-sheet-lock,html.wdash-sheet-lock body{overflow:hidden}
-@media(prefers-reduced-motion:reduce){.wdash-sheet-panel,.wdash-sheet-bg,.wdash-tile-ico{transition:none}}
+@media(prefers-reduced-motion:reduce){.wdash-sheet-panel,.wdash-sheet-bg{transition:none}}
 .dv3-more-divider{
   display:flex;align-items:center;gap:var(--sp3);
   margin:22px 4px 12px;
@@ -7884,6 +7872,52 @@ html.wdash-sheet-lock,html.wdash-sheet-lock body{overflow:hidden}
 .fp-qa-btn:active{transform:scale(.95)}
 .fp-qa-label{font-size:calc(11.5px*var(--app-text-scale,1));font-weight:800;letter-spacing:-.1px;text-align:center;line-height:1.2}
 
+/* ══ FINORA Dashboard — calm premium pass (visual only, solid colors, existing tokens) ══ */
+.wdash-wrap.dv3-dark-v2 > .dv3-hero-standalone{margin-bottom:var(--sp3)}
+.wdash-wrap.dv3-dark-v2 .dfp-hero-v2.dv3-hero{min-height:0;border-color:var(--border);box-shadow:var(--shadow-xs);border-radius:var(--radius);transition:none}
+.wdash-wrap.dv3-dark-v2 .dfp-hero-v2.dv3-hero:hover{transform:none;box-shadow:var(--shadow-xs)}
+.wdash-wrap.dv3-dark-v2 .dfp-hero-v2.dv3-hero:active{transform:none}
+.wdash-wrap.dv3-dark-v2 .dfp-hero-v2.dv3-hero::before{display:block;content:"";position:absolute;top:0;inset-inline-start:var(--sp4);width:28px;height:3px;background:var(--green);border-radius:0 0 3px 3px}
+.wdash-wrap.dv3-dark-v2 .dv3-hero .dv3-hero-inner{padding:var(--sp4) var(--sp4) var(--sp3)}
+.wdash-wrap.dv3-dark-v2 .dash-hero-head{margin-bottom:var(--sp2)}
+.wdash-wrap.dv3-dark-v2 .dash-hero-eyebrow{font-weight:600;opacity:.85}
+.wdash-wrap.dv3-dark-v2 .dash-hero-main-lbl{font-size:calc(10px*var(--app-text-scale,1));font-weight:600;letter-spacing:.9px;text-transform:uppercase;margin-bottom:var(--sp1)}
+.wdash-wrap.dv3-dark-v2 .dash-hero-main-val{font-weight:700;letter-spacing:-1.2px}
+.wdash-wrap.dv3-dark-v2 .dv3h-stat-row{width:100%;display:grid;grid-template-columns:repeat(3,minmax(0,auto));justify-content:space-between;gap:var(--sp2);margin-top:var(--sp3);padding-top:var(--sp3)}
+.wdash-wrap.dv3-dark-v2 .dv3h-stat-lbl{font-size:calc(9px*var(--app-text-scale,1));letter-spacing:.7px;font-weight:600}
+.wdash-wrap.dv3-dark-v2 .dv3h-stat-val{font-size:calc(13px*var(--app-text-scale,1));font-weight:600}
+.wdash-wrap.dv3-dark-v2 > .dv3-kpi-row{margin:0 0 var(--sp3);gap:var(--sp2)}
+.wdash-wrap.dv3-dark-v2 .dfp-kpi3-card{min-height:60px;max-height:none;padding:var(--sp2) var(--sp3);box-shadow:none;border-color:var(--border);gap:var(--sp2)}
+.wdash-wrap.dv3-dark-v2 .dfp-kpi3-card:hover{transform:none;box-shadow:none}
+.wdash-wrap.dv3-dark-v2 .dfp-kpi3-card:active{transform:none}
+.wdash-wrap.dv3-dark-v2 .dfp-kpi3-icon{width:28px;height:28px;border-radius:var(--radius-xs)}
+.wdash-wrap.dv3-dark-v2 .dfp-kpi3-icon svg{width:15px;height:15px}
+.wdash-wrap.dv3-dark-v2 .dfp-kpi3-lbl{font-weight:600;letter-spacing:.4px}
+.wdash-wrap.dv3-dark-v2 .dfp-kpi3-val{font-weight:800}
+.wdash-wrap.dv3-dark-v2 .fp-qa-row{gap:var(--sp2);margin:0 0 var(--sp5)}
+.wdash-wrap.dv3-dark-v2 .fp-qa-btn{min-height:40px;padding:var(--sp2) var(--sp1);gap:var(--sp1);box-shadow:none;border-color:var(--border);border-radius:var(--radius-sm)}
+.wdash-wrap.dv3-dark-v2 .fp-qa-btn:hover{box-shadow:none}
+.wdash-wrap.dv3-dark-v2 .fp-qa-ico{display:inline-flex;flex-shrink:0}
+.wdash-wrap.dv3-dark-v2 .fp-qa-label{font-weight:600;letter-spacing:0}
+/* Shortcut utility list: one quiet surface, 2 columns, hairline separators, monochrome */
+.wdash-apps-title{font-size:calc(10px*var(--app-text-scale,1));font-weight:600;letter-spacing:.9px;text-transform:uppercase;color:var(--muted);margin:0 var(--sp1) var(--sp2)}
+.wdash-apps{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:none}
+.wdash-tile{display:flex;align-items:center;gap:var(--sp3);min-width:0;min-height:56px;padding:var(--sp2) var(--sp3);border:0;border-bottom:1px solid var(--border);background:transparent;font-family:inherit;text-align:start;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background-color .15s ease}
+.wdash-tile:nth-child(odd){border-inline-end:1px solid var(--border)}
+.wdash-tile:last-child{border-bottom:0}
+.wdash-tile:nth-last-child(2):nth-child(odd){border-bottom:0}
+.wdash-tile:last-child:nth-child(odd){grid-column:1/-1;border-inline-end:0}
+.wdash-tile:active{background:var(--surface2)}
+.wdash-tile:focus-visible{outline:2px solid var(--green);outline-offset:-2px}
+.wdash-tile-ico{--tc-d:var(--green);width:28px;height:28px;flex-shrink:0;display:flex;align-items:center;justify-content:center;border-radius:var(--radius-xs);color:var(--tc,var(--tc-d));background:color-mix(in srgb,var(--tc,var(--tc-d)) 10%,transparent)}
+.wdash-tile[data-cardid="sysintel"] .wdash-tile-ico{--tc-d:var(--gold-dark,var(--gold))}
+.wdash-tile-txt{display:flex;flex-direction:column;gap:2px;min-width:0}
+.wdash-tile-lbl{font-size:calc(12.5px*var(--app-text-scale,1));font-weight:600;line-height:1.25;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.wdash-tile-sum{font-size:calc(10.5px*var(--app-text-scale,1));font-weight:500;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums}
+.wdash-tile-sum.neg{color:var(--danger)}
+/* Header + notes tab: lighter weight, same structure/behaviour */
+.header-searchbar{background:var(--surface);box-shadow:none;font-weight:500}
+.notes-edge-tab{box-shadow:none;opacity:.85}
 /* ── 4) Small-screen density pass — 16px → 12px between stacked cards.
    Scoped to the two containers that actually stack whole cards vertically
    (.screen-wrap and the dashboard's .wdash-section); nothing inside a
@@ -13935,17 +13969,17 @@ function renderWorkspaceDashboard(m){
     : '';
 
   const quickActionsHtml = canFinance ? fpRenderQuickActionsStrip() : '';
-  const appsHtml = tiles ? `<div class="wdash-apps" role="group" aria-label="${L('Dashboards','اللوحات')}">${tiles}</div>` : '';
+  const appsHtml = tiles ? `<div class="wdash-apps-title">${L('Dashboards','اللوحات')}</div><div class="wdash-apps" role="group" aria-label="${L('Dashboards','اللوحات')}">${tiles}</div>` : '';
   return `<div class="wdash-wrap dv3-dark-v2">${manageBar}${heroHtml}${quickActionsHtml}${appsHtml}<div class="wdash-vault" aria-hidden="true" inert>${body}</div></div>`;
 }
 
 // ── Icon-grid launcher + dashboard sheet (presentation-only) ───────────────
 function wdashTile(c){
-  const col = _wdashCardColor(c.id) || WDASH_CARD_DEFAULT_COLORS[c.id] || (c.id==='charts'?'#0e7490':'#0f7a55');
-  const sum = c.summary ? `<span class="wdash-tile-sum">${c.summary}</span>` : '';
-  return `<button type="button" class="wdash-tile" data-cardid="${c.id}" style="--tc:${col}" onclick="wdashSheetOpen('${c.id}')">
-    <span class="wdash-tile-ico">${ic(c.icon, 28, 'aria-hidden="true"')}</span>
-    <span class="wdash-tile-lbl">${c.label}</span>${sum}
+  const custom = _wdashCardColor(c.id);
+  const sum = c.summary ? `<span class="wdash-tile-sum${String(c.summary).trim().charAt(0)==='-'?' neg':''}">${c.summary}</span>` : '';
+  return `<button type="button" class="wdash-tile" data-cardid="${c.id}"${custom?` style="--tc:${custom}"`:''} onclick="wdashSheetOpen('${c.id}')">
+    <span class="wdash-tile-ico">${ic(c.icon, 16, 'aria-hidden="true"')}</span>
+    <span class="wdash-tile-txt"><span class="wdash-tile-lbl">${c.label}</span>${sum}</span>
   </button>`;
 }
 let _wdashSheetId = null;
@@ -13979,7 +14013,8 @@ function _wdashSheetHeader(id){
   const ttl = document.getElementById('wdashSheetTitle');
   if(!tile || !ico || !ttl) return;
   ico.innerHTML = tile.querySelector('.wdash-tile-ico').innerHTML;
-  ico.style.setProperty('--tc', tile.style.getPropertyValue('--tc'));
+  ico.className = 'wdash-sheet-ico' + (id==='sysintel' ? ' gold' : '');
+  if(tile.style.getPropertyValue('--tc')) ico.style.setProperty('--tc', tile.style.getPropertyValue('--tc')); else ico.style.removeProperty('--tc');
   ttl.textContent = tile.querySelector('.wdash-tile-lbl').textContent;
 }
 function _wdashSheetRefreshCharts(){
@@ -14068,7 +14103,7 @@ function fpRenderQuickActionsStrip(){
   ];
   return `<div class="fp-qa-row" role="group" aria-label="${L('Quick Actions','إجراءات سريعة')}">
     ${items.map(it=>`<button type="button" class="fp-qa-btn" onclick="fpQaGo('${it.action}')">
-      <span class="fp-qa-label" style="color:${it.color}">${it.label}</span>
+      <span class="fp-qa-ico" style="color:${it.color}">${ic(it.icon,14,'aria-hidden="true"')}</span><span class="fp-qa-label" style="color:${it.color}">${it.label}</span>
     </button>`).join('')}
   </div>`;
 }
