@@ -6140,6 +6140,40 @@ button:not(:disabled):active{transform:scale(.97)}
    Commit 3: top margin trimmed 18px→14px (was the single largest empty
    gap on the page, per Task 5 — Section Density); bottom margin matched
    to the same 12px rhythm used everywhere else in this dashboard. */
+
+/* ── Dashboard icon-grid launcher + sheet ───────────────────────────────── */
+.wdash-apps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:20px 6px;padding:20px 2px 10px}
+@media(max-width:340px){.wdash-apps{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(min-width:700px){.wdash-apps{grid-template-columns:repeat(6,minmax(0,1fr))}}
+.wdash-tile{display:flex;flex-direction:column;align-items:center;gap:7px;min-width:0;padding:0;border:0;background:none;font-family:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.wdash-tile-ico{width:62px;height:62px;border-radius:20px;display:flex;align-items:center;justify-content:center;color:#fff;
+  background:var(--tc);box-shadow:0 8px 18px rgba(0,0,0,.16);
+  background:linear-gradient(150deg,color-mix(in srgb,var(--tc) 72%,#fff) 0%,var(--tc) 52%,color-mix(in srgb,var(--tc) 78%,#000) 100%);
+  box-shadow:0 8px 18px color-mix(in srgb,var(--tc) 34%,transparent),inset 0 1px 0 rgba(255,255,255,.38);
+  transition:transform .15s ease,box-shadow .15s ease}
+.wdash-tile:active .wdash-tile-ico{transform:scale(.9)}
+.wdash-tile:focus-visible .wdash-tile-ico{outline:3px solid var(--green-glow);outline-offset:3px}
+.wdash-tile-lbl{max-width:100%;font-size:calc(11px*var(--app-text-scale,1));font-weight:800;line-height:1.25;color:var(--text);text-align:center;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.wdash-tile-sum{max-width:100%;font-size:calc(9.5px*var(--app-text-scale,1));font-weight:700;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* Off-screen but still laid out, so charts keep a real width before opening */
+.wdash-vault{position:absolute;inset-inline-start:-10000px;top:0;width:min(100vw,960px);height:0;overflow:hidden;visibility:hidden;pointer-events:none}
+.wdash-sheet{position:fixed;inset:0;z-index:500;display:flex;align-items:flex-end;justify-content:center;visibility:hidden;pointer-events:none}
+.wdash-sheet.open{visibility:visible;pointer-events:auto}
+.wdash-sheet-bg{position:absolute;inset:0;background:rgba(0,0,0,.5);opacity:0;transition:opacity .22s ease;-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}
+.wdash-sheet.open .wdash-sheet-bg{opacity:1}
+.wdash-sheet-panel{position:relative;width:100%;max-width:760px;height:92vh;height:92dvh;display:flex;flex-direction:column;background:var(--bg,var(--surface));border-radius:26px 26px 0 0;box-shadow:0 -12px 40px rgba(0,0,0,.25);transform:translateY(100%);transition:transform .28s cubic-bezier(.22,1,.36,1)}
+.wdash-sheet.open .wdash-sheet-panel{transform:translateY(0)}
+.wdash-sheet-grab{width:42px;height:5px;border-radius:99px;background:var(--border-strong,var(--border));margin:9px auto 2px;flex-shrink:0}
+.wdash-sheet-hdr{display:flex;align-items:center;gap:10px;padding:8px 14px 12px;border-bottom:1px solid var(--border);flex-shrink:0}
+.wdash-sheet-ico{width:38px;height:38px;border-radius:12px;display:flex;align-items:center;justify-content:center;color:#fff;background:var(--tc,var(--green));flex-shrink:0}
+.wdash-sheet-ico svg{width:20px;height:20px}
+.wdash-sheet-title{flex:1;min-width:0;font-size:calc(16px*var(--app-text-scale,1));font-weight:900;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wdash-sheet-body.wdash-wrap{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:14px 12px calc(24px + env(safe-area-inset-bottom));max-width:none;margin:0;animation:none!important}
+.wdash-sheet-body .wdash-section{background:transparent!important;border:0!important;box-shadow:none!important;padding:0!important;margin:0!important}
+.wdash-sheet-body .wdash-section-head{display:none}
+.wdash-sheet-body .wdash-foldable .wdash-fold-body{max-height:none;opacity:1;overflow:visible;margin-top:0}
+html.wdash-sheet-lock,html.wdash-sheet-lock body{overflow:hidden}
+@media(prefers-reduced-motion:reduce){.wdash-sheet-panel,.wdash-sheet-bg,.wdash-tile-ico{transition:none}}
 .dv3-more-divider{
   display:flex;align-items:center;gap:var(--sp3);
   margin:22px 4px 12px;
@@ -11524,6 +11558,7 @@ function renderView(preserveScroll){
     else if(currentView==='reportsdash') _html=renderReportsDashboard();
     c.innerHTML=_html;
     if(currentView==='wsdash') try{ DashboardLazy.observeAll(); }catch(e){_logErr('renderView:DashboardLazy',e);}
+    try{ wdashSheetSync(); }catch(e){_logErr('renderView:wdashSheetSync',e);}
     if(preserveScroll) requestAnimationFrame(function(){ window.scrollTo(0,_preservedScrollY); });
     try{ renderHeaderExtraActions(); }catch(e){_logErr('renderView:renderHeaderExtraActions',e);}
     // Budget entry is now discoverable via the Target KPI card itself
@@ -13883,12 +13918,15 @@ function renderWorkspaceDashboard(m){
   // clearly secondary "Analytics" section below the fold. Still tied to
   // position, not a specific card id, so it still makes sense after a user
   // reorders or hides cards. */
+  // Icon-grid home (app-launcher style): every visible card becomes a tile;
+  // the real wdashSection() markup (same ids/render fns/lazy placeholders)
+  // lives in an off-screen vault and is moved into a sheet when its tile is
+  // tapped (see wdashSheetOpen below).
   let body = '';
+  let tiles = '';
   visible.forEach((c,i)=>{
-    if(i===4 && visible.length>4){
-      body += `<div class="dv3-more-divider"><span>${L('View All · Analytics','عرض الكل · التحليلات')}</span></div>`;
-    }
     body += wdashSection(c.id, c.icon, c.label, c.body, c.foldable, c.summary);
+    tiles += wdashTile(c);
   });
 
   const hiddenCount = candidates.length - visible.length;
@@ -13897,7 +13935,115 @@ function renderWorkspaceDashboard(m){
     : '';
 
   const quickActionsHtml = canFinance ? fpRenderQuickActionsStrip() : '';
-  return `<div class="wdash-wrap dv3-dark-v2">${manageBar}${heroHtml}${quickActionsHtml}${body}</div>`;
+  const appsHtml = tiles ? `<div class="wdash-apps" role="group" aria-label="${L('Dashboards','اللوحات')}">${tiles}</div>` : '';
+  return `<div class="wdash-wrap dv3-dark-v2">${manageBar}${heroHtml}${quickActionsHtml}${appsHtml}<div class="wdash-vault" aria-hidden="true" inert>${body}</div></div>`;
+}
+
+// ── Icon-grid launcher + dashboard sheet (presentation-only) ───────────────
+function wdashTile(c){
+  const col = _wdashCardColor(c.id) || WDASH_CARD_DEFAULT_COLORS[c.id] || (c.id==='charts'?'#0e7490':'#0f7a55');
+  const sum = c.summary ? `<span class="wdash-tile-sum">${c.summary}</span>` : '';
+  return `<button type="button" class="wdash-tile" data-cardid="${c.id}" style="--tc:${col}" onclick="wdashSheetOpen('${c.id}')">
+    <span class="wdash-tile-ico">${ic(c.icon, 28, 'aria-hidden="true"')}</span>
+    <span class="wdash-tile-lbl">${c.label}</span>${sum}
+  </button>`;
+}
+let _wdashSheetId = null;
+function _wdashSheetEnsure(){
+  let sh = document.getElementById('wdashSheet');
+  if(sh) return sh;
+  sh = document.createElement('div');
+  sh.id = 'wdashSheet';
+  sh.className = 'wdash-sheet';
+  sh.setAttribute('role','dialog');
+  sh.setAttribute('aria-modal','true');
+  sh.setAttribute('aria-hidden','true');
+  sh.innerHTML = `<div class="wdash-sheet-bg" onclick="wdashSheetClose()"></div>
+    <div class="wdash-sheet-panel">
+      <div class="wdash-sheet-grab"></div>
+      <div class="wdash-sheet-hdr">
+        <span class="wdash-sheet-ico" id="wdashSheetIco"></span>
+        <div class="wdash-sheet-title" id="wdashSheetTitle"></div>
+        <button type="button" class="sheet-close-btn sq" onclick="wdashSheetColor()" aria-label="${L('Card color','لون الكارت')}">${ic('droplet',16)}</button>
+        <button type="button" class="sheet-close-btn sq" onclick="wdashSheetClose()" aria-label="${L('Close','إغلاق')}">${ic('close',16)}</button>
+      </div>
+      <div class="wdash-sheet-body wdash-wrap dv3-dark-v2" id="wdashSheetBody"></div>
+    </div>`;
+  document.body.appendChild(sh);
+  document.addEventListener('keydown', function(e){ if(e.key==='Escape' && _wdashSheetId) wdashSheetClose(); });
+  return sh;
+}
+function _wdashSheetHeader(id){
+  const tile = document.querySelector('.wdash-tile[data-cardid="'+id+'"]');
+  const ico = document.getElementById('wdashSheetIco');
+  const ttl = document.getElementById('wdashSheetTitle');
+  if(!tile || !ico || !ttl) return;
+  ico.innerHTML = tile.querySelector('.wdash-tile-ico').innerHTML;
+  ico.style.setProperty('--tc', tile.style.getPropertyValue('--tc'));
+  ttl.textContent = tile.querySelector('.wdash-tile-lbl').textContent;
+}
+function _wdashSheetRefreshCharts(){
+  setTimeout(function(){
+    try{ DashboardCharts.refreshAll(); }catch(e){_logErr('wdashSheet:refreshAll',e);}
+    try{ dfpAnimateCounts(); }catch(e){_logErr('wdashSheet:dfpAnimateCounts',e);}
+  }, 90);
+}
+// Puts whatever card is parked in the sheet back into the vault (collapsed
+// again); if the dashboard was re-rendered meanwhile the stale node is dropped.
+function _wdashSheetStash(){
+  const body = document.getElementById('wdashSheetBody');
+  if(!body) return;
+  const vault = document.querySelector('.wdash-vault');
+  Array.from(body.querySelectorAll('.wdash-section')).forEach(sec=>{
+    sec.classList.remove('wdash-fold-open');
+    if(vault && !vault.querySelector('.wdash-section[data-cardid="'+sec.getAttribute('data-cardid')+'"]')) vault.appendChild(sec);
+  });
+  body.innerHTML = '';
+}
+function wdashSheetOpen(id){
+  const sec = document.querySelector('.wdash-vault .wdash-section[data-cardid="'+id+'"]');
+  if(!sec) return;
+  const sh = _wdashSheetEnsure();
+  _wdashSheetStash();
+  _wdashSheetId = id;
+  _wdashSheetHeader(id);
+  const body = document.getElementById('wdashSheetBody');
+  body.appendChild(sec);
+  sec.classList.add('wdash-fold-open');
+  body.scrollTop = 0;
+  sh.classList.add('open');
+  sh.setAttribute('aria-hidden','false');
+  document.documentElement.classList.add('wdash-sheet-lock');
+  try{ SoundManager.play('bottomsheet_open'); }catch(e){}
+  _wdashSheetRefreshCharts();
+}
+function wdashSheetClose(){
+  const sh = document.getElementById('wdashSheet');
+  if(!sh || !_wdashSheetId) return;
+  _wdashSheetId = null;
+  sh.classList.remove('open');
+  sh.setAttribute('aria-hidden','true');
+  document.documentElement.classList.remove('wdash-sheet-lock');
+  try{ SoundManager.play('bottomsheet_close'); }catch(e){}
+  setTimeout(function(){ if(!_wdashSheetId) _wdashSheetStash(); }, 260);
+}
+function wdashSheetColor(){ if(_wdashSheetId) wdashOpenColorPicker(_wdashSheetId); }
+// Called after every renderView(): the dashboard was rebuilt, so swap the
+// stale card in the open sheet for its fresh copy (or close if it is gone /
+// the user left the dashboard).
+function wdashSheetSync(){
+  if(!_wdashSheetId) return;
+  const id = _wdashSheetId;
+  const fresh = (currentView==='wsdash') ? document.querySelector('.wdash-vault .wdash-section[data-cardid="'+id+'"]') : null;
+  if(!fresh){ wdashSheetClose(); return; }
+  const body = document.getElementById('wdashSheetBody');
+  const y = body.scrollTop;
+  body.innerHTML = '';
+  body.appendChild(fresh);
+  fresh.classList.add('wdash-fold-open');
+  body.scrollTop = y;
+  _wdashSheetHeader(id);
+  _wdashSheetRefreshCharts();
 }
 
 // ── Final Polish Sprint: compact Quick Actions strip below the Hero ────────
@@ -13958,7 +14104,7 @@ function wdashOpenManageSheet(){
         <div style="width:36px;height:36px;border-radius:10px;background:var(--surface2);display:flex;align-items:center;justify-content:center;flex-shrink:0">${ic('settings',17)}</div>
         <div>
           <div class="ds-title-sm">${L('Customize Dashboard','تخصيص لوحة التحكم')}</div>
-          <div style="font-size:calc(11px*var(--app-text-scale,1));color:var(--muted);margin-top:1px">${L('Show or hide a card here. Drag its handle, or open its ⋮ menu, on the dashboard itself.','اظهر أو اخفِ الكارت من هنا. اسحب مقبضه أو افتح قائمة ⋮ في الداشبورد نفسه.')}</div>
+          <div style="font-size:calc(11px*var(--app-text-scale,1));color:var(--muted);margin-top:1px">${L('Show or hide a dashboard icon here. Change its color from inside the dashboard.','اظهر أو اخفِ أيقونة الداشبورد من هنا. غيّر لونها من جوه الداشبورد نفسه.')}</div>
         </div>
         <button class="sheet-close-btn sq" onclick="closeModal()" aria-label="${L('Close','إغلاق')}">${ic('close',16)}</button>
       </div>
