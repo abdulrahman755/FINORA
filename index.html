@@ -8634,6 +8634,206 @@ body .screen-wrap .sc-header.sav-plain-header.sav-plain-header::after{display:no
 /* -- AI markers B6: insight line glyph is an accent-coloured SVG, not a coloured emoji -- */
 .txlg-aiinsight-emoji{display:flex;align-items:center;justify-content:center;width:24px;color:var(--green)}
 .txlg-aiinsight-emoji svg{display:block}
+
+/* ══════════════════════════════════════════════════════════════════════
+   SIGNATURE NUMERALS + DAILY SCREEN POLISH
+   One shared look for every big amount (hero / KPI / target cards):
+   display-serif digits, tone gradient fill, currency as a small pill.
+   Markup comes from sigNumHTML() / kpi3ValHTML() / heroAmountHTML().
+   ══════════════════════════════════════════════════════════════════════ */
+.sig-num{
+  --sig-a:var(--green-dark);--sig-b:var(--green-light);
+  display:inline-flex;align-items:baseline;gap:.2em;direction:ltr;
+  max-width:100%;white-space:nowrap;vertical-align:baseline;
+}
+.sig-orange{--sig-a:#A35A12;--sig-b:#E3A15C}
+.sig-blue{--sig-a:#2A5282;--sig-b:#6E9ACB}
+.sig-pos{--sig-a:#0A6B48;--sig-b:#2BC48C}
+.sig-neg{--sig-a:#B42318;--sig-b:#EF6A5B}
+[data-theme="dark"] .sig-num{--sig-a:#7FE3BD;--sig-b:#2BC48C}
+[data-theme="dark"] .sig-orange{--sig-a:#F0C089;--sig-b:#D3934F}
+[data-theme="dark"] .sig-blue{--sig-a:#A9D0F2;--sig-b:#5C93C9}
+[data-theme="dark"] .sig-pos{--sig-a:#8FF0CB;--sig-b:#2BC48C}
+[data-theme="dark"] .sig-neg{--sig-a:#FFB4A9;--sig-b:#EF6A5B}
+
+.sig-sign{font-family:var(--font-display);font-weight:600;opacity:.75;margin-inline-end:.05em}
+.sig-amt{
+  display:inline-block;
+  font-family:var(--font-display);font-weight:700;
+  font-variant-numeric:lining-nums tabular-nums;font-feature-settings:"lnum" 1,"tnum" 1;
+  letter-spacing:-.02em;line-height:1.08;padding:0 .04em .1em 0;font-size:1em;
+  background:linear-gradient(135deg,var(--sig-a) 0%,var(--sig-b) 100%);
+  -webkit-background-clip:text;background-clip:text;
+  -webkit-text-fill-color:transparent;color:transparent;
+}
+.sig-cur{
+  font-family:var(--font);font-size:.34em;font-weight:800;letter-spacing:.09em;text-transform:uppercase;
+  padding:.3em .7em;border-radius:999px;line-height:1;
+  color:var(--sig-a);background:color-mix(in srgb,var(--sig-b) 18%,transparent);
+  position:relative;top:-.12em;opacity:1;
+}
+.sig-num .kpi3-amt{font-size:1em}
+.sig-num .kpi3-cur{font-size:.34em;font-weight:800;opacity:1}
+
+/* On coloured / glass hero cards the container already owns the text colour
+   — keep the new typeface + currency pill but inherit the colour instead of
+   painting a gradient that could vanish into the background. */
+.dash-hero .sig-amt,.dfp-hero-v2 .sig-amt{
+  background:none;-webkit-text-fill-color:currentColor;color:inherit;
+  text-shadow:0 2px 20px rgba(0,0,0,.14);
+}
+.dash-hero .sig-cur,.dfp-hero-v2 .sig-cur{color:inherit;background:color-mix(in srgb,currentColor 14%,transparent)}
+.dash-hero .sig-sign{opacity:.8}
+.fin-hero-card .sig-num{--sig-a:var(--fc);--sig-b:color-mix(in srgb,var(--fc) 55%,#fff)}
+.fin-hero-amount{font-family:var(--font-display)}
+
+/* secondary figures share the numeral face */
+.fin-card-amount,.cst-kpi-val,.dash-hero-stat-val,.bnk-hero-stat-val,.sav-row-amount,.kpi3-sec-val{
+  font-family:var(--font-display);font-variant-numeric:lining-nums tabular-nums;
+}
+.kpi3-sec-val.is-empty{font-family:var(--font);font-weight:700;font-size:calc(13px*var(--app-text-scale,1))}
+
+/* bank cards: serif balance + quiet currency suffix (respects user-chosen font/weight/colour) */
+.bal-avail-amount{font-family:var(--bnk-num-font,var(--font-display));font-weight:var(--bnk-num-weight,700);font-variant-numeric:lining-nums tabular-nums;letter-spacing:.2px}
+.bal-avail-amount .bal-cur{font-family:var(--font);font-size:.4em;font-weight:800;letter-spacing:.1em;text-transform:uppercase;opacity:.82;margin-inline-start:.5em;vertical-align:.18em}
+
+/* ══════════════════════════════════════════════════════════════════════
+   DAILY PAGE — PREMIUM REFINEMENT (CSS only, scoped to .txlg-wrap)
+   Summary reads as ONE surface: Spending (primary) → Target → Remaining/
+   Saved. Flat, hairline dividers, no gradients/glow, semantic colour only.
+   ══════════════════════════════════════════════════════════════════════ */
+.txlg-wrap{gap:var(--sp3)}
+.txlg-wrap>*{order:4}
+/* .kpi3-hero only wraps primary + secondary row; let them be siblings of the
+   Target card so the three can be ordered into one stacked surface. */
+.txlg-wrap .kpi3-hero{display:contents}
+.txlg-wrap .kpi3-primary{order:1}
+.txlg-wrap .txlg-target-card{order:2}
+.txlg-wrap .kpi3-secondary-row{order:3}
+
+/* number: solid, calm; red only when over target; currency quiet */
+.txlg-wrap .sig-amt{background:none;-webkit-text-fill-color:currentColor;color:inherit;padding:0}
+.txlg-wrap .sig-cur{background:none;padding:0;top:0;color:var(--muted);font-size:.32em;letter-spacing:.08em}
+.txlg-wrap .kpi3-primary-val{color:var(--text)!important}
+.txlg-wrap .kpi3-primary .sig-neg .sig-amt{color:var(--red)}
+
+/* 1 · Spending (primary metric) */
+.txlg-wrap .kpi3-primary{
+  background:var(--surface);border:1px solid var(--border);border-bottom:0;
+  border-radius:var(--radius) var(--radius) 0 0;box-shadow:none;
+  padding:14px 18px 12px;gap:2px;overflow:visible;
+}
+.txlg-wrap .kpi3-primary::before,.txlg-wrap .kpi3-primary::after{display:none}
+.txlg-wrap .kpi3-primary-label{font-size:calc(10.5px*var(--app-text-scale,1));font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--muted)}
+.txlg-wrap .kpi3-primary-label::before{display:none}
+.txlg-wrap .kpi3-primary .kpi3-primary-val{font-size:calc(38px*var(--app-text-scale,1));margin-top:4px}
+.txlg-wrap .kpi3-prog{width:100%;margin-top:10px}
+.txlg-wrap .kpi3-prog-track{overflow:hidden;border-radius:99px}
+.txlg-wrap .kpi3-prog-track i{display:block;height:100%;border-radius:99px}
+.txlg-wrap .kpi3-prog-meta{display:flex;justify-content:space-between;gap:8px}
+.txlg-wrap .kpi3-prog-track{height:3px;background:var(--border)}
+.txlg-wrap .kpi3-prog-track i{background:var(--green)}
+.txlg-wrap .kpi3-prog.is-over .kpi3-prog-track{background:var(--border)}
+.txlg-wrap .kpi3-prog.is-over .kpi3-prog-track i{background:var(--red)}
+.txlg-wrap .kpi3-prog-meta{margin-top:6px;font-size:calc(10.5px*var(--app-text-scale,1));font-weight:600}
+.txlg-wrap .kpi3-prog-pct{font-family:var(--font);color:var(--muted)}
+.txlg-wrap .kpi3-prog.is-over .kpi3-prog-pct,.txlg-wrap .kpi3-prog.is-over .kpi3-prog-meta{color:var(--red)}
+
+/* 2 · Target (secondary) — a quiet row inside the same surface */
+.txlg-wrap .txlg-target-card{
+  margin:calc(-1*var(--sp3)) 0 0;padding:9px 18px;gap:8px;
+  background:var(--surface);border:1px solid var(--border);border-bottom:0;
+  border-radius:0;box-shadow:none;
+}
+.txlg-wrap .txlg-target-card::before{display:none}
+.txlg-wrap .txlg-target-left{gap:8px;flex:1}
+.txlg-wrap .txlg-target-left>div:last-child{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.txlg-wrap .txlg-target-icon{width:20px;height:20px;border-radius:0;background:none!important;box-shadow:none!important;color:var(--muted)!important}
+.txlg-wrap .txlg-target-label{font-size:calc(11px*var(--app-text-scale,1));font-weight:700;margin:0;color:var(--muted)}
+.txlg-wrap .txlg-target-value{font-size:calc(15px*var(--app-text-scale,1));line-height:1.2}
+.txlg-wrap .txlg-target-empty{font-size:calc(13px*var(--app-text-scale,1))}
+.txlg-wrap .txlg-target-edit{padding:4px 0;border:0;background:none;box-shadow:none;border-radius:0;font-size:calc(11.5px*var(--app-text-scale,1))}
+
+/* 3 · Remaining / Saved (+ monthly Target) — thin dividers, no cards */
+.txlg-wrap .kpi3-secondary-row{
+  margin-top:calc(-1*var(--sp3));background:var(--surface);border:1px solid var(--border);
+  border-radius:0 0 var(--radius) var(--radius);box-shadow:none;
+}
+.txlg-wrap .kpi3-sec{padding:10px 18px 10px 12px;gap:2px}
+.txlg-wrap .kpi3-sec:first-child{padding-inline-start:18px}
+.txlg-wrap .kpi3-sec::after{display:none}
+.txlg-wrap .kpi3-sec-label{font-size:calc(9.5px*var(--app-text-scale,1));letter-spacing:.5px;margin-top:0}
+.txlg-wrap .kpi3-sec-val{font-family:var(--font);font-size:calc(15px*var(--app-text-scale,1));font-weight:800;letter-spacing:-.2px}
+.txlg-wrap .kpi3-sec-val.is-empty{font-size:calc(12.5px*var(--app-text-scale,1))}
+.txlg-wrap .kpi3-sec .kpi3-saved-mode-btn{margin-top:0}
+
+/* AI insight — calm surface, text first, secondary action */
+.txlg-wrap .txlg-aiinsight-card{
+  background:var(--surface);border:1px solid var(--border);box-shadow:none;border-radius:var(--radius-sm);
+  min-height:0;max-height:none;padding:10px 14px;gap:10px;
+}
+.txlg-wrap .txlg-aiinsight-emoji{width:auto;height:auto;border:0;background:none;border-radius:0;font-size:calc(16px*var(--app-text-scale,1))}
+.txlg-wrap .txlg-aiinsight-text{font-size:calc(12.5px*var(--app-text-scale,1));font-weight:600}
+.txlg-wrap .txlg-aiinsight-link{padding:0;background:none;border-radius:0;font-weight:700;color:var(--green)}
+
+/* Search + filters — compact */
+.txlg-wrap .txlg-filters{box-shadow:none;border:1px solid var(--border);border-radius:var(--radius-sm);padding:6px 0 8px}
+.txlg-wrap .txlg-toolbar{gap:6px}
+.txlg-wrap .sc-search{padding:2px var(--sp3) 0}
+.txlg-wrap .sc-search input{height:40px;border-radius:10px;font-size:calc(13px*var(--app-text-scale,1))}
+.txlg-wrap .txlg-filter-row{padding:0 var(--sp3)}
+.txlg-wrap .txlg-seg{border:0;border-radius:10px;padding:2px;gap:2px;background:var(--surface2);box-shadow:none;overflow:hidden}
+.txlg-wrap .txlg-seg button{padding:6px 4px;border-radius:8px;font-size:calc(11px*var(--app-text-scale,1))}
+.txlg-wrap .txlg-seg button+button{border-inline-start:0}
+.txlg-wrap .txlg-seg button.active{background:var(--green);color:#fff;box-shadow:none}
+.txlg-wrap .txlg-chip{background:var(--surface2);border-color:var(--border)}
+
+/* Timeline container + rows */
+.txlg-wrap .sc-main{border:1px solid var(--border);box-shadow:none;border-radius:var(--radius-sm)}
+.txlg-wrap .sc-main-header{background:none;padding-top:10px;padding-bottom:8px}
+.txlg-wrap .txlg-timeline{padding:0 var(--sp3) var(--sp1)}
+.txlg-wrap .txlg-group-label{color:var(--muted);text-transform:none;letter-spacing:.3px;font-weight:700;border-top:1px solid var(--border);padding-top:10px}
+.txlg-wrap .txlg-group-label:first-child{border-top:0;padding-top:4px}
+.txlg-wrap .txlg-row+.txlg-row .txlg-row-content{border-top:1px solid var(--border)}
+.txlg-wrap .txlg-row-content{min-height:0;padding:9px var(--sp1);border-radius:0}
+.txlg-wrap .txlg-amt{font-family:var(--font);font-size:calc(16px*var(--app-text-scale,1));font-weight:800;letter-spacing:-.2px}
+.txlg-wrap .txlg-line1{justify-content:flex-start;gap:8px}
+.txlg-wrap .txlg-review-badge{margin-inline-start:auto;background:var(--orange-tint);color:var(--orange);font-size:calc(9px*var(--app-text-scale,1));padding:2px 8px}
+.txlg-wrap .txlg-dup-icon{margin-inline-start:auto}
+.txlg-wrap .txlg-review-badge+.txlg-dup-icon{margin-inline-start:0}
+.txlg-wrap .txlg-conf-dot{display:none}
+
+/* Export — quiet secondary action in normal flow (handler unchanged) */
+.txlg-wrap .sc-bottom{
+  position:static;left:auto;right:auto;bottom:auto;z-index:auto;padding:0;background:none;border:0;box-shadow:none;
+  backdrop-filter:none;-webkit-backdrop-filter:none;justify-content:center;
+}
+.txlg-wrap .sc-bottom .sc-btn{flex:0 0 auto;width:auto;padding:6px 14px;font-size:calc(12px*var(--app-text-scale,1))}
+
+/* FAB (Daily only) — 56px, flat green, no glow, clear of nav + content */
+.fab.fab-daily{
+  width:56px;height:56px;border-radius:16px;right:16px;
+  bottom:calc(84px + env(safe-area-inset-bottom,0px));
+  background:var(--green);box-shadow:var(--shadow-sm);
+}
+.fab.fab-daily:active:not(.dragging){box-shadow:none}
+
+/* ── Notes: headings stayed near-black in dark mode (colour baked into the
+   saved note HTML as an inline style / <font>). Force theme colours on
+   headings and anything nested inside them, except notes pinned to the
+   light background. ── */
+[data-theme="dark"] #notesPageOverlay:not(.qn-force-light) .qn-body h1,
+[data-theme="dark"] #notesPageOverlay:not(.qn-force-light) .qn-body h1 *,
+[data-theme="dark"] #notesPageOverlay:not(.qn-force-light) .qn-body h2,
+[data-theme="dark"] #notesPageOverlay:not(.qn-force-light) .qn-body h2 *,
+[data-theme="dark"] #notesPageOverlay:not(.qn-force-light) .qn-grid-preview h1,
+[data-theme="dark"] #notesPageOverlay:not(.qn-force-light) .qn-grid-preview h1 *,
+[data-theme="dark"] #notesPageOverlay:not(.qn-force-light) .qn-grid-preview h2,
+[data-theme="dark"] #notesPageOverlay:not(.qn-force-light) .qn-grid-preview h2 *{color:var(--text)!important;-webkit-text-fill-color:var(--text)!important}
+[data-theme="dark"] #notesPageOverlay:not(.qn-force-light) .qn-body h3,
+[data-theme="dark"] #notesPageOverlay:not(.qn-force-light) .qn-body h3 *,
+[data-theme="dark"] #notesPageOverlay:not(.qn-force-light) .qn-grid-preview h3,
+[data-theme="dark"] #notesPageOverlay:not(.qn-force-light) .qn-grid-preview h3 *{color:var(--text2)!important;-webkit-text-fill-color:var(--text2)!important}
 </style>
 <script>
 // Suppress cross-origin Script errors (in-app browsers like TikTok/Instagram)
@@ -11847,6 +12047,7 @@ function renderView(preserveScroll){
     setTimeout(attachCalcKb,60);
     if(currentView==='banks') setTimeout(initBankDrag,80);
     if(currentView==='banks') setTimeout(bnkAnimateHero,80);
+    try{ sigAnimateAmounts(); }catch(e){_logErr('renderView:sigAnimateAmounts',e);}
     if(currentView==='savings') setTimeout(savInitDrag,80);
     if(currentView==='wsdash') setTimeout(wdashInitDrag,80);
     requestAnimationFrame(function(){ if(window._fabRestorePos) window._fabRestorePos(); });
@@ -12174,7 +12375,7 @@ function renderFinanceDashboard(m){
         </div>
         <div class="dash-hero-main" style="position:relative;z-index:1">
           <div class="dash-hero-main-lbl">${L('Operational Profit','الربح التشغيلي')}</div>
-          <div class="dash-hero-main-val">${s.monthlyProfit>=0?'+':'-'}${fmtEGP(Math.abs(s.monthlyProfit))}</div>
+          <div class="dash-hero-main-val">${sigNumHTML(Math.abs(s.monthlyProfit),{sign:s.monthlyProfit>=0?'+':'-'})}</div>
           <div class="dash-hero-trend ${s.monthlyProfit>=0?'up':'down'}">${ic(s.monthlyProfit>=0?'trend_up':'trend_down', 12, 'aria-hidden="true"')} ${s.monthlyProfit>=0?L('Profitable this month','مربح هذا الشهر'):L('Loss this month','خسارة هذا الشهر')}</div>
           <div class="dfp-hero-note" style="font-size:calc(9.5px*var(--app-text-scale,1));margin-top:4px">${L('Income & bank activity only — excludes custody deposits (see Cash Flow below)','دخل وحركة بنوك فقط — لا يشمل إيداعات العهدة (شوف التدفق النقدي تحت)')}</div>
         </div>
@@ -12424,7 +12625,7 @@ function renderBankDashboard(m){
         </div>
         <div class="dash-hero-main">
           <div class="dash-hero-main-lbl">${L('Total Balance','إجمالي الرصيد')}</div>
-          <div class="dash-hero-main-val">${fmtEGP(total)}</div>
+          <div class="dash-hero-main-val">${sigNumHTML(total)}</div>
           ${prevTotalBanks!=null?`<div class="dash-hero-trend ${banksMomDiff>=0?'up':'down'}">${ic(banksMomDiff>=0?'trend_up':'trend_down', 12, 'aria-hidden="true"')} ${banksMomDiff>=0?'+':'-'}${fmtEGP(Math.abs(banksMomDiff))} ${L('vs last month','مقابل الشهر السابق')}</div>`:''}
         </div>
         <div class="dash-hero-stats">
@@ -12582,7 +12783,7 @@ function renderBankSummaryCompactV3(m){
       </div>
       <div class="dash-hero-main">
         <div class="dash-hero-main-lbl">${L('Total Balance','إجمالي الرصيد')}</div>
-        <div class="dash-hero-main-val">${fmtEGP(total)}</div>
+        <div class="dash-hero-main-val">${sigNumHTML(total)}</div>
         ${realProfitDelta!=null
           ? `<div class="dash-hero-trend ${realProfitDelta>=0?'up':'down'}">${ic(realProfitDelta>=0?'trend_up':'trend_down', 12, 'aria-hidden="true"')} ${L('Real Profit','الربح الحقيقي')}: ${realProfitDelta>=0?'+':'-'}${fmtEGP(Math.abs(realProfitDelta))}</div>`
           : `<div class="dash-hero-trend" style="opacity:.75">${L('Real Profit needs a previous month to compare.','الربح الحقيقي يحتاج شهر سابق للمقارنة.')}</div>`}
@@ -13048,7 +13249,7 @@ function renderCustodyDashboardCard(m){
         </div>
         <div class="dash-hero-main">
           <div class="dash-hero-main-lbl">${L('Remaining Custody','المتبقي من العهدة')}</div>
-          <div class="dash-hero-main-val" style="color:${remaining>=0?'var(--success)':'var(--danger)'}">${fmtEGP(remaining)}</div>
+          <div class="dash-hero-main-val" style="color:${remaining>=0?'var(--success)':'var(--danger)'}">${sigNumHTML(remaining,{tone:remaining>=0?'pos':'neg'})}</div>
         </div>
         <div class="dash-hero-stats">
           <div class="dash-hero-stat">
@@ -14925,11 +15126,54 @@ function _buyRowClick(ev){
 // Splits an fmtEGP()-style string ("1,234 EGP" / "1,234 ج.م") into an
 // amount span + a smaller currency-suffix span, for the kpi3 KPI cards.
 // Falls back to a single span for placeholder text like '—'.
-const kpi3ValHTML=s=>{
+const kpi3ValHTML=(s,tone,raw)=>{
+  const dv=(raw!=null&&isFinite(raw))?` data-v="${raw}"`:'';
   const str=String(s);
   const i=str.lastIndexOf(' ');
-  if(i===-1) return `<span class="kpi3-amt">${esc(str)}</span>`;
-  return `<span class="kpi3-amt">${esc(str.slice(0,i))}</span><span class="kpi3-cur">${esc(str.slice(i+1))}</span>`;
+  const tc=tone?' sig-'+tone:'';
+  if(i===-1) return `<span class="sig-num${tc}" dir="ltr"><span class="kpi3-amt sig-amt"${dv}>${esc(str)}</span></span>`;
+  return `<span class="sig-num${tc}" dir="ltr"><span class="kpi3-amt sig-amt"${dv}>${esc(str.slice(0,i))}</span><span class="kpi3-cur sig-cur">${esc(str.slice(i+1))}</span></span>`;
+};
+// Signature numerals — one shared look for every big balance/amount in the
+// app (hero cards, KPI cards, target card): display serif digits (tabular,
+// lining), tone-coloured gradient fill, and the currency as a small pill
+// instead of loud text. Always LTR so digits never reorder in Arabic.
+// opts: tone ('orange'|'blue'|'pos'|'neg'), sign ('+'|'-'), abs (bool).
+// Count-up for every signature amount (same 700ms cubic ease-out as the
+// Banks hero). Reads the real value from data-v and only animates the text.
+// First paint of a screen counts up from 0; a later re-render of the same
+// screen (search typing, edits) animates only the amounts that changed,
+// from their previous value, so nothing replays needlessly.
+const _sigPrev=new Map(); let _sigView=null, _sigRaf=0;
+function sigAnimateAmounts(){
+  const els=Array.from(document.querySelectorAll('#mainContent .sig-amt[data-v]'));
+  if(!els.length) return;
+  if(_sigView!==currentView){ _sigPrev.clear(); _sigView=currentView; }
+  const reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const jobs=[];
+  els.forEach((el,i)=>{
+    const to=parseFloat(el.getAttribute('data-v'))||0;
+    const from=_sigPrev.has(i)?_sigPrev.get(i):0;
+    _sigPrev.set(i,to);
+    if(!reduce && from!==to) jobs.push({el,from,to});
+  });
+  if(!jobs.length) return;
+  if(_sigRaf) cancelAnimationFrame(_sigRaf);
+  const dur=700,t0=performance.now();
+  jobs.forEach(j=>{ j.el.textContent=fmt(j.from); });
+  const step=now=>{
+    const p=Math.min(1,(now-t0)/dur), e=1-Math.pow(1-p,3);
+    jobs.forEach(j=>{ j.el.textContent=fmt(p<1 ? j.from+(j.to-j.from)*e : j.to); });
+    if(p<1) _sigRaf=requestAnimationFrame(step); else _sigRaf=0;
+  };
+  _sigRaf=requestAnimationFrame(step);
+}
+const sigNumHTML=(n,opts)=>{
+  opts=opts||{};
+  const v=opts.abs?Math.abs(n||0):(n||0);
+  const tc=opts.tone?' sig-'+opts.tone:'';
+  const sg=opts.sign?`<span class="sig-sign">${esc(opts.sign)}</span>`:'';
+  return `<span class="sig-num${tc}" dir="ltr">${sg}<span class="sig-amt" data-v="${v}">${esc(fmt(v))}</span><span class="sig-cur">${esc(curLabel())}</span></span>`;
 };
 // Banking-app style amount for the dashboard hero balance: the number
 // itself (integer + decimals, kept as one full-size solid block, since
@@ -14941,7 +15185,7 @@ const kpi3ValHTML=s=>{
 // scrambles the digit order — numbers stay left-to-right even in RTL UIs.
 const heroAmountHTML=n=>{
   const str=fmt(Math.abs(n||0));
-  return `<span class="hnum-amt">${esc(str)}</span><span class="hnum-cur">${esc(curLabel())}</span>`;
+  return `<span class="sig-num" dir="ltr"><span class="hnum-amt sig-amt" data-v="${Math.abs(n||0)}">${esc(str)}</span><span class="hnum-cur sig-cur">${esc(curLabel())}</span></span>`;
 };
 // Phase 21: fixed the UTC/local-date mismatch — toISOString() always
 // serializes in UTC, so for any timezone east of UTC (Egypt, all Gulf
@@ -17646,7 +17890,7 @@ function renderSavings(){
           <div class="fin-hero-icon">${ic('overview',16)}</div>
           <div class="fin-hero-label">${L('Net Worth','صافي الثروة')}</div>
         </div>
-        <div class="fin-hero-amount">${fmtEGP(netTotal)}</div>
+        <div class="fin-hero-amount">${sigNumHTML(netTotal)}</div>
         <div class="fin-hero-formula">${L('Income + Assets − Outcome','الدخل + الأصول − المصروفات')}</div>
         ${_savHeroTrend(_savNetWorthDelta(visIncomes.map(p=>p.x), visOutcomes.map(p=>p.x), visAssets.map(p=>p.x)))}
       </div>
@@ -23289,7 +23533,7 @@ function renderBanks(m){
           </div>
         </div>
         <div class="bnk-card-balance-lbl" style="${cardMutedFg?'color:'+cardMutedFg:''}">${L('Balance','الرصيد')}</div>
-        <div class="bnk-card-balance ${vis?'':'hidden'}" style="${cardNumFg?'color:'+cardNumFg:''}">${vis?fmt(bal)+' '+curLabel():'● ● ● ●'}</div>
+        <div class="bnk-card-balance ${vis?'':'hidden'}" style="${cardNumFg?'color:'+cardNumFg:''}">${vis?fmt(bal)+'<span class="bal-cur">'+esc(curLabel())+'</span>':'● ● ● ●'}</div>
         <div class="bnk-card-lasttx" style="${cardMutedFg?'color:'+cardMutedFg:''}">${ic('clock',11,'aria-hidden="true"')} ${lastMoveText}</div>
       </div>
 
@@ -23318,7 +23562,7 @@ function renderBanks(m){
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 10h13M17 6l3 4-3 4M17 14H4M7 18l-3-4 3-4"/></svg>${L('FX','عملات')}
                 </button>
               </div>
-              <div class="bal-avail-amount ${vis?'':'hidden'}">${vis?fmt(bal)+' '+curLabel():'● ● ● ●'}</div>
+              <div class="bal-avail-amount ${vis?'':'hidden'}">${vis?fmt(bal)+'<span class="bal-cur">'+esc(curLabel())+'</span>':'● ● ● ●'}</div>
               ${renderBankMetaRow(bal,b.key,tot,vis)}
               ${renderBankFxRow(bal,vis)}
             </div>
@@ -23344,7 +23588,7 @@ function renderBanks(m){
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 10h13M17 6l3 4-3 4M17 14H4M7 18l-3-4 3-4"/></svg>${L('FX','عملات')}
                 </button>
               </div>
-              <div class="bal-avail-amount ${vis?'':'hidden'}">${vis?fmt(bal)+' '+curLabel():'● ● ● ●'}</div>
+              <div class="bal-avail-amount ${vis?'':'hidden'}">${vis?fmt(bal)+'<span class="bal-cur">'+esc(curLabel())+'</span>':'● ● ● ●'}</div>
               ${renderBankMetaRow(bal,b.key,tot,vis)}
               ${renderBankFxRow(bal,vis)}
             </div>
@@ -23361,7 +23605,7 @@ function renderBanks(m){
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 10h13M17 6l3 4-3 4M17 14H4M7 18l-3-4 3-4"/></svg>${L('FX','عملات')}
               </button>
               <div class="bal-avail-label">${L('Available Balance','الرصيد المتاح')}</div>
-              <div class="bal-avail-amount ${vis?'':'hidden'}">${vis?fmt(bal)+' '+curLabel():'● ● ● ●'}</div>
+              <div class="bal-avail-amount ${vis?'':'hidden'}">${vis?fmt(bal)+'<span class="bal-cur">'+esc(curLabel())+'</span>':'● ● ● ●'}</div>
               ${renderBankMetaRow(bal,b.key,tot,vis)}
               ${renderBankFxRow(bal,vis)}
             </div>
@@ -28599,13 +28843,13 @@ function renderTransactions(m){
   const todaysTargetCardHTML = `
   <div class="sc-card txlg-target-card" onclick="openDailyTargetModal()" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}">
     <div class="txlg-target-left">
-      <div class="txlg-target-icon">${ic('target',18,'aria-hidden="true"')}</div>
+      <div class="txlg-target-icon" style="background:linear-gradient(145deg,var(--blue-light),var(--blue));color:#fff">${ic('target',20,'aria-hidden="true"')}</div>
       <div>
         <div class="txlg-target-label">${L("Today's Target",'تارجت اليوم')}</div>
-        <div class="txlg-target-value">${_todayTarget>0?fmtEGP(_todayTarget)+' '+curLabel():L('Tap to set','اضغط للتحديد')}</div>
+        <div class="txlg-target-value">${_todayTarget>0?sigNumHTML(_todayTarget,{tone:'blue'}):`<span class="txlg-target-empty">${L('Tap to set','اضغط للتحديد')}</span>`}</div>
       </div>
     </div>
-    ${_todayTarget>0?`<span class="txlg-target-edit">${L('Edit','تعديل')}</span>`:''}
+    <span class="txlg-target-edit">${_todayTarget>0?L('Edit','تعديل'):L('Set','حدد')}</span>
   </div>`;
 
   return `<div class="screen-wrap txlg-wrap" style="padding-bottom:160px">
@@ -28623,20 +28867,25 @@ function renderTransactions(m){
   <div class="txlg-sticky kpi3-hero">
     <div class="kpi3-card kpi3-primary" role="button" tabindex="0" style="cursor:pointer" onclick="document.getElementById('txlgTimelineAnchor')?.scrollIntoView({behavior:'smooth',block:'start'})" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}" aria-label="${L('Spent','مصروف')} ${fmtEGP(totalAll)}">
       <div class="kpi3-primary-label">${totalAll===0?L('No spending yet','لا يوجد إنفاق بعد'):L("Today's Spending",'إنفاق اليوم')}</div>
-      <div class="kpi3-primary-val" style="color:var(--orange)">${kpi3ValHTML(fmtEGP(totalAll))}</div>
+      <div class="kpi3-primary-val" style="color:var(--orange)">${kpi3ValHTML(fmtEGP(totalAll), totalAll>0 && _todayTarget>0 && totalAll>_todayTarget ? 'neg' : 'orange', totalAll)}</div>
+      ${_todayTarget>0?(()=>{
+        const _dp=Math.round((totalAll/_todayTarget)*100), _dover=totalAll>_todayTarget;
+        const _dmsg=_dover?L('Over by '+fmtEGP(totalAll-_todayTarget),'تجاوزت بـ '+fmtEGP(totalAll-_todayTarget)):L(fmtEGP(_todayTarget-totalAll)+' left','متبقي '+fmtEGP(_todayTarget-totalAll));
+        return `<div class="kpi3-prog${_dover?' is-over':''}"><div class="kpi3-prog-track"><i style="width:${Math.min(100,Math.max(0,_dp))}%"></i></div><div class="kpi3-prog-meta"><span class="kpi3-prog-pct">${_dp}%</span><span>${_dmsg}</span></div></div>`;
+      })():''}
     </div>
     <div class="kpi3-secondary-row">
       <div class="kpi3-sec" role="button" tabindex="0" onclick="openBudgetModal(activeMonth)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}" aria-label="${L('Target','مستهدف')} ${_kpiHasTarget?fmtEGP(totalTargetAll):L('not set','غير محدد')}">
         <div class="kpi3-sec-label">${L('Target','مستهدف')}</div>
-        <div class="kpi3-sec-val" style="color:var(--blue)">${_kpiHasTarget?fmtEGP(totalTargetAll):L('Tap to set','اضغط للتحديد')}</div>
+        <div class="kpi3-sec-val${_kpiHasTarget?'':' is-empty'}" style="color:var(--blue)">${_kpiHasTarget?fmtEGP(totalTargetAll):L('Tap to set','اضغط للتحديد')}</div>
       </div>
       <div class="kpi3-sec" aria-label="${L('Remaining','متبقي')} ${_kpiHasTarget?fmtEGP(_kpiRemaining):L('not available','غير متاح')}">
         <div class="kpi3-sec-label">${L('Remaining','متبقي')}</div>
-        <div class="kpi3-sec-val" style="color:${_kpiHasTarget?_kpiZoneColor:'var(--muted)'}">${_kpiHasTarget?fmtEGP(_kpiRemaining):'—'}</div>
+        <div class="kpi3-sec-val${_kpiHasTarget?'':' is-empty'}" style="color:${_kpiHasTarget?_kpiZoneColor:'var(--muted)'}">${_kpiHasTarget?fmtEGP(_kpiRemaining):'—'}</div>
       </div>
       <div class="kpi3-sec" aria-label="${L('Saved','موفّر')} ${_kpiSavedHasData?(_kpiSaved>=0?'+':'-')+fmtEGP(Math.abs(_kpiSaved)):L('not available','غير متاح')}">
         <div class="kpi3-sec-label">${L('Saved','موفّر')}</div>
-        <div class="kpi3-sec-val" style="color:${_kpiSavedColor}">${_kpiSavedHasData?(_kpiSaved>=0?'+':'-')+fmtEGP(Math.abs(_kpiSaved)):'—'}</div>
+        <div class="kpi3-sec-val${_kpiSavedHasData?'':' is-empty'}" style="color:${_kpiSavedColor}">${_kpiSavedHasData?(_kpiSaved>=0?'+':'-')+fmtEGP(Math.abs(_kpiSaved)):'—'}</div>
         <button type="button" onclick="event.stopPropagation();kpiToggleSavedMode()" class="kpi3-saved-mode-btn" aria-label="${L('Switch Saved calculation method','تغيير طريقة حساب التوفير')}">${_kpiSavedMode==='income'?L('↺ Budget','↺ الميزانية'):L('↺ Income','↺ الدخل')}</button>
       </div>
     </div>
