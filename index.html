@@ -8605,6 +8605,31 @@ button.cx-sh-tap{width:100%;background:none;border:0;font-family:inherit;color:i
 .wdash-showall{display:block;width:100%;margin:8px 0 0;padding:10px 12px;min-height:40px;border:0;background:transparent;color:var(--green);font:inherit;font-size:calc(12px*var(--app-text-scale,1));font-weight:600;text-align:center;cursor:pointer;border-radius:var(--radius-sm)}
 .wdash-showall:active{background:var(--surface2)}
 .wdash-showall:focus-visible{outline:2px solid var(--green);outline-offset:-2px}
+
+/* -- My Savings B4: plain-text title, one swipeable action row, collapsed search -- */
+body .screen-wrap .sc-header.sav-plain-header.sav-plain-header{
+  background:none!important;background-image:none!important;border:0!important;border-radius:0!important;
+  box-shadow:none!important;padding:2px 44px 0 2px!important;overflow:visible;
+  --text:inherit;--muted:inherit;
+}
+body .screen-wrap .sc-header.sav-plain-header.sav-plain-header::before,
+body .screen-wrap .sc-header.sav-plain-header.sav-plain-header::after{display:none!important}
+.sav-plain-header .sc-header-eyebrow{display:none}
+.sav-plain-header .sc-header-title{color:var(--text)}
+.sav-plain-header .sc-header-sub{color:var(--muted)}
+.sav-search-toggle{position:absolute;top:-2px;inset-inline-end:0;width:36px;height:36px;display:flex;align-items:center;justify-content:center;border:0;background:transparent;color:var(--muted);border-radius:var(--radius-sm);cursor:pointer}
+.sav-search-toggle[aria-expanded="true"]{color:var(--green)}
+.sav-search-toggle:active{background:var(--surface2)}
+.sav-search-toggle:focus-visible{outline:2px solid var(--green);outline-offset:-2px}
+.fin-qa-row.sav-qa-scroll{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;overscroll-behavior-x:contain;padding-bottom:2px}
+.fin-qa-row.sav-qa-scroll::-webkit-scrollbar{display:none}
+.fin-qa-row.sav-qa-scroll .fin-qa-chip{flex:0 0 auto;white-space:nowrap}
+.sc-search.sav-search:not(.open){display:none}
+
+/* -- Notes tab B5: lighter while scrolling -- */
+.notes-edge-tab.is-scrolling:not(.open):not(.armed):not(.dragging){opacity:.22;transform:translate(62%,-50%);transition:opacity .15s ease-out,transform .2s ease-out,min-width .32s cubic-bezier(.22,1,.36,1),padding .32s cubic-bezier(.22,1,.36,1)}
+.notes-edge-tab{transition:opacity .25s ease-out,transform .25s ease-out,min-width .32s cubic-bezier(.22,1,.36,1),padding .32s cubic-bezier(.22,1,.36,1),color .2s ease-out}
+@media(prefers-reduced-motion:reduce){.notes-edge-tab.is-scrolling:not(.open):not(.armed):not(.dragging){transform:translateY(-50%);transition:none}}
 </style>
 <script>
 // Suppress cross-origin Script errors (in-app browsers like TikTok/Instagram)
@@ -17416,6 +17441,23 @@ function _savEmptyState(kind){
   return emptyHero(EMPTY_ACCENTS['sav_'+c.accent], c.icon, c.eyebrow, c.title, c.sub, null, {label:c.label, onClick:c.fn});
 }
 
+// My Savings: search bar is collapsed by default (presentation-only). It stays open while a
+// query is active, and the open/closed choice survives re-renders within the session.
+let _savSearchOpen = false;
+function savToggleSearch(){
+  const bar = document.getElementById('savSearchBar');
+  const btn = document.getElementById('savSearchToggle');
+  if(!bar) return;
+  const willOpen = !bar.classList.contains('open');
+  _savSearchOpen = willOpen;
+  bar.classList.toggle('open', willOpen);
+  if(btn) btn.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+  if(willOpen){
+    const inp = bar.querySelector('input'); if(inp) setTimeout(()=>inp.focus(), 30);
+  }else if(searchQ){
+    doSearch(''); // closing the bar also clears the filter, so nothing stays filtered out of sight
+  }
+}
 function renderSavings(){
   const incomes  = SAVINGS.incomes||[];
   const assets   = SAVINGS.assets||[];
@@ -17581,10 +17623,11 @@ function renderSavings(){
   </div>` : '';
 
   return `<div class="screen-wrap">
-    <div class="sc-header">
+    <div class="sc-header sav-plain-header">
       <div class="sc-header-eyebrow">${L('Finance','المالية')}</div>
       <div class="sc-header-title">${L('My Savings','مدخراتي')}</div>
       <div class="sc-header-sub">${L('Track your income, outcome, assets and net worth','تتبع دخلك ومصروفاتك وأصولك وصافي ثروتك')}</div>
+      <button type="button" class="sav-search-toggle" id="savSearchToggle" onclick="savToggleSearch()" aria-label="${L('Search savings','بحث في المدخرات')}" aria-expanded="${(_savSearchOpen||searchQ)?'true':'false'}"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg></button>
     </div>
 
     <!-- Finance Summary — Hero KPI (Net Worth) + compact secondary strip
@@ -17632,7 +17675,7 @@ function renderSavings(){
     </div>
 
     <!-- Quick Actions -->
-    <div class="fin-qa-row">
+    <div class="fin-qa-row sav-qa-scroll">
       <button type="button" class="fin-qa-chip fin-qa-chip-primary" style="--qc:var(--fin-income);--qc-tint:var(--fin-income-tint)" onclick="savAddIncome()">${ic('plus',12)} ${L('Income','دخل')}</button>
       <button type="button" class="fin-qa-chip fin-qa-chip-primary" style="--qc:var(--fin-outcome);--qc-tint:var(--fin-outcome-tint)" onclick="savAddOutcome()">${ic('plus',12)} ${L('Outcome','مصروف')}</button>
       <button type="button" class="fin-qa-chip fin-qa-chip-primary" style="--qc:var(--fin-networth);--qc-tint:var(--fin-networth-tint)" onclick="savTransfer()">${ic('refresh',12)} ${L('Transfer','تحويل')}</button>
@@ -17641,7 +17684,7 @@ function renderSavings(){
       <button type="button" class="fin-qa-chip" style="--qc:#b45309;--qc-tint:#b453091a" onclick="savAddDebt()">${ic('scale',12)} ${L('Debt','مديونية')}</button>
     </div>
 
-    <div class="sc-search cx-search"><span class="cx-sbox">
+    <div class="sc-search cx-search sav-search${(_savSearchOpen||searchQ)?' open':''}" id="savSearchBar"><span class="cx-sbox">
       <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
       <input placeholder="${L('Search savings...','ابحث في المدخرات...')}" value="${esc(searchQ)}" oninput="doSearch(this.value)"/>
     </span></div>
@@ -35210,6 +35253,22 @@ function notesEdgeTap(){
   if(tab) tab.classList.remove('armed');
   openNotesModal();
 }
+// Edge tab stays out of the way while scrolling (presentation-only): any scroll
+// fades it and slides it mostly off the edge; ~250ms after the scroll stops it
+// comes back. Never applied while it is armed/open/being dragged. Uses a single
+// passive capture listener (scroll doesn't bubble) and one timer.
+(function(){
+  let timer = null, on = false;
+  function tabEl(){ return document.getElementById('notesEdgeTab'); }
+  document.addEventListener('scroll', function(){
+    const tab = tabEl();
+    if(!tab) return;
+    if(tab.classList.contains('open') || tab.classList.contains('armed') || tab.classList.contains('dragging')) return;
+    if(!on){ tab.classList.add('is-scrolling'); on = true; }
+    clearTimeout(timer);
+    timer = setTimeout(function(){ const t = tabEl(); if(t) t.classList.remove('is-scrolling'); on = false; }, 250);
+  }, {capture:true, passive:true});
+})();
 function toggleNotesModal(){
   const overlay = document.getElementById('notesPageOverlay');
   const isOpen = overlay && overlay.style.display !== 'none' && overlay.style.display !== '';
@@ -36555,30 +36614,31 @@ const SoundManager = (function(){
     // bright metallic "ting" attack, then two quick, quieter, slightly
     // lower-pitched bounces as it settles (triangle carries the metallic
     // edge better than pure sine; each bounce is shorter+softer than the last).
+    // Sound polish (Apple Pay / Revolut / Wise style): short, soft, melody-free.
+    // Deposit = two RISING sine notes (G5 -> D6), withdraw = the same two notes
+    // FALLING, same bell-like timbre so they read as a pair. A very quiet
+    // octave overtone on the second note gives the soft "glass" shimmer.
     cash_in:            { dur:0.20, tones:[
-      [2800,0,   0.045,0.34,'triangle'], [2350,0,   0.07, 0.13,'sine'],
-      [2250,0.06,0.035,0.19,'triangle'], [1900,0.06,0.05, 0.07,'sine'],
-      [1950,0.12,0.025,0.10,'triangle'], [1650,0.12,0.035,0.04,'sine']
+      [784,0,0.08,0.26,'sine'], [1174.66,0.075,0.13,0.28,'sine'], [2349.32,0.075,0.09,0.035,'sine']
     ] },
     // Withdrawal — cash pulled quickly from a wallet: a fast, friction-like
     // downward sweep (sawtooth for texture, since a real rustle needs noise
     // this engine doesn't synthesize) plus a soft low thud as it comes free.
-    cash_out:           { dur:0.16, tones:[
-      [950,0,    0.09,0.28,'sawtooth',480], [1500,0.01,0.07,0.10,'triangle',680],
-      [420,0.08, 0.06,0.16,'sine',280]
+    cash_out:           { dur:0.20, tones:[
+      [1174.66,0,0.08,0.24,'sine'], [784,0.075,0.13,0.26,'sine'], [1568,0.075,0.09,0.03,'sine']
     ] },
-    transfer:           { dur:0.17, tones:[[880,0,0.07,0.35,'sine'],[1108.73,0.05,0.10,0.4,'sine'],[2217.46,0.05,0.10,0.07,'sine']] },
+    transfer:           { dur:0.19, tones:[[622.25,0,0.16,0.26,'sine',784]] }, // one soft upward glide: value moving across, not a chime
     // Payment/Expense — a calm, deliberate two-note settle: soft descending
     // sine pair, no sawtooth texture (unlike cash_out's "pulled from wallet"
     // friction), no metallic ting (unlike cash_in). Meant to read as routine
     // day-to-day spending rather than a deliberate bank withdrawal.
-    payment:            { dur:0.13, tones:[[620,0,0.06,0.28,'sine'],[480,0.05,0.08,0.22,'sine']] },
+    payment:            { dur:0.14, tones:[[587.33,0,0.13,0.26,'sine']] }, // single soft tap: routine spending
     edit:               { dur:0.08, tones:[[700,0,0.08,0.35,'triangle']] },
-    delete:             { dur:0.12, tones:[[300,0,0.12,0.4,'triangle']] },
+    delete:             { dur:0.14, tones:[[260,0,0.13,0.30,'sine',190]] }, // low muffled tap
     undo:               { dur:0.11, tones:[[500,0,0.05,0.35,'sine'],[400,0.04,0.07,0.3,'sine']] },
 
     budget_ok:          { dur:0.13, tones:[[880,0,0.10,0.4,'sine'],[1760,0.02,0.10,0.08,'sine']] },
-    budget_warning:     { dur:0.18, tones:[[440,0,0.08,0.45,'square'],[440,0.10,0.08,0.4,'square']] },
+    budget_warning:     { dur:0.20, tones:[[220,0,0.08,0.36,'sine'],[220,0.11,0.08,0.36,'sine']] }, // same pulse pair as warning
     budget_exceeded:    { dur:0.21, tones:[[300,0,0.10,0.5,'sawtooth'],[220,0.09,0.12,0.5,'sawtooth']] },
     saving_goal:        { dur:0.24, tones:[[659.25,0,0.07,0.4,'sine'],[880,0.06,0.07,0.4,'sine'],[1318.51,0.12,0.10,0.45,'sine'],[2637.02,0.12,0.10,0.08,'sine']] },
 
@@ -36599,8 +36659,8 @@ const SoundManager = (function(){
     checkbox:           { dur:0.05, tones:[[600,0,0.05,0.25,'sine']] },
     radio:              { dur:0.05, tones:[[620,0,0.05,0.25,'sine']] },
     fab:                { dur:0.11, tones:[[500,0,0.05,0.3,'sine'],[750,0.04,0.07,0.3,'sine']] },
-    success:            { dur:0.16, tones:[[783.99,0,0.06,0.35,'sine'],[1174.66,0.06,0.10,0.4,'sine'],[2349.32,0.06,0.10,0.07,'sine']] },
-    warning:            { dur:0.10, tones:[[440,0,0.10,0.4,'square']] },
+    success:            { dur:0.14, tones:[[880,0,0.13,0.24,'sine']] }, // soft tick: item added / generic success
+    warning:            { dur:0.20, tones:[[220,0,0.08,0.36,'sine'],[220,0.11,0.08,0.36,'sine']] }, // two low, muffled pulses (no beep)
     error:              { dur:0.14, tones:[[280,0,0.14,0.45,'sawtooth']] },
 
     export_pdf:         { dur:0.11, tones:[[500,0,0.06,0.3,'sine'],[650,0.05,0.06,0.3,'sine']] },
@@ -36682,7 +36742,7 @@ const SoundManager = (function(){
   const lastPlayedAt = Object.create(null); // name -> ts, for the 100ms repeat guard
   const celebrated = new Set();        // milestone keys already celebrated this session (spec §9 — never spam)
   let enabled = true;
-  let volume = 0.3;
+  let volume = 0.22;
   const muted = { navigation:false, notifications:false, ai:false, finance:false };
 
   // ── Phase 3 additions (additive only — nothing above this line changed) ─
@@ -36749,8 +36809,8 @@ const SoundManager = (function(){
       const e = localStorage.getItem('wdp_sfx_enabled');
       enabled = (e===null) ? true : e==='1';
       const v = localStorage.getItem('wdp_sfx_volume');
-      volume = (v===null) ? 0.3 : Math.max(0, Math.min(1, parseFloat(v)));
-      if(isNaN(volume)) volume = 0.3;
+      volume = (v===null) ? 0.22 : Math.max(0, Math.min(1, parseFloat(v)));
+      if(isNaN(volume)) volume = 0.22;
       const t = localStorage.getItem('wdp_sfx_theme');
       theme = (t && THEMES[t]) ? t : 'professional';
       ['navigation','notifications','ai','finance'].forEach(cat=>{
@@ -36761,7 +36821,7 @@ const SoundManager = (function(){
         const savedCeleb = JSON.parse(localStorage.getItem('wdp_sfx_celebrated')||'[]');
         savedCeleb.forEach(k=>celebrated.add(k));
       }catch(e){}
-    }catch(e){ enabled = true; volume = 0.3; theme = 'professional'; }
+    }catch(e){ enabled = true; volume = 0.22; theme = 'professional'; }
   }
   loadSettings();
 
@@ -36972,7 +37032,7 @@ const SoundManager = (function(){
   function isEnabled(){ return enabled; }
   function setVolume(v){
     volume = Math.max(0, Math.min(1, Number(v)));
-    if(isNaN(volume)) volume = 0.3;
+    if(isNaN(volume)) volume = 0.22;
     try{ localStorage.setItem('wdp_sfx_volume', String(volume)); }catch(e){ console.warn('[wdp-storage]', e); }
     const mg = getMasterGain();
     if(mg){
