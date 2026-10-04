@@ -8872,6 +8872,54 @@ body .screen-wrap .sc-header.sav-plain-header.sav-plain-header::after{display:no
 [data-theme="dark"] #notesPageOverlay:not(.qn-force-light) .qn-body a *{
   color:var(--blue)!important;-webkit-text-fill-color:var(--blue)!important;
 }
+
+/* Daily receipts report bar (My Requests) */
+.rq-rpt-bar{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 10px}
+.rq-rpt-btn{display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border-radius:999px;border:1px solid var(--border);background:var(--surface);color:var(--text2);font-family:inherit;font-size:calc(11.5px*var(--app-text-scale,1));font-weight:700;cursor:pointer}
+.rq-rpt-btn.on{color:var(--green);border-color:color-mix(in srgb,var(--green) 40%,var(--border))}
+.rq-rpt-btn:active{background:var(--surface2)}
+
+/* ══ My Requests + New Receipt — calmer, clearer, easier on the eyes ══ */
+.rq-stats{gap:8px}
+.rq-stat{border-width:1px;min-height:62px;padding:10px 4px 9px;border-radius:14px}
+.rq-stat b{font-size:calc(19px*var(--app-text-scale,1))}
+.rq-stat span{font-size:calc(10px*var(--app-text-scale,1));letter-spacing:.2px}
+.rq-stat.on,.rq-stat.ok.on,.rq-stat.low.on,.rq-stat.over.on{border-width:1.5px}
+
+.rq-list{gap:10px}
+.rq-card{
+  border-inline-start:1px solid var(--border);border-radius:16px;padding:14px 16px 6px;
+  box-shadow:none;transition:background-color .15s;
+}
+.rq-card:hover{transform:none;box-shadow:none}
+.rq-card:active{background:var(--surface2);transform:none}
+.rq-avatar{width:38px;height:38px;border-radius:11px;box-shadow:none}
+.rq-co{font-size:calc(15.5px*var(--app-text-scale,1));letter-spacing:-.1px}
+.rq-type{font-size:calc(12.5px*var(--app-text-scale,1));font-weight:700;color:var(--muted);letter-spacing:.2px}
+.rq-grid{grid-template-columns:1fr 1fr;gap:12px 14px;margin-top:12px;padding-top:12px}
+.rq-grid>div:last-child:nth-child(odd){grid-column:1/-1}
+.rq-grid dt{font-size:calc(10px*var(--app-text-scale,1));font-weight:700;letter-spacing:.5px;text-transform:uppercase;margin-bottom:3px}
+.rq-grid dd{font-size:calc(14px*var(--app-text-scale,1));font-weight:700;line-height:1.35}
+.rq-notes{margin-top:12px;padding:10px 12px;border-inline-start-width:2px;font-size:calc(12.5px*var(--app-text-scale,1));line-height:1.65;color:var(--text2)}
+.rq-foot{border-top:0;margin-top:2px;padding-top:0;gap:2px}
+.rq-foot .cx-icbtn{opacity:.75}
+.rq-foot .cx-icbtn:active{opacity:1}
+
+.rq-modal{gap:12px}
+.rq-sec{border-radius:16px;padding:14px;box-shadow:none;background:var(--surface)}
+.rq-sec::before{display:none}
+.rq-sec-hdr{margin-bottom:12px;padding-bottom:10px;gap:9px}
+.rq-sec-hdr svg{width:26px;height:26px;padding:6px;border-radius:8px}
+.rq-sec-hdr span{font-size:calc(12px*var(--app-text-scale,1));font-weight:800;letter-spacing:.2px}
+.rq-modal .field{margin-bottom:12px}
+.rq-modal .field label{text-transform:uppercase;letter-spacing:.5px;font-weight:700;margin-bottom:5px}
+.rq-modal .field input,.rq-modal .field select{min-height:44px;border-width:1px;border-radius:12px;box-shadow:none}
+.rq-modal .field textarea{border-width:1px;border-radius:12px;box-shadow:none}
+.rq-modal .field input:focus,.rq-modal .field textarea:focus,.rq-modal .field select:focus{box-shadow:0 0 0 3px color-mix(in srgb,var(--green) 18%,transparent)}
+.rq-modal .rq-custom-wrap{margin-top:8px}
+.rq-modal #rqTypeCustomWrap input::placeholder{font-style:italic;opacity:.7}
+.rq-modal .rq-stbtn{border-width:1px;box-shadow:none;min-height:50px}
+.rq-modal .rq-stbtn.on{border-width:1.5px}
 </style>
 <script>
 // Suppress cross-origin Script errors (in-app browsers like TikTok/Instagram)
@@ -29631,8 +29679,8 @@ function _rqExtractNotesLines(text){
 // suggestion later even if the receipt that first used it gets deleted.
 // One shared store keyed by field name, same idea for all three fields.
 const _RQ_CUSTOM_FIELDS_KEY='wdp_rq_custom_fields_v1';
-let _rqCustomFields={company:[],engineer:[],model:[],irtype:[]};
-try{ const _f=localStorage.getItem(_RQ_CUSTOM_FIELDS_KEY); if(_f){ const p=JSON.parse(_f)||{}; _rqCustomFields={company:p.company||[],engineer:p.engineer||[],model:p.model||[],irtype:p.irtype||[]}; } }catch(e){_logErr('_rqCustomFields:read',e);}
+let _rqCustomFields={company:[],engineer:[],model:[],irtype:[],zone:[]};
+try{ const _f=localStorage.getItem(_RQ_CUSTOM_FIELDS_KEY); if(_f){ const p=JSON.parse(_f)||{}; _rqCustomFields={company:p.company||[],engineer:p.engineer||[],model:p.model||[],irtype:p.irtype||[],zone:p.zone||[]}; } }catch(e){_logErr('_rqCustomFields:read',e);}
 function _rqPersistCustomFields(){ try{ localStorage.setItem(_RQ_CUSTOM_FIELDS_KEY,JSON.stringify(_rqCustomFields)); }catch(e){ _logErr('_rqPersistCustomFields',e); } }
 function _rqFieldOptions(field,historyVals){
   const seen=new Set();
@@ -29790,7 +29838,7 @@ const _rqTrPending=new Set();
 function _rqDisplayValue(r,key){
   const raw=(r[key]||'').toString();
   if(!raw.trim()) return '';
-  if(key==='plot'||key==='model') return raw; // left exactly as entered — MT mangles proper names/codes
+  if(key==='plot'||key==='model'||key==='zone') return raw; // left exactly as entered — MT mangles proper names/codes
   if(key==='company'){
     // Never run through machine translation here — that turns a proper
     // name into its literal meaning (e.g. "الشروق" → "Sunrise"). In English
@@ -29850,7 +29898,7 @@ function _rqSearchHaystack(r){
   // any already-cached translation for type/notes, so a search matches
   // whichever text — original or currently-shown-translated — the person
   // is remembering, without triggering a fresh translate call from search.
-  const vals=[r.company,r.engineer,r.type,r.plot,r.model,r.irType,r.notes,r.date];
+  const vals=[r.company,r.engineer,r.type,r.zone,r.plot,r.model,r.irType,r.notes,r.date];
   const cached=r.tr && r.tr[lang];
   if(cached) for(const f of _RQ_TR_FIELDS) if(cached[f]) vals.push(cached[f]);
   return vals;
@@ -29878,7 +29926,7 @@ function renderMyRequests(){
     const st=_RQ_STATUS[r.status]||_RQ_STATUS.received;
     const dCompany=_rqDisplayValue(r,'company'), dType=_rqDisplayValue(r,'type'),
           dEngineer=_rqDisplayValue(r,'engineer'), dPlot=_rqDisplayValue(r,'plot'),
-          dModel=_rqDisplayValue(r,'model'), dNotes=_rqDisplayValue(r,'notes');
+          dModel=_rqDisplayValue(r,'model'), dNotes=_rqDisplayValue(r,'notes'), dZone=_rqDisplayValue(r,'zone');
     return `
     <article class="rq-card ${st.cls}">
       <div class="rq-top">
@@ -29892,6 +29940,7 @@ function renderMyRequests(){
       <dl class="rq-grid">
         ${cell(ic('hardhat',12),L('Engineer','المهندس'),dEngineer)}
         ${cell(ic('calendar',12),L('Date','التاريخ'),r.date,true)}
+        ${cell(ic('map',12),L('Zone','المنطقة'),dZone)}
         ${cell(ic('pin',12),L('Plot No.','رقم القطعة'),dPlot)}
         ${cell(ic('clipboard',12),L('Form / Model','النموذج'),dModel)}
         ${_rqIsIrType(r.type)?cell(ic('type',12),L('IR type','نوع الـ IR'),r.irType||''):''}
@@ -29921,6 +29970,7 @@ function renderMyRequests(){
       <span class="cx-sh-l"><span class="cx-sh-t">${L('My Requests','استلاماتي')}</span><span class="cx-sh-s">${shown} ${L('receipts','استلامة')}</span></span>
     </div>
     ${statsHTML}
+    ${rqReportBarHTML()}
     ${all.length?`<div class="sc-search cx-search"><span class="cx-sbox">
       <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
       <input placeholder="${L('Search receipts...','ابحث في الاستلامات...')}" value="${esc(searchQ)}" oninput="doSearch(this.value)"/>
@@ -29963,17 +30013,19 @@ function openRequestModal(id){
       <div class="rq-sec-hdr">${ic('clipboard',15)}<span>${L('Request details','تفاصيل الطلب')}</span></div>
       <div class="rq-row2">
         <div class="field"><label>${L('Date','التاريخ')}</label><input type="date" id="rqDate" value="${esc(r?.date||today())}"></div>
+        <div class="field"><label>${L('Zone','المنطقة')}</label><input type="text" id="rqZone" list="rqDlZone" dir="auto" autocomplete="off" value="${esc(r?.zone||'')}"><datalist id="rqDlZone">${_rqFieldOptions('zone',uniq('zone')).map(v=>`<option value="${esc(v)}"></option>`).join('')}</datalist></div>
+      </div>
+      <div class="rq-row2">
         <div class="field"><label>${L('Plot No.','رقم القطعة')}</label><input type="text" id="rqPlot" dir="auto" autocomplete="off" value="${esc(r?.plot||'')}"></div>
+        <div class="field"><label>${L('Form / Model','النموذج')}</label><input type="text" id="rqModel" list="rqDlModel" dir="auto" autocomplete="off" value="${esc(r?.model||'')}"><datalist id="rqDlModel">${_rqFieldOptions('model',uniq('model')).map(v=>`<option value="${esc(v)}"></option>`).join('')}</datalist></div>
       </div>
       <div class="field"><label>${L('Receipt type','نوع الاستلامة')}</label>
         <div class="rq-selwrap"><select id="rqTypeSel" class="rq-typesel${_rqTypeSelInitial(r)?' has-val':''}" onchange="_rqTypeSelChange(this)">${_rqTypeSelectOptionsHTML(r,uniq('type'))}</select></div>
-        <div id="rqTypeCustomWrap" class="rq-custom-wrap" style="${_rqTypeSelInitial(r)==='_other'?'':'display:none'}">
-          <input type="text" id="rqType" list="rqDlType" dir="auto" autocomplete="off" data-autotranslate="1" placeholder="${L('Type the receipt type…','اكتب نوع الاستلامة…')}" value="${esc(r?.type||'')}" oninput="_rqOnTypeInput()">${dl('rqDlType','type')}<div class="at-status" data-at-for="rqType"></div>
+        <div id="rqTypeCustomWrap" class="rq-custom-wrap">
+          <input type="text" id="rqType" list="rqDlType" dir="auto" autocomplete="off" data-autotranslate="1" placeholder="${L('…or type it yourself (any text)','…أو اكتبه بنفسك (أي نص)')}" value="${esc(r?.type||'')}" oninput="_rqOnTypeManual()">${dl('rqDlType','type')}<div class="at-status" data-at-for="rqType"></div>
         </div></div>
       <div class="field rq-custom-wrap" id="rqIrTypeWrap" style="${_rqTypeSelInitial(r)==='ir:_other'?'':'display:none'}"><label>${L('IR type','نوع الـ IR')}</label>
         <input type="text" id="rqIrType" list="rqDlIrType" dir="auto" autocomplete="off" placeholder="${L('Type the IR work type…','اكتب نوع الشغل…')}" value="${esc(r?.irType||'')}" oninput="_rqRenderCommentSuggestions()"><datalist id="rqDlIrType">${_rqFieldOptions('irtype',uniq('irType')).map(v=>`<option value="${esc(v)}"></option>`).join('')}</datalist></div>
-      <div class="field"><label>${L('Form / Model','النموذج')}</label>
-        <input type="text" id="rqModel" list="rqDlModel" dir="auto" autocomplete="off" value="${esc(r?.model||'')}"><datalist id="rqDlModel">${_rqFieldOptions('model',uniq('model')).map(v=>`<option value="${esc(v)}"></option>`).join('')}</datalist></div>
     </div>
 
     <div class="rq-sec">
@@ -30051,7 +30103,7 @@ function _rqTypeSelChange(sel){
     typeInp.value=''; irInp.value=''; showCustom=true;
   }
   else { typeInp.value=v; irInp.value=''; }
-  if(cw) cw.style.display=showCustom?'':'none';
+  if(cw) cw.style.display='';
   if(iw) iw.style.display=showIr?'':'none';
   sel.classList.toggle('has-val',!!v);
   _rqRenderCommentSuggestions();
@@ -30075,6 +30127,20 @@ function _rqPickType(v){
 // Fires on every keystroke/pick in the Receipt type field: refreshes the
 // comment suggestions (existing behavior) and shows/hides the IR sub-type
 // field depending on whether the typed value is IR.
+// Typing straight into the Receipt type box is always allowed (the list is only
+// a shortcut): the dropdown flips to "Other…" so the typed text is what's saved;
+// typing exactly "IR" still reveals the IR work-type field.
+function _rqOnTypeManual(){
+  const sel=document.getElementById('rqTypeSel');
+  const typeInp=document.getElementById('rqType');
+  const irInp=document.getElementById('rqIrType');
+  if(sel && typeInp){
+    if(sel.value!=='_other') sel.value='_other';
+    sel.classList.toggle('has-val',!!typeInp.value.trim());
+    if(irInp && !_rqIsIrType(typeInp.value)) irInp.value='';
+  }
+  _rqOnTypeInput();
+}
 function _rqOnTypeInput(){
   _rqRenderCommentSuggestions();
   _rqToggleIrTypeField();
@@ -30204,11 +30270,12 @@ function saveRequest(){
     }
     _rqPendingCoLogo=undefined;
   }
-  const rec={company,engineer:g('rqEngineer'),date:g('rqDate')||today(),type:g('rqType'),plot:g('rqPlot'),model:g('rqModel'),irType:_rqIsIrType(g('rqType'))?g('rqIrType'):'',status:_rqStatusSel,notes:g('rqNotes')};
+  const rec={company,engineer:g('rqEngineer'),date:g('rqDate')||today(),type:g('rqType'),zone:g('rqZone'),plot:g('rqPlot'),model:g('rqModel'),irType:_rqIsIrType(g('rqType'))?g('rqIrType'):'',status:_rqStatusSel,notes:g('rqNotes')};
   _rqLearnCommentSuggestions(rec.type,rec.irType,rec.notes);
   _rqLearnField('company',rec.company);
   _rqLearnField('engineer',rec.engineer);
   _rqLearnField('model',rec.model);
+  _rqLearnField('zone',rec.zone);
   _rqLearnField('irtype',rec.irType);
   const list=_rqLoad();
   const editing=!!_rqEditId;
@@ -37736,6 +37803,148 @@ function openRemindersPanel(){
 }
 loadReminders();
 remCheckDue();
+
+// ═════════════════════════════════════════════════════════════════════
+// § DAILY RECEIPTS REPORT (تقرير استلامات اليوم) — built from My Requests
+// (Site Custody → استلاماتي). Every day from 4:30 PM the app drops today's
+// report into the Notification Center (with a one-tap Copy) and, if OS
+// notifications are allowed, a system notification whose body is the whole
+// report text. Like Reminders above, this is local-only (no push server): it
+// fires while the app is open/recently backgrounded, and — if the app was
+// closed at 4:30 — the first time it is opened afterwards that same day.
+// Reads receipts only; never writes to them.
+// ═════════════════════════════════════════════════════════════════════
+const RQ_RPT_KEY='wdp_rq_daily_report_v1';   // {on:boolean (default true), last:'YYYY-MM-DD'}
+const RQ_RPT_MINUTE=16*60+30;                 // 4:30 PM
+function _rqReportState(){ try{ return JSON.parse(localStorage.getItem(RQ_RPT_KEY))||{}; }catch(e){ return {}; } }
+function _rqReportSet(p){ try{ localStorage.setItem(RQ_RPT_KEY,JSON.stringify(Object.assign(_rqReportState(),p))); }catch(e){ _logErr('_rqReportSet',e); } }
+function rqReportEnabled(){ return _rqReportState().on!==false; }
+
+// One receipt → one sentence, in the app's current language, built from the
+// card's own fields exactly as typed (no translation):
+//   en: "zone A plot number 48 model IVLPS - column formwork"
+//   ar: "منطقة أ عمارة رقم ٤٨ نموذج IVLPS - نجارة الأعمدة"
+// A plot that is only a number gets "plot number" / "عمارة رقم" in front; a plot
+// typed with words is kept as is. Last part = IR work type (or the receipt type
+// when it isn't an IR).
+function _rqReportLine(r){
+  const ar=(typeof lang!=='undefined'&&lang==='ar');
+  const zone=String(r.zone||'').trim();
+  let plot=String(r.plot||'').trim();
+  if(plot && /^[0-9٠-٩]+$/.test(plot)) plot=(ar?'عمارة رقم ':'plot number ')+plot;
+  const model=String(r.model||'').trim();
+  const tail=String(_rqIsIrType(r.type)?(r.irType||''):(r.type||'')).trim();
+  let line=[zone?(ar?'منطقة ':'zone ')+zone:'', plot, model?(ar?'نموذج ':'model ')+model:''].filter(Boolean).join(' ');
+  if(tail) line+=(line?' - ':'')+tail;
+  return line||String(r.company||'').trim();
+}
+function _rqBuildDailyReport(dateISO){
+  const ar=(typeof lang!=='undefined'&&lang==='ar');
+  const day=_rqLoad().filter(r=>(r.date||'')===dateISO).sort((a,b)=>(a.createdAt||0)-(b.createdAt||0));
+  if(!day.length) return '';
+  const groups=ar
+    ? [['received','تم استلام'],['notes','تم استلام مع ملاحظات'],['rejected','لم يتم استلام']]
+    : [['received','Received'],['notes','Received with notes'],['rejected','Not received']];
+  const blocks=[];
+  groups.forEach(([k,title])=>{
+    const rows=day.filter(r=>(r.status||'received')===k);
+    if(!rows.length) return;
+    blocks.push(title+'\n'+rows.map(r=>{
+      let l='• '+_rqReportLine(r);
+      const n=String(r.notes||'').trim().split('\n').map(x=>x.replace(/^[•\s]+/,'').trim()).filter(Boolean)[0];
+      if(k!=='received' && n) l+=' ('+n+')';
+      return l;
+    }).join('\n'));
+  });
+  return blocks.join('\n\n');
+}
+
+function rqReportCopy(){
+  const text=_rqBuildDailyReport(today());
+  if(!text){ showToast(L('No receipts today','لا توجد استلامات اليوم'),'info'); return; }
+  const done=()=>showToast(L('Report copied ✓','تم نسخ التقرير ✓'),'success');
+  const fallback=()=>{
+    try{
+      const ta=document.createElement('textarea'); ta.value=text; ta.style.cssText='position:fixed;opacity:0;top:0;left:0';
+      document.body.appendChild(ta); ta.focus(); ta.select();
+      const ok=document.execCommand('copy'); ta.remove();
+      ok?done():showToast(L('Copy failed — long-press the text to copy','تعذّر النسخ — اضغط مطولًا على النص لنسخه'),'warn');
+    }catch(e){ _logErr('rqReportCopy:fallback',e); }
+  };
+  if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(text).then(done,fallback); } else fallback();
+}
+function rqReportOpen(){
+  const text=_rqBuildDailyReport(today());
+  document.getElementById('modalContent').innerHTML=`
+    <div class="modal-handle"></div>
+    <div class="modal-hdr">
+      <div class="modal-hdr-icon" style="background:linear-gradient(135deg,var(--green-dark),var(--green))">${ic('clipboard',20)}</div>
+      <div>
+        <div class="modal-hdr-title">${L("Today's receipts report",'تقرير استلامات اليوم')}</div>
+        <div class="modal-hdr-sub" dir="ltr" style="text-align:start">${esc(today())}</div>
+      </div>
+    </div>
+    ${text
+      ? `<textarea readonly dir="rtl" style="width:100%;min-height:180px;box-sizing:border-box;resize:vertical;padding:12px;border-radius:12px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font:inherit;font-size:calc(14px*var(--app-text-scale,1));line-height:1.8" onfocus="this.select()">${esc(text)}</textarea>
+         <div class="modal-btns"><button class="mbtn save" onclick="rqReportCopy()">${L('Copy','نسخ')}</button><button class="mbtn cancel" onclick="closeModal()">${L('Close','إغلاق')}</button></div>`
+      : `<div style="padding:18px 4px;text-align:center;color:var(--muted);font-weight:700">${L('No receipts logged today','لا توجد استلامات مسجلة اليوم')}</div>
+         <div class="modal-btns"><button class="mbtn cancel" onclick="closeModal()">${L('Close','إغلاق')}</button></div>`}`;
+  document.getElementById('modalOverlay').style.display='flex';
+}
+function rqReportToggle(){
+  const on=!rqReportEnabled();
+  _rqReportSet({on});
+  if(on && ('Notification' in window) && Notification.permission==='default'){
+    Notification.requestPermission().then(p=>{
+      showToast(p==='granted'?L('✓ Daily report notification on (4:30 PM)','✓ تم تفعيل إشعار التقرير اليومي (٤:٣٠ م)'):L('Report will show inside the app only (notifications not allowed)','التقرير هيظهر جوه التطبيق فقط (الإشعارات غير مسموحة)'),p==='granted'?'success':'warn');
+      if(currentView==='expenses') renderView();
+    });
+  } else {
+    showToast(on?L('✓ Daily report on (4:30 PM)','✓ تم تفعيل التقرير اليومي (٤:٣٠ م)'):L('Daily report off','تم إيقاف التقرير اليومي'),on?'success':'info');
+  }
+  if(currentView==='expenses') renderView();
+}
+function rqReportBarHTML(){
+  const on=rqReportEnabled();
+  return `<div class="rq-rpt-bar">
+    <button type="button" class="rq-rpt-btn" onclick="rqReportOpen()">${ic('clipboard',14)} ${L("Today's report",'تقرير اليوم')}</button>
+    <button type="button" class="rq-rpt-btn${on?' on':''}" onclick="rqReportToggle()" aria-pressed="${on?'true':'false'}">${ic('bell',14)} ${L('4:30 PM report','تقرير ٤:٣٠ م')}: ${on?L('On','شغال'):L('Off','موقوف')}</button>
+  </div>`;
+}
+
+// Fires at/after 4:30 PM, once per day, only when there is something to report.
+function rqReportCheck(){
+  if(!rqReportEnabled()) return;
+  const now=new Date(), t=today();
+  if(_rqReportState().last===t) return;
+  if(now.getHours()*60+now.getMinutes()<RQ_RPT_MINUTE) return;
+  const text=_rqBuildDailyReport(t);
+  if(!text) return;
+  _rqReportSet({last:t});
+  const title=L("Today's receipts report",'تقرير استلامات اليوم');
+  notifPush({
+    id:'rq_daily_'+t,
+    icon:ic('clipboard',18),
+    iconBg:'linear-gradient(135deg,var(--green-dark),var(--green))',
+    title:title,
+    sub:t,
+    body:`<div dir="rtl" style="white-space:pre-line;text-align:start">${esc(text)}</div>`,
+    primaryLabel:L('Copy','نسخ'),
+    primaryFn:'rqReportCopy()',
+    secondaryLabel:L('Dismiss','إخفاء'),
+    secondaryFn:`notifDismiss('rq_daily_${t}')`
+  });
+  try{
+    if(('Notification' in window) && Notification.permission==='granted'){
+      const opts={body:text,icon:'icons/icon-192.png',tag:'rq_daily_'+t,lang:'ar',dir:'rtl'};
+      if(navigator.serviceWorker&&navigator.serviceWorker.ready) navigator.serviceWorker.ready.then(reg=>reg.showNotification(title,opts));
+      else new Notification(title,opts);
+    }
+  }catch(e){ _logErr('rqReportCheck:os',e); }
+}
+setInterval(function(){ try{ rqReportCheck(); }catch(e){ _logErr('rqReportCheck',e); } },30000);
+document.addEventListener('visibilitychange',function(){ if(!document.hidden){ try{ rqReportCheck(); }catch(e){ _logErr('rqReportCheck',e); } } });
+setTimeout(function(){ try{ rqReportCheck(); }catch(e){ _logErr('rqReportCheck',e); } },2500);
 
 // ── Add New Month ────────────────────────────────────────────────────────────
 const MONTH_OPTIONS=['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
