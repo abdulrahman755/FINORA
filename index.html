@@ -8818,6 +8818,17 @@ body .screen-wrap .sc-header.sav-plain-header.sav-plain-header::after{display:no
 }
 .fab.fab-daily:active:not(.dragging){box-shadow:none}
 
+
+/* ── Banks balances share the signature numerals ── */
+.sig-flat .sig-amt{background:none;-webkit-text-fill-color:currentColor;color:inherit}
+.sig-flat .sig-cur{background:none;color:inherit;opacity:.7;padding:0}
+.banks-v2 .bnk-card-balance .sig-amt{font-family:var(--bnk-num-font,var(--font-display));font-weight:var(--bnk-num-weight,700)}
+.banks-v2 .bnk-card-balance .sig-cur{font-size:.46em}
+.banks-v2 .bnk-hero-total .sig-num{font-size:1em}
+/* Daily: one Target only (Today's Target row); Remaining opens the budget modal */
+.txlg-wrap .kpi3-sec-dup{display:none}
+.txlg-wrap .kpi3-sec:nth-child(2)::before{display:none}
+.txlg-wrap .kpi3-sec-dup+.kpi3-sec{padding-inline-start:18px}
 /* ── Notes: headings stayed near-black in dark mode (colour baked into the
    saved note HTML as an inline style / <font>). Force theme colours on
    headings and anything nested inside them, except notes pinned to the
@@ -8829,11 +8840,38 @@ body .screen-wrap .sc-header.sav-plain-header.sav-plain-header::after{display:no
 [data-theme="dark"] #notesPageOverlay:not(.qn-force-light) .qn-grid-preview h1,
 [data-theme="dark"] #notesPageOverlay:not(.qn-force-light) .qn-grid-preview h1 *,
 [data-theme="dark"] #notesPageOverlay:not(.qn-force-light) .qn-grid-preview h2,
-[data-theme="dark"] #notesPageOverlay:not(.qn-force-light) .qn-grid-preview h2 *{color:var(--text)!important;-webkit-text-fill-color:var(--text)!important}
+[data-theme="dark"] #notesPageOverlay:not(.qn-force-light) .qn-grid-preview h2 *{color:#fff!important;-webkit-text-fill-color:#fff!important}
 [data-theme="dark"] #notesPageOverlay:not(.qn-force-light) .qn-body h3,
 [data-theme="dark"] #notesPageOverlay:not(.qn-force-light) .qn-body h3 *,
 [data-theme="dark"] #notesPageOverlay:not(.qn-force-light) .qn-grid-preview h3,
 [data-theme="dark"] #notesPageOverlay:not(.qn-force-light) .qn-grid-preview h3 *{color:var(--text2)!important;-webkit-text-fill-color:var(--text2)!important}
+
+/* Notes (dark): belt-and-braces — any heading effect that could hide ink, and
+   any element inside a note whose saved inline colour is plain black. */
+[data-theme="dark"] #notesPageOverlay:not(.qn-force-light) :is(.qn-body,.qn-grid-preview) :is(h1,h2,h3){
+  text-shadow:none;-webkit-text-stroke:0;opacity:1;filter:none;mix-blend-mode:normal;background-image:none;
+}
+[data-theme="dark"] #notesPageOverlay:not(.qn-force-light) :is(.qn-body,.qn-grid-preview) :is(
+  [style*="color: rgb(0, 0, 0)"],[style*="color:rgb(0,0,0)"],[style*="color:#000"],[style*="color: #000"],
+  [style*="color:black"],[style*="color: black"],font[color="#000000"],font[color="#000"],font[color="black"]){
+  color:#fff!important;-webkit-text-fill-color:#fff!important;
+}
+
+/* Notes (dark): ALL note text is white, whatever colour was saved inside the
+   note. Kept on purpose: links (blue), completed checklist items (muted +
+   strikethrough) and notes pinned to the light background. */
+[data-theme="dark"] #notesPageOverlay:not(.qn-force-light) :is(.qn-body,.qn-grid-preview) :is(h1,h2,h3,h4,h5,h6,p,div,span,b,strong,i,em,u,s,strike,del,font,li,ol,ul,blockquote,td,th,pre,code,mark),
+[data-theme="dark"] #notesPageOverlay:not(.qn-force-light) .qn-body,
+[data-theme="dark"] #notesPageOverlay:not(.qn-force-light) .qn-title-input{
+  color:#fff!important;-webkit-text-fill-color:#fff!important;
+}
+[data-theme="dark"] #notesPageOverlay:not(.qn-force-light) :is(.qn-body,.qn-grid-preview) .qn-chk.checked :is(.qn-chk-text,.qn-chk-text *){
+  color:var(--muted)!important;-webkit-text-fill-color:var(--muted)!important;
+}
+[data-theme="dark"] #notesPageOverlay:not(.qn-force-light) .qn-body a,
+[data-theme="dark"] #notesPageOverlay:not(.qn-force-light) .qn-body a *{
+  color:var(--blue)!important;-webkit-text-fill-color:var(--blue)!important;
+}
 </style>
 <script>
 // Suppress cross-origin Script errors (in-app browsers like TikTok/Instagram)
@@ -15171,7 +15209,7 @@ function sigAnimateAmounts(){
 const sigNumHTML=(n,opts)=>{
   opts=opts||{};
   const v=opts.abs?Math.abs(n||0):(n||0);
-  const tc=opts.tone?' sig-'+opts.tone:'';
+  const tc=(opts.tone?' sig-'+opts.tone:'')+(opts.flat?' sig-flat':'');
   const sg=opts.sign?`<span class="sig-sign">${esc(opts.sign)}</span>`:'';
   return `<span class="sig-num${tc}" dir="ltr">${sg}<span class="sig-amt" data-v="${v}">${esc(fmt(v))}</span><span class="sig-cur">${esc(curLabel())}</span></span>`;
 };
@@ -23533,7 +23571,7 @@ function renderBanks(m){
           </div>
         </div>
         <div class="bnk-card-balance-lbl" style="${cardMutedFg?'color:'+cardMutedFg:''}">${L('Balance','الرصيد')}</div>
-        <div class="bnk-card-balance ${vis?'':'hidden'}" style="${cardNumFg?'color:'+cardNumFg:''}">${vis?fmt(bal)+'<span class="bal-cur">'+esc(curLabel())+'</span>':'● ● ● ●'}</div>
+        <div class="bnk-card-balance ${vis?'':'hidden'}" style="${cardNumFg?'color:'+cardNumFg:''}">${vis?sigNumHTML(bal,{flat:!!cardNumFg}):'● ● ● ●'}</div>
         <div class="bnk-card-lasttx" style="${cardMutedFg?'color:'+cardMutedFg:''}">${ic('clock',11,'aria-hidden="true"')} ${lastMoveText}</div>
       </div>
 
@@ -23711,7 +23749,7 @@ function renderBanks(m){
       <div class="bnk-hero-month-pill">${esc(_monthDisplayLabel(activeMonth))}</div>
     </div>
     <div class="bnk-hero-total-lbl">${L('Total Balance','إجمالي الرصيد')}</div>
-    <div class="bnk-hero-total" data-bnk-target="${total}">${fmtEGP(total)}</div>
+    <div class="bnk-hero-total">${sigNumHTML(total)}</div>
     <div class="bnk-hero-row">
       ${changeInfo?`<div class="bnk-hero-chip ${changeInfo.delta>=0?'up':'down'}">
         ${ic(changeInfo.delta>=0?'trend_up':'trend_down',11)}
@@ -28875,13 +28913,13 @@ function renderTransactions(m){
       })():''}
     </div>
     <div class="kpi3-secondary-row">
-      <div class="kpi3-sec" role="button" tabindex="0" onclick="openBudgetModal(activeMonth)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}" aria-label="${L('Target','مستهدف')} ${_kpiHasTarget?fmtEGP(totalTargetAll):L('not set','غير محدد')}">
+      <div class="kpi3-sec kpi3-sec-dup" role="button" tabindex="0" onclick="openBudgetModal(activeMonth)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}" aria-label="${L('Target','مستهدف')} ${_kpiHasTarget?fmtEGP(totalTargetAll):L('not set','غير محدد')}">
         <div class="kpi3-sec-label">${L('Target','مستهدف')}</div>
         <div class="kpi3-sec-val${_kpiHasTarget?'':' is-empty'}" style="color:var(--blue)">${_kpiHasTarget?fmtEGP(totalTargetAll):L('Tap to set','اضغط للتحديد')}</div>
       </div>
-      <div class="kpi3-sec" aria-label="${L('Remaining','متبقي')} ${_kpiHasTarget?fmtEGP(_kpiRemaining):L('not available','غير متاح')}">
+      <div class="kpi3-sec" role="button" tabindex="0" style="cursor:pointer" onclick="openBudgetModal(activeMonth)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}" aria-label="${L('Remaining','متبقي')} ${_kpiHasTarget?fmtEGP(_kpiRemaining):L('not available','غير متاح')}">
         <div class="kpi3-sec-label">${L('Remaining','متبقي')}</div>
-        <div class="kpi3-sec-val${_kpiHasTarget?'':' is-empty'}" style="color:${_kpiHasTarget?_kpiZoneColor:'var(--muted)'}">${_kpiHasTarget?fmtEGP(_kpiRemaining):'—'}</div>
+        <div class="kpi3-sec-val${_kpiHasTarget?'':' is-empty'}" style="color:${_kpiHasTarget?_kpiZoneColor:'var(--muted)'}">${_kpiHasTarget?fmtEGP(_kpiRemaining):L('Tap to set','اضغط للتحديد')}</div>
       </div>
       <div class="kpi3-sec" aria-label="${L('Saved','موفّر')} ${_kpiSavedHasData?(_kpiSaved>=0?'+':'-')+fmtEGP(Math.abs(_kpiSaved)):L('not available','غير متاح')}">
         <div class="kpi3-sec-label">${L('Saved','موفّر')}</div>
