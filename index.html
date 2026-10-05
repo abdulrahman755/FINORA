@@ -8905,6 +8905,17 @@ body .screen-wrap .sc-header.sav-plain-header.sav-plain-header::after{display:no
 .rq-foot .cx-icbtn{opacity:.75}
 .rq-foot .cx-icbtn:active{opacity:1}
 
+/* ── My Requests: card colour follows the receipt type + one-line summary ── */
+.rq-card.rq-t{--rq-c:var(--rq-tc);background:color-mix(in srgb,var(--rq-tc) 8%,var(--surface));border-color:color-mix(in srgb,var(--rq-tc) 30%,var(--border));border-inline-start:4px solid var(--rq-tc)}
+.rq-card.rq-t:active{background:color-mix(in srgb,var(--rq-tc) 15%,var(--surface))}
+.rq-card.rq-t .rq-avatar{background:color-mix(in srgb,var(--rq-tc) 16%,var(--surface));color:var(--rq-tc)}
+.rq-card.rq-t .rq-type{color:var(--rq-tc);font-weight:800}
+.rq-card.rq-t .rq-grid,.rq-card.rq-t .rq-foot{border-color:color-mix(in srgb,var(--rq-tc) 20%,var(--border))}
+.rq-card.rq-t .rq-notes{background:color-mix(in srgb,var(--rq-tc) 7%,var(--surface2));border-inline-start-color:var(--rq-tc)}
+.rq-line{margin-top:6px;margin-bottom:2px;padding:7px 11px;border-radius:11px;background:color-mix(in srgb,var(--rq-tc,var(--muted)) 14%,var(--surface));font-size:calc(14.5px*var(--app-text-scale,1));font-weight:800;line-height:1.55;color:var(--text);overflow-wrap:anywhere}
+[data-theme="dark"] .rq-card.rq-t{border-inline-start:3px solid var(--rq-tc);background:color-mix(in srgb,var(--rq-tc) 11%,var(--surface))}
+[data-theme="dark"] .rq-card.rq-t .rq-avatar,[data-theme="dark"] .rq-card.rq-t .rq-type{color:color-mix(in srgb,var(--rq-tc) 65%,#fff)}
+
 .rq-modal{gap:12px}
 .rq-sec{border-radius:16px;padding:14px;box-shadow:none;background:var(--surface)}
 .rq-sec::before{display:none}
@@ -30000,6 +30011,30 @@ function _rqSearchHaystack(r){
   return vals;
 }
 
+// Card colour per receipt type. Known types get a fixed colour; any other
+// (typed-by-hand) type gets a stable colour hashed from its text, so the same
+// type always looks the same. Green / gold / red are skipped on purpose —
+// they already mean received / with notes / not received on the status chip.
+const _RQ_TYPE_COLORS={ir:'#3D6FA3',cpp:'#77639E',cpr:'#C17A32',wir:'#2A8C8C',mir:'#B5547A',rfi:'#5561B0',ncr:'#8A6247'};
+const _RQ_TYPE_PALETTE=['#2A8C8C','#B5547A','#5561B0','#2C8FB8','#8A6247','#667788','#9A5BB5','#4F8A3C'];
+function _rqTypeColor(r){
+  const k=String(r.type||'').trim().toLowerCase();
+  if(!k) return '#667788';
+  if(_RQ_TYPE_COLORS[k]) return _RQ_TYPE_COLORS[k];
+  let h=0; for(let i=0;i<k.length;i++) h=(h*31+k.charCodeAt(i))>>>0;
+  return _RQ_TYPE_PALETTE[h%_RQ_TYPE_PALETTE.length];
+}
+// "عمارة ٤٠ - نموذج IVLB - نجارة سقف - الدور الأول" built from the card's own fields.
+function _rqCardLine(r){
+  const ar=(typeof lang!=='undefined'&&lang==='ar');
+  let plot=String(_rqDisplayValue(r,'plot')||r.plot||'').trim();
+  if(plot && /^[0-9٠-٩]+$/.test(plot)) plot=(ar?'عمارة ':'Plot ')+plot;
+  const model=String(_rqDisplayValue(r,'model')||r.model||'').trim();
+  const work=String(_rqIrLabel(r)||'').trim();
+  const fl=String(_rqFloorLabel(r.floor)||'').trim();
+  return [plot, model?(ar?'نموذج ':'Model ')+model:'', work, fl?(ar?'الدور ':'')+fl+(ar?'':' Floor'):''].filter(Boolean).join(' - ');
+}
+
 function renderMyRequests(){
   const all=_rqLoad();
   const counts={received:0,notes:0,rejected:0};
@@ -30024,11 +30059,12 @@ function renderMyRequests(){
           dEngineer=_rqDisplayValue(r,'engineer'), dPlot=_rqDisplayValue(r,'plot'),
           dModel=_rqDisplayValue(r,'model'), dNotes=_rqDisplayValue(r,'notes'), dZone=_rqDisplayValue(r,'zone');
     return `
-    <article class="rq-card ${st.cls}">
+    <article class="rq-card rq-t ${st.cls}" style="--rq-tc:${_rqTypeColor(r)}">
       <div class="rq-top">
         <div class="rq-avatar">${_rqCoLogoSrc(r.company)?bankLogoHTML(_rqCoLogoSrc(r.company),36,{alt:dCompany}):ic('building',17)}</div>
         <div class="rq-head">
           <div class="rq-co">${esc(dCompany)}</div>
+          ${_rqCardLine(r)?`<div class="rq-line" dir="auto">${esc(_rqCardLine(r))}</div>`:''}
           ${dType?`<div class="rq-type">${esc(dType)}</div>`:''}
         </div>
         <span class="cx-chip ${st.cls}">${_rqStatusLabel(r.status)}</span>
