@@ -8912,6 +8912,13 @@ body .screen-wrap .sc-header.sav-plain-header.sav-plain-header::after{display:no
 .rq-card.rq-t .rq-type{color:var(--rq-tc);font-weight:800}
 .rq-card.rq-t .rq-grid,.rq-card.rq-t .rq-foot{border-color:color-mix(in srgb,var(--rq-tc) 20%,var(--border))}
 .rq-card.rq-t .rq-notes{background:color-mix(in srgb,var(--rq-tc) 7%,var(--surface2));border-inline-start-color:var(--rq-tc)}
+.rq-lvl-btn{display:inline-flex;align-items:center;gap:6px;margin:-2px 0 4px;padding:6px 2px;border:0;background:none;color:var(--green);font-family:inherit;font-size:calc(12px*var(--app-text-scale,1));font-weight:800;cursor:pointer}
+.rq-lvl-panel{margin:0 0 6px;padding:10px 12px;border-radius:var(--radius-sm);background:var(--surface2);border:1px solid var(--border)}
+.rq-lvl-note{font-size:calc(11px*var(--app-text-scale,1));color:var(--muted);line-height:1.5;margin-bottom:8px}
+.rq-lvl-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:5px 0}
+.rq-lvl-row span{font-size:calc(13px*var(--app-text-scale,1));font-weight:700;color:var(--text)}
+.rq-lvl-row input{width:112px;padding:8px 10px;border-radius:10px;border:1.5px solid var(--border);background:var(--surface);color:var(--text);font-family:inherit;font-size:calc(14px*var(--app-text-scale,1));font-weight:700;text-align:start}
+.rq-lvl-reset{margin-top:6px;padding:6px 2px;border:0;background:none;color:var(--muted);font-family:inherit;font-size:calc(11.5px*var(--app-text-scale,1));font-weight:700;cursor:pointer;text-decoration:underline}
 .rq-line{margin:4px 0 3px;font-size:calc(13.5px*var(--app-text-scale,1));font-weight:600;line-height:1.55;color:var(--text);overflow-wrap:anywhere}
 [data-theme="dark"] .rq-card.rq-t .rq-avatar,[data-theme="dark"] .rq-card.rq-t .rq-type{color:color-mix(in srgb,var(--rq-tc) 65%,#fff)}
 
@@ -30101,6 +30108,66 @@ function _rqPickModel(m){
   _rqRenderModelSugg();
 }
 
+// ── Floor → Level (المنسوب) auto-fill in the New/Edit receipt form ───────────
+// Same rule as Plot → Model: only an empty (or previously auto-filled) Level is
+// replaced; a level typed by hand is never touched. Floors with no listed level
+// (Ground, Roof…) leave the field alone.
+const _RQ_FLOOR_LEVELS_KEY='wdp_rq_floor_levels_v1';
+const _RQ_FLOOR_ORDER=['basement','ground','first','second','third','fourth','fifth','roof'];
+const _RQ_FLOOR_LEVELS_DEFAULT={basement:'-2.95',ground:'',first:'+3.25',second:'+6.30',third:'+9.35',fourth:'+12.40',fifth:'+15.45',roof:''};
+// Editable from the form (Edit floor levels) and kept in localStorage; an empty
+// value means "no auto level for this floor".
+const _RQ_FLOOR_LEVELS=Object.assign({},_RQ_FLOOR_LEVELS_DEFAULT);
+try{ const _sv=JSON.parse(localStorage.getItem(_RQ_FLOOR_LEVELS_KEY)||'null'); if(_sv&&typeof _sv==='object') _RQ_FLOOR_ORDER.forEach(k=>{ if(typeof _sv[k]==='string') _RQ_FLOOR_LEVELS[k]=_sv[k]; }); }catch(e){}
+const _RQ_FLOOR_ALIASES={
+  'بدروم':'basement','basement':'basement','ارضي':'ground','ground':'ground','gr':'ground','سطح':'roof','roof':'roof',
+  'اول':'first','اولي':'first','اوله':'first','first':'first','1st':'first',
+  'ثاني':'second','ثانيه':'second','second':'second','2nd':'second',
+  'ثالث':'third','ثالثه':'third','third':'third','3rd':'third',
+  'رابع':'fourth','رابعه':'fourth','fourth':'fourth','4th':'fourth',
+  'خامس':'fifth','خامسه':'fifth','fifth':'fifth','5th':'fifth'
+};
+function _rqFloorKey(raw){
+  let t=String(raw||'').trim().toLowerCase();
+  if(!t) return '';
+  t=t.replace(/[أإآ]/g,'ا').replace(/ى/g,'ي').replace(/ة/g,'ه').replace(/\s+/g,' ');
+  t=t.replace(/^(الدور|دور|floor)\s+/,'').replace(/\s+floor$/,'').replace(/^ال(?=.{2,})/,'').trim();
+  return _RQ_FLOOR_ALIASES[t]||'';
+}
+let _rqLevelAuto='';
+function _rqSaveFloorLevels(){ try{ localStorage.setItem(_RQ_FLOOR_LEVELS_KEY,JSON.stringify(_RQ_FLOOR_LEVELS)); }catch(e){ _logErr('_rqSaveFloorLevels',e); } }
+function _rqSetFloorLevel(key,val){
+  if(!(key in _RQ_FLOOR_LEVELS_DEFAULT)) return;
+  _RQ_FLOOR_LEVELS[key]=String(val||'').trim();
+  _rqSaveFloorLevels();
+  _rqOnFloorInput();
+}
+function _rqResetFloorLevels(){
+  Object.assign(_RQ_FLOOR_LEVELS,_RQ_FLOOR_LEVELS_DEFAULT);
+  _rqSaveFloorLevels();
+  _rqRenderLevelsPanel();
+  _rqOnFloorInput();
+}
+function _rqRenderLevelsPanel(){
+  const box=document.getElementById('rqLvlPanel'); if(!box) return;
+  box.innerHTML=`<div class="rq-lvl-note">${L('Used to auto-fill Level from Floor. Saved receipts keep their own level.','بتتستخدم لتعبئة المنسوب تلقائي من الدور. الاستلامات المحفوظة بتفضل بمنسوبها.')}</div>`
+    +_RQ_FLOOR_ORDER.map(k=>`<label class="rq-lvl-row"><span>${esc(L(_RQ_FLOORS_EN[k],_RQ_FLOORS_AR[k]))}</span><input type="text" dir="ltr" autocomplete="off" inputmode="text" placeholder="—" value="${esc(_RQ_FLOOR_LEVELS[k]||'')}" oninput="_rqSetFloorLevel('${k}',this.value)"></label>`).join('')
+    +`<button type="button" class="rq-lvl-reset" onclick="_rqResetFloorLevels()">${L('Reset to defaults','رجوع للقيم الأصلية')}</button>`;
+}
+function _rqToggleLevelsPanel(){
+  const box=document.getElementById('rqLvlPanel'); if(!box) return;
+  const open=box.style.display==='none'||!box.style.display;
+  if(open) _rqRenderLevelsPanel();
+  box.style.display=open?'block':'none';
+}
+function _rqOnFloorInput(){
+  const f=document.getElementById('rqFloor'), l=document.getElementById('rqLevel');
+  if(!f||!l) return;
+  const lv=_RQ_FLOOR_LEVELS[_rqFloorKey(f.value)]||'', cur=l.value.trim();
+  if(lv && (!cur || cur===_rqLevelAuto)){ l.value=lv; _rqLevelAuto=lv; }
+  else if(!lv && cur && cur===_rqLevelAuto){ l.value=''; _rqLevelAuto=''; }
+}
+
 function renderMyRequests(){
   const all=_rqLoad();
   const counts={received:0,notes:0,rejected:0};
@@ -30221,9 +30288,11 @@ function openRequestModal(id){
       </div>
       <div class="rq-sugg-row" id="rqModelSugg"></div>
       <div class="rq-row2">
-      <div class="field"><label>${L('Floor','الدور')}</label><input type="text" id="rqFloor" list="rqDlFloor" dir="auto" autocomplete="off" placeholder="${L('e.g. Third','مثال: الثالث')}" value="${esc(r?.floor||'')}"><datalist id="rqDlFloor">${['Ground','First','Second','Third','Fourth','Fifth','Roof'].map(v=>`<option value="${L(v,_RQ_FLOORS_AR[v.toLowerCase()])}"></option>`).join('')}</datalist></div>
+      <div class="field"><label>${L('Floor','الدور')}</label><input type="text" id="rqFloor" list="rqDlFloor" dir="auto" autocomplete="off" placeholder="${L('e.g. Third','مثال: الثالث')}" value="${esc(r?.floor||'')}" oninput="_rqOnFloorInput()"><datalist id="rqDlFloor">${['Basement','Ground','First','Second','Third','Fourth','Fifth','Roof'].map(v=>`<option value="${L(v,_RQ_FLOORS_AR[v.toLowerCase()])}"></option>`).join('')}</datalist></div>
       <div class="field"><label>${L('Level','المنسوب')}</label><input type="text" id="rqLevel" dir="ltr" autocomplete="off" inputmode="text" placeholder="${L('e.g. +12.50','مثال: +12.50')}" value="${esc(r?.level||'')}"></div>
       </div>
+      <button type="button" class="rq-lvl-btn" onclick="_rqToggleLevelsPanel()">${ic('ruler',13)} ${L('Edit floor levels','تعديل مناسيب الأدوار')}</button>
+      <div class="rq-lvl-panel" id="rqLvlPanel" style="display:none"></div>
       <div class="field"><label>${L('Receipt type','نوع الاستلامة')}</label>
         <div class="rq-selwrap"><select id="rqTypeSel" class="rq-typesel${_rqTypeSelInitial(r)?' has-val':''}" onchange="_rqTypeSelChange(this)">${_rqTypeSelectOptionsHTML(r,uniq('type'))}</select></div>
         <div id="rqTypeCustomWrap" class="rq-custom-wrap">
@@ -30253,6 +30322,8 @@ function openRequestModal(id){
   _rqRenderCommentSuggestions();
   _rqModelAuto=(r && _rqPlotPrimary(_rqPlotCandidates(r.plot))?.m===r.model)?r.model:'';
   _rqRenderModelSugg();
+  _rqLevelAuto=(r && r.level && _RQ_FLOOR_LEVELS[_rqFloorKey(r.floor)]===r.level)?r.level:'';
+  if(r && !String(r.level||'').trim()) _rqOnFloorInput();
 }
 // ── Receipt type dropdown ────────────────────────────────────────────────
 // One grouped <select> replaces the free-text field + 18 chips. The stored
@@ -30391,7 +30462,7 @@ function _rqRenderCommentSuggestions(){
   host.innerHTML=`<div class="rq-sugg-panel">
     <div class="rq-sugg-panel-hdr"><span>${ic('note',13)} ${L('Suggested comments','كومنتات مقترحة')}${ctx?` · <b>${esc(ctx)}</b>`:''}</span><em>${list.length}</em></div>
     <div class="rq-sugg-panel-body">${chips}</div>
-    <div class="rq-sugg-hint">${L('Tap to add to notes','اضغط للإضافة في الملاحظات')}</div>
+    <div class="rq-sugg-hint">${L('Tap to add · tap again to remove','اضغط للإضافة · اضغط تاني للإزالة')}</div>
   </div>`;
   host._list=list;
   _rqMarkAddedComments();
@@ -30400,8 +30471,16 @@ function _rqTapComment(btn){
   const host=document.getElementById('rqCommentSugg');
   const text=host&&host._list?host._list[+btn.dataset.i]:'';
   if(!text) return;
-  if(btn.classList.contains('added')) return;
-  _rqAddComment(text);
+  if(btn.classList.contains('added')) _rqRemoveComment(text);
+  else _rqAddComment(text);
+}
+function _rqRemoveComment(text){
+  const ta=document.getElementById('rqNotes');
+  if(!ta||!text) return;
+  const norm=v=>String(v||'').replace(/^[•\-]\s*/,'').trim().replace(/[.]$/,'').trim().toLowerCase();
+  const target=norm(text);
+  ta.value=String(ta.value||'').split('\n').filter(l=>norm(l)!==target).join('\n').replace(/\s+$/,'');
+  ta.dispatchEvent(new Event('input',{bubbles:true}));
 }
 function _rqMarkAddedComments(){
   const host=document.getElementById('rqCommentSugg');
@@ -38056,8 +38135,8 @@ function _rqReportDateLabel(dateISO){
 // Work/receipt type shown in the app's current language: the built-in IR
 // work types swap instantly; anything typed by hand goes through the same
 // auto-translation the cards use (shown as typed until it lands).
-const _RQ_FLOORS_AR={ground:'الأرضي',gr:'الأرضي',first:'الأول',second:'الثاني',third:'الثالث',fourth:'الرابع',fifth:'الخامس',sixth:'السادس',roof:'السطح'};
-const _RQ_FLOORS_EN={ground:'Ground',gr:'Ground',first:'First',second:'Second',third:'Third',fourth:'Fourth',fifth:'Fifth',sixth:'Sixth',roof:'Roof'};
+const _RQ_FLOORS_AR={ground:'الأرضي',gr:'الأرضي',first:'الأول',second:'الثاني',third:'الثالث',fourth:'الرابع',fifth:'الخامس',sixth:'السادس',roof:'السطح',basement:'البدروم'};
+const _RQ_FLOORS_EN={ground:'Ground',gr:'Ground',first:'First',second:'Second',third:'Third',fourth:'Fourth',fifth:'Fifth',sixth:'Sixth',roof:'Roof',basement:'Basement'};
 function _rqFloorLabel(raw){
   const v=String(raw||'').trim(); if(!v) return '';
   const low=v.toLowerCase();
