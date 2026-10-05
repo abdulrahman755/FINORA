@@ -8996,7 +8996,7 @@ body .screen-wrap .sc-header.sav-plain-header.sav-plain-header::after{display:no
 .rpt-pick{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 0 12px;padding:8px 12px;border-radius:12px;border:1px solid var(--border);background:var(--surface2);font-size:calc(12.5px*var(--app-text-scale,1));font-weight:700;color:var(--text2)}
 .rpt-pick input{border:0;background:transparent;color:var(--text);font:inherit;font-weight:800;min-width:0;text-align:end}
 .rpt-paper{max-height:42vh;overflow:auto;padding:16px 18px;border-radius:16px;border:1px solid var(--border);background:var(--surface);line-height:1.5;-webkit-user-select:text;user-select:text}
-.rpt-title{font-size:calc(16px*var(--app-text-scale,1));font-weight:800;color:var(--green)}
+.rpt-paper .rpt-title{font-size:calc(24px*var(--app-text-scale,1));font-weight:900;letter-spacing:.3px;line-height:1.15;text-transform:uppercase;color:var(--green-dark,var(--green));margin-top:4px}
 .rpt-date{font-size:calc(12px*var(--app-text-scale,1));font-weight:700;color:var(--muted);margin:1px 0 12px;padding-bottom:10px;border-bottom:1px dashed var(--border)}
 .rpt-gap{height:12px}
 .rpt-plot{display:flex;align-items:center;gap:8px;font-size:calc(15px*var(--app-text-scale,1));font-weight:800;color:var(--text)}
@@ -37147,6 +37147,7 @@ function closeModal(e){
   if(!overlay||overlay.style.display==='none')return; // already closed/closing
   SoundManager.play('bottomsheet_close');
   _valClear();
+  try{ _rqRptLang=''; }catch(_){}
   const sheet=document.getElementById('modalContent');
   overlay.classList.add('fp-closing');
   if(sheet) sheet.classList.add('fp-closing');
@@ -38178,7 +38179,9 @@ function _rqReportDateLabel(dateISO){
   try{
     const d=new Date(dateISO+'T00:00:00');
     if(isNaN(d)) return dateISO;
-    return d.toLocaleDateString(typeof _dtLocale==='function'?_dtLocale():undefined,{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+    // "MON 5/10/2026"
+    const wd=d.toLocaleDateString(typeof _dtLocale==='function'?_dtLocale():undefined,{weekday:'short'}).toUpperCase();
+    return wd+' '+d.getDate()+'/'+(d.getMonth()+1)+'/'+d.getFullYear();
   }catch(e){ return dateISO; }
 }
 // Work/receipt type shown in the app's current language: the built-in IR
@@ -38203,7 +38206,11 @@ function _rqIrLabel(r){
 }
 function _rqReportTail(r){
   const t=_rqIsIrType(r.type)?_rqIrLabel(r):[(_rqDisplayValue(r,'type')||r.type||''),_rqIrLabel(r)].filter(Boolean).join(' - ');
-  return [String(t).trim(),_rqFloorLabel(r.floor)].filter(Boolean).join(' ');
+  const ar=(typeof lang!=='undefined'&&lang==='ar');
+  if(ar) return [String(t).trim(),_rqFloorLabel(r.floor)].filter(Boolean).join(' ');
+  // English: "THIRD COL FORM WORK" — floor first, short work name, upper-case
+  const work=String(t).trim().replace(/\bColumn\b/gi,'COL').replace(/\bFormwork\b/gi,'FORM WORK');
+  return [_rqFloorLabel(r.floor),work].filter(Boolean).join(' ').toUpperCase();
 }
 // One receipt → a small block:
 //   • عمارة ٣٤
@@ -38216,19 +38223,21 @@ function _rqReportBlock(r){
   const zone=String(r.zone||'').trim();
   const model=String(r.model||'').trim();
   const tail=_rqReportTail(r);
-  const head=plot||zone||String(_rqDisplayValue(r,'company')||r.company||'').trim();
+  const company=String(_rqDisplayValue(r,'company')||r.company||'').trim();
+  const head=plot||zone||company;
   const lines=[head];
-  if(plot && zone) lines.push((ar?'منطقة ':'Zone ')+zone);
+  if(plot && zone) lines.push(zone);
+  if(company && company!==head) lines.push(company);
   if(model) lines.push((ar?'نموذج ':'Model ')+model);
   if(tail) lines.push(tail);
   return lines;
 }
-function _rqReportGroups(dateISO){
+function _rqReportGroupsRaw(dateISO){
   const ar=(typeof lang!=='undefined'&&lang==='ar');
   const day=_rqLoad().filter(r=>(r.date||'')===dateISO).sort((a,b)=>(a.createdAt||0)-(b.createdAt||0));
   const defs=ar
     ? [['received','تم استلام'],['notes','تم استلام مع ملاحظات'],['rejected','لم يتم استلام']]
-    : [['received','Received'],['notes','Received with notes'],['rejected','Not received']];
+    : [['received','received'],['notes','received with notes'],['rejected','not received']];
   const out=[];
   defs.forEach(([k,title])=>{
     const rows=day.filter(r=>(r.status||'received')===k);
@@ -38244,13 +38253,32 @@ function _rqReportGroups(dateISO){
   });
   return out;
 }
-function _rqBuildDailyReport(dateISO){
-  const groups=_rqReportGroups(dateISO);
+function _rqBuildDailyReportRaw(dateISO){
+  const groups=_rqReportGroupsRaw(dateISO);
   if(!groups.length) return '';
   return groups.map((g,i)=>{
-    const head=[g.title]; if(i===0) head.push(_rqReportDateLabel(dateISO));
-    return head.join('\n')+'\n'+g.items.map(it=>'• '+it.lines[0]+(it.lines.length>1?'\n'+it.lines.slice(1).map(x=>'- '+x).join('\n'):'')).join('\n\n');
+    const head=['• '+g.title]; if(i===0) head.push(_rqReportDateLabel(dateISO));
+    return head.join('\n')+'\n'+g.items.map(it=>it.lines.join('\n')).join('\n\n');
   }).join('\n\n');
+}
+// Report-language override: the Translate button inside "My Report" flips the
+// whole report between Arabic and English without touching the app language.
+// Only active while the report modal is open (notifications use the app language).
+let _rqRptLang='';
+function _rqEffLang(){
+  return (_rqRptLang && document.getElementById('rptPaper')) ? _rqRptLang : lang;
+}
+function _rqInRptLang(fn){
+  const o=lang, t=_rqEffLang();
+  if(t===o) return fn();
+  lang=t;
+  try{ return fn(); } finally{ lang=o; }
+}
+function _rqReportGroups(d){ return _rqInRptLang(()=>_rqReportGroupsRaw(d)); }
+function _rqBuildDailyReport(d){ return _rqInRptLang(()=>_rqBuildDailyReportRaw(d)); }
+function rqReportTranslate(){
+  _rqRptLang=(_rqEffLang()==='ar')?'en':'ar';
+  rqReportOpen(_rqRptDate||today());
 }
 function _rqReportDates(){
   const m={};
@@ -38281,8 +38309,8 @@ function rqReportShare(d){
 function _rqReportPreviewHTML(date){
   const groups=_rqReportGroups(date);
   return groups.map((g,gi)=>`
-    <div class="rpt-title">${esc(g.title)}</div>
-    ${gi===0?`<div class="rpt-date">${esc(_rqReportDateLabel(date))}</div>`:''}
+    <div class="rpt-title">• ${esc(g.title)}</div>
+    ${gi===0?`<div class="rpt-date">${esc(_rqInRptLang(()=>_rqReportDateLabel(date)))}</div>`:''}
     ${g.items.map(it=>`<div class="rpt-item">
       <div class="rpt-item-tx"><div class="rpt-plot"><i></i>${esc(it.lines[0])}</div>${it.lines.slice(1).map(x=>`<div class="rpt-sub">${esc(x)}</div>`).join('')}</div>
       <div class="rpt-item-act">
@@ -38303,7 +38331,7 @@ function rqReportDelItem(id){
 function rqReportEditText(){
   const date=_rqRptDate||today();
   const paper=document.getElementById('rptPaper'); if(!paper) return;
-  const ar=(typeof lang!=='undefined'&&lang==='ar');
+  const ar=(_rqEffLang()==='ar');
   paper.innerHTML=`<textarea id="rptTa" class="rpt-ta" dir="${ar?'rtl':'ltr'}">${esc(_rqBuildDailyReport(date))}</textarea>`;
   document.getElementById('rptEditBtn').style.display='none';
   const c=document.getElementById('rptCopyBtn');
@@ -38323,7 +38351,7 @@ function rqReportOpen(d){
   _rqRptDate=date;
   const text=_rqBuildDailyReport(date);
   const hist=_rqReportDates();
-  const ar=(typeof lang!=='undefined'&&lang==='ar');
+  const ar=(_rqEffLang()==='ar');
   const yest=new Date(); yest.setDate(yest.getDate()-1);
   const yISO=yest.getFullYear()+'-'+String(yest.getMonth()+1).padStart(2,'0')+'-'+String(yest.getDate()).padStart(2,'0');
   const chip=(iso,label,n)=>`<button type="button" class="rpt-chip${iso===date?' on':''}" onclick="rqReportOpen('${iso}')"><b>${esc(label)}</b>${n!=null?`<span>${n}</span>`:''}</button>`;
@@ -38354,6 +38382,7 @@ function rqReportOpen(d){
     </button>
     <div class="modal-btns">
       ${text?`<button class="mbtn save" id="rptCopyBtn" onclick="rqReportCopy('${esc(date)}')">${L('Copy report','نسخ التقرير')}</button><button class="mbtn cancel" id="rptEditBtn" onclick="rqReportEditText()">${L('Edit text','تعديل النص')}</button>`:''}
+      ${text?`<button class="mbtn cancel" id="rptTrBtn" onclick="rqReportTranslate()">${ar?'Translate to English':'ترجمة إلى العربية'}</button>`:''}
       ${text&&navigator.share?`<button class="mbtn cancel" onclick="rqReportShare('${esc(date)}')">${L('Share','مشاركة')}</button>`:''}
       <button class="mbtn cancel" onclick="closeModal()">${L('Close','إغلاق')}</button>
     </div>`;
@@ -38376,7 +38405,7 @@ function rqReportToggle(){
 function rqReportBarHTML(){
   const on=rqReportEnabled();
   const n=(_rqReportDates().find(h=>h.d===today())||{n:0}).n;
-  return `<button type="button" class="rq-rpt-card" onclick="_rqRptDate='';rqReportOpen()">
+  return `<button type="button" class="rq-rpt-card" onclick="_rqRptDate='';_rqRptLang='';rqReportOpen()">
     <span class="rq-rpt-ic">${ic('clipboard',20)}</span>
     <span class="rq-rpt-tx"><b>${L('My Report','تقريري')}</b><small>${n?L(n+' receipt(s) today',n+' استلام اليوم'):L('No receipts yet today','لا استلامات اليوم')} · ${on?L('4:30 PM on','٤:٣٠ م شغال'):L('4:30 PM off','٤:٣٠ م موقوف')}</small></span>
     <span class="rq-rpt-go">${L('Open','فتح')}</span>
