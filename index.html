@@ -25431,6 +25431,35 @@ function getNextBackupSeq() {
   } catch(e) { return 1; }
 }
 
+// ── Full-app snapshot ─────────────────────────────────────────────────────────
+// Every other localStorage key the app writes (receipts + company logos, notes,
+// site custody, workers, projects, custom fields, settings, reports …) is saved
+// verbatim, as the raw stored string, under data.extras — so anything added to
+// the app later is covered automatically with no per-feature wiring. Only
+// device-bound/secret or throw-away keys are skipped.
+const _BK_SKIP=/^(wdp_pin_v1|wdp_lock_enabled_v1|wdp_enc_|wdp_finance_data_v1|wdp_finance_months_v1|wdp_backup_seq_v1|wdp_last_backup_ts|wdp_last_remind_ts|wdp_schema_version|wdp_logo_norm_v2|wdp_online_rates_v1|wdp_meta_v1)/;
+function _bkExtrasCollect(){
+  const out={};
+  try{
+    for(let i=0;i<localStorage.length;i++){
+      const k=localStorage.key(i);
+      if(!k||_BK_SKIP.test(k)) continue;
+      const v=localStorage.getItem(k);
+      if(typeof v==='string') out[k]=v;
+    }
+  }catch(e){ _logErr('_bkExtrasCollect',e); }
+  return out;
+}
+function _bkExtrasApply(extras){
+  let n=0;
+  if(!extras||typeof extras!=='object') return 0;
+  Object.keys(extras).forEach(k=>{
+    if(_BK_SKIP.test(k)||typeof extras[k]!=='string') return;
+    try{ localStorage.setItem(k,extras[k]); n++; }catch(e){ _logErr('_bkExtrasApply:'+k,e); }
+  });
+  return n;
+}
+
 function exportBackup() {
   try {
     const d   = new Date();
@@ -25439,7 +25468,7 @@ function exportBackup() {
     const ts  = `${String(d.getHours()).padStart(2,'0')}${String(d.getMinutes()).padStart(2,'0')}`;
 
     const payload = {
-      version:      '2.4',
+      version:      '2.5',
       appName:      'FINORA',
       exportDate:   d.toISOString(),
       backupSeq:    seq,               // sequential counter (1, 2, 3…)
@@ -25470,6 +25499,8 @@ function exportBackup() {
         reminders:            REMINDERS,
         // ── Added in v2.4 ──
         planner:              PLANNER,
+        // ── Added in v2.5: everything else the app stores (see _bkExtrasCollect) ──
+        extras:               _bkExtrasCollect(),
       }
     };
     const json = JSON.stringify(payload, null, 2);
@@ -25523,7 +25554,7 @@ function importBackup(file) {
         }
 
         // Version 2.x format: {version, appName, exportDate, data}
-        if (parsed.version === '2.0' || parsed.version === '2.1' || parsed.version === '2.2' || parsed.version === '2.3' || parsed.version === '2.4') {
+        if (parsed.version === '2.0' || parsed.version === '2.1' || parsed.version === '2.2' || parsed.version === '2.3' || parsed.version === '2.4' || parsed.version === '2.5') {
           if (!parsed.data || typeof parsed.data !== 'object') {
             throw new Error(L('Backup data section is missing or invalid','قسم البيانات في النسخة الاحتياطية مفقود أو غير صالح'));
           }
@@ -25601,6 +25632,9 @@ function restoreData() {
                 [L('Transactions','معاملات'),      txCount],
                 [L('Site Expenses','مصروفات'),     expCount],
                 [L('Custom Banks','بنوك مخصصة'),  bankCount],
+                [L('Bank logos','لوجوهات البنوك'), Object.keys(d.bankLogos||{}).length],
+                [L('Receipts','الاستلامات'), (()=>{ try{ return JSON.parse((d.extras||{})[_RQ_KEY]||'[]').length; }catch(e){ return 0; } })()],
+                [L('Other saved items','عناصر محفوظة أخرى'), Object.keys(d.extras||{}).length],
               ].map(([k,v])=>`
                 <div style="font-size:calc(11px*var(--app-text-scale,1));color:var(--muted)">${k}</div>
                 <div style="font-size:calc(11px*var(--app-text-scale,1));font-weight:800;color:var(--text)">${v}</div>
@@ -25677,6 +25711,8 @@ function _doRestore() {
       REMINDERS          = d.reminders           || REMINDERS;
       // ── Added in v2.4 ──
       PLANNER            = d.planner             || PLANNER;
+      // ── Added in v2.5: restore every other stored key verbatim ──
+      _bkExtrasApply(d.extras);
     } else if (result.version === '1') {
       DATA = _migrateFinanceData(result.payload.data);
       if (result.payload.currency) CURRENT_CURRENCY = result.payload.currency;
