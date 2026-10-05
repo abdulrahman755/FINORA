@@ -29947,6 +29947,15 @@ function _transliterateArabic(str){
   return str.split(/(\s+)/).map(part=>/[\u0600-\u06FF]/.test(part)?_transliterateArabicWord(part):part).join('');
 }
 const _rqTrPending=new Set();
+// Receipt-type codes (CPP, IR, WIR…) are abbreviations, not words — machine
+// translation guesses a meaning for them ("CPP" came back as "تكلفة المكالمة
+// الهاتفية"), so they are always shown exactly as typed.
+function _rqIsCodeType(v){
+  const t=String(v||'').trim();
+  if(!t) return false;
+  if(/^[A-Z0-9]{2,6}$/.test(t)) return true;
+  return _RQ_TYPE_QUICK.some(q=>q.toLowerCase()===t.toLowerCase() && !/\s/.test(q) && q.length<=6);
+}
 function _rqDisplayValue(r,key){
   const raw=(r[key]||'').toString();
   if(!raw.trim()) return '';
@@ -29959,6 +29968,7 @@ function _rqDisplayValue(r,key){
     if(lang==='en' && _atDetectLang(raw)==='ar') return _transliterateArabic(raw);
     return raw;
   }
+  if(key==='type' && _rqIsCodeType(raw)) return raw;
   const detected=_atDetectLang(raw);
   if(!detected || detected===lang) return raw;
   const cached=r.tr && r.tr[lang] && r.tr[lang][key];
@@ -29982,6 +29992,7 @@ async function _rqRunTranslate(id,targetLang){
     if(out[f]) continue;
     const raw=(r[f]||'').toString();
     if(!raw.trim()) continue;
+    if(f==='type' && _rqIsCodeType(raw)) continue;
     const detected=_atDetectLang(raw);
     if(!detected || detected===targetLang) continue;
     try{ out[f]=await _atTranslate(raw,targetLang); changed=true; }
@@ -30698,6 +30709,7 @@ async function _atHandleFieldOut(el){
     return;
   }
   const trimmed=raw.trim();
+  if(el.id==='rqType' && _rqIsCodeType(trimmed)) return; // codes like CPP stay exactly as typed
   const detected=_atDetectLang(trimmed);
   if(!detected||detected===target) return;
   el.dataset.atBusy='1';
