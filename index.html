@@ -8906,14 +8906,13 @@ body .screen-wrap .sc-header.sav-plain-header.sav-plain-header::after{display:no
 .rq-foot .cx-icbtn:active{opacity:1}
 
 /* ── My Requests: card colour follows the receipt type + one-line summary ── */
-.rq-card.rq-t{--rq-c:var(--rq-tc);background:color-mix(in srgb,var(--rq-tc) 8%,var(--surface));border-color:color-mix(in srgb,var(--rq-tc) 30%,var(--border));border-inline-start:4px solid var(--rq-tc)}
-.rq-card.rq-t:active{background:color-mix(in srgb,var(--rq-tc) 15%,var(--surface))}
+.rq-card.rq-t{--rq-c:var(--rq-tc);background:color-mix(in srgb,var(--rq-tc) 13%,var(--surface));border-color:color-mix(in srgb,var(--rq-tc) 40%,var(--border));border-inline-start:5px solid var(--rq-tc)}
+.rq-card.rq-t:active{background:color-mix(in srgb,var(--rq-tc) 20%,var(--surface))}
 .rq-card.rq-t .rq-avatar{background:color-mix(in srgb,var(--rq-tc) 16%,var(--surface));color:var(--rq-tc)}
 .rq-card.rq-t .rq-type{color:var(--rq-tc);font-weight:800}
 .rq-card.rq-t .rq-grid,.rq-card.rq-t .rq-foot{border-color:color-mix(in srgb,var(--rq-tc) 20%,var(--border))}
 .rq-card.rq-t .rq-notes{background:color-mix(in srgb,var(--rq-tc) 7%,var(--surface2));border-inline-start-color:var(--rq-tc)}
-.rq-line{margin-top:6px;margin-bottom:2px;padding:7px 11px;border-radius:11px;background:color-mix(in srgb,var(--rq-tc,var(--muted)) 14%,var(--surface));font-size:calc(14.5px*var(--app-text-scale,1));font-weight:800;line-height:1.55;color:var(--text);overflow-wrap:anywhere}
-[data-theme="dark"] .rq-card.rq-t{border-inline-start:3px solid var(--rq-tc);background:color-mix(in srgb,var(--rq-tc) 11%,var(--surface))}
+.rq-line{margin:4px 0 3px;font-size:calc(13.5px*var(--app-text-scale,1));font-weight:600;line-height:1.55;color:var(--text);overflow-wrap:anywhere}
 [data-theme="dark"] .rq-card.rq-t .rq-avatar,[data-theme="dark"] .rq-card.rq-t .rq-type{color:color-mix(in srgb,var(--rq-tc) 65%,#fff)}
 
 .rq-modal{gap:12px}
@@ -30005,7 +30004,7 @@ function _rqSearchHaystack(r){
   // any already-cached translation for type/notes, so a search matches
   // whichever text — original or currently-shown-translated — the person
   // is remembering, without triggering a fresh translate call from search.
-  const vals=[r.company,r.engineer,r.type,r.zone,r.plot,r.model,r.irType,r.notes,r.date];
+  const vals=[r.company,r.engineer,r.type,r.zone,r.plot,r.model,r.irType,r.level,r.notes,r.date];
   const cached=r.tr && r.tr[lang];
   if(cached) for(const f of _RQ_TR_FIELDS) if(cached[f]) vals.push(cached[f]);
   return vals;
@@ -30015,8 +30014,8 @@ function _rqSearchHaystack(r){
 // (typed-by-hand) type gets a stable colour hashed from its text, so the same
 // type always looks the same. Green / gold / red are skipped on purpose —
 // they already mean received / with notes / not received on the status chip.
-const _RQ_TYPE_COLORS={ir:'#3D6FA3',cpp:'#77639E',cpr:'#C17A32',wir:'#2A8C8C',mir:'#B5547A',rfi:'#5561B0',ncr:'#8A6247'};
-const _RQ_TYPE_PALETTE=['#2A8C8C','#B5547A','#5561B0','#2C8FB8','#8A6247','#667788','#9A5BB5','#4F8A3C'];
+const _RQ_TYPE_COLORS={ir:'#2F6FDE',cpp:'#C2378A',cpr:'#7C4DDB',wir:'#14948A',mir:'#D9822B',rfi:'#0E9BC4',ncr:'#8A5A3C'};
+const _RQ_TYPE_PALETTE=['#5A6FD6','#D1496B','#2E9E8F','#A63FB5','#C9791A','#3C8DAD','#7A8B2E','#6D7B8D','#B5547A','#4A6FA5'];
 function _rqTypeColor(r){
   const k=String(r.type||'').trim().toLowerCase();
   if(!k) return '#667788';
@@ -30025,14 +30024,18 @@ function _rqTypeColor(r){
   return _RQ_TYPE_PALETTE[h%_RQ_TYPE_PALETTE.length];
 }
 // "عمارة ٤٠ - نموذج IVLB - نجارة سقف - الدور الأول" built from the card's own fields.
-function _rqCardLine(r){
+function _rqCardParts(r){
   const ar=(typeof lang!=='undefined'&&lang==='ar');
   let plot=String(_rqDisplayValue(r,'plot')||r.plot||'').trim();
   if(plot && /^[0-9٠-٩]+$/.test(plot)) plot=(ar?'عمارة ':'Plot ')+plot;
   const model=String(_rqDisplayValue(r,'model')||r.model||'').trim();
   const work=String(_rqIrLabel(r)||'').trim();
   const fl=String(_rqFloorLabel(r.floor)||'').trim();
-  return [plot, model?(ar?'نموذج ':'Model ')+model:'', work, fl?(ar?'الدور ':'')+fl+(ar?'':' Floor'):''].filter(Boolean).join(' - ');
+  return [plot, model?(ar?'نموذج ':'Model ')+model:'', work, fl?(ar?'الدور ':'')+fl+(ar?'':' Floor'):''].filter(Boolean);
+}
+function _rqCardLine(r){
+  const parts=_rqCardParts(r);
+  return parts.length?`<div class="rq-line" dir="auto">${esc(parts.join(' - '))}</div>`:'';
 }
 
 function renderMyRequests(){
@@ -30064,7 +30067,7 @@ function renderMyRequests(){
         <div class="rq-avatar">${_rqCoLogoSrc(r.company)?bankLogoHTML(_rqCoLogoSrc(r.company),36,{alt:dCompany}):ic('building',17)}</div>
         <div class="rq-head">
           <div class="rq-co">${esc(dCompany)}</div>
-          ${_rqCardLine(r)?`<div class="rq-line" dir="auto">${esc(_rqCardLine(r))}</div>`:''}
+          ${_rqCardLine(r)}
           ${dType?`<div class="rq-type">${esc(dType)}</div>`:''}
         </div>
         <span class="cx-chip ${st.cls}">${_rqStatusLabel(r.status)}</span>
@@ -30077,6 +30080,7 @@ function renderMyRequests(){
         ${cell(ic('clipboard',12),L('Form / Model','النموذج'),dModel)}
         ${cell(ic('type',12),_rqIsIrType(r.type)?L('IR type','نوع الـ IR'):L('Work','الشغل'),_rqIrLabel(r))}
         ${cell(ic('floor',12),L('Floor','الدور'),_rqFloorLabel(r.floor))}
+        ${cell(ic('ruler',12),L('Level','المنسوب'),r.level,true)}
       </dl>
       ${dNotes?`<div class="rq-notes">${ic('message',13)}<span>${esc(dNotes)}</span></div>`:''}
       <div class="rq-foot">
@@ -30152,7 +30156,10 @@ function openRequestModal(id){
         <div class="field"><label>${L('Plot No.','رقم القطعة')}</label><input type="text" id="rqPlot" placeholder=\"${L('e.g. 48','مثال: 48')}\" dir="auto" autocomplete="off" value="${esc(r?.plot||'')}"></div>
         <div class="field"><label>${L('Form / Model','النموذج')}</label><input type="text" id="rqModel" list="rqDlModel" dir="auto" autocomplete="off" value="${esc(r?.model||'')}"><datalist id="rqDlModel">${_rqFieldOptions('model',uniq('model')).map(v=>`<option value="${esc(v)}"></option>`).join('')}</datalist></div>
       </div>
-      <div class="field"><label>${L('Floor / Level','الدور')}</label><input type="text" id="rqFloor" list="rqDlFloor" dir="auto" autocomplete="off" placeholder="${L('e.g. Third','مثال: الثالث')}" value="${esc(r?.floor||'')}"><datalist id="rqDlFloor">${['Ground','First','Second','Third','Fourth','Fifth','Roof'].map(v=>`<option value="${L(v,_RQ_FLOORS_AR[v.toLowerCase()])}"></option>`).join('')}</datalist></div>
+      <div class="rq-row2">
+      <div class="field"><label>${L('Floor','الدور')}</label><input type="text" id="rqFloor" list="rqDlFloor" dir="auto" autocomplete="off" placeholder="${L('e.g. Third','مثال: الثالث')}" value="${esc(r?.floor||'')}"><datalist id="rqDlFloor">${['Ground','First','Second','Third','Fourth','Fifth','Roof'].map(v=>`<option value="${L(v,_RQ_FLOORS_AR[v.toLowerCase()])}"></option>`).join('')}</datalist></div>
+      <div class="field"><label>${L('Level','المنسوب')}</label><input type="text" id="rqLevel" dir="ltr" autocomplete="off" inputmode="text" placeholder="${L('e.g. +12.50','مثال: +12.50')}" value="${esc(r?.level||'')}"></div>
+      </div>
       <div class="field"><label>${L('Receipt type','نوع الاستلامة')}</label>
         <div class="rq-selwrap"><select id="rqTypeSel" class="rq-typesel${_rqTypeSelInitial(r)?' has-val':''}" onchange="_rqTypeSelChange(this)">${_rqTypeSelectOptionsHTML(r,uniq('type'))}</select></div>
         <div id="rqTypeCustomWrap" class="rq-custom-wrap">
@@ -30404,7 +30411,7 @@ function saveRequest(){
     }
     _rqPendingCoLogo=undefined;
   }
-  const rec={company,engineer:g('rqEngineer'),date:g('rqDate')||today(),type:g('rqType'),zone:g('rqZone'),plot:g('rqPlot'),model:g('rqModel'),floor:g('rqFloor'),status:_rqStatusSel,notes:g('rqNotes')};
+  const rec={company,engineer:g('rqEngineer'),date:g('rqDate')||today(),type:g('rqType'),zone:g('rqZone'),plot:g('rqPlot'),model:g('rqModel'),floor:g('rqFloor'),level:g('rqLevel'),status:_rqStatusSel,notes:g('rqNotes')};
   if(_rqIsIrType(rec.type)) rec.irType=g('rqIrType'); else if(!_rqEditId) rec.irType='';
   _rqLearnCommentSuggestions(rec.type,rec.irType,rec.notes);
   _rqLearnField('company',rec.company);
@@ -38360,7 +38367,8 @@ function _rqImpParse(sheets){
         plot:String(plot==null?'':plot).trim(),
         model:String(g('model')||'').replace(/\s+/g,' ').trim().toUpperCase(),
         irType:_rqImpWork(g('type')),
-        floor:(()=>{ const f=String(g('floor')||g('level')||'').trim(); return f?_rqTitle(f):''; })(),
+        floor:(()=>{ const f=String(g('floor')||(c.floor<0?g('level'):'')||'').trim(); return f?_rqTitle(f):''; })(),
+        level:c.floor<0?'':String(g('level')==null?'':g('level')).trim(),
         zone:String(g('zone')||'').trim(),
         notes:String(g('notes')||'').split(/\s{2,}|\n/).map(x=>x.trim()).filter(Boolean).map(x=>'• '+_rqImpSentence(x)).join('\n')
       };
@@ -38408,17 +38416,17 @@ function rqExportExcel(){
   try{
     const list=_rqLoad().slice().sort((a,b)=>String(a.date||'').localeCompare(String(b.date||''))||(a.createdAt||0)-(b.createdAt||0));
     if(!list.length){ showToast(L('No receipts to export','لا توجد استلامات للتصدير'),'info'); return; }
-    const head=['SER','COMPANY','REQ TYPE','PLOT NO','MODEL','TYPE','FLOOR','ZONE','ENG.','DATE','APPROVAL/REMARK','','','','COMMENTS'].map(v=>({v,s:1}));
+    const head=['SER','COMPANY','REQ TYPE','PLOT NO','MODEL','TYPE','FLOOR','LEVEL','ZONE','ENG.','DATE','APPROVAL/REMARK','','','','COMMENTS'].map(v=>({v,s:1}));
     const serial=iso=>{ const m=String(iso||'').match(/^(\d{4})-(\d{2})-(\d{2})/); return m?Math.round(Date.UTC(+m[1],+m[2]-1,+m[3])/86400000)+25569:''; };
     const en=(f)=>{ const low=String(f||'').trim().toLowerCase(); return _RQ_FLOORS_EN[low]||(()=>{ const k=Object.keys(_RQ_FLOORS_AR).find(x=>_RQ_FLOORS_AR[x]===String(f||'').trim()); return k?_RQ_FLOORS_EN[k]:String(f||''); })(); };
     const enWork=r=>{ const k=_rqIrSubtypeKeyFromLabel(r.irType); if(k){ return _RQ_IR_SUBTYPE_QUICK.find(o=>o.key===k).en; } return String(r.irType||''); };
     const rows=[head].concat(list.map((r,i)=>{
       const mark={received:'A',notes:'B',rejected:'C'}[r.status||'received']||'A';
-      return [i+1,String(r.company||''),String(r.type||''),{v:/^\d+$/.test(String(r.plot||''))?+r.plot:String(r.plot||'')},String(r.model||''),enWork(r),en(r.floor),String(r.zone||''),String(r.engineer||''),{v:serial(r.date),s:2},
+      return [i+1,String(r.company||''),String(r.type||''),{v:/^\d+$/.test(String(r.plot||''))?+r.plot:String(r.plot||'')},String(r.model||''),enWork(r),en(r.floor),String(r.level||''),String(r.zone||''),String(r.engineer||''),{v:serial(r.date),s:2},
         ...['A','B','C','D'].map(k=>({v:k,s:k===mark?4:3})),
         {v:String(r.notes||'').split('\n').map(x=>x.replace(/^[•\s]+/,'').trim()).filter(Boolean).join('\n'),s:5}];
     }));
-    const blob=_xlBuildSheet(rows,[6,14,10,10,14,26,10,10,14,12,5,5,5,5,60]);
+    const blob=_xlBuildSheet(rows,[6,14,10,10,14,26,10,10,10,14,12,5,5,5,5,60]);
     const d=new Date(), ds=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
     const url=URL.createObjectURL(blob), a=document.createElement('a');
     a.href=url; a.download='requests-'+ds+'.xlsx'; document.body.appendChild(a); a.click(); document.body.removeChild(a);
