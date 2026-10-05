@@ -30038,6 +30038,69 @@ function _rqCardLine(r){
   return parts.length?`<div class="rq-line" dir="auto">${esc(parts.join(' - '))}</div>`:'';
 }
 
+// ── Plot no. → Model (auto-fill in the New/Edit receipt form) ───────────────
+// List 1 = the building table the site actually works from (first in priority).
+// Lists 2-4 = the Mountain View (I-CITY) master table (Park / Lagoon / Podium),
+// whose numbering overlaps List 1 and itself, so a number found in several lists
+// is never guessed: a repeated number shows every model as a chip to pick from.
+// Auto-fill only ever replaces an empty or previously
+// auto-filled Model — anything typed by hand is left alone.
+const _RQ_PLOT_SETS=[
+  {g:'',       m:{IVLA:'1-8,39-43,56-62', IVLB:'36-38,44,45,50-55,99,101,102', IVLP:'46,100,103', IVLPS:'47-49'}},
+  {g:'Park',   m:{IVM:'52-54,58,59', IV3:'60-65', Millennial:'74-80'}},
+  {g:'Lagoon', m:{IVLA:'13-25', IVLB:'9-12,63-67', IVLP:'68-71', IVLPS:'26', 'DM 06':'27-29'}},
+  {g:'Podium', m:{AR:'12,16', BR:'14,18', AL:'20', CR:'22'}}
+];
+const _RQ_PLOT_MODELS=(()=>{
+  const map={};
+  _RQ_PLOT_SETS.forEach((set,si)=>{
+    Object.keys(set.m).forEach(model=>{
+      set.m[model].split(',').forEach(part=>{
+        const [a,b]=part.split('-').map(Number); const hi=(b===undefined||isNaN(b))?a:b;
+        for(let n=a;n<=hi;n++) (map[n]=map[n]||[]).push({m:model,g:set.g,p:si});
+      });
+    });
+  });
+  return map;
+})();
+const _RQ_KNOWN_MODELS=[...new Set(_RQ_PLOT_SETS.flatMap(x=>Object.keys(x.m)))];
+let _rqModelAuto='';
+function _rqPlotCandidates(raw){
+  const t=String(raw||'').trim().replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/[۰-۹]/g,d=>'۰۱۲۳۴۵۶۷۸۹'.indexOf(d));
+  if(!/^\d+$/.test(t)) return [];
+  return _RQ_PLOT_MODELS[parseInt(t,10)]||[];
+}
+function _rqPlotPrimary(c){
+  // auto-fill only when the number points to ONE model; a repeated number
+  // (different models in different tables) is left for the person to pick
+  if(!c.length) return null;
+  return new Set(c.map(x=>x.m)).size===1?c[0]:null;
+}
+function _rqRenderModelSugg(){
+  const box=document.getElementById('rqModelSugg'), modelEl=document.getElementById('rqModel'), plotEl=document.getElementById('rqPlot');
+  if(!box||!modelEl||!plotEl) return;
+  const c=_rqPlotCandidates(plotEl.value), pr=_rqPlotPrimary(c), cur=modelEl.value.trim();
+  const chip=x=>`<button type="button" class="rq-sugg-chip" data-m="${esc(x.m)}" onclick="_rqPickModel(this.dataset.m)">${esc(x.m)}${x.g?' · '+esc(x.g):''}</button>`;
+  const seen=new Set(); const list=(pr?c.filter(x=>x.m!==pr.m):c).filter(x=>{ const k=x.m+'|'+x.g; if(seen.has(k)) return false; seen.add(k); return true; });
+  let html='';
+  if(pr && cur===pr.m && cur===_rqModelAuto) html+=`<span class="rq-sugg-hint" style="padding:0;align-self:center">${L('Auto from plot no.','تلقائي من رقم القطعة')}</span>`;
+  if(list.length) html+=`<span class="rq-sugg-hint" style="padding:0;align-self:center">${pr?L('Or:','أو:'):L('Pick model:','اختار النموذج:')}</span>`+list.map(chip).join('');
+  box.innerHTML=html;
+}
+function _rqOnPlotInput(){
+  const plotEl=document.getElementById('rqPlot'), modelEl=document.getElementById('rqModel');
+  if(!plotEl||!modelEl) return;
+  const pr=_rqPlotPrimary(_rqPlotCandidates(plotEl.value)), cur=modelEl.value.trim();
+  if(pr && (!cur || cur===_rqModelAuto)){ modelEl.value=pr.m; _rqModelAuto=pr.m; }
+  else if(!pr && cur && cur===_rqModelAuto){ modelEl.value=''; _rqModelAuto=''; }
+  _rqRenderModelSugg();
+}
+function _rqPickModel(m){
+  const modelEl=document.getElementById('rqModel'); if(!modelEl) return;
+  modelEl.value=m; _rqModelAuto='';
+  _rqRenderModelSugg();
+}
+
 function renderMyRequests(){
   const all=_rqLoad();
   const counts={received:0,notes:0,rejected:0};
@@ -30153,9 +30216,10 @@ function openRequestModal(id){
         <div class="field"><label>${L('Zone','المنطقة')}</label><input type="text" id="rqZone" placeholder=\"${L('e.g. B','مثال: B')}\" list="rqDlZone" dir="auto" autocomplete="off" value="${esc(r?.zone||'')}"><datalist id="rqDlZone">${_rqFieldOptions('zone',uniq('zone')).map(v=>`<option value="${esc(v)}"></option>`).join('')}</datalist></div>
       </div>
       <div class="rq-row2">
-        <div class="field"><label>${L('Plot No.','رقم القطعة')}</label><input type="text" id="rqPlot" placeholder=\"${L('e.g. 48','مثال: 48')}\" dir="auto" autocomplete="off" value="${esc(r?.plot||'')}"></div>
-        <div class="field"><label>${L('Form / Model','النموذج')}</label><input type="text" id="rqModel" list="rqDlModel" dir="auto" autocomplete="off" value="${esc(r?.model||'')}"><datalist id="rqDlModel">${_rqFieldOptions('model',uniq('model')).map(v=>`<option value="${esc(v)}"></option>`).join('')}</datalist></div>
+        <div class="field"><label>${L('Plot No.','رقم القطعة')}</label><input type="text" id="rqPlot" placeholder=\"${L('e.g. 48','مثال: 48')}\" dir="auto" autocomplete="off" value="${esc(r?.plot||'')}" oninput="_rqOnPlotInput()"></div>
+        <div class="field"><label>${L('Form / Model','النموذج')}</label><input type="text" id="rqModel" list="rqDlModel" dir="auto" autocomplete="off" value="${esc(r?.model||'')}" oninput="_rqRenderModelSugg()"><datalist id="rqDlModel">${_rqFieldOptions('model',uniq('model').concat(_RQ_KNOWN_MODELS)).map(v=>`<option value="${esc(v)}"></option>`).join('')}</datalist></div>
       </div>
+      <div class="rq-sugg-row" id="rqModelSugg"></div>
       <div class="rq-row2">
       <div class="field"><label>${L('Floor','الدور')}</label><input type="text" id="rqFloor" list="rqDlFloor" dir="auto" autocomplete="off" placeholder="${L('e.g. Third','مثال: الثالث')}" value="${esc(r?.floor||'')}"><datalist id="rqDlFloor">${['Ground','First','Second','Third','Fourth','Fifth','Roof'].map(v=>`<option value="${L(v,_RQ_FLOORS_AR[v.toLowerCase()])}"></option>`).join('')}</datalist></div>
       <div class="field"><label>${L('Level','المنسوب')}</label><input type="text" id="rqLevel" dir="ltr" autocomplete="off" inputmode="text" placeholder="${L('e.g. +12.50','مثال: +12.50')}" value="${esc(r?.level||'')}"></div>
@@ -30187,6 +30251,8 @@ function openRequestModal(id){
   _bindBulletNotes(document.getElementById('rqNotes'));
   document.getElementById('rqNotes')?.addEventListener('input',_rqMarkAddedComments);
   _rqRenderCommentSuggestions();
+  _rqModelAuto=(r && _rqPlotPrimary(_rqPlotCandidates(r.plot))?.m===r.model)?r.model:'';
+  _rqRenderModelSugg();
 }
 // ── Receipt type dropdown ────────────────────────────────────────────────
 // One grouped <select> replaces the free-text field + 18 chips. The stored
