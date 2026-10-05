@@ -8912,6 +8912,23 @@ body .screen-wrap .sc-header.sav-plain-header.sav-plain-header::after{display:no
 .rq-card.rq-t .rq-type{color:var(--rq-tc);font-weight:800}
 .rq-card.rq-t .rq-grid,.rq-card.rq-t .rq-foot{border-color:color-mix(in srgb,var(--rq-tc) 20%,var(--border))}
 .rq-card.rq-t .rq-notes{background:color-mix(in srgb,var(--rq-tc) 7%,var(--surface2));border-inline-start-color:var(--rq-tc)}
+.rq-types-wrap{margin-top:16px}
+.rq-types-h{margin:0 2px 8px;font-size:calc(11px*var(--app-text-scale,1));font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.rq-types{display:flex;gap:10px;overflow-x:auto;padding:2px 2px 12px;scroll-snap-type:x proximity;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.rq-types::-webkit-scrollbar{display:none}
+.rq-tchip{flex:0 0 auto;scroll-snap-align:start;min-width:96px;display:flex;flex-direction:column;align-items:flex-start;gap:9px;padding:13px 15px 12px;border-radius:18px;border:1px solid color-mix(in srgb,var(--rq-tc) 24%,var(--border));background:linear-gradient(150deg,color-mix(in srgb,var(--rq-tc) 17%,var(--surface)) 0%,var(--surface) 80%);color:var(--text);font-family:inherit;text-align:start;cursor:pointer;box-shadow:0 8px 18px -12px color-mix(in srgb,var(--rq-tc) 75%,transparent);transition:transform .15s,box-shadow .2s,background .2s}
+.rq-tchip:active{transform:scale(.97)}
+.rq-tc-top{display:flex;align-items:center;gap:7px}
+.rq-tc-top i{width:8px;height:8px;border-radius:50%;background:var(--rq-tc);box-shadow:0 0 0 3px color-mix(in srgb,var(--rq-tc) 22%,transparent)}
+.rq-tc-l{font-size:calc(11px*var(--app-text-scale,1));font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.rq-tchip b{display:block;font-size:calc(27px*var(--app-text-scale,1));font-weight:800;line-height:1;letter-spacing:-.02em;color:var(--rq-tc);font-variant-numeric:tabular-nums}
+.rq-tc-bar{display:block;width:100%;height:4px;border-radius:99px;background:color-mix(in srgb,var(--rq-tc) 16%,transparent);overflow:hidden}
+.rq-tc-bar em{display:block;height:100%;width:var(--pct);border-radius:inherit;background:var(--rq-tc)}
+.rq-tchip.on{background:linear-gradient(150deg,var(--rq-tc),color-mix(in srgb,var(--rq-tc) 70%,#000));border-color:transparent;box-shadow:0 14px 24px -12px color-mix(in srgb,var(--rq-tc) 90%,transparent);transform:translateY(-1px)}
+.rq-tchip.on b,.rq-tchip.on .rq-tc-l{color:#fff}
+.rq-tchip.on .rq-tc-top i{background:#fff;box-shadow:0 0 0 3px rgba(255,255,255,.28)}
+.rq-tchip.on .rq-tc-bar{background:rgba(255,255,255,.28)}
+.rq-tchip.on .rq-tc-bar em{background:#fff}
 .rq-lvl-btn{display:inline-flex;align-items:center;gap:6px;margin:-2px 0 4px;padding:6px 2px;border:0;background:none;color:var(--green);font-family:inherit;font-size:calc(12px*var(--app-text-scale,1));font-weight:800;cursor:pointer}
 .rq-lvl-panel{margin:0 0 6px;padding:10px 12px;border-radius:var(--radius-sm);background:var(--surface2);border:1px solid var(--border)}
 .rq-lvl-note{font-size:calc(11px*var(--app-text-scale,1));color:var(--muted);line-height:1.5;margin-bottom:8px}
@@ -29486,6 +29503,7 @@ const _RQ_STATUS={
 };
 let _cxTab='custody';
 let _rqFilter='all';
+let _rqTypeFilter=''; // '' = every type; otherwise a type key (see _rqTypeKey)
 let _rqEditId=null;
 let _rqStatusSel='received';
 
@@ -30017,6 +30035,9 @@ function _cxSetTab(k){
   renderView();
 }
 function _rqSetFilter(f){ _rqFilter=f; renderView(); }
+// Receipt-type key: case-insensitive so "cpp" and "CPP" count together; '__none' = no type.
+function _rqTypeKey(r){ const t=String(r.type||'').trim().toLowerCase(); return t||'__none'; }
+function _rqSetTypeFilter(k){ _rqTypeFilter=(_rqTypeFilter===k)?'':k; renderView(); }
 function _rqSearchHaystack(r){
   // Matches on every raw field (whatever language it was recorded in) PLUS
   // any already-cached translation for type/notes, so a search matches
@@ -30184,17 +30205,33 @@ function renderMyRequests(){
   const counts={received:0,notes:0,rejected:0};
   all.forEach(r=>{ if(counts[r.status]!==undefined) counts[r.status]++; });
   const q=(searchQ||'').trim().toLowerCase();
-  let list=all.filter(r=>_rqFilter==='all'||r.status===_rqFilter);
+  const byStatus=all.filter(r=>_rqFilter==='all'||r.status===_rqFilter);
+  // per-type counts follow the status filter, so the numbers always match what the list can show
+  const typeMap=new Map();
+  byStatus.forEach(r=>{
+    const k=_rqTypeKey(r);
+    if(!typeMap.has(k)) typeMap.set(k,{k,n:0,r});
+    typeMap.get(k).n++;
+  });
+  const typeFilter=typeMap.has(_rqTypeFilter)?_rqTypeFilter:'';
+  let list=typeFilter?byStatus.filter(r=>_rqTypeKey(r)===typeFilter):byStatus;
   if(q) list=list.filter(r=>_rqSearchHaystack(r).some(v=>String(v||'').toLowerCase().includes(q)));
   list.sort((a,b)=>String(b.date||'').localeCompare(String(a.date||''))||((b.createdAt||0)-(a.createdAt||0)));
 
   const stat=(f,cls,n,lbl)=>`<button type="button" class="rq-stat ${cls}${_rqFilter===f?' on':''}" aria-pressed="${_rqFilter===f?'true':'false'}" onclick="_rqSetFilter('${f}')"><b>${n}</b><span>${lbl}</span></button>`;
-  const statsHTML=all.length?`<div class="rq-stats">
+  const typeChips=[...typeMap.values()].sort((a,b)=>b.n-a.n||a.k.localeCompare(b.k)).map(t=>{
+    const raw=String(t.r.type||'').trim();
+    const label=t.k==='__none'?L('No type','بدون نوع'):(_rqIsCodeType(raw)?raw.toUpperCase():_rqDisplayValue(t.r,'type'));
+    const on=typeFilter===t.k;
+    const pct=Math.max(6,Math.round(t.n*100/Math.max(1,byStatus.length)));
+    return `<button type="button" class="rq-tchip${on?' on':''}" style="--rq-tc:${_rqTypeColor(t.r)};--pct:${pct}%" data-k="${esc(t.k)}" aria-pressed="${on?'true':'false'}" onclick="_rqSetTypeFilter(this.dataset.k)"><span class="rq-tc-top"><i></i><span class="rq-tc-l">${esc(label)}</span></span><b>${t.n}</b><span class="rq-tc-bar"><em></em></span></button>`;
+  }).join('');
+  const statsHTML=(all.length?`<div class="rq-stats">
     ${stat('all','all',all.length,L('All','الكل'))}
     ${stat('received','ok',counts.received,_rqStatusLabel('received'))}
     ${stat('notes','low',counts.notes,_rqStatusLabel('notes'))}
     ${stat('rejected','over',counts.rejected,_rqStatusLabel('rejected'))}
-  </div>`:'';
+  </div>`:'')+(typeChips?`<div class="rq-types-wrap"><div class="rq-types-h">${L('By type','حسب النوع')}</div><div class="rq-types">${typeChips}</div></div>`:'');
 
   const cell=(icon,lbl,val,ltr)=>val?`<div><dt>${icon}${lbl}</dt><dd${ltr?' dir="ltr" style="text-align:start"':''}>${esc(val)}</dd></div>`:'';
   const cardsHTML=list.map(r=>{
@@ -30240,7 +30277,7 @@ function renderMyRequests(){
        </div>`
     : `<div class="cx-none">${L('No results','لا نتائج')}</div>`;
 
-  const shown=(q||_rqFilter!=='all')?`${list.length} / ${all.length}`:String(all.length);
+  const shown=(q||_rqFilter!=='all'||typeFilter)?`${list.length} / ${all.length}`:String(all.length);
   return `<div class="screen-wrap cx-wrap">
   ${_cxTabsHTML()}
   <section class="cx-sec">
