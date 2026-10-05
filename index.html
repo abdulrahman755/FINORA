@@ -8918,8 +8918,55 @@ body .screen-wrap .sc-header.sav-plain-header.sav-plain-header::after{display:no
 .rq-modal .field input:focus,.rq-modal .field textarea:focus,.rq-modal .field select:focus{box-shadow:0 0 0 3px color-mix(in srgb,var(--green) 18%,transparent)}
 .rq-modal .rq-custom-wrap{margin-top:8px}
 .rq-modal #rqTypeCustomWrap input::placeholder{font-style:italic;opacity:.7}
+.rq-modal .date-wrap-auto{min-height:44px;padding:0 12px;border:1px solid var(--border);border-radius:12px;background:var(--surface2);color:var(--text);font-size:calc(14px*var(--app-text-scale,1));font-weight:600}
+.rq-modal .date-wrap-auto:focus-within{box-shadow:0 0 0 3px color-mix(in srgb,var(--green) 18%,transparent);border-color:var(--green)}
+.rq-modal .field input::placeholder{color:var(--muted);opacity:.65}
 .rq-modal .rq-stbtn{border-width:1px;box-shadow:none;min-height:50px}
 .rq-modal .rq-stbtn.on{border-width:1.5px}
+
+/* ── My Report (تقريري) ── */
+.rq-rpt-card{display:flex;align-items:center;gap:12px;width:100%;margin:0 0 12px;padding:12px 14px;border-radius:16px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-family:inherit;text-align:start;cursor:pointer;transition:background-color .15s}
+.rq-rpt-card:active{background:var(--surface2)}
+.rq-rpt-ic{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex:none;background:color-mix(in srgb,var(--green) 14%,var(--surface));color:var(--green)}
+.rq-rpt-tx{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.rq-rpt-tx b{font-size:calc(14.5px*var(--app-text-scale,1));font-weight:800}
+.rq-rpt-tx small{font-size:calc(11.5px*var(--app-text-scale,1));color:var(--muted);font-weight:600}
+.rq-rpt-go{font-size:calc(11.5px*var(--app-text-scale,1));font-weight:800;color:var(--green);padding:6px 12px;border-radius:999px;background:color-mix(in srgb,var(--green) 12%,transparent)}
+.rpt-item{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-top:10px;padding:8px 8px 8px 0;border-radius:12px}
+.rpt-item-tx{flex:1;min-width:0}
+.rpt-item-act{display:flex;gap:2px;flex:none;opacity:.8}
+.rpt-item-act button{width:34px;height:34px;border-radius:10px;border:0;background:transparent;color:var(--muted);display:flex;align-items:center;justify-content:center;cursor:pointer}
+.rpt-item-act button:active{background:var(--surface2)}
+.rpt-item-act button.del{color:var(--red)}
+.rpt-ta{width:100%;min-height:200px;box-sizing:border-box;border:0;outline:0;resize:vertical;background:transparent;color:var(--text);font:inherit;font-size:calc(14px*var(--app-text-scale,1));line-height:1.9}
+.rpt-sec-l{font-size:calc(10px*var(--app-text-scale,1));font-weight:800;letter-spacing:.6px;text-transform:uppercase;color:var(--muted);margin:4px 2px 8px}
+.rpt-chips{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 10px;scrollbar-width:none}
+.rpt-chips::-webkit-scrollbar{display:none}
+.rpt-chip{flex:none;display:inline-flex;align-items:center;gap:7px;padding:8px 13px;border-radius:12px;border:1px solid var(--border);background:var(--surface);color:var(--text2);font-family:inherit;cursor:pointer}
+.rpt-chip b{font-size:calc(12.5px*var(--app-text-scale,1));font-weight:800}
+.rpt-chip span{min-width:20px;height:20px;padding:0 6px;border-radius:99px;display:inline-flex;align-items:center;justify-content:center;font-size:calc(10.5px*var(--app-text-scale,1));font-weight:800;background:var(--surface2);color:var(--muted)}
+.rpt-chip.on{border-color:var(--green);background:color-mix(in srgb,var(--green) 12%,var(--surface));color:var(--green)}
+.rpt-chip.on span{background:var(--green);color:#fff}
+.rpt-pick{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 0 12px;padding:8px 12px;border-radius:12px;border:1px solid var(--border);background:var(--surface2);font-size:calc(12.5px*var(--app-text-scale,1));font-weight:700;color:var(--text2)}
+.rpt-pick input{border:0;background:transparent;color:var(--text);font:inherit;font-weight:800;min-width:0;text-align:end}
+.rpt-paper{max-height:42vh;overflow:auto;padding:16px 18px;border-radius:16px;border:1px solid var(--border);background:var(--surface);line-height:1.5;-webkit-user-select:text;user-select:text}
+.rpt-title{font-size:calc(16px*var(--app-text-scale,1));font-weight:800;color:var(--green)}
+.rpt-date{font-size:calc(12px*var(--app-text-scale,1));font-weight:700;color:var(--muted);margin:1px 0 12px;padding-bottom:10px;border-bottom:1px dashed var(--border)}
+.rpt-gap{height:12px}
+.rpt-plot{display:flex;align-items:center;gap:8px;font-size:calc(15px*var(--app-text-scale,1));font-weight:800;color:var(--text)}
+.rpt-plot i{width:7px;height:7px;border-radius:50%;background:var(--green);flex:none}
+.rpt-sub{font-size:calc(13.5px*var(--app-text-scale,1));font-weight:600;color:var(--text2);padding-inline-start:15px;margin-top:2px}
+.rpt-empty{padding:22px 4px;text-align:center;color:var(--muted);font-weight:700}
+.rpt-auto{display:flex;align-items:center;gap:12px;width:100%;margin:12px 0 4px;padding:11px 13px;border-radius:14px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-family:inherit;text-align:start;cursor:pointer}
+.rpt-auto-ic{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex:none;background:var(--surface2);color:var(--muted)}
+.rpt-auto.on .rpt-auto-ic{background:color-mix(in srgb,var(--green) 14%,var(--surface));color:var(--green)}
+.rpt-auto-t{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
+.rpt-auto-t b{font-size:calc(13px*var(--app-text-scale,1));font-weight:800}
+.rpt-auto-t small{font-size:calc(11px*var(--app-text-scale,1));color:var(--muted);font-weight:600}
+.rpt-sw{width:40px;height:23px;border-radius:99px;background:var(--border);position:relative;flex:none;transition:background-color .2s}
+.rpt-sw i{position:absolute;top:3px;inset-inline-start:3px;width:17px;height:17px;border-radius:50%;background:#fff;transition:inset-inline-start .2s}
+.rpt-auto.on .rpt-sw{background:var(--green)}
+.rpt-auto.on .rpt-sw i{inset-inline-start:20px}
 </style>
 <script>
 // Suppress cross-origin Script errors (in-app browsers like TikTok/Instagram)
@@ -29792,7 +29839,7 @@ function _rqStatusLabel(k){ const s=_RQ_STATUS[k]||_RQ_STATUS.received; return L
 // stay in their original language because the app was switched afterwards.
 // Translations are cached per record (r.tr[lang][field]) so the API is only
 // hit once per record/field/language, then reused (and persisted) after that.
-const _RQ_TR_FIELDS=['type','notes','engineer']; // company, plot & model stay exactly as typed — MT mangles proper names/codes; engineer is translated (transliterated) into the current app language
+const _RQ_TR_FIELDS=['type','irType','notes','engineer']; // company, plot & model stay exactly as typed — MT mangles proper names/codes; engineer is translated (transliterated) into the current app language
 // Phonetic Arabic→Latin transliteration (NOT machine translation) — used
 // only for the company name on cards, so "الشروق" reads as "El Shrouk" in
 // English mode instead of Google Translate's literal meaning ("Sunrise").
@@ -29880,6 +29927,7 @@ async function _rqRunTranslate(id,targetLang){
   r.tr[targetLang]=out;
   _rqSave(list);
   if(currentView==='expenses' && _cxTab==='requests') renderView();
+  try{ if(document.getElementById('rptPaper') && !document.getElementById('rptTa')) rqReportOpen(_rqRptDate||today()); }catch(e){}
 }
 
 function _cxTabsHTML(){
@@ -29943,7 +29991,7 @@ function renderMyRequests(){
         ${cell(ic('map',12),L('Zone','المنطقة'),dZone)}
         ${cell(ic('pin',12),L('Plot No.','رقم القطعة'),dPlot)}
         ${cell(ic('clipboard',12),L('Form / Model','النموذج'),dModel)}
-        ${_rqIsIrType(r.type)?cell(ic('type',12),L('IR type','نوع الـ IR'),r.irType||''):''}
+        ${_rqIsIrType(r.type)?cell(ic('type',12),L('IR type','نوع الـ IR'),_rqIrLabel(r)):''}
       </dl>
       ${dNotes?`<div class="rq-notes">${ic('message',13)}<span>${esc(dNotes)}</span></div>`:''}
       <div class="rq-foot">
@@ -30003,20 +30051,20 @@ function openRequestModal(id){
     <div class="rq-sec">
       <div class="rq-sec-hdr">${ic('building',15)}<span>${L('Company & handover','الشركة والتسليم')}</span></div>
       <div class="field"><label>${L('Company','اسم الشركة')} <span class="f-req">*</span></label>
-        <input type="text" id="rqCompany" list="rqDlCo" dir="auto" autocomplete="off" value="${esc(r?.company||'')}"><datalist id="rqDlCo">${_rqFieldOptions('company',uniq('company')).map(v=>`<option value="${esc(v)}"></option>`).join('')}</datalist></div>
+        <input type="text" id="rqCompany" placeholder=\"${L('Company name','اسم الشركة')}\" list="rqDlCo" dir="auto" autocomplete="off" value="${esc(r?.company||'')}"><datalist id="rqDlCo">${_rqFieldOptions('company',uniq('company')).map(v=>`<option value="${esc(v)}"></option>`).join('')}</datalist></div>
       ${_rqCoLogoRowHTML(r?.company||'')}
       <div class="field"><label>${L('Engineer handing over','المهندس المُسلِّم')}</label>
-        <input type="text" id="rqEngineer" list="rqDlEng" dir="auto" autocomplete="off" value="${esc(r?.engineer||'')}"><datalist id="rqDlEng">${_rqFieldOptions('engineer',uniq('engineer')).map(v=>`<option value="${esc(v)}"></option>`).join('')}</datalist></div>
+        <input type="text" id="rqEngineer" placeholder=\"${L('Engineer name','اسم المهندس')}\" list="rqDlEng" dir="auto" autocomplete="off" value="${esc(r?.engineer||'')}"><datalist id="rqDlEng">${_rqFieldOptions('engineer',uniq('engineer')).map(v=>`<option value="${esc(v)}"></option>`).join('')}</datalist></div>
     </div>
 
     <div class="rq-sec">
       <div class="rq-sec-hdr">${ic('clipboard',15)}<span>${L('Request details','تفاصيل الطلب')}</span></div>
       <div class="rq-row2">
         <div class="field"><label>${L('Date','التاريخ')}</label><input type="date" id="rqDate" value="${esc(r?.date||today())}"></div>
-        <div class="field"><label>${L('Zone','المنطقة')}</label><input type="text" id="rqZone" list="rqDlZone" dir="auto" autocomplete="off" value="${esc(r?.zone||'')}"><datalist id="rqDlZone">${_rqFieldOptions('zone',uniq('zone')).map(v=>`<option value="${esc(v)}"></option>`).join('')}</datalist></div>
+        <div class="field"><label>${L('Zone','المنطقة')}</label><input type="text" id="rqZone" placeholder=\"${L('e.g. B','مثال: B')}\" list="rqDlZone" dir="auto" autocomplete="off" value="${esc(r?.zone||'')}"><datalist id="rqDlZone">${_rqFieldOptions('zone',uniq('zone')).map(v=>`<option value="${esc(v)}"></option>`).join('')}</datalist></div>
       </div>
       <div class="rq-row2">
-        <div class="field"><label>${L('Plot No.','رقم القطعة')}</label><input type="text" id="rqPlot" dir="auto" autocomplete="off" value="${esc(r?.plot||'')}"></div>
+        <div class="field"><label>${L('Plot No.','رقم القطعة')}</label><input type="text" id="rqPlot" placeholder=\"${L('e.g. 48','مثال: 48')}\" dir="auto" autocomplete="off" value="${esc(r?.plot||'')}"></div>
         <div class="field"><label>${L('Form / Model','النموذج')}</label><input type="text" id="rqModel" list="rqDlModel" dir="auto" autocomplete="off" value="${esc(r?.model||'')}"><datalist id="rqDlModel">${_rqFieldOptions('model',uniq('model')).map(v=>`<option value="${esc(v)}"></option>`).join('')}</datalist></div>
       </div>
       <div class="field"><label>${L('Receipt type','نوع الاستلامة')}</label>
@@ -37838,30 +37886,83 @@ function _rqReportLine(r){
   if(tail) line+=(line?' - ':'')+tail;
   return line||String(r.company||'').trim();
 }
-function _rqBuildDailyReport(dateISO){
+function _rqReportDateLabel(dateISO){
+  try{
+    const d=new Date(dateISO+'T00:00:00');
+    if(isNaN(d)) return dateISO;
+    return d.toLocaleDateString(typeof _dtLocale==='function'?_dtLocale():undefined,{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  }catch(e){ return dateISO; }
+}
+// Work/receipt type shown in the app's current language: the built-in IR
+// work types swap instantly; anything typed by hand goes through the same
+// auto-translation the cards use (shown as typed until it lands).
+function _rqIrLabel(r){
+  const raw=String(r.irType||'').trim();
+  if(!raw) return '';
+  const k=_rqIrSubtypeKeyFromLabel(raw);
+  if(k){ const h=_RQ_IR_SUBTYPE_QUICK.find(o=>o.key===k); return L(h.en,h.ar); }
+  return _rqDisplayValue(r,'irType')||raw;
+}
+function _rqReportTail(r){
+  return String(_rqIsIrType(r.type)?_rqIrLabel(r):(_rqDisplayValue(r,'type')||r.type||'')).trim();
+}
+// One receipt → a small block:
+//   • عمارة ٣٤
+//   - نموذج IVLB
+//   - نجارة سقف الثالث
+function _rqReportBlock(r){
+  const ar=(typeof lang!=='undefined'&&lang==='ar');
+  let plot=String(r.plot||'').trim();
+  if(plot && /^[0-9٠-٩]+$/.test(plot)) plot=(ar?'عمارة ':'Plot ')+plot;
+  const zone=String(r.zone||'').trim();
+  const model=String(r.model||'').trim();
+  const tail=_rqReportTail(r);
+  const head=plot||zone||String(_rqDisplayValue(r,'company')||r.company||'').trim();
+  const lines=[head];
+  if(plot && zone) lines.push((ar?'منطقة ':'Zone ')+zone);
+  if(model) lines.push((ar?'نموذج ':'Model ')+model);
+  if(tail) lines.push(tail);
+  return lines;
+}
+function _rqReportGroups(dateISO){
   const ar=(typeof lang!=='undefined'&&lang==='ar');
   const day=_rqLoad().filter(r=>(r.date||'')===dateISO).sort((a,b)=>(a.createdAt||0)-(b.createdAt||0));
-  if(!day.length) return '';
-  const groups=ar
+  const defs=ar
     ? [['received','تم استلام'],['notes','تم استلام مع ملاحظات'],['rejected','لم يتم استلام']]
     : [['received','Received'],['notes','Received with notes'],['rejected','Not received']];
-  const blocks=[];
-  groups.forEach(([k,title])=>{
+  const out=[];
+  defs.forEach(([k,title])=>{
     const rows=day.filter(r=>(r.status||'received')===k);
     if(!rows.length) return;
-    blocks.push(title+'\n'+rows.map(r=>{
-      let l='• '+_rqReportLine(r);
-      const n=String(r.notes||'').trim().split('\n').map(x=>x.replace(/^[•\s]+/,'').trim()).filter(Boolean)[0];
-      if(k!=='received' && n) l+=' ('+n+')';
-      return l;
-    }).join('\n'));
+    out.push({k,title,items:rows.map(r=>{
+      const lines=_rqReportBlock(r);
+      if(k!=='received'){
+        const n=String(_rqDisplayValue(r,'notes')||'').trim().split('\n').map(x=>x.replace(/^[•\s-]+/,'').trim()).filter(Boolean)[0];
+        if(n) lines.push((ar?'ملاحظة: ':'Note: ')+n);
+      }
+      return {id:r.id,lines};
+    })});
   });
-  return blocks.join('\n\n');
+  return out;
+}
+function _rqBuildDailyReport(dateISO){
+  const groups=_rqReportGroups(dateISO);
+  if(!groups.length) return '';
+  return groups.map((g,i)=>{
+    const head=[g.title]; if(i===0) head.push(_rqReportDateLabel(dateISO));
+    return head.join('\n')+'\n'+g.items.map(it=>'• '+it.lines[0]+(it.lines.length>1?'\n'+it.lines.slice(1).map(x=>'- '+x).join('\n'):'')).join('\n\n');
+  }).join('\n\n');
+}
+function _rqReportDates(){
+  const m={};
+  _rqLoad().forEach(r=>{ if(r.date) m[r.date]=(m[r.date]||0)+1; });
+  return Object.keys(m).sort().reverse().map(d=>({d,n:m[d]}));
 }
 
-function rqReportCopy(){
-  const text=_rqBuildDailyReport(today());
-  if(!text){ showToast(L('No receipts today','لا توجد استلامات اليوم'),'info'); return; }
+let _rqRptDate='';
+function rqReportCopy(d){
+  const text=_rqBuildDailyReport(d||today());
+  if(!text){ showToast(L('No receipts on this day','لا توجد استلامات في هذا اليوم'),'info'); return; }
   const done=()=>showToast(L('Report copied ✓','تم نسخ التقرير ✓'),'success');
   const fallback=()=>{
     try{
@@ -37873,43 +37974,114 @@ function rqReportCopy(){
   };
   if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(text).then(done,fallback); } else fallback();
 }
-function rqReportOpen(){
-  const text=_rqBuildDailyReport(today());
+function rqReportShare(d){
+  const text=_rqBuildDailyReport(d||today());
+  if(!text) return;
+  if(navigator.share){ navigator.share({text}).catch(()=>{}); } else rqReportCopy(d);
+}
+function _rqReportPreviewHTML(date){
+  const groups=_rqReportGroups(date);
+  return groups.map((g,gi)=>`
+    <div class="rpt-title">${esc(g.title)}</div>
+    ${gi===0?`<div class="rpt-date">${esc(_rqReportDateLabel(date))}</div>`:''}
+    ${g.items.map(it=>`<div class="rpt-item">
+      <div class="rpt-item-tx"><div class="rpt-plot"><i></i>${esc(it.lines[0])}</div>${it.lines.slice(1).map(x=>`<div class="rpt-sub">${esc(x)}</div>`).join('')}</div>
+      <div class="rpt-item-act">
+        <button type="button" onclick="rqReportEditItem('${it.id}')" aria-label="${L('Edit','تعديل')}">${ic('edit',15)}</button>
+        <button type="button" class="del" onclick="rqReportDelItem('${it.id}')" aria-label="${L('Delete','حذف')}">${ic('trash',15)}</button>
+      </div></div>`).join('')}`).join('');
+}
+function rqReportEditItem(id){ openRequestModal(id); }
+function rqReportDelItem(id){
+  showConfirm(L('Delete this receipt?','حذف هذه الاستلامة؟'),function(){
+    _rqSave(_rqLoad().filter(x=>x.id!==id));
+    showToast(L('Deleted','تم الحذف'),'info');
+    if(currentView==='expenses') renderView();
+    rqReportOpen(_rqRptDate||today());
+  });
+}
+// Free-text editing of the report itself (wording tweaks before copying).
+function rqReportEditText(){
+  const date=_rqRptDate||today();
+  const paper=document.getElementById('rptPaper'); if(!paper) return;
+  const ar=(typeof lang!=='undefined'&&lang==='ar');
+  paper.innerHTML=`<textarea id="rptTa" class="rpt-ta" dir="${ar?'rtl':'ltr'}">${esc(_rqBuildDailyReport(date))}</textarea>`;
+  document.getElementById('rptEditBtn').style.display='none';
+  const c=document.getElementById('rptCopyBtn');
+  if(c) c.setAttribute('onclick','rqReportCopyEdited()');
+  const ta=document.getElementById('rptTa'); if(ta){ ta.focus(); ta.style.height=Math.min(ta.scrollHeight+4,window.innerHeight*0.45)+'px'; }
+}
+function rqReportCopyEdited(){
+  const ta=document.getElementById('rptTa'); if(!ta) return;
+  const text=ta.value;
+  const done=()=>showToast(L('Report copied ✓','تم نسخ التقرير ✓'),'success');
+  const fb=()=>{ try{ ta.select(); document.execCommand('copy')?done():showToast(L('Copy failed','تعذّر النسخ'),'warn'); }catch(e){} };
+  if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done,fb); else fb();
+}
+function rqReportOpen(d){
+  const t=today();
+  const date=(typeof d==='string'&&d)?d:(_rqRptDate||t);
+  _rqRptDate=date;
+  const text=_rqBuildDailyReport(date);
+  const hist=_rqReportDates();
+  const ar=(typeof lang!=='undefined'&&lang==='ar');
+  const yest=new Date(); yest.setDate(yest.getDate()-1);
+  const yISO=yest.getFullYear()+'-'+String(yest.getMonth()+1).padStart(2,'0')+'-'+String(yest.getDate()).padStart(2,'0');
+  const chip=(iso,label,n)=>`<button type="button" class="rpt-chip${iso===date?' on':''}" onclick="rqReportOpen('${iso}')"><b>${esc(label)}</b>${n!=null?`<span>${n}</span>`:''}</button>`;
+  const cnt=iso=>(hist.find(h=>h.d===iso)||{n:0}).n;
+  const quick=chip(t,L('Today','اليوم'),cnt(t))+chip(yISO,L('Yesterday','أمس'),cnt(yISO));
+  const past=hist.filter(h=>h.d!==t&&h.d!==yISO).slice(0,40).map(h=>{
+    let lb=h.d; try{ lb=new Date(h.d+'T00:00:00').toLocaleDateString(typeof _dtLocale==='function'?_dtLocale():undefined,{day:'numeric',month:'short'}); }catch(e){}
+    return chip(h.d,lb,h.n);
+  }).join('');
+  const on=rqReportEnabled();
   document.getElementById('modalContent').innerHTML=`
     <div class="modal-handle"></div>
     <div class="modal-hdr">
       <div class="modal-hdr-icon" style="background:linear-gradient(135deg,var(--green-dark),var(--green))">${ic('clipboard',20)}</div>
       <div>
-        <div class="modal-hdr-title">${L("Today's receipts report",'تقرير استلامات اليوم')}</div>
-        <div class="modal-hdr-sub" dir="ltr" style="text-align:start">${esc(today())}</div>
+        <div class="modal-hdr-title">${L('My Report','تقريري')}</div>
+        <div class="modal-hdr-sub">${L('Receipts report · copy-ready','تقرير الاستلامات · جاهز للنسخ')}</div>
       </div>
     </div>
-    ${text
-      ? `<textarea readonly dir="rtl" style="width:100%;min-height:180px;box-sizing:border-box;resize:vertical;padding:12px;border-radius:12px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font:inherit;font-size:calc(14px*var(--app-text-scale,1));line-height:1.8" onfocus="this.select()">${esc(text)}</textarea>
-         <div class="modal-btns"><button class="mbtn save" onclick="rqReportCopy()">${L('Copy','نسخ')}</button><button class="mbtn cancel" onclick="closeModal()">${L('Close','إغلاق')}</button></div>`
-      : `<div style="padding:18px 4px;text-align:center;color:var(--muted);font-weight:700">${L('No receipts logged today','لا توجد استلامات مسجلة اليوم')}</div>
-         <div class="modal-btns"><button class="mbtn cancel" onclick="closeModal()">${L('Close','إغلاق')}</button></div>`}`;
+    <div class="rpt-sec-l">${L('History','السجل')}</div>
+    <div class="rpt-chips">${quick}${past}</div>
+    <label class="rpt-pick"><span>${L('Pick any date','اختر أي يوم')}</span><input type="date" value="${esc(date)}" max="${esc(t)}" onchange="if(this.value)rqReportOpen(this.value)"></label>
+    <div class="rpt-paper" id="rptPaper" dir="${ar?'rtl':'ltr'}">${text?_rqReportPreviewHTML(date):`<div class="rpt-empty">${L('No receipts logged on this day','لا توجد استلامات مسجلة في هذا اليوم')}</div>`}</div>
+    <button type="button" class="rpt-auto${on?' on':''}" onclick="rqReportToggle()">
+      <span class="rpt-auto-ic">${ic('bell',16)}</span>
+      <span class="rpt-auto-t"><b>${L('Daily report at 4:30 PM','تقرير يومي الساعة ٤:٣٠ م')}</b><small>${L('Arrives as a notification, ready to copy','يوصلك كإشعار وجاهز للنسخ')}</small></span>
+      <span class="rpt-sw"><i></i></span>
+    </button>
+    <div class="modal-btns">
+      ${text?`<button class="mbtn save" id="rptCopyBtn" onclick="rqReportCopy('${esc(date)}')">${L('Copy report','نسخ التقرير')}</button><button class="mbtn cancel" id="rptEditBtn" onclick="rqReportEditText()">${L('Edit text','تعديل النص')}</button>`:''}
+      ${text&&navigator.share?`<button class="mbtn cancel" onclick="rqReportShare('${esc(date)}')">${L('Share','مشاركة')}</button>`:''}
+      <button class="mbtn cancel" onclick="closeModal()">${L('Close','إغلاق')}</button>
+    </div>`;
   document.getElementById('modalOverlay').style.display='flex';
 }
 function rqReportToggle(){
   const on=!rqReportEnabled();
   _rqReportSet({on});
+  const refresh=()=>{ if(document.querySelector('.rpt-auto')) rqReportOpen(_rqRptDate||today()); if(currentView==='expenses') renderView(); };
   if(on && ('Notification' in window) && Notification.permission==='default'){
     Notification.requestPermission().then(p=>{
       showToast(p==='granted'?L('✓ Daily report notification on (4:30 PM)','✓ تم تفعيل إشعار التقرير اليومي (٤:٣٠ م)'):L('Report will show inside the app only (notifications not allowed)','التقرير هيظهر جوه التطبيق فقط (الإشعارات غير مسموحة)'),p==='granted'?'success':'warn');
-      if(currentView==='expenses') renderView();
+      refresh();
     });
   } else {
     showToast(on?L('✓ Daily report on (4:30 PM)','✓ تم تفعيل التقرير اليومي (٤:٣٠ م)'):L('Daily report off','تم إيقاف التقرير اليومي'),on?'success':'info');
+    refresh();
   }
-  if(currentView==='expenses') renderView();
 }
 function rqReportBarHTML(){
   const on=rqReportEnabled();
-  return `<div class="rq-rpt-bar">
-    <button type="button" class="rq-rpt-btn" onclick="rqReportOpen()">${ic('clipboard',14)} ${L("Today's report",'تقرير اليوم')}</button>
-    <button type="button" class="rq-rpt-btn${on?' on':''}" onclick="rqReportToggle()" aria-pressed="${on?'true':'false'}">${ic('bell',14)} ${L('4:30 PM report','تقرير ٤:٣٠ م')}: ${on?L('On','شغال'):L('Off','موقوف')}</button>
-  </div>`;
+  const n=(_rqReportDates().find(h=>h.d===today())||{n:0}).n;
+  return `<button type="button" class="rq-rpt-card" onclick="_rqRptDate='';rqReportOpen()">
+    <span class="rq-rpt-ic">${ic('clipboard',20)}</span>
+    <span class="rq-rpt-tx"><b>${L('My Report','تقريري')}</b><small>${n?L(n+' receipt(s) today',n+' استلام اليوم'):L('No receipts yet today','لا استلامات اليوم')} · ${on?L('4:30 PM on','٤:٣٠ م شغال'):L('4:30 PM off','٤:٣٠ م موقوف')}</small></span>
+    <span class="rq-rpt-go">${L('Open','فتح')}</span>
+  </button>`;
 }
 
 // Fires at/after 4:30 PM, once per day, only when there is something to report.
