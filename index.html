@@ -8939,6 +8939,8 @@ body .screen-wrap .sc-header.sav-plain-header.sav-plain-header::after{display:no
 .rpt-item-act button:active{background:var(--surface2)}
 .rpt-item-act button.del{color:var(--red)}
 .rpt-ta{width:100%;min-height:200px;box-sizing:border-box;border:0;outline:0;resize:vertical;background:transparent;color:var(--text);font:inherit;font-size:calc(14px*var(--app-text-scale,1));line-height:1.9}
+.rq-xl-row{display:flex;gap:8px;margin:0 0 12px}
+.rq-xl-row .rq-imp-btn{margin:0;flex:1;min-width:0;padding:10px 8px}
 .rq-imp-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;margin:0 0 12px;padding:10px 14px;border-radius:14px;border:1px dashed color-mix(in srgb,var(--green) 45%,var(--border));background:transparent;color:var(--green);font-family:inherit;font-size:calc(13px*var(--app-text-scale,1));font-weight:800;cursor:pointer}
 .rq-imp-btn:active{background:color-mix(in srgb,var(--green) 8%,transparent)}
 .imp-list{max-height:44vh;overflow:auto;border:1px solid var(--border);border-radius:14px;background:var(--surface)}
@@ -38142,7 +38144,7 @@ function rqReportBarHTML(){
     <span class="rq-rpt-tx"><b>${L('My Report','تقريري')}</b><small>${n?L(n+' receipt(s) today',n+' استلام اليوم'):L('No receipts yet today','لا استلامات اليوم')} · ${on?L('4:30 PM on','٤:٣٠ م شغال'):L('4:30 PM off','٤:٣٠ م موقوف')}</small></span>
     <span class="rq-rpt-go">${L('Open','فتح')}</span>
   </button>
-  <button type="button" class="rq-imp-btn" onclick="rqImportPick()">${ic('upload',15)} ${L('Import from Excel','استيراد من Excel')}</button>`;
+  <div class="rq-xl-row"><button type="button" class="rq-imp-btn" onclick="rqImportPick()">${ic('upload',15)} ${L('Import from Excel','استيراد من Excel')}</button><button type="button" class="rq-imp-btn" onclick="rqExportExcel()">${ic('download',15)} ${L('Export to Excel','تصدير إلى Excel')}</button></div>`;
 }
 
 
@@ -38193,15 +38195,122 @@ function _rqImpDate(v){
 function _rqImpKey(r){
   return [r.company,r.type,r.plot,r.model,r.irType,r.floor,r.date].map(x=>String(x||'').toLowerCase().replace(/\s+/g,'')).join('|');
 }
-function _rqImpParse(wb){
+// ── Minimal built-in .xlsx reader/writer (no external library, works offline) ──
+async function _xlInflate(u8){
+  const st=new Blob([u8]).stream().pipeThrough(new DecompressionStream('deflate-raw'));
+  return new Uint8Array(await new Response(st).arrayBuffer());
+}
+async function _xlUnzip(buf){
+  const u8=new Uint8Array(buf), dv=new DataView(buf);
+  let e=u8.length-22; while(e>=0 && dv.getUint32(e,true)!==0x06054b50) e--;
+  if(e<0) throw new Error('not a zip');
+  const n=dv.getUint16(e+10,true); let p=dv.getUint32(e+16,true);
+  const out={}, dec=new TextDecoder();
+  for(let i=0;i<n;i++){
+    if(dv.getUint32(p,true)!==0x02014b50) break;
+    const method=dv.getUint16(p+10,true), csize=dv.getUint32(p+20,true);
+    const nl=dv.getUint16(p+28,true), el=dv.getUint16(p+30,true), cl=dv.getUint16(p+32,true), off=dv.getUint32(p+42,true);
+    const name=dec.decode(u8.subarray(p+46,p+46+nl));
+    const lnl=dv.getUint16(off+26,true), lel=dv.getUint16(off+28,true);
+    const data=u8.subarray(off+30+lnl+lel,off+30+lnl+lel+csize);
+    out[name]={method,data};
+    p+=46+nl+el+cl;
+  }
+  return out;
+}
+async function _xlEntry(z,name){
+  const f=z[name]; if(!f) return null;
+  const raw=f.method===0?f.data:await _xlInflate(f.data);
+  return new TextDecoder().decode(raw);
+}
+function _xlColIdx(ref){ const m=String(ref).match(/^([A-Z]+)/); let n=0; for(const ch of m[1]) n=n*26+ch.charCodeAt(0)-64; return n-1; }
+async function _xlReadSheets(buf){
+  const z=await _xlUnzip(buf), dp=new DOMParser();
+  const xml=t=>dp.parseFromString(t,'application/xml');
+  const shared=[];
+  const sst=await _xlEntry(z,'xl/sharedStrings.xml');
+  if(sst) xml(sst).querySelectorAll('si').forEach(si=>shared.push([...si.querySelectorAll('t')].map(t=>t.textContent).join('')));
+  // style → fill key
+  const fillKeyByXf=[];
+  const sty=await _xlEntry(z,'xl/styles.xml');
+  if(sty){
+    const sd=xml(sty);
+    const fills=[...sd.querySelectorAll('fills > fill')].map(f=>{
+      const pf=f.querySelector('patternFill'); if(!pf) return 'none';
+      const t=pf.getAttribute('patternType')||'none'; if(t==='none'||t==='gray125') return 'none';
+      const fg=pf.querySelector('fgColor'); if(!fg) return t;
+      return t+'|'+['rgb','theme','tint','indexed'].map(k=>fg.getAttribute(k)||'').join(',');
+    });
+    sd.querySelectorAll('cellXfs > xf').forEach(x=>fillKeyByXf.push(fills[+x.getAttribute('fillId')||0]||'none'));
+  }
+  const names=Object.keys(z).filter(k=>/^xl\/worksheets\/sheet\d+\.xml$/.test(k)).sort((a,b)=>parseInt(a.match(/(\d+)\.xml/)[1])-parseInt(b.match(/(\d+)\.xml/)[1]));
+  const sheets=[];
+  for(const nm of names){
+    const sd=xml(await _xlEntry(z,nm)), aoa=[], fills=[];
+    sd.querySelectorAll('sheetData > row').forEach(row=>{
+      const ri=(+row.getAttribute('r')||aoa.length+1)-1; const vals=[], fl=[];
+      row.querySelectorAll('c').forEach(c=>{
+        const ci=_xlColIdx(c.getAttribute('r')), t=c.getAttribute('t'), v=c.querySelector('v');
+        let val=null;
+        if(t==='s'&&v) val=shared[+v.textContent];
+        else if(t==='inlineStr') val=[...c.querySelectorAll('is t')].map(x=>x.textContent).join('');
+        else if(t==='str'&&v) val=v.textContent;
+        else if(t==='b'&&v) val=v.textContent==='1';
+        else if(v&&v.textContent!=='') { const nn=parseFloat(v.textContent); val=isNaN(nn)?v.textContent:nn; }
+        vals[ci]=val; fl[ci]=fillKeyByXf[+c.getAttribute('s')||0]||'none';
+      });
+      aoa[ri]=vals; fills[ri]=fl;
+    });
+    for(let i=0;i<aoa.length;i++){ if(!aoa[i]){ aoa[i]=[]; fills[i]=[]; } }
+    sheets.push({aoa,fills});
+  }
+  return sheets;
+}
+function _xlCrcTable(){ const t=[]; for(let n=0;n<256;n++){ let c=n; for(let k=0;k<8;k++) c=c&1?0xEDB88320^(c>>>1):c>>>1; t[n]=c>>>0; } return t; }
+function _xlZip(files){ // stored (no compression) zip
+  const enc=new TextEncoder(), tbl=_xlCrcTable(), parts=[], cen=[]; let off=0;
+  const u16=n=>[n&255,(n>>8)&255], u32=n=>[n&255,(n>>8)&255,(n>>16)&255,(n>>>24)&255];
+  Object.keys(files).forEach(name=>{
+    const nb=enc.encode(name), d=enc.encode(files[name]);
+    let crc=0xFFFFFFFF; for(let i=0;i<d.length;i++) crc=tbl[(crc^d[i])&255]^(crc>>>8); crc=(crc^0xFFFFFFFF)>>>0;
+    const lh=new Uint8Array([0x50,0x4b,3,4,20,0,0,0,0,0,0,0,0,0,...u32(crc),...u32(d.length),...u32(d.length),...u16(nb.length),0,0]);
+    parts.push(lh,nb,d);
+    cen.push(new Uint8Array([0x50,0x4b,1,2,20,0,20,0,0,0,0,0,0,0,0,0,...u32(crc),...u32(d.length),...u32(d.length),...u16(nb.length),0,0,0,0,0,0,0,0,0,0,0,0,...u32(off)]),nb);
+    off+=lh.length+nb.length+d.length;
+  });
+  const cdStart=off; let cdLen=0; cen.forEach(c=>{ parts.push(c); cdLen+=c.length; });
+  const cnt=Object.keys(files).length;
+  parts.push(new Uint8Array([0x50,0x4b,5,6,0,0,0,0,...u16(cnt),...u16(cnt),...u32(cdLen),...u32(cdStart),0,0]));
+  return new Blob(parts,{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+}
+function _xlEsc(v){ return String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/[\x00-\x08\x0b\x0c\x0e-\x1f]/g,''); }
+function _xlColName(i){ let s=''; i++; while(i>0){ const m=(i-1)%26; s=String.fromCharCode(65+m)+s; i=Math.floor((i-1)/26); } return s; }
+// rows: array of arrays; cell = value | {v, s} (s = style id 0..5, v number → numeric)
+function _xlBuildSheet(rows,widths){
+  const sd=rows.map((r,ri)=>`<row r="${ri+1}"${ri===0?' ht="22" customHeight="1"':''}>`+r.map((c,ci)=>{
+    const o=(c!==null&&typeof c==='object')?c:{v:c}; const ref=_xlColName(ci)+(ri+1); const st=o.s?` s="${o.s}"`:'';
+    if(o.v===null||o.v===undefined||o.v==='') return `<c r="${ref}"${st}/>`;
+    if(typeof o.v==='number') return `<c r="${ref}"${st}><v>${o.v}</v></c>`;
+    return `<c r="${ref}"${st} t="inlineStr"><is><t xml:space="preserve">${_xlEsc(o.v)}</t></is></c>`;
+  }).join('')+'</row>').join('');
+  const cols=widths.map((w,i)=>`<col min="${i+1}" max="${i+1}" width="${w}" customWidth="1"/>`).join('');
+  return _xlZip({
+    '[Content_Types].xml':'<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>',
+    '_rels/.rels':'<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>',
+    'xl/workbook.xml':'<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="Requests" sheetId="1" r:id="rId1"/></sheets></workbook>',
+    'xl/_rels/workbook.xml.rels':'<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>',
+    'xl/styles.xml':'<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><numFmts count="1"><numFmt numFmtId="164" formatCode="dd/mm/yyyy"/></numFmts><fonts count="2"><font><sz val="11"/><name val="Calibri"/></font><font><b/><sz val="11"/><color rgb="FFFFFFFF"/><name val="Calibri"/></font></fonts><fills count="5"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill><fill><patternFill patternType="solid"><fgColor rgb="FF0F5C42"/></patternFill></fill><fill><patternFill patternType="solid"><fgColor rgb="FFF2F2F2"/></patternFill></fill><fill><patternFill patternType="solid"><fgColor rgb="FF92D050"/></patternFill></fill></fills><borders count="2"><border><left/><right/><top/><bottom/><diagonal/></border><border><left style="thin"><color rgb="FFD9D9D9"/></left><right style="thin"><color rgb="FFD9D9D9"/></right><top style="thin"><color rgb="FFD9D9D9"/></top><bottom style="thin"><color rgb="FFD9D9D9"/></bottom><diagonal/></border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="6"><xf numFmtId="0" fontId="0" fillId="0" borderId="1" xfId="0" applyBorder="1" applyAlignment="1"><alignment vertical="center"/></xf><xf numFmtId="0" fontId="1" fillId="2" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center" wrapText="1"/></xf><xf numFmtId="164" fontId="0" fillId="0" borderId="1" xfId="0" applyNumberFormat="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf><xf numFmtId="0" fontId="0" fillId="3" borderId="1" xfId="0" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf><xf numFmtId="0" fontId="0" fillId="4" borderId="1" xfId="0" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf><xf numFmtId="0" fontId="0" fillId="0" borderId="1" xfId="0" applyBorder="1" applyAlignment="1"><alignment vertical="center" wrapText="1"/></xf></cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>',
+    'xl/worksheets/sheet1.xml':`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetViews><sheetView workbookViewId="0"><pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews><sheetFormatPr defaultRowHeight="18"/><cols>${cols}</cols><sheetData>${sd}</sheetData></worksheet>`
+  });
+}
+function _rqImpParse(sheets){
   const rows=[];
-  wb.SheetNames.forEach(name=>{
-    const aoa=XLSX.utils.sheet_to_json(wb.Sheets[name],{header:1,raw:true,defval:null});
+  sheets.forEach(({aoa,fills})=>{
     let hi=aoa.findIndex(r=>r&&r.some(c=>/PLOT/i.test(String(c||'')))&&r.some(c=>/COM/i.test(String(c||''))));
     if(hi<0) return;
-    const H=aoa[hi].map(c=>String(c||'').trim().toUpperCase());
-    const col=(re,not)=>H.findIndex(h=>re.test(h)&&!(not&&not.test(h)));
-    const c={company:col(/COM/),req:col(/REQ/),plot:col(/PLOT/),model:col(/MODEL|FORM/),type:col(/^TYPE|WORK/,/REQ/),floor:col(/FLOOR/),level:col(/LEVEL/),eng:col(/^ENG/),date:col(/DATE/),notes:col(/COMMENT/)};
+    const H=[...aoa[hi]].map(c=>String(c||'').trim().toUpperCase());
+    const col=(re,not)=>H.findIndex(h=>h&&re.test(h)&&!(not&&not.test(h)));
+    const c={company:col(/COM/),req:col(/REQ/),plot:col(/PLOT/),model:col(/MODEL|FORM/),type:col(/^TYPE|WORK/,/REQ/),floor:col(/FLOOR/),level:col(/LEVEL/),zone:col(/ZONE/),eng:col(/^ENG/),date:col(/DATE/),notes:col(/COMMENT/),appr:col(/APPROV/)};
     for(let i=hi+1;i<aoa.length;i++){
       const r=aoa[i]||[]; const g=k=>c[k]>=0?r[c[k]]:null;
       const plot=g('plot'), company=g('company');
@@ -38216,11 +38325,21 @@ function _rqImpParse(wb){
         model:String(g('model')||'').replace(/\s+/g,' ').trim().toUpperCase(),
         irType:_rqImpWork(g('type')),
         floor:(()=>{ const f=String(g('floor')||g('level')||'').trim(); return f?_rqTitle(f):''; })(),
-        zone:'',
+        zone:String(g('zone')||'').trim(),
         notes:String(g('notes')||'').split(/\s{2,}|\n/).map(x=>x.trim()).filter(Boolean).map(x=>'• '+_rqImpSentence(x)).join('\n')
       };
       if(!rec.company) rec.company='DMC';
-      rec.status=rec.notes?'notes':'received';
+      // APPROVAL/REMARK: the coloured cell among A B C D marks the outcome
+      //   A → received · B → received with notes · C → not received
+      let st='';
+      if(c.appr>=0){
+        const cells=[0,1,2,3].map(k=>({v:String(r[c.appr+k]||'').trim().toUpperCase(),f:(fills[i]||[])[c.appr+k]||'none'}));
+        const cnt={}; cells.forEach(x=>{cnt[x.f]=(cnt[x.f]||0)+1;});
+        const odd=cells.filter(x=>cnt[x.f]===1);
+        if(odd.length===1 && Object.keys(cnt).length>1) st=({A:'received',B:'notes',C:'rejected'})[odd[0].v]||'';
+      }
+      rec.status=st||(rec.notes?'notes':'received');
+      rec._marked=!!st;
       rec._noDate=!rec.date; if(!rec.date) rec.date=today();
       rows.push(rec);
     }
@@ -38228,36 +38347,53 @@ function _rqImpParse(wb){
   return rows;
 }
 function rqImportPick(){
-  const run=()=>{
-    const inp=document.createElement('input'); inp.type='file'; inp.accept='.xlsx,.xls,.csv';
-    inp.onchange=()=>{
-      const f=inp.files&&inp.files[0]; if(!f) return;
-      const rd=new FileReader();
-      rd.onload=e=>{
-        try{
-          const wb=XLSX.read(new Uint8Array(e.target.result),{type:'array'});
-          const parsed=_rqImpParse(wb);
-          if(!parsed.length){ showToast(L('No receipts found in this file','لم أجد استلامات في هذا الملف'),'warn'); return; }
-          const have=new Set(_rqLoad().map(_rqImpKey));
-          const seen=new Set();
-          parsed.forEach(r=>{ const k=_rqImpKey(r); r._dup=have.has(k)||seen.has(k); seen.add(k); });
-          _rqImpRows=parsed; rqImportPreview();
-        }catch(err){ _logErr('rqImport',err); showToast(L('Could not read this file','تعذّرت قراءة الملف'),'warn'); }
-      };
-      rd.readAsArrayBuffer(f);
+  if(typeof DecompressionStream==='undefined'){ showToast(L('This browser cannot read Excel files — please update it','المتصفح ده مش بيقرأ ملفات Excel — حدّثه'),'warn'); return; }
+  const inp=document.createElement('input'); inp.type='file'; inp.accept='.xlsx';
+  inp.onchange=()=>{
+    const f=inp.files&&inp.files[0]; if(!f) return;
+    const rd=new FileReader();
+    rd.onload=async e=>{
+      try{
+        const sheets=await _xlReadSheets(e.target.result);
+        const parsed=_rqImpParse(sheets);
+        if(!parsed.length){ showToast(L('No receipts found in this file','لم أجد استلامات في هذا الملف'),'warn'); return; }
+        const have=new Set(_rqLoad().map(_rqImpKey));
+        const seen=new Set();
+        parsed.forEach(r=>{ const k=_rqImpKey(r); r._dup=have.has(k)||seen.has(k); seen.add(k); });
+        _rqImpRows=parsed; rqImportPreview();
+      }catch(err){ _logErr('rqImport',err); showToast(L('Could not read this file (.xlsx only)','تعذّرت قراءة الملف (ملفات .xlsx فقط)'),'warn'); }
     };
-    inp.click();
+    rd.readAsArrayBuffer(f);
   };
-  if(typeof XLSX!=='undefined') return run();
-  showToast(L('Loading Excel reader…','جاري تحميل قارئ Excel…'),'info');
-  const sc=document.createElement('script'); sc.src='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
-  sc.onload=run; sc.onerror=()=>showToast(L('Excel reader needs an internet connection the first time','قارئ Excel يحتاج اتصال بالإنترنت أول مرة'),'warn');
-  document.head.appendChild(sc);
+  inp.click();
+}
+// ── Export every receipt to Excel (same layout the importer reads) ──
+function rqExportExcel(){
+  try{
+    const list=_rqLoad().slice().sort((a,b)=>String(a.date||'').localeCompare(String(b.date||''))||(a.createdAt||0)-(b.createdAt||0));
+    if(!list.length){ showToast(L('No receipts to export','لا توجد استلامات للتصدير'),'info'); return; }
+    const head=['SER','COMPANY','REQ TYPE','PLOT NO','MODEL','TYPE','FLOOR','ZONE','ENG.','DATE','APPROVAL/REMARK','','','','COMMENTS'].map(v=>({v,s:1}));
+    const serial=iso=>{ const m=String(iso||'').match(/^(\d{4})-(\d{2})-(\d{2})/); return m?Math.round(Date.UTC(+m[1],+m[2]-1,+m[3])/86400000)+25569:''; };
+    const en=(f)=>{ const low=String(f||'').trim().toLowerCase(); return _RQ_FLOORS_EN[low]||(()=>{ const k=Object.keys(_RQ_FLOORS_AR).find(x=>_RQ_FLOORS_AR[x]===String(f||'').trim()); return k?_RQ_FLOORS_EN[k]:String(f||''); })(); };
+    const enWork=r=>{ const k=_rqIrSubtypeKeyFromLabel(r.irType); if(k){ return _RQ_IR_SUBTYPE_QUICK.find(o=>o.key===k).en; } return String(r.irType||''); };
+    const rows=[head].concat(list.map((r,i)=>{
+      const mark={received:'A',notes:'B',rejected:'C'}[r.status||'received']||'A';
+      return [i+1,String(r.company||''),String(r.type||''),{v:/^\d+$/.test(String(r.plot||''))?+r.plot:String(r.plot||'')},String(r.model||''),enWork(r),en(r.floor),String(r.zone||''),String(r.engineer||''),{v:serial(r.date),s:2},
+        ...['A','B','C','D'].map(k=>({v:k,s:k===mark?4:3})),
+        {v:String(r.notes||'').split('\n').map(x=>x.replace(/^[•\s]+/,'').trim()).filter(Boolean).join('\n'),s:5}];
+    }));
+    const blob=_xlBuildSheet(rows,[6,14,10,10,14,26,10,10,14,12,5,5,5,5,60]);
+    const d=new Date(), ds=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+    const url=URL.createObjectURL(blob), a=document.createElement('a');
+    a.href=url; a.download='requests-'+ds+'.xlsx'; document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(()=>URL.revokeObjectURL(url),4000);
+    showToast(L(`✓ ${list.length} receipts exported`,`✓ تم تصدير ${list.length} استلامة`),'success');
+  }catch(e){ _logErr('rqExportExcel',e); showToast(L('Export failed','فشل التصدير'),'warn'); }
 }
 function rqImportPreview(){
   const rows=_rqImpRows, fresh=rows.filter(r=>!r._dup), dups=rows.length-fresh.length;
   const nd=fresh.filter(r=>r._noDate).length;
-  const item=r=>`<div class="imp-row${r._dup?' dup':''}"><b>${esc(r.type||'—')} · ${esc(r.plot)}</b><span>${esc([r.model,_rqIrLabel(r),_rqFloorLabel(r.floor)].filter(Boolean).join(' · '))}</span><small>${esc([r.engineer,r._noDate?L('no date','بدون تاريخ'):r.date].filter(Boolean).join(' · '))}${r._dup?' · '+L('already added','موجود'):''}</small></div>`;
+  const item=r=>`<div class="imp-row${r._dup?' dup':''}"><b>${esc(r.type||'—')} · ${esc(r.plot)}</b><span>${esc([r.model,_rqIrLabel(r),_rqFloorLabel(r.floor)].filter(Boolean).join(' · '))}</span><small>${esc([(()=>{const t=_RQ_STATUS[r.status]||_RQ_STATUS.received;return L(t.en,t.ar)})(),r.engineer,r._noDate?L('no date','بدون تاريخ'):r.date].filter(Boolean).join(' · '))}${r._dup?' · '+L('already added','موجود'):''}</small></div>`;
   document.getElementById('modalContent').innerHTML=`
     <div class="modal-handle"></div>
     <div class="modal-hdr">
@@ -38267,7 +38403,7 @@ function rqImportPreview(){
     </div>
     <div class="imp-list">${rows.map(item).join('')}</div>
     ${nd?`<div class="imp-note">${L(`${nd} row(s) have no date in the sheet — they'll use today's date.`,`${nd} صف بدون تاريخ في الملف — هيتسجل بتاريخ النهاردة.`)}</div>`:''}
-    <div class="imp-note">${L('Rows with comments are added as "Received with notes", the rest as "Received". You can edit any card afterwards.','الصفوف اللي فيها تعليقات بتتسجل "تم الاستلام مع ملاحظات" والباقي "تم الاستلام". تقدر تعدل أي كارت بعد كده.')}</div>
+    <div class="imp-note">${L('Status comes from the coloured cell under APPROVAL/REMARK: A = Received, B = Received with notes, C = Not received. Rows with no colour use comments to decide.','الحالة بتتحدد من الخلية الملونة تحت APPROVAL/REMARK: A = تم الاستلام، B = مع ملاحظات، C = لم يتم الاستلام. الصف من غير لون بيتحدد بالتعليقات.')}</div>
     <div class="modal-btns">
       ${fresh.length?`<button class="mbtn save" onclick="rqImportConfirm()">${L(`Add ${fresh.length} receipts`,`إضافة ${fresh.length} استلامة`)}</button>`:''}
       <button class="mbtn cancel" onclick="closeModal()">${L('Cancel','إلغاء')}</button>
