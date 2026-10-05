@@ -8939,6 +8939,16 @@ body .screen-wrap .sc-header.sav-plain-header.sav-plain-header::after{display:no
 .rpt-item-act button:active{background:var(--surface2)}
 .rpt-item-act button.del{color:var(--red)}
 .rpt-ta{width:100%;min-height:200px;box-sizing:border-box;border:0;outline:0;resize:vertical;background:transparent;color:var(--text);font:inherit;font-size:calc(14px*var(--app-text-scale,1));line-height:1.9}
+.rq-imp-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;margin:0 0 12px;padding:10px 14px;border-radius:14px;border:1px dashed color-mix(in srgb,var(--green) 45%,var(--border));background:transparent;color:var(--green);font-family:inherit;font-size:calc(13px*var(--app-text-scale,1));font-weight:800;cursor:pointer}
+.rq-imp-btn:active{background:color-mix(in srgb,var(--green) 8%,transparent)}
+.imp-list{max-height:44vh;overflow:auto;border:1px solid var(--border);border-radius:14px;background:var(--surface)}
+.imp-row{display:grid;grid-template-columns:auto 1fr;gap:2px 10px;padding:10px 12px;border-bottom:1px solid var(--border)}
+.imp-row:last-child{border-bottom:0}
+.imp-row b{font-size:calc(13.5px*var(--app-text-scale,1));font-weight:800;color:var(--text)}
+.imp-row span{font-size:calc(12.5px*var(--app-text-scale,1));font-weight:600;color:var(--text2);text-align:end}
+.imp-row small{grid-column:1/-1;font-size:calc(11px*var(--app-text-scale,1));color:var(--muted);font-weight:600}
+.imp-row.dup{opacity:.45}
+.imp-note{margin-top:10px;font-size:calc(11.5px*var(--app-text-scale,1));font-weight:600;color:var(--muted);line-height:1.6}
 .rpt-sec-l{font-size:calc(10px*var(--app-text-scale,1));font-weight:800;letter-spacing:.6px;text-transform:uppercase;color:var(--muted);margin:4px 2px 8px}
 .rpt-chips{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 10px;scrollbar-width:none}
 .rpt-chips::-webkit-scrollbar{display:none}
@@ -30027,7 +30037,8 @@ function renderMyRequests(){
         ${cell(ic('map',12),L('Zone','المنطقة'),dZone)}
         ${cell(ic('pin',12),L('Plot No.','رقم القطعة'),dPlot)}
         ${cell(ic('clipboard',12),L('Form / Model','النموذج'),dModel)}
-        ${_rqIsIrType(r.type)?cell(ic('type',12),L('IR type','نوع الـ IR'),_rqIrLabel(r)):''}
+        ${cell(ic('type',12),_rqIsIrType(r.type)?L('IR type','نوع الـ IR'):L('Work','الشغل'),_rqIrLabel(r))}
+        ${cell(ic('floor',12),L('Floor','الدور'),_rqFloorLabel(r.floor))}
       </dl>
       ${dNotes?`<div class="rq-notes">${ic('message',13)}<span>${esc(dNotes)}</span></div>`:''}
       <div class="rq-foot">
@@ -30103,6 +30114,7 @@ function openRequestModal(id){
         <div class="field"><label>${L('Plot No.','رقم القطعة')}</label><input type="text" id="rqPlot" placeholder=\"${L('e.g. 48','مثال: 48')}\" dir="auto" autocomplete="off" value="${esc(r?.plot||'')}"></div>
         <div class="field"><label>${L('Form / Model','النموذج')}</label><input type="text" id="rqModel" list="rqDlModel" dir="auto" autocomplete="off" value="${esc(r?.model||'')}"><datalist id="rqDlModel">${_rqFieldOptions('model',uniq('model')).map(v=>`<option value="${esc(v)}"></option>`).join('')}</datalist></div>
       </div>
+      <div class="field"><label>${L('Floor / Level','الدور')}</label><input type="text" id="rqFloor" list="rqDlFloor" dir="auto" autocomplete="off" placeholder="${L('e.g. Third','مثال: الثالث')}" value="${esc(r?.floor||'')}"><datalist id="rqDlFloor">${['Ground','First','Second','Third','Fourth','Fifth','Roof'].map(v=>`<option value="${L(v,_RQ_FLOORS_AR[v.toLowerCase()])}"></option>`).join('')}</datalist></div>
       <div class="field"><label>${L('Receipt type','نوع الاستلامة')}</label>
         <div class="rq-selwrap"><select id="rqTypeSel" class="rq-typesel${_rqTypeSelInitial(r)?' has-val':''}" onchange="_rqTypeSelChange(this)">${_rqTypeSelectOptionsHTML(r,uniq('type'))}</select></div>
         <div id="rqTypeCustomWrap" class="rq-custom-wrap">
@@ -30354,7 +30366,8 @@ function saveRequest(){
     }
     _rqPendingCoLogo=undefined;
   }
-  const rec={company,engineer:g('rqEngineer'),date:g('rqDate')||today(),type:g('rqType'),zone:g('rqZone'),plot:g('rqPlot'),model:g('rqModel'),irType:_rqIsIrType(g('rqType'))?g('rqIrType'):'',status:_rqStatusSel,notes:g('rqNotes')};
+  const rec={company,engineer:g('rqEngineer'),date:g('rqDate')||today(),type:g('rqType'),zone:g('rqZone'),plot:g('rqPlot'),model:g('rqModel'),floor:g('rqFloor'),status:_rqStatusSel,notes:g('rqNotes')};
+  if(_rqIsIrType(rec.type)) rec.irType=g('rqIrType'); else if(!_rqEditId) rec.irType='';
   _rqLearnCommentSuggestions(rec.type,rec.irType,rec.notes);
   _rqLearnField('company',rec.company);
   _rqLearnField('engineer',rec.engineer);
@@ -37932,6 +37945,16 @@ function _rqReportDateLabel(dateISO){
 // Work/receipt type shown in the app's current language: the built-in IR
 // work types swap instantly; anything typed by hand goes through the same
 // auto-translation the cards use (shown as typed until it lands).
+const _RQ_FLOORS_AR={ground:'الأرضي',gr:'الأرضي',first:'الأول',second:'الثاني',third:'الثالث',fourth:'الرابع',fifth:'الخامس',sixth:'السادس',roof:'السطح'};
+const _RQ_FLOORS_EN={ground:'Ground',gr:'Ground',first:'First',second:'Second',third:'Third',fourth:'Fourth',fifth:'Fifth',sixth:'Sixth',roof:'Roof'};
+function _rqFloorLabel(raw){
+  const v=String(raw||'').trim(); if(!v) return '';
+  const low=v.toLowerCase();
+  if(_RQ_FLOORS_EN[low]) return L(_RQ_FLOORS_EN[low],_RQ_FLOORS_AR[low]);
+  const k=Object.keys(_RQ_FLOORS_AR).find(x=>_RQ_FLOORS_AR[x]===v);
+  if(k) return L(_RQ_FLOORS_EN[k],_RQ_FLOORS_AR[k]);
+  return v;
+}
 function _rqIrLabel(r){
   const raw=String(r.irType||'').trim();
   if(!raw) return '';
@@ -37940,7 +37963,8 @@ function _rqIrLabel(r){
   return _rqDisplayValue(r,'irType')||raw;
 }
 function _rqReportTail(r){
-  return String(_rqIsIrType(r.type)?_rqIrLabel(r):(_rqDisplayValue(r,'type')||r.type||'')).trim();
+  const t=_rqIsIrType(r.type)?_rqIrLabel(r):[(_rqDisplayValue(r,'type')||r.type||''),_rqIrLabel(r)].filter(Boolean).join(' - ');
+  return [String(t).trim(),_rqFloorLabel(r.floor)].filter(Boolean).join(' ');
 }
 // One receipt → a small block:
 //   • عمارة ٣٤
@@ -38117,7 +38141,150 @@ function rqReportBarHTML(){
     <span class="rq-rpt-ic">${ic('clipboard',20)}</span>
     <span class="rq-rpt-tx"><b>${L('My Report','تقريري')}</b><small>${n?L(n+' receipt(s) today',n+' استلام اليوم'):L('No receipts yet today','لا استلامات اليوم')} · ${on?L('4:30 PM on','٤:٣٠ م شغال'):L('4:30 PM off','٤:٣٠ م موقوف')}</small></span>
     <span class="rq-rpt-go">${L('Open','فتح')}</span>
-  </button>`;
+  </button>
+  <button type="button" class="rq-imp-btn" onclick="rqImportPick()">${ic('upload',15)} ${L('Import from Excel','استيراد من Excel')}</button>`;
+}
+
+
+// ═════════════════════════════════════════════════════════════════════
+// IMPORT RECEIPTS FROM EXCEL
+// Reads a requests log sheet (header row with COMPANY / REQ TYPE / PLOT NO /
+// MODEL / TYPE / FLOOR / ENG. / DATE / COMMENTS …), shows a preview and, on
+// confirm, adds the rows as My Requests cards. Rows already in the app
+// (same company, type, plot, model, work, floor, date) are skipped.
+// Status: a row with comments → "Received with notes", otherwise "Received".
+// ═════════════════════════════════════════════════════════════════════
+let _rqImpRows=[];
+function _rqTitle(sx){
+  const keep={SD:'SD',IR:'IR',RFT:'RFT',GR:'GR',SOG:'SOG',DMC:'DMC',CPP:'CPP',MEP:'MEP'};
+  return String(sx||'').replace(/\s+/g,' ').trim().toLowerCase().replace(/[a-z؀-ۿ][a-z؀-ۿ'.]*/g,w=>{
+    const u=w.replace(/\./g,'').toUpperCase(); if(keep[u]) return keep[u];
+    return w.charAt(0).toUpperCase()+w.slice(1);
+  });
+}
+function _rqImpSentence(sx){
+  const keep=/\b(sd|ir|rft|gr|sog|dmc|cpp|mep)\b/gi;
+  return String(sx||'').replace(/\s+/g,' ').trim().toLowerCase().replace(/^./,c=>c.toUpperCase()).replace(keep,m=>m.toUpperCase());
+}
+function _rqImpWork(raw){
+  const t=String(raw||'').replace(/[.]/g,' ').replace(/\s+/g,' ').trim().toUpperCase();
+  if(!t) return '';
+  const hit=k=>{ const h=_RQ_IR_SUBTYPE_QUICK.find(o=>o.key===k); return h?h.en:''; };
+  if(/(STEEL|RFT|REINF).*COL|COL.*(STEEL|RFT|REINF)/.test(t)) return hit('column-reinforcement');
+  if(/COL.*F[O0]RM|COL.*FORMOORK/.test(t)) return hit('column-formwork');
+  if(/(SLAB|ROOF).*FORM|FORM.*SLAB/.test(t)) return hit('slab-formwork');
+  if(/(STEEL|RFT).*SLAB/.test(t)) return hit('slab-reinforcement');
+  if(/BEAM.*(STEEL|RFT)|(STEEL|RFT).*BEAM/.test(t)) return hit('beam-reinforcement');
+  if(/^COL$/.test(t)) return 'Column';
+  if(/^SLAB$/.test(t)) return 'Slab';
+  return _rqTitle(t);
+}
+function _rqImpDate(v){
+  if(v==null||v==='') return '';
+  if(typeof v==='number' && v>20000){
+    const d=new Date(Math.round((v-25569)*86400000));
+    return d.getUTCFullYear()+'-'+String(d.getUTCMonth()+1).padStart(2,'0')+'-'+String(d.getUTCDate()).padStart(2,'0');
+  }
+  if(v instanceof Date && !isNaN(v)) return v.getFullYear()+'-'+String(v.getMonth()+1).padStart(2,'0')+'-'+String(v.getDate()).padStart(2,'0');
+  const m=String(v).trim().match(/^(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{2,4})$/);
+  if(m){ let y=+m[3]; if(y<100) y+=2000; return y+'-'+String(+m[2]).padStart(2,'0')+'-'+String(+m[1]).padStart(2,'0'); }
+  const iso=String(v).trim().match(/^(\d{4})-(\d{2})-(\d{2})/); return iso?iso[0]:'';
+}
+function _rqImpKey(r){
+  return [r.company,r.type,r.plot,r.model,r.irType,r.floor,r.date].map(x=>String(x||'').toLowerCase().replace(/\s+/g,'')).join('|');
+}
+function _rqImpParse(wb){
+  const rows=[];
+  wb.SheetNames.forEach(name=>{
+    const aoa=XLSX.utils.sheet_to_json(wb.Sheets[name],{header:1,raw:true,defval:null});
+    let hi=aoa.findIndex(r=>r&&r.some(c=>/PLOT/i.test(String(c||'')))&&r.some(c=>/COM/i.test(String(c||''))));
+    if(hi<0) return;
+    const H=aoa[hi].map(c=>String(c||'').trim().toUpperCase());
+    const col=(re,not)=>H.findIndex(h=>re.test(h)&&!(not&&not.test(h)));
+    const c={company:col(/COM/),req:col(/REQ/),plot:col(/PLOT/),model:col(/MODEL|FORM/),type:col(/^TYPE|WORK/,/REQ/),floor:col(/FLOOR/),level:col(/LEVEL/),eng:col(/^ENG/),date:col(/DATE/),notes:col(/COMMENT/)};
+    for(let i=hi+1;i<aoa.length;i++){
+      const r=aoa[i]||[]; const g=k=>c[k]>=0?r[c[k]]:null;
+      const plot=g('plot'), company=g('company');
+      if((plot==null||plot==='')&&(company==null||company==='')) continue;
+      const type=String(g('req')||'').trim().toUpperCase();
+      const rec={
+        company:_rqTitle(company||'').replace(/^Dmc$/,'DMC')||String(company||'').trim(),
+        engineer:_rqTitle(g('eng')||''),
+        date:_rqImpDate(g('date')),
+        type:type||'',
+        plot:String(plot==null?'':plot).trim(),
+        model:String(g('model')||'').replace(/\s+/g,' ').trim().toUpperCase(),
+        irType:_rqImpWork(g('type')),
+        floor:(()=>{ const f=String(g('floor')||g('level')||'').trim(); return f?_rqTitle(f):''; })(),
+        zone:'',
+        notes:String(g('notes')||'').split(/\s{2,}|\n/).map(x=>x.trim()).filter(Boolean).map(x=>'• '+_rqImpSentence(x)).join('\n')
+      };
+      if(!rec.company) rec.company='DMC';
+      rec.status=rec.notes?'notes':'received';
+      rec._noDate=!rec.date; if(!rec.date) rec.date=today();
+      rows.push(rec);
+    }
+  });
+  return rows;
+}
+function rqImportPick(){
+  const run=()=>{
+    const inp=document.createElement('input'); inp.type='file'; inp.accept='.xlsx,.xls,.csv';
+    inp.onchange=()=>{
+      const f=inp.files&&inp.files[0]; if(!f) return;
+      const rd=new FileReader();
+      rd.onload=e=>{
+        try{
+          const wb=XLSX.read(new Uint8Array(e.target.result),{type:'array'});
+          const parsed=_rqImpParse(wb);
+          if(!parsed.length){ showToast(L('No receipts found in this file','لم أجد استلامات في هذا الملف'),'warn'); return; }
+          const have=new Set(_rqLoad().map(_rqImpKey));
+          const seen=new Set();
+          parsed.forEach(r=>{ const k=_rqImpKey(r); r._dup=have.has(k)||seen.has(k); seen.add(k); });
+          _rqImpRows=parsed; rqImportPreview();
+        }catch(err){ _logErr('rqImport',err); showToast(L('Could not read this file','تعذّرت قراءة الملف'),'warn'); }
+      };
+      rd.readAsArrayBuffer(f);
+    };
+    inp.click();
+  };
+  if(typeof XLSX!=='undefined') return run();
+  showToast(L('Loading Excel reader…','جاري تحميل قارئ Excel…'),'info');
+  const sc=document.createElement('script'); sc.src='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+  sc.onload=run; sc.onerror=()=>showToast(L('Excel reader needs an internet connection the first time','قارئ Excel يحتاج اتصال بالإنترنت أول مرة'),'warn');
+  document.head.appendChild(sc);
+}
+function rqImportPreview(){
+  const rows=_rqImpRows, fresh=rows.filter(r=>!r._dup), dups=rows.length-fresh.length;
+  const nd=fresh.filter(r=>r._noDate).length;
+  const item=r=>`<div class="imp-row${r._dup?' dup':''}"><b>${esc(r.type||'—')} · ${esc(r.plot)}</b><span>${esc([r.model,_rqIrLabel(r),_rqFloorLabel(r.floor)].filter(Boolean).join(' · '))}</span><small>${esc([r.engineer,r._noDate?L('no date','بدون تاريخ'):r.date].filter(Boolean).join(' · '))}${r._dup?' · '+L('already added','موجود'):''}</small></div>`;
+  document.getElementById('modalContent').innerHTML=`
+    <div class="modal-handle"></div>
+    <div class="modal-hdr">
+      <div class="modal-hdr-icon" style="background:linear-gradient(135deg,var(--green-dark),var(--green))">${ic('upload',20)}</div>
+      <div><div class="modal-hdr-title">${L('Import receipts','استيراد الاستلامات')}</div>
+      <div class="modal-hdr-sub">${L(`${fresh.length} new · ${dups} already in the app`,`${fresh.length} جديدة · ${dups} موجودة بالفعل`)}</div></div>
+    </div>
+    <div class="imp-list">${rows.map(item).join('')}</div>
+    ${nd?`<div class="imp-note">${L(`${nd} row(s) have no date in the sheet — they'll use today's date.`,`${nd} صف بدون تاريخ في الملف — هيتسجل بتاريخ النهاردة.`)}</div>`:''}
+    <div class="imp-note">${L('Rows with comments are added as "Received with notes", the rest as "Received". You can edit any card afterwards.','الصفوف اللي فيها تعليقات بتتسجل "تم الاستلام مع ملاحظات" والباقي "تم الاستلام". تقدر تعدل أي كارت بعد كده.')}</div>
+    <div class="modal-btns">
+      ${fresh.length?`<button class="mbtn save" onclick="rqImportConfirm()">${L(`Add ${fresh.length} receipts`,`إضافة ${fresh.length} استلامة`)}</button>`:''}
+      <button class="mbtn cancel" onclick="closeModal()">${L('Cancel','إلغاء')}</button>
+    </div>`;
+  document.getElementById('modalOverlay').style.display='flex';
+}
+function rqImportConfirm(){
+  const fresh=_rqImpRows.filter(r=>!r._dup);
+  const list=_rqLoad(); const now=Date.now();
+  fresh.forEach((r,i)=>{
+    const rec={...r}; delete rec._dup; delete rec._noDate;
+    list.push({id:_rqNewId(),...rec,createdAt:now+i,updatedAt:now+i});
+    _rqLearnField('company',rec.company); _rqLearnField('engineer',rec.engineer); _rqLearnField('model',rec.model); _rqLearnField('irtype',rec.irType);
+  });
+  _rqSave(list); _rqImpRows=[];
+  showToast(L(`✓ ${fresh.length} receipts added`,`✓ تمت إضافة ${fresh.length} استلامة`),'success');
+  closeModal(); if(currentView==='expenses') renderView();
 }
 
 // Fires at/after 4:30 PM, once per day, only when there is something to report.
