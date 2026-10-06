@@ -38381,6 +38381,7 @@ function _rqReportDayHTML(date,showDate){
     ${g.items.map(it=>`<div class="rpt-item st-${g.k}">
       <div class="rpt-item-tx"><div class="rpt-plot">${esc(it.lines[0])}</div>${it.lines.slice(1).map(x=>`<div class="rpt-sub">${esc(x)}</div>`).join('')}</div>
       <div class="rpt-item-act">
+        <button type="button" onclick="rqReportCopyItem('${it.id}')" aria-label="${L('Copy card','نسخ الكارت')}" title="${L('Copy card','نسخ الكارت')}">${ic('copy',15)}</button>
         <button type="button" onclick="rqReportEditItem('${it.id}')" aria-label="${L('Edit','تعديل')}">${ic('edit',15)}</button>
         <button type="button" class="del" onclick="rqReportDelItem('${it.id}')" aria-label="${L('Delete','حذف')}">${ic('trash',15)}</button>
       </div></div>`).join('')}`).join('');
@@ -38391,6 +38392,27 @@ function _rqReportPreviewHTML(date){
     <div class="rpt-day-h"><b>${esc(_rqInRptLang(()=>_rqReportDateLabel(h.d)))}</b><span>${h.n}</span></div>
     ${_rqReportDayHTML(h.d,false)}
   </section>`).join('');
+}
+// Copy a single card: "• status / date / its lines", in the report's language.
+function rqReportCopyItem(id){
+  const r=_rqLoad().find(x=>x.id===id); if(!r) return;
+  const text=_rqInRptLang(()=>{
+    const g=_rqReportGroupsRaw(r.date||'').find(gr=>gr.items.some(it=>it.id===id));
+    if(!g) return '';
+    const it=g.items.find(i=>i.id===id);
+    return '• '+g.title+'\n'+_rqReportDateLabel(r.date)+'\n'+it.lines.join('\n');
+  });
+  if(!text) return;
+  const done=()=>showToast(L('Card copied ✓','تم نسخ الكارت ✓'),'success');
+  const fb=()=>{
+    try{
+      const ta=document.createElement('textarea'); ta.value=text; ta.style.cssText='position:fixed;opacity:0;top:0;left:0';
+      document.body.appendChild(ta); ta.focus(); ta.select();
+      const ok=document.execCommand('copy'); ta.remove();
+      ok?done():showToast(L('Copy failed','تعذّر النسخ'),'warn');
+    }catch(e){ _logErr('rqReportCopyItem',e); }
+  };
+  if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done,fb); else fb();
 }
 function rqReportEditItem(id){ openRequestModal(id); }
 function rqReportDelItem(id){
