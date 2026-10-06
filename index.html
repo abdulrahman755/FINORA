@@ -9013,6 +9013,51 @@ body .screen-wrap .sc-header.sav-plain-header.sav-plain-header::after{display:no
 .rpt-sw i{position:absolute;top:3px;inset-inline-start:3px;width:17px;height:17px;border-radius:50%;background:#fff;transition:inset-inline-start .2s}
 .rpt-auto.on .rpt-sw{background:var(--green)}
 .rpt-auto.on .rpt-sw i{inset-inline-start:20px}
+
+/* ── My Report (redesign) ── */
+.rpt-chips{margin:0 -2px;padding:2px 2px 12px;scroll-snap-type:x proximity}
+.rpt-chip{scroll-snap-align:start;border-radius:99px;padding:8px 14px;transition:transform .12s,background-color .15s,border-color .15s}
+.rpt-chip:active{transform:scale(.96)}
+.rpt-chip.all{background:var(--surface2)}
+.rpt-chip.all.on{background:linear-gradient(135deg,var(--green-dark),var(--green));border-color:transparent;color:#fff}
+.rpt-chip.all.on span{background:rgba(255,255,255,.22);color:#fff}
+.rpt-pick{background:var(--surface);border-radius:14px;padding:10px 14px;margin:0 0 10px;color:var(--muted)}
+.rpt-pick svg{flex:none;color:var(--green)}
+.rpt-pick span{flex:1;min-width:0;text-align:start}
+.rpt-stats{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 10px}
+.rpt-stat{display:inline-flex;align-items:center;gap:6px;padding:5px 11px 5px 9px;border-radius:99px;font-size:calc(11.5px*var(--app-text-scale,1));font-weight:700;background:var(--surface2);color:var(--text2)}
+.rpt-stat i{width:8px;height:8px;border-radius:50%;background:var(--green)}
+.rpt-stat b{font-weight:900;color:var(--text)}
+.rpt-stat.st-notes i{background:var(--gold-light)}
+.rpt-stat.st-rejected i{background:var(--red)}
+.rpt-paper{max-height:46vh;padding:6px 14px 14px;border-radius:20px;background:var(--surface2);border:0;overscroll-behavior:contain}
+.rpt-paper .rpt-title{font-size:calc(22px*var(--app-text-scale,1));font-weight:900;letter-spacing:.2px;line-height:1.15;text-transform:uppercase;margin:14px 2px 4px;color:var(--green)}
+.rpt-paper .rpt-title.st-notes{color:var(--gold)}
+.rpt-paper .rpt-title.st-rejected{color:var(--red)}
+.rpt-paper .rpt-title::before{content:'';display:inline-block;width:9px;height:9px;border-radius:50%;background:currentColor;margin-inline-end:9px;vertical-align:middle;transform:translateY(-2px)}
+.rpt-date{margin:0 2px 8px;padding-bottom:0;border-bottom:0;letter-spacing:.4px}
+.rpt-item{position:relative;margin-top:8px;padding:12px 8px 12px 14px;border-radius:14px;background:var(--surface);box-shadow:var(--shadow-sm);border:1px solid var(--border)}
+.rpt-item::before{content:'';position:absolute;inset-block:10px;inset-inline-start:0;width:3.5px;border-radius:0 4px 4px 0;background:var(--green)}
+[dir=rtl] .rpt-item::before{border-radius:4px 0 0 4px}
+.rpt-item.st-notes::before{background:var(--gold-light)}
+.rpt-item.st-rejected::before{background:var(--red)}
+.rpt-plot{font-size:calc(16px*var(--app-text-scale,1));font-weight:900}
+.rpt-plot i{display:none}
+.rpt-paper .rpt-sub{padding-inline-start:0;margin-top:3px;font-size:calc(13px*var(--app-text-scale,1));color:var(--text2)}
+.rpt-day{margin-top:14px}
+.rpt-day:first-child{margin-top:6px}
+.rpt-day-h{position:sticky;top:-6px;z-index:2;display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 -14px;padding:9px 16px;background:color-mix(in srgb,var(--surface2) 92%,transparent);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);font-size:calc(12px*var(--app-text-scale,1));font-weight:800;letter-spacing:.5px;color:var(--text2)}
+.rpt-day-h span{min-width:22px;height:22px;padding:0 7px;border-radius:99px;display:inline-flex;align-items:center;justify-content:center;background:var(--green);color:#fff;font-size:calc(11px*var(--app-text-scale,1));font-weight:800}
+.rpt-empty{display:flex;flex-direction:column;align-items:center;gap:8px;padding:28px 4px;color:var(--muted)}
+.rpt-ta{min-height:220px;padding:10px 4px}
+.rpt-auto{border-radius:16px;margin:10px 0 2px}
+.modal-btns.rpt-actions{gap:8px;margin-top:12px}
+.rpt-actions .mbtn{display:flex;align-items:center;justify-content:center;gap:8px}
+.rpt-all-btn em{font-style:normal;font-size:calc(11px*var(--app-text-scale,1));font-weight:800;padding:2px 8px;border-radius:99px;background:var(--surface2);color:var(--muted)}
+.rpt-tools{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:8px}
+.rpt-tool{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:10px 6px;border-radius:14px;border:1px solid var(--border);background:var(--surface);color:var(--text2);font-family:inherit;font-size:calc(11.5px*var(--app-text-scale,1));font-weight:800;cursor:pointer;transition:transform .12s,background-color .15s}
+.rpt-tool:active{transform:scale(.96);background:var(--surface2)}
+.rpt-tool svg{color:var(--green)}
 </style>
 <script>
 // Suppress cross-origin Script errors (in-app browsers like TikTok/Instagram)
@@ -9743,7 +9788,7 @@ function fpInitSmartHeader(){
       <span id="navBtn-Dashboard-label"></span>
     </button>
 
-    <button class="nav-btn" id="navBtn-SiteCustody" onclick="setView('expenses');navCloseAll()" title="Site Custody">
+    <button class="nav-btn" id="navBtn-SiteCustody" onclick="window._cxLand='requests';setView('expenses');navCloseAll()" title="My Job">
       <svg class="nav-icon" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v6c0 5-3 8.5-7 9-4-.5-7-4-7-9V6l7-3z"/><path d="M9 12l2 2 4-4"/></svg>
       <span id="navBtn-SiteCustody-label"></span>
     </button>
@@ -11617,7 +11662,7 @@ function updateNavLabels(){
     ['navBtn-Dashboard',   'Dashboard',    'لوحة التحكم'],
     ['navBtn-Banks',       'Banks',        'البنوك'],
     ['navBtn-Daily',       'Daily',        'يومي'],
-    ['navBtn-SiteCustody', 'Site Custody', 'عهدة الموقع'],
+    ['navBtn-SiteCustody', 'My Job',      'شغلي'],
     ['navBtn-MySavings',   'My Savings',   'مدخراتي'],
   ];
   iconBtnTitles.forEach(([id,tEN,tAR])=>{
@@ -11955,7 +12000,7 @@ function setView(v){
   _fpFabPickerRemoveNow();
   if(typeof SoundManager!=='undefined' && v!==currentView) SoundManager.play('screen_open');
   if(v!==currentView) searchQ=''; // each page's own search box starts empty when you navigate to it fresh
-  if(v==='expenses') _cxTab='custody'; // entry points (nav, global search, quick-add) always land on the Custody tab
+  if(v==='expenses'){ _cxTab=window._cxLand||'custody'; window._cxLand=null; } // the nav button lands on My Requests (first tab); other entry points (global search, quick-add) land on Custody
   currentView=v;
   applyWorkspaceNav();
   // Update individual nav item active states
@@ -30026,7 +30071,7 @@ async function _rqRunTranslate(id,targetLang){
 
 function _cxTabsHTML(){
   const t=(k,lbl)=>`<button type="button" role="tab" class="cx-seg-btn${_cxTab===k?' on':''}" aria-selected="${_cxTab===k?'true':'false'}" onclick="_cxSetTab('${k}')">${lbl}</button>`;
-  return `<div class="cx-seg cx-tabs" role="tablist">${t('custody',L('Custody','العهدة'))}${t('requests',L('My Requests','استلاماتي'))}</div>`;
+  return `<div class="cx-seg cx-tabs" role="tablist">${t('requests',L('My Requests','استلاماتي'))}${t('custody',L('Custody','العهدة'))}</div>`;
 }
 function _cxSetTab(k){
   const nk=(k==='requests')?'requests':'custody';
@@ -38275,7 +38320,19 @@ function _rqInRptLang(fn){
   try{ return fn(); } finally{ lang=o; }
 }
 function _rqReportGroups(d){ return _rqInRptLang(()=>_rqReportGroupsRaw(d)); }
-function _rqBuildDailyReport(d){ return _rqInRptLang(()=>_rqBuildDailyReportRaw(d)); }
+const _RQ_DAY_SEP='\n\n──────────\n\n';
+function _rqBuildDailyReport(d){
+  return _rqInRptLang(()=>{
+    if(d!=='all') return _rqBuildDailyReportRaw(d);
+    return _rqReportDates().map(h=>_rqBuildDailyReportRaw(h.d)).filter(Boolean).join(_RQ_DAY_SEP);
+  });
+}
+// Counts per status for one day (or every day when d==='all').
+function _rqReportCounts(d){
+  const c={received:0,notes:0,rejected:0};
+  _rqLoad().forEach(r=>{ if(d!=='all' && (r.date||'')!==d) return; const k=r.status||'received'; if(k in c) c[k]++; });
+  return c;
+}
 function rqReportTranslate(){
   _rqRptLang=(_rqEffLang()==='ar')?'en':'ar';
   rqReportOpen(_rqRptDate||today());
@@ -38306,17 +38363,24 @@ function rqReportShare(d){
   if(!text) return;
   if(navigator.share){ navigator.share({text}).catch(()=>{}); } else rqReportCopy(d);
 }
-function _rqReportPreviewHTML(date){
+function _rqReportDayHTML(date,showDate){
   const groups=_rqReportGroups(date);
   return groups.map((g,gi)=>`
-    <div class="rpt-title">• ${esc(g.title)}</div>
-    ${gi===0?`<div class="rpt-date">${esc(_rqInRptLang(()=>_rqReportDateLabel(date)))}</div>`:''}
-    ${g.items.map(it=>`<div class="rpt-item">
-      <div class="rpt-item-tx"><div class="rpt-plot"><i></i>${esc(it.lines[0])}</div>${it.lines.slice(1).map(x=>`<div class="rpt-sub">${esc(x)}</div>`).join('')}</div>
+    <div class="rpt-title st-${g.k}">${esc(g.title)}</div>
+    ${gi===0&&showDate?`<div class="rpt-date">${esc(_rqInRptLang(()=>_rqReportDateLabel(date)))}</div>`:''}
+    ${g.items.map(it=>`<div class="rpt-item st-${g.k}">
+      <div class="rpt-item-tx"><div class="rpt-plot">${esc(it.lines[0])}</div>${it.lines.slice(1).map(x=>`<div class="rpt-sub">${esc(x)}</div>`).join('')}</div>
       <div class="rpt-item-act">
         <button type="button" onclick="rqReportEditItem('${it.id}')" aria-label="${L('Edit','تعديل')}">${ic('edit',15)}</button>
         <button type="button" class="del" onclick="rqReportDelItem('${it.id}')" aria-label="${L('Delete','حذف')}">${ic('trash',15)}</button>
       </div></div>`).join('')}`).join('');
+}
+function _rqReportPreviewHTML(date){
+  if(date!=='all') return _rqReportDayHTML(date,true);
+  return _rqReportDates().map(h=>`<section class="rpt-day">
+    <div class="rpt-day-h"><b>${esc(_rqInRptLang(()=>_rqReportDateLabel(h.d)))}</b><span>${h.n}</span></div>
+    ${_rqReportDayHTML(h.d,false)}
+  </section>`).join('');
 }
 function rqReportEditItem(id){ openRequestModal(id); }
 function rqReportDelItem(id){
@@ -38347,44 +38411,56 @@ function rqReportCopyEdited(){
 }
 function rqReportOpen(d){
   const t=today();
-  const date=(typeof d==='string'&&d)?d:(_rqRptDate||t);
-  _rqRptDate=date;
-  const text=_rqBuildDailyReport(date);
   const hist=_rqReportDates();
+  const cnt=iso=>(hist.find(h=>h.d===iso)||{n:0}).n;
+  // First open: today if it has receipts, otherwise the latest day that does.
+  const date=(typeof d==='string'&&d)?d:(_rqRptDate||(cnt(t)||!hist.length?t:hist[0].d));
+  _rqRptDate=date;
+  const isAll=(date==='all');
+  const text=_rqBuildDailyReport(date);
   const ar=(_rqEffLang()==='ar');
   const yest=new Date(); yest.setDate(yest.getDate()-1);
   const yISO=yest.getFullYear()+'-'+String(yest.getMonth()+1).padStart(2,'0')+'-'+String(yest.getDate()).padStart(2,'0');
-  const chip=(iso,label,n)=>`<button type="button" class="rpt-chip${iso===date?' on':''}" onclick="rqReportOpen('${iso}')"><b>${esc(label)}</b>${n!=null?`<span>${n}</span>`:''}</button>`;
-  const cnt=iso=>(hist.find(h=>h.d===iso)||{n:0}).n;
+  const chip=(iso,label,n,cls)=>`<button type="button" class="rpt-chip${cls?' '+cls:''}${iso===date?' on':''}" onclick="rqReportOpen('${iso}')"><b>${esc(label)}</b>${n!=null?`<span>${n}</span>`:''}</button>`;
+  const total=hist.reduce((a,h)=>a+h.n,0);
+  const allChip=hist.length>1?chip('all',L('All days','كل الأيام'),total,'all'):'';
   const quick=chip(t,L('Today','اليوم'),cnt(t))+chip(yISO,L('Yesterday','أمس'),cnt(yISO));
   const past=hist.filter(h=>h.d!==t&&h.d!==yISO).slice(0,40).map(h=>{
     let lb=h.d; try{ lb=new Date(h.d+'T00:00:00').toLocaleDateString(typeof _dtLocale==='function'?_dtLocale():undefined,{day:'numeric',month:'short'}); }catch(e){}
     return chip(h.d,lb,h.n);
   }).join('');
+  const cc=_rqReportCounts(date);
+  const pill=(k,n,en,arr)=>n?`<span class="rpt-stat st-${k}"><i></i><b>${n}</b>${L(en,arr)}</span>`:'';
+  const stats=pill('received',cc.received,'received','تم استلام')+pill('notes',cc.notes,'with notes','مع ملاحظات')+pill('rejected',cc.rejected,'not received','لم يتم');
   const on=rqReportEnabled();
+  const shareIc='<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 8 5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg>';
   document.getElementById('modalContent').innerHTML=`
     <div class="modal-handle"></div>
     <div class="modal-hdr">
       <div class="modal-hdr-icon" style="background:linear-gradient(135deg,var(--green-dark),var(--green))">${ic('clipboard',20)}</div>
-      <div>
+      <div style="flex:1;min-width:0">
         <div class="modal-hdr-title">${L('My Report','تقريري')}</div>
         <div class="modal-hdr-sub">${L('Receipts report · copy-ready','تقرير الاستلامات · جاهز للنسخ')}</div>
       </div>
+      <button type="button" class="sheet-close-btn sq" onclick="closeModal()" aria-label="${L('Close','إغلاق')}">${ic('close',16)}</button>
     </div>
-    <div class="rpt-sec-l">${L('History','السجل')}</div>
-    <div class="rpt-chips">${quick}${past}</div>
-    <label class="rpt-pick"><span>${L('Pick any date','اختر أي يوم')}</span><input type="date" value="${esc(date)}" max="${esc(t)}" onchange="if(this.value)rqReportOpen(this.value)"></label>
-    <div class="rpt-paper" id="rptPaper" dir="${ar?'rtl':'ltr'}">${text?_rqReportPreviewHTML(date):`<div class="rpt-empty">${L('No receipts logged on this day','لا توجد استلامات مسجلة في هذا اليوم')}</div>`}</div>
+    <div class="rpt-chips">${allChip}${quick}${past}</div>
+    <label class="rpt-pick">${ic('calendar',16)}<span>${L('Pick any date','اختر أي يوم')}</span><input type="date" value="${isAll?'':esc(date)}" max="${esc(t)}" onchange="if(this.value)rqReportOpen(this.value)"></label>
+    ${stats?`<div class="rpt-stats">${stats}</div>`:''}
+    <div class="rpt-paper" id="rptPaper" dir="${ar?'rtl':'ltr'}">${text?_rqReportPreviewHTML(date):`<div class="rpt-empty">${ic('clipboard',26)}<div>${L('No receipts logged on this day','لا توجد استلامات مسجلة في هذا اليوم')}</div></div>`}</div>
     <button type="button" class="rpt-auto${on?' on':''}" onclick="rqReportToggle()">
       <span class="rpt-auto-ic">${ic('bell',16)}</span>
       <span class="rpt-auto-t"><b>${L('Daily report at 4:30 PM','تقرير يومي الساعة ٤:٣٠ م')}</b><small>${L('Arrives as a notification, ready to copy','يوصلك كإشعار وجاهز للنسخ')}</small></span>
       <span class="rpt-sw"><i></i></span>
     </button>
-    <div class="modal-btns">
-      ${text?`<button class="mbtn save" id="rptCopyBtn" onclick="rqReportCopy('${esc(date)}')">${L('Copy report','نسخ التقرير')}</button><button class="mbtn cancel" id="rptEditBtn" onclick="rqReportEditText()">${L('Edit text','تعديل النص')}</button>`:''}
-      ${text?`<button class="mbtn cancel" id="rptTrBtn" onclick="rqReportTranslate()">${ar?'Translate to English':'ترجمة إلى العربية'}</button>`:''}
-      ${text&&navigator.share?`<button class="mbtn cancel" onclick="rqReportShare('${esc(date)}')">${L('Share','مشاركة')}</button>`:''}
-      <button class="mbtn cancel" onclick="closeModal()">${L('Close','إغلاق')}</button>
+    <div class="modal-btns rpt-actions">
+      ${text?`<button class="mbtn save" id="rptCopyBtn" onclick="rqReportCopy('${esc(date)}')">${ic('copy',17)} ${isAll?L('Copy all days','نسخ كل الأيام'):L('Copy report','نسخ التقرير')}</button>`:''}
+      ${text&&!isAll&&hist.length>1?`<button class="mbtn cancel rpt-all-btn" onclick="rqReportCopy('all')">${ic('copy',16)} ${L('Copy all days','نسخ كل الأيام')} <em>${hist.length} ${L('days','أيام')}</em></button>`:''}
+      ${text?`<div class="rpt-tools">
+        <button type="button" class="rpt-tool" id="rptEditBtn" onclick="rqReportEditText()">${ic('edit',17)}<span>${L('Edit text','تعديل')}</span></button>
+        <button type="button" class="rpt-tool" id="rptTrBtn" onclick="rqReportTranslate()">${ic('languages',17)}<span>${L('Translate','ترجمة')} · ${ar?'EN':'ع'}</span></button>
+        ${navigator.share?`<button type="button" class="rpt-tool" onclick="rqReportShare('${esc(date)}')">${shareIc}<span>${L('Share','مشاركة')}</span></button>`:''}
+      </div>`:''}
     </div>`;
   document.getElementById('modalOverlay').style.display='flex';
 }
