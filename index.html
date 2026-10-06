@@ -9050,6 +9050,8 @@ body .screen-wrap .sc-header.sav-plain-header.sav-plain-header::after{display:no
 .rpt-day-h span{min-width:22px;height:22px;padding:0 7px;border-radius:99px;display:inline-flex;align-items:center;justify-content:center;background:var(--green);color:#fff;font-size:calc(11px*var(--app-text-scale,1));font-weight:800}
 .rpt-empty{display:flex;flex-direction:column;align-items:center;gap:8px;padding:28px 4px;color:var(--muted)}
 .rpt-ta{min-height:220px;padding:10px 4px}
+.dtp-note{display:flex;align-items:center;gap:9px;margin:2px 0 14px;padding:10px 12px;border-radius:12px;background:color-mix(in srgb,var(--gold-light) 16%,var(--surface));color:var(--text2);font-size:calc(12.5px*var(--app-text-scale,1));font-weight:700;line-height:1.4}
+.dtp-note svg{flex:none;color:var(--gold)}
 .rpt-top{display:flex;align-items:center;gap:8px;margin:0 0 10px}
 .rpt-top .rpt-pick{flex:1;min-width:0;margin:0;padding:0 12px;min-height:38px;border-radius:12px;font-size:calc(12.5px*var(--app-text-scale,1))}
 .rpt-ibtns{display:flex;gap:6px;flex:none}
@@ -11898,6 +11900,7 @@ function initApp(){loadTheme();loadSavedData();runStartupMigration();loadBanks()
   setInterval(checkPeriodicReminders, 30*60*1000);
   // Show tab tour for first-time users
   setTimeout(tourShow, 600);
+  dailyTargetPromptInit();
   mioraInit();
 }
 // Header month display, localized (Sprint: header full-translation fix).
@@ -28501,7 +28504,25 @@ function _dailyPaymentsSum(monthKey, dateStr, excludeIdx){
   return list.reduce((s,t,i)=> (t.date===dateStr && i!==excludeIdx) ? s+(parseFloat(t.payment)||0) : s, 0);
 }
 
-function openDailyTargetModal(){
+// A different friendly title each day (rotates by day of the year).
+const _DTP_TITLES=[
+  ["🎯 Don't forget your today's target",'🎯 متنساش تارجت النهارده'],
+  ['☀️ Good morning! Set today\'s target','☀️ صباح الخير! حدّد تارجت النهارده'],
+  ['💸 How much are we spending today?','💸 هنصرف كام النهارده؟'],
+  ['✨ A fresh day — pick your target','✨ يوم جديد — اختار تارجتك'],
+  ['🧠 Quick one: what\'s today\'s budget?','🧠 سؤال سريع: ميزانية النهارده كام؟'],
+  ['🚀 Start the day with a plan','🚀 ابدأ يومك بخطة'],
+  ['🐷 Keep it under control — set your target','🐷 خلّي مصروفك تحت السيطرة — حدّد التارجت'],
+  ['⏰ Your daily target is waiting','⏰ تارجت اليوم مستنيك'],
+  ['💪 Small target, big savings','💪 تارجت صغير، توفير كبير'],
+  ['📝 Today\'s target — takes 5 seconds','📝 تارجت النهارده — ياخد ٥ ثواني']
+];
+function _dtpTitle(){
+  const d=new Date(), n=Math.floor((Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())-Date.UTC(d.getFullYear(),0,0))/86400000);
+  const t=_DTP_TITLES[n%_DTP_TITLES.length];
+  return L(t[0],t[1]);
+}
+function openDailyTargetModal(auto){
   const dateStr = today();
   const existing = getDailyTarget(activeMonth, dateStr);
   document.getElementById('modalContent').innerHTML = `
@@ -28509,10 +28530,11 @@ function openDailyTargetModal(){
     <div class="modal-hdr">
       <div class="modal-hdr-icon" style="background:linear-gradient(135deg,var(--green-dark),var(--gold-dark))">${ic('target',22)}</div>
       <div>
-        <div class="modal-hdr-title">${L("Today's Target",'تارجت اليوم')}</div>
+        <div class="modal-hdr-title">${auto===true?_dtpTitle():L("Today's Target",'تارجت اليوم')}</div>
         <div class="modal-hdr-sub">${dateStr}</div>
       </div>
     </div>
+    ${auto===true?`<div class="dtp-note">${ic('bell',15)}<span>${L("New day — set today's budget so you don't forget.",'يوم جديد — حدّد ميزانية اليوم عشان ما تنساش.')}</span></div>`:''}
     <div class="field">
       <label>${L('Target Amount','المبلغ المستهدف')} <span class="f-badge">${curLabel()}</span></label>
       <input type="text" inputmode="decimal" data-calc id="dailyTargetInput"
@@ -28522,7 +28544,7 @@ function openDailyTargetModal(){
     </div>
     <div class="modal-btns">
       <button class="mbtn save" onclick="saveDailyTargetModal()">${L('Save','حفظ')}</button>
-      <button class="mbtn cancel" onclick="closeModal()">${L('Cancel','إلغاء')}</button>
+      <button class="mbtn cancel" onclick="closeModal()">${auto===true?L('Later','لاحقًا'):L('Cancel','إلغاء')}</button>
     </div>`;
   document.getElementById('modalOverlay').style.display = 'flex';
   setTimeout(() => { const el = document.getElementById('dailyTargetInput'); if(el) el.focus(); }, 200);
@@ -28540,6 +28562,47 @@ function saveDailyTargetModal(){
   closeModal();
   showToast(L('✓ Target saved','✓ تم حفظ التارجت'), 'success');
   renderView();
+}
+
+// ── Daily "Today's Target" reminder ─────────────────────────────────────
+// The first time the app is opened on a new day (and only once that day) the
+// Today's Target sheet pops up so the day's budget doesn't get forgotten.
+// It waits for the lock screen / intro tour / any other open sheet to go away,
+// stays quiet if today's target is already set, and also fires when the app is
+// left open overnight and brought back to the foreground on the next day.
+const _DTP_KEY='FINORA_TARGET_PROMPT_DAY';
+function _dtpDone(){ try{ return localStorage.getItem(_DTP_KEY)===today(); }catch(e){ return false; } }
+function _dtpMark(){ try{ localStorage.setItem(_DTP_KEY,today()); }catch(e){} }
+function _dtpBusy(){
+  const vis=id=>{ const el=document.getElementById(id); return !!el && getComputedStyle(el).display!=='none' && getComputedStyle(el).visibility!=='hidden'; };
+  if(vis('lockScreen')) return true;
+  const tour=document.getElementById('tabTourOverlay'); if(tour && tour.classList.contains('visible')) return true;
+  const mo=document.getElementById('modalOverlay'); if(mo && mo.style.display && mo.style.display!=='none') return true;
+  return false;
+}
+function _dtpTry(){
+  if(_dtpDone()) return 'done';
+  try{
+    const key=_currentRealMonthKey();
+    if(!DATA[key] || activeMonth!==key || !canMutateMonth(key) || getDailyTarget(key,today())>0){ _dtpMark(); return 'done'; }
+  }catch(e){ return 'done'; }
+  if(_dtpBusy()) return 'wait';
+  _dtpMark();
+  openDailyTargetModal(true);
+  return 'done';
+}
+let _dtpTimer=null;
+function dailyTargetPromptCheck(){
+  if(_dtpDone()||_dtpTimer) return;
+  let tries=0;
+  _dtpTimer=setInterval(()=>{
+    tries++;
+    if(_dtpTry()==='done'||tries>90){ clearInterval(_dtpTimer); _dtpTimer=null; }
+  },1500);
+}
+function dailyTargetPromptInit(){
+  setTimeout(dailyTargetPromptCheck,1200);
+  document.addEventListener('visibilitychange',()=>{ if(!document.hidden) dailyTargetPromptCheck(); });
 }
 
 function getMonthBudget(monthKey){
