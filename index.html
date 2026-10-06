@@ -304,6 +304,7 @@
 [data-theme="dark"] .sc-bottom .sc-btn.primary:active,
 [data-theme="dark"] .sc-btn.primary,
 [data-theme="dark"] .sc-header-action,
+[data-theme="dark"] .sc-add-submit,
 [data-theme="dark"] .sd-chip-add-btn,
 [data-theme="dark"] .sms-queue-bar button,
 [data-theme="dark"] .stt-save-btn,
@@ -4758,7 +4759,7 @@ body[data-workspace] .wdash-wrap .rpt-card{--rpt-accent:var(--ws-primary);--rpt-
 .sc-select-chevron{position:absolute;inset-inline-end:13px;opacity:.5;pointer-events:none}
 .sc-add-row input:focus{outline:none;border-color:var(--green);box-shadow:0 0 0 4px var(--green-glow),inset 0 1px 2px rgba(0,0,0,.04);background:var(--surface)}
 .sc-add-submit{
-  width:100%;border:none;border-radius:16px;color:#fff;
+  width:100%;border:none;border-radius:16px;color:var(--on-accent,#fff);
   background:linear-gradient(165deg,color-mix(in srgb,var(--accent,var(--fin-outcome)) 100%,#fff 12%),var(--accent,var(--fin-outcome)) 80%);
   font-size:calc(14.5px*var(--app-text-scale,1));font-weight:800;letter-spacing:.015em;padding:14px;
   display:flex;align-items:center;justify-content:center;gap:7px;cursor:pointer;
@@ -10018,18 +10019,59 @@ async function migrateToEncryptedStorage() {
   if (plainData) {
     try {
       const obj = JSON.parse(plainData);
-      await saveEncrypted(ENCRYPTED_DATA_KEY, obj);
+      // SAFETY: never let a much smaller/emptier plain copy overwrite an
+      // existing encrypted copy (this is what wiped data after the lock was
+      // switched off and on). Keep the richer one; park the other aside.
+      let existing = null;
+      try{ existing = await loadEncrypted(ENCRYPTED_DATA_KEY); }catch(e){}
+      if (existing && JSON.stringify(existing).length > plainData.length * 1.5) {
+        try{ localStorage.setItem('WDP_PLAIN_PRE_MIGRATE', plainData); }catch(e){}
+        console.warn('[WDP] Encrypted data is richer than plain copy — kept encrypted, plain copy parked.');
+      } else {
+        await saveEncrypted(ENCRYPTED_DATA_KEY, obj);
+      }
       localStorage.removeItem(STORAGE_KEY); // remove plaintext version
-      
     } catch(e) { console.warn('[WDP] Migration failed:', e); }
   }
   if (plainMonths) {
     try {
       const obj = JSON.parse(plainMonths);
-      await saveEncrypted(ENCRYPTED_MONTHS_KEY, obj);
+      let existingM = null;
+      try{ existingM = await loadEncrypted(ENCRYPTED_MONTHS_KEY); }catch(e){}
+      if (existingM && existingM.order && obj && obj.order && existingM.order.length > obj.order.length) {
+        try{ localStorage.setItem('WDP_PLAIN_MONTHS_PRE_MIGRATE', plainMonths); }catch(e){}
+      } else {
+        await saveEncrypted(ENCRYPTED_MONTHS_KEY, obj);
+      }
       localStorage.removeItem(MONTHS_KEY);
     } catch(e){_logErr('migratePlainToEncrypted:reencrypt',e);}
   }
+}
+
+// ── Lock OFF support ─────────────────────────────────────────────────────────
+// With the lock screen switched off nobody enters a PIN, so no key exists and
+// encrypted data can't be read. Before running without a key the data must be
+// written back as plain JSON (while the key is still in memory), and any old
+// encrypted copy removed. Called when the lock is switched off, and once after
+// a PIN unlock when the lock is already off but encrypted data is still around.
+function _encDataExists(){
+  try{ return !!(localStorage.getItem(ENCRYPTED_DATA_KEY) || localStorage.getItem(ENCRYPTED_MONTHS_KEY)); }
+  catch(e){ return false; }
+}
+async function _decryptToPlain(){
+  if(!_encEnabled || !_cryptoKey) return !_encDataExists();
+  try{
+    const dataStr   = JSON.stringify(DATA);
+    const monthsStr = JSON.stringify({order:MONTHS_ORDER, names:MONTH_NAMES});
+    localStorage.setItem(STORAGE_KEY, dataStr);
+    localStorage.setItem(MONTHS_KEY, monthsStr);
+    // verify the plain copy really landed before touching the encrypted one
+    if(localStorage.getItem(STORAGE_KEY)!==dataStr || localStorage.getItem(MONTHS_KEY)!==monthsStr) return false;
+    localStorage.removeItem(ENCRYPTED_DATA_KEY);
+    localStorage.removeItem(ENCRYPTED_MONTHS_KEY);
+    _cryptoKey = null; _encEnabled = false;
+    return true;
+  }catch(e){ console.warn('[WDP] decryptToPlain failed:', e); return false; }
 }
 
 // ── Re-encrypt all data with a new PIN (called on PIN change) ─────────────────
@@ -11815,6 +11857,7 @@ function checkPin(){
     initCrypto(pin).then(async () => {
       await migrateToEncryptedStorage();
       await loadEncryptedDataAfterPin();
+      if(!lockEnabled) await _decryptToPlain(); // lock is off: reconcile leftover encrypted data into plain storage once
       renderMonthTabs(); // refresh the month dropdown now that real MONTHS_ORDER/activeMonth are known
       renderView(); // re-render with freshly decrypted data
     }).catch(e => console.warn('[WDP] Crypto setup error:', e));
@@ -18322,8 +18365,8 @@ function savHandleCustomIconUpload(kind, inputEl){
     inputEl.value=''; return;
   }
   const reader = new FileReader();
-  reader.onload = ()=>{
-    _savIconOverride[kind] = { mode:'custom', img: reader.result };
+  reader.onload = async ()=>{
+    _savIconOverride[kind] = { mode:'custom', img: await _shrinkLogo(reader.result) };
     _savRefreshIconPreview(kind);
   };
   reader.onerror = ()=>{ showToast(L('⚠️ Could not read image','⚠️ تعذّرت قراءة الصورة'),'warn'); };
@@ -21763,10 +21806,38 @@ function bnkNumberStyleVars(c){
 // ── Bank Logo Customizer (change/reset logo after account creation; overlay
 // from the "Change Logo" menu action) takes priority, falling back to the
 // bank's original logoSrc (preset or upload chosen when the account was added).
+// Logos are kept as data URLs inside localStorage (and therefore inside every
+// backup). Shrinking each uploaded logo to <=256px keeps them tiny (a few KB
+// instead of hundreds), so storage never fills up, saves never fail silently
+// and backup/restore files stay light. Transparency is preserved (PNG).
+function _shrinkLogo(dataUrl, maxEdge){
+  maxEdge=maxEdge||256;
+  return new Promise(resolve=>{
+    try{
+      if(typeof dataUrl!=='string' || dataUrl.indexOf('data:image/')!==0 || dataUrl.indexOf('image/svg')>-1){ resolve(dataUrl); return; }
+      const img=new Image();
+      img.onload=()=>{
+        try{
+          const w=img.naturalWidth||img.width, h=img.naturalHeight||img.height;
+          if(!w||!h){ resolve(dataUrl); return; }
+          const scale=Math.min(1,maxEdge/Math.max(w,h));
+          if(scale===1 && dataUrl.length<30000){ resolve(dataUrl); return; }
+          const cv=document.createElement('canvas');
+          cv.width=Math.max(1,Math.round(w*scale)); cv.height=Math.max(1,Math.round(h*scale));
+          cv.getContext('2d').drawImage(img,0,0,cv.width,cv.height);
+          const out=cv.toDataURL('image/png');
+          resolve(out && out.length<dataUrl.length ? out : dataUrl);
+        }catch(e){ resolve(dataUrl); }
+      };
+      img.onerror=()=>resolve(dataUrl);
+      img.src=dataUrl;
+    }catch(e){ resolve(dataUrl); }
+  });
+}
 const BANK_CUSTOM_LOGOS_KEY='wdp_bank_logos_v1';
 let bankCustomLogos={};
 try{ const r=localStorage.getItem(BANK_CUSTOM_LOGOS_KEY); if(r) bankCustomLogos=JSON.parse(r); }catch(e){_logErr('bankCustomLogos:read',e);}
-function persistBankLogos(){ try{localStorage.setItem(BANK_CUSTOM_LOGOS_KEY,JSON.stringify(bankCustomLogos));}catch(e){_logErr('persistBankLogos:setItem',e);} }
+function persistBankLogos(){ try{localStorage.setItem(BANK_CUSTOM_LOGOS_KEY,JSON.stringify(bankCustomLogos)); return true;}catch(e){_logErr('persistBankLogos:setItem',e); try{showToast(L('⚠️ Logo could not be stored (storage full)','⚠️ تعذّر حفظ اللوجو (التخزين ممتلئ)'),'warn');}catch(_){} return false;} }
 function getBankLogoSrc(b){ return bankCustomLogos[b.key] || b.logoSrc || ''; }
 // ══════════════════════════════════════════════════════════════════════════
 // LogoNorm — one consistent look for every bank / wallet logo.
@@ -22805,10 +22876,11 @@ function bankChangeLogoUpload(inputEl){
     inputEl.value=''; return;
   }
   const reader = new FileReader();
-  reader.onload = ()=>{
-    _pendingBankLogo = reader.result;
+  reader.onload = async ()=>{
+    const url = await _shrinkLogo(reader.result);
+    _pendingBankLogo = url;
     const preview = document.getElementById('blc-preview');
-    if(preview) preview.innerHTML = bankLogoHTML(reader.result,72,{alt:''});
+    if(preview) preview.innerHTML = bankLogoHTML(url,72,{alt:''});
   };
   reader.onerror = ()=>{ showToast(L('⚠️ Could not read image','⚠️ تعذّرت قراءة الصورة'),'warn'); };
   reader.readAsDataURL(file);
@@ -23904,9 +23976,9 @@ function renderBanks(m){
                 </div>
               </div>
             </div>
-            <button class="sc-add-submit" onclick="addBankMove('${b.key}')" style="--accent:${accentColor}">${ic('plus',15)} ${L('Add Movement','إضافة حركة')}</button>
+            <button class="sc-add-submit" onclick="addBankMove('${b.key}')" style="--accent:${accentColor};--on-accent:${_bnkReadableTextColor(accentColor)||'#fff'}">${ic('plus',15)} ${L('Add Movement','إضافة حركة')}</button>
           </div>
-          <div id="fee-preview-${b.key}" style="display:none;margin:0 0 6px;padding:7px 12px;border-radius:10px;background:var(--info-tint);border:1.5px solid color-mix(in srgb,var(--info) 30%,transparent);font-size:calc(11px*var(--app-text-scale,1));font-weight:700;color:var(--info);display:flex;justify-content:space-between;align-items:center"></div>
+          <div id="fee-preview-${b.key}" style="display:none;margin:0 0 6px;padding:7px 12px;border-radius:10px;background:var(--info-tint);border:1.5px solid color-mix(in srgb,var(--info) 30%,transparent);font-size:calc(11px*var(--app-text-scale,1));font-weight:700;color:var(--info);justify-content:space-between;align-items:center"></div>
 
           <!-- Movements list (this account only) -->
           <div class="tx-rows">
@@ -24048,10 +24120,11 @@ function _handleOutsideLogoUpload(inputEl, setter, previewId, onPicked){
     inputEl.value=''; return;
   }
   const reader = new FileReader();
-  reader.onload = ()=>{
-    setter(reader.result);
+  reader.onload = async ()=>{
+    const url = await _shrinkLogo(reader.result);
+    setter(url);
     const preview = document.getElementById(previewId);
-    if(preview) preview.innerHTML = bankLogoHTML(reader.result,36,{alt:''});
+    if(preview) preview.innerHTML = bankLogoHTML(url,36,{alt:''});
     onPicked();
   };
   reader.onerror = ()=>{ showToast(L('⚠️ Could not read image','⚠️ تعذّرت قراءة الصورة'),'warn'); };
@@ -24531,7 +24604,15 @@ function persistLockEnabled(val){
   try{ localStorage.setItem(LOCK_ENABLED_KEY, val ? 'true' : 'false'); }
   catch(e){ console.warn('Could not save lock setting', e); }
 }
-function toggleLockEnabled(){
+async function toggleLockEnabled(){
+  if(lockEnabled){
+    // Turning the lock OFF: first make the data readable without a PIN.
+    const ok = await _decryptToPlain();
+    if(!ok){
+      showToast(L('⚠️ Could not switch the lock off safely — your data was left untouched','⚠️ تعذّر إيقاف القفل بأمان — بياناتك لم تتغير'),'warn');
+      return;
+    }
+  }
   lockEnabled=!lockEnabled;
   persistLockEnabled(lockEnabled);
   // Update toggle UI without closing settings
@@ -25592,6 +25673,7 @@ function exportBackup() {
         hiddenBanks: hiddenDefaultBanks,
         bankColors:  bankCustomColors,
         bankLogos:   bankCustomLogos,
+        companyLogos: _rqCoLogos,   // My Requests company logos (also inside extras — kept explicit so they can't be missed)
         banksOrder:  banksOrder,
         // ── Added in v2.2: previously-omitted data families (see storage audit) ──
         bankInterestSettings: bankInterestSettings,
@@ -25816,7 +25898,14 @@ function _doRestore() {
       // ── Added in v2.4 ──
       PLANNER            = d.planner             || PLANNER;
       // ── Added in v2.5: restore every other stored key verbatim ──
-      _bkExtrasApply(d.extras);
+      const _extrasOk = _bkExtrasApply(d.extras);
+      // Logos: restore them explicitly too (don't rely on the extras copy alone)
+      // Start from whatever the extras restore just wrote, then lay the explicit copies on top
+      try{ const _r=localStorage.getItem(BANK_CUSTOM_LOGOS_KEY); if(_r) bankCustomLogos=Object.assign({}, JSON.parse(_r), d.bankLogos||{}); }catch(e){}
+      try{ const _r2=localStorage.getItem(_RQ_CO_LOGO_KEY); _rqCoLogos=Object.assign({}, _r2?JSON.parse(_r2):{}, (d.companyLogos&&typeof d.companyLogos==='object')?d.companyLogos:{}); }catch(e){}
+      window._restoreLogoFail = 0;
+      if(!persistBankLogos()) window._restoreLogoFail++;
+      if(!_rqPersistCoLogos()) window._restoreLogoFail++;
     } else if (result.version === '1') {
       DATA = _migrateFinanceData(result.payload.data);
       if (result.payload.currency) CURRENT_CURRENCY = result.payload.currency;
@@ -25830,6 +25919,7 @@ function _doRestore() {
     saveReminders(); savePlanner();
     if(typeof SoundManager!=='undefined') SoundManager.play(SoundManager.SOUND.DATA.RESTORE);
     showToast(L('✓ Data restored successfully','✓ تمت استعادة البيانات بنجاح'), 'success');
+    if(window._restoreLogoFail) setTimeout(()=>showToast(L('⚠️ Some logos could not be stored (storage full)','⚠️ بعض اللوجوهات لم تُخزَّن (التخزين ممتلئ)'),'warn'),900);
     closeModal(); closeSettings();
     setTimeout(() => location.reload(), 800);
   } catch(e) {
@@ -29977,7 +30067,7 @@ const _RQ_CO_LOGO_KEY='wdp_rq_co_logos_v1';
 let _rqCoLogos={};
 try{ const _r=localStorage.getItem(_RQ_CO_LOGO_KEY); if(_r) _rqCoLogos=JSON.parse(_r); }catch(e){_logErr('_rqCoLogos:read',e);}
 function _rqCoLogoKey(name){ return String(name||'').trim().toLowerCase(); }
-function _rqPersistCoLogos(){ try{ localStorage.setItem(_RQ_CO_LOGO_KEY,JSON.stringify(_rqCoLogos)); }catch(e){ _logErr('_rqPersistCoLogos',e); } }
+function _rqPersistCoLogos(){ try{ localStorage.setItem(_RQ_CO_LOGO_KEY,JSON.stringify(_rqCoLogos)); return true; }catch(e){ _logErr('_rqPersistCoLogos',e); try{showToast(L('⚠️ Logo could not be stored (storage full)','⚠️ تعذّر حفظ اللوجو (التخزين ممتلئ)'),'warn');}catch(_){} return false; } }
 function _rqCoLogoSrc(name){ const k=_rqCoLogoKey(name); return k?(_rqCoLogos[k]||''):''; }
 let _rqPendingCoLogo=undefined; // undefined = no change this edit; null = explicit removal; string = new data URL
 function _rqCoLogoRowHTML(companyName){
@@ -30005,10 +30095,11 @@ function rqHandleCoLogoUpload(inputEl){
     inputEl.value=''; return;
   }
   const reader=new FileReader();
-  reader.onload=()=>{
-    _rqPendingCoLogo=reader.result;
+  reader.onload=async ()=>{
+    const url=await _shrinkLogo(reader.result);
+    _rqPendingCoLogo=url;
     const preview=document.getElementById('rqCoLogoPreview');
-    if(preview) preview.innerHTML=bankLogoHTML(reader.result,36,{alt:''});
+    if(preview) preview.innerHTML=bankLogoHTML(url,36,{alt:''});
   };
   reader.onerror=()=>{ showToast(L('⚠️ Could not read image','⚠️ تعذّرت قراءة الصورة'),'warn'); };
   reader.readAsDataURL(file);
@@ -39659,7 +39750,11 @@ function _wsProceedToApp(){
   // gets the guided tour overlaid on top of the running app a moment later
   // (see the "Show onboarding tour for first-time users" call inside
   // initApp() → tourShow()), instead of a separate screen blocking launch.
-  if(!lockEnabled){
+  if(!lockEnabled && _encDataExists()){
+    // Lock is OFF but encrypted data is still stored (e.g. the lock was switched
+    // off by an older version). A PIN is needed once to decrypt it — keep the
+    // lock screen up so the data isn't opened empty and overwritten.
+  } else if(!lockEnabled){
     // Lock OFF → go straight to app
     ls.style.display  = 'none';
     app.style.display = 'flex';
