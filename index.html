@@ -30093,6 +30093,54 @@ function _rqSetFilter(f){ _rqFilter=f; renderView(); }
 // Receipt-type key: case-insensitive so "cpp" and "CPP" count together; '__none' = no type.
 function _rqTypeKey(r){ const t=String(r.type||'').trim().toLowerCase(); return t||'__none'; }
 function _rqSetTypeFilter(k){ _rqTypeFilter=(_rqTypeFilter===k)?'':k; renderView(); }
+// Smart search for My Requests — each word you type is matched against the
+// field it most likely means, and every word must match (AND):
+//   43 / ٤٣ / plot 43 / عمارة 43  → plot number exactly 43 (not 143, not a date)
+//   IVLA                          → model exactly IVLA (not IVLB / IVLAB)
+//   2026-10-05 or 5/10/2026       → that date
+//   anything else                 → start of a word in company, engineer, type,
+//                                   zone, work, floor or notes (any language)
+function _rqNorm(v){
+  return String(v==null?'':v).toLowerCase()
+    .replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d))
+    .replace(/[۰-۹]/g,d=>'۰۱۲۳۴۵۶۷۸۹'.indexOf(d))
+    .replace(/[أإآ]/g,'ا').replace(/ى/g,'ي').replace(/ة/g,'ه')
+    .replace(/[\u064B-\u0652\u0640]/g,'');
+}
+function _rqWords(v){ return _rqNorm(v).split(/[^a-z0-9\u0600-\u06FF]+/).filter(Boolean); }
+const _RQ_NOISE=new Set(['plot','plots','p','عماره','عمارات','رقم','no','model','نموذج','موديل','zone','منطقه']);
+function _rqMatchSearch(r,q){
+  const toks=_rqNorm(q).split(/\s+/).filter(Boolean).filter(t=>!_RQ_NOISE.has(t));
+  if(!toks.length) return true;
+  const plotW=_rqWords(r.plot).filter(w=>!_RQ_NOISE.has(w));
+  const modelW=_rqWords(r.model).filter(w=>!_RQ_NOISE.has(w));
+  const date=_rqNorm(r.date);
+  let gen=null;
+  const generic=()=>{
+    if(gen) return gen;
+    const cached=r.tr&&r.tr[lang];
+    const vals=[r.company,r.engineer,r.type,r.zone,r.irType,r.floor,r.level,r.notes];
+    if(cached) _RQ_TR_FIELDS.forEach(f=>{ if(cached[f]) vals.push(cached[f]); });
+    try{ vals.push(_rqFloorLabel(r.floor),_rqIrLabel(r)); }catch(e){}
+    gen=[].concat(...vals.map(_rqWords));
+    return gen;
+  };
+  return toks.every(t=>{
+    if(/^\d+$/.test(t)){
+      return plotW.includes(t) || modelW.includes(t);
+    }
+    if(/^\d{4}-\d{1,2}(-\d{1,2})?$/.test(t)) return date.startsWith(t) || date.includes(t);
+    const dm=t.match(/^(\d{1,2})[\/.-](\d{1,2})(?:[\/.-](\d{2,4}))?$/);
+    if(dm){
+      const dd=dm[1].padStart(2,'0'), mm=dm[2].padStart(2,'0');
+      const ok=date.slice(8,10)===dd && date.slice(5,7)===mm;
+      return ok && (!dm[3] || date.slice(0,4).endsWith(dm[3]));
+    }
+    if(modelW.includes(t)) return true;
+    if(t.length<=3 && modelW.some(w=>w.startsWith(t))) return true;
+    return generic().some(w=>w.startsWith(t));
+  });
+}
 function _rqSearchHaystack(r){
   // Matches on every raw field (whatever language it was recorded in) PLUS
   // any already-cached translation for type/notes, so a search matches
@@ -30270,7 +30318,7 @@ function renderMyRequests(){
   });
   const typeFilter=typeMap.has(_rqTypeFilter)?_rqTypeFilter:'';
   let list=typeFilter?byStatus.filter(r=>_rqTypeKey(r)===typeFilter):byStatus;
-  if(q) list=list.filter(r=>_rqSearchHaystack(r).some(v=>String(v||'').toLowerCase().includes(q)));
+  if(q) list=list.filter(r=>_rqMatchSearch(r,q));
   list.sort((a,b)=>String(b.date||'').localeCompare(String(a.date||''))||((b.createdAt||0)-(a.createdAt||0)));
 
   const stat=(f,cls,n,lbl)=>`<button type="button" class="rq-stat ${cls}${_rqFilter===f?' on':''}" aria-pressed="${_rqFilter===f?'true':'false'}" onclick="_rqSetFilter('${f}')"><b>${n}</b><span>${lbl}</span></button>`;
