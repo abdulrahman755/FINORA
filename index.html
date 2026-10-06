@@ -9050,14 +9050,24 @@ body .screen-wrap .sc-header.sav-plain-header.sav-plain-header::after{display:no
 .rpt-day-h span{min-width:22px;height:22px;padding:0 7px;border-radius:99px;display:inline-flex;align-items:center;justify-content:center;background:var(--green);color:#fff;font-size:calc(11px*var(--app-text-scale,1));font-weight:800}
 .rpt-empty{display:flex;flex-direction:column;align-items:center;gap:8px;padding:28px 4px;color:var(--muted)}
 .rpt-ta{min-height:220px;padding:10px 4px}
+.rpt-top{display:flex;align-items:center;gap:8px;margin:0 0 10px}
+.rpt-top .rpt-pick{flex:1;min-width:0;margin:0;padding:0 12px;min-height:38px;border-radius:12px;font-size:calc(12.5px*var(--app-text-scale,1))}
+.rpt-ibtns{display:flex;gap:6px;flex:none}
+.rpt-ib{all:unset;box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;gap:3px;min-width:38px;height:38px;padding:0 9px;border-radius:12px;border:1px solid var(--border);background:var(--surface);color:var(--text2);cursor:pointer;-webkit-tap-highlight-color:transparent;transition:transform .12s,background-color .15s}
+.rpt-ib:active{transform:scale(.94);background:var(--surface2)}
+.rpt-ib:focus-visible{outline:2px solid var(--green);outline-offset:2px}
+.rpt-ib svg{width:15px;height:15px;color:var(--green)}
+.rpt-ib em{font-style:normal;font-size:calc(10.5px*var(--app-text-scale,1));font-weight:800;color:var(--muted)}
+.modal-btns.rpt-actions{flex-direction:row;align-items:stretch;gap:8px;margin-top:10px}
+.rpt-cta,.rpt-cta2{all:unset;box-sizing:border-box;flex:1;min-width:0;height:42px;display:flex;align-items:center;justify-content:center;gap:7px;padding:0 12px;border-radius:13px;font-family:inherit;font-size:calc(13.5px*var(--app-text-scale,1));font-weight:800;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:transform .12s,opacity .15s;white-space:nowrap}
+.rpt-cta{flex:1.25;background:linear-gradient(135deg,var(--green-dark),var(--green));color:#fff;box-shadow:0 3px 10px var(--green-glow)}
+.rpt-cta2{border:1px solid var(--border);background:var(--surface);color:var(--text2)}
+.rpt-cta:active,.rpt-cta2:active{transform:scale(.97)}
+.rpt-cta svg,.rpt-cta2 svg{width:15px;height:15px;flex:none}
+.rpt-cta2 svg{color:var(--green)}
+.rpt-cta2 em{font-style:normal;min-width:20px;height:20px;padding:0 6px;border-radius:99px;display:inline-flex;align-items:center;justify-content:center;font-size:calc(10.5px*var(--app-text-scale,1));font-weight:800;background:var(--surface2);color:var(--muted)}
+.rpt-paper{max-height:50vh}
 .rpt-auto{border-radius:16px;margin:10px 0 2px}
-.modal-btns.rpt-actions{gap:8px;margin-top:12px}
-.rpt-actions .mbtn{display:flex;align-items:center;justify-content:center;gap:8px}
-.rpt-all-btn em{font-style:normal;font-size:calc(11px*var(--app-text-scale,1));font-weight:800;padding:2px 8px;border-radius:99px;background:var(--surface2);color:var(--muted)}
-.rpt-tools{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:8px}
-.rpt-tool{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:10px 6px;border-radius:14px;border:1px solid var(--border);background:var(--surface);color:var(--text2);font-family:inherit;font-size:calc(11.5px*var(--app-text-scale,1));font-weight:800;cursor:pointer;transition:transform .12s,background-color .15s}
-.rpt-tool:active{transform:scale(.96);background:var(--surface2)}
-.rpt-tool svg{color:var(--green)}
 </style>
 <script>
 // Suppress cross-origin Script errors (in-app browsers like TikTok/Instagram)
@@ -38433,7 +38443,7 @@ function rqReportOpen(d){
   const pill=(k,n,en,arr)=>n?`<span class="rpt-stat st-${k}"><i></i><b>${n}</b>${L(en,arr)}</span>`:'';
   const stats=pill('received',cc.received,'received','تم استلام')+pill('notes',cc.notes,'with notes','مع ملاحظات')+pill('rejected',cc.rejected,'not received','لم يتم');
   const on=rqReportEnabled();
-  const shareIc='<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 8 5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg>';
+  const shareIc='<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 8 5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg>';
   document.getElementById('modalContent').innerHTML=`
     <div class="modal-handle"></div>
     <div class="modal-hdr">
@@ -38445,7 +38455,14 @@ function rqReportOpen(d){
       <button type="button" class="sheet-close-btn sq" onclick="closeModal()" aria-label="${L('Close','إغلاق')}">${ic('close',16)}</button>
     </div>
     <div class="rpt-chips">${allChip}${quick}${past}</div>
-    <label class="rpt-pick">${ic('calendar',16)}<span>${L('Pick any date','اختر أي يوم')}</span><input type="date" value="${isAll?'':esc(date)}" max="${esc(t)}" onchange="if(this.value)rqReportOpen(this.value)"></label>
+    <div class="rpt-top">
+      <label class="rpt-pick">${ic('calendar',15)}<span>${L('Pick any date','اختر أي يوم')}</span><input type="date" value="${isAll?'':esc(date)}" max="${esc(t)}" onchange="if(this.value)rqReportOpen(this.value)"></label>
+      ${text?`<div class="rpt-ibtns">
+        <button type="button" class="rpt-ib" id="rptEditBtn" onclick="rqReportEditText()" title="${L('Edit text','تعديل النص')}" aria-label="${L('Edit text','تعديل النص')}">${ic('edit',15)}</button>
+        <button type="button" class="rpt-ib rpt-ib-tr" id="rptTrBtn" onclick="rqReportTranslate()" title="${L('Translate','ترجمة')}" aria-label="${L('Translate','ترجمة')}">${ic('languages',15)}<em>${ar?'EN':'ع'}</em></button>
+        ${navigator.share?`<button type="button" class="rpt-ib" onclick="rqReportShare('${esc(date)}')" title="${L('Share','مشاركة')}" aria-label="${L('Share','مشاركة')}">${shareIc}</button>`:''}
+      </div>`:''}
+    </div>
     ${stats?`<div class="rpt-stats">${stats}</div>`:''}
     <div class="rpt-paper" id="rptPaper" dir="${ar?'rtl':'ltr'}">${text?_rqReportPreviewHTML(date):`<div class="rpt-empty">${ic('clipboard',26)}<div>${L('No receipts logged on this day','لا توجد استلامات مسجلة في هذا اليوم')}</div></div>`}</div>
     <button type="button" class="rpt-auto${on?' on':''}" onclick="rqReportToggle()">
@@ -38454,13 +38471,8 @@ function rqReportOpen(d){
       <span class="rpt-sw"><i></i></span>
     </button>
     <div class="modal-btns rpt-actions">
-      ${text?`<button class="mbtn save" id="rptCopyBtn" onclick="rqReportCopy('${esc(date)}')">${ic('copy',17)} ${isAll?L('Copy all days','نسخ كل الأيام'):L('Copy report','نسخ التقرير')}</button>`:''}
-      ${text&&!isAll&&hist.length>1?`<button class="mbtn cancel rpt-all-btn" onclick="rqReportCopy('all')">${ic('copy',16)} ${L('Copy all days','نسخ كل الأيام')} <em>${hist.length} ${L('days','أيام')}</em></button>`:''}
-      ${text?`<div class="rpt-tools">
-        <button type="button" class="rpt-tool" id="rptEditBtn" onclick="rqReportEditText()">${ic('edit',17)}<span>${L('Edit text','تعديل')}</span></button>
-        <button type="button" class="rpt-tool" id="rptTrBtn" onclick="rqReportTranslate()">${ic('languages',17)}<span>${L('Translate','ترجمة')} · ${ar?'EN':'ع'}</span></button>
-        ${navigator.share?`<button type="button" class="rpt-tool" onclick="rqReportShare('${esc(date)}')">${shareIc}<span>${L('Share','مشاركة')}</span></button>`:''}
-      </div>`:''}
+      ${text?`<button type="button" class="rpt-cta" id="rptCopyBtn" onclick="rqReportCopy('${esc(date)}')">${ic('copy',15)}<span>${isAll?L('Copy all days','نسخ كل الأيام'):L('Copy report','نسخ التقرير')}</span></button>`:''}
+      ${text&&!isAll&&hist.length>1?`<button type="button" class="rpt-cta2" onclick="rqReportCopy('all')">${ic('copy',15)}<span>${L('Copy all days','نسخ كل الأيام')}</span><em>${hist.length}</em></button>`:''}
     </div>`;
   document.getElementById('modalOverlay').style.display='flex';
 }
