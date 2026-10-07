@@ -2250,6 +2250,43 @@ tr.row-selected td{background:var(--green-tint)}
 }
 .chk-row:has(input:checked){border-color:var(--green);background:var(--green-tint)}
 
+/* ── New Transaction: multi-entry cards ── */
+#txEntries{counter-reset:txe;display:flex;flex-direction:column;gap:12px;margin-bottom:12px}
+.tx-entry{counter-increment:txe;position:relative}
+.tx-entry .field{margin-bottom:12px}
+.tx-entry .field:last-child{margin-bottom:0}
+.tx-entry-hdr{display:none;align-items:center;justify-content:space-between;margin-bottom:12px}
+.tx-entry-num{display:flex;align-items:center;gap:8px;font-weight:900;font-size:calc(12px*var(--app-text-scale,1));color:var(--muted);letter-spacing:.4px}
+.tx-entry-num::before{
+  content:counter(txe);display:inline-flex;align-items:center;justify-content:center;
+  width:24px;height:24px;border-radius:50%;background:var(--green-tint);color:var(--green-dark);
+  font-size:calc(12px*var(--app-text-scale,1));font-weight:900
+}
+.tx-entry-del{
+  display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;
+  border:none;border-radius:50%;background:var(--red-tint);color:var(--red);cursor:pointer;
+  -webkit-tap-highlight-color:transparent;transition:transform .1s
+}
+.tx-entry-del:active{transform:scale(.9)}
+#txEntries.multi .tx-entry{
+  padding:14px;border:1.5px solid var(--border);border-radius:var(--radius);background:var(--surface2)
+}
+#txEntries.multi .tx-entry-hdr{display:flex}
+.tx-entry.tx-entry-in{animation:txEntryIn .28s ease both}
+@keyframes txEntryIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.tx-add-btn{
+  display:flex;align-items:center;justify-content:center;gap:8px;width:100%;
+  padding:13px 14px;margin-bottom:16px;border:1.5px dashed var(--green);border-radius:var(--radius-sm);
+  background:var(--green-tint);color:var(--green-dark);font-weight:800;
+  font-size:calc(13px*var(--app-text-scale,1));font-family:inherit;cursor:pointer;
+  -webkit-tap-highlight-color:transparent;transition:transform .1s
+}
+.tx-add-btn:active{transform:scale(.98)}
+.tx-provided-card{
+  padding:14px;border:1.5px solid var(--border);border-radius:var(--radius);background:var(--surface2);margin-bottom:12px
+}
+.tx-provided-card .field{margin-bottom:0}
+
 /* ── Select — custom arrow ── */
 .field select,.f-sel{
   cursor:pointer;
@@ -34708,7 +34745,7 @@ function _sdeMaybeFillAmount(text, ctx){
   if(amt == null) return;
   amtEl.value = amt;
   if(ctx==='exp' && typeof updateBankBalanceHint==='function') updateBankBalanceHint();
-  if(ctx==='tx' && typeof _txCalcProvided==='function') _txCalcProvided();
+  if(/^tx\d*$/.test(ctx) && typeof _txCalcProvided==='function') _txCalcProvided();
 }
 
 function _sdeRenderSuggestions(fieldId, ctx){
@@ -35083,7 +35120,7 @@ function _aipAutoFillAmount(fieldId, ctx, text){
   if(amt==null) return;
   amtEl.value = amt;
   _aipHighlightField(amtEl); // §6
-  if(ctx==='tx' && typeof _txCalcProvided==='function') _txCalcProvided();
+  if(/^tx\d*$/.test(ctx) && typeof _txCalcProvided==='function') _txCalcProvided();
   if(ctx==='exp' && typeof updateBankBalanceHint==='function') updateBankBalanceHint();
 }
 
@@ -35123,7 +35160,79 @@ function _aipIgnore(fieldId, ctx){
   card.style.display='none';
 }
 
+// ── New Transaction: multiple entries in one sheet ─────────────────────────
+// Entry #1 keeps the original element ids (mPayment / mNotes / mIsProduct,
+// sdeBox-tx / aipCard-tx / sdeList-tx, ctx 'tx') so every existing helper
+// (Smart Description, AI preview, txaiCorrectClassification…) keeps working
+// untouched. Extra entries use the same ids + a numeric suffix (mPayment2,
+// ctx 'tx2' …) and are registered in _SDE_AMOUNT_FIELD so smart amount
+// detection works for them too. Date and Provided are shared by all entries.
+let _txRowSeq = 0;
+
+function _txEntryHTML(sfx, d){
+  const ctx = 'tx' + sfx;
+  d = d || {};
+  return `
+    <div class="tx-entry" data-sfx="${sfx}">
+      <div class="tx-entry-hdr">
+        <span class="tx-entry-num">${L('Transaction','معاملة')}</span>
+        <button type="button" class="tx-entry-del" onclick="_txRemoveRow('${sfx}')" aria-label="${L('Remove','حذف')}">${ic('trash',15)}</button>
+      </div>
+      <div class="field"><label>${L('Amount Paid','المبلغ المدفوع')} <span class="f-badge">${curLabel()}</span></label><input type="text" inputmode="decimal" id="mPayment${sfx}" data-calc placeholder="${L('0.00 — or enter a formula like 500+200','0.00 — أو أدخل معادلة مثل 500+200')}" onblur="applyFormula(this);_txCalcProvided()" oninput="_txCalcProvided()" value="${d.payment||''}"></div>
+      <div class="field">
+        <label>${L('Notes','الملاحظات')}</label>
+        <input type="text" id="mNotes${sfx}" list="sdeList-${ctx}" placeholder="${L('e.g. Materials, Labor, Equipment…','مثال: خامات، عمالة، معدات…')}" value="${esc(d.notes||'')}" oninput="_sdeOnInput('mNotes${sfx}','sdeBox-${ctx}','${ctx}');_aipOnInput('mNotes${sfx}','${ctx}')">
+        <datalist id="sdeList-${ctx}"></datalist>
+        <div id="aipCard-${ctx}" class="aip-card" data-ctx="${ctx}"></div>
+        <div id="sdeBox-${ctx}" class="sde-box" data-field="mNotes${sfx}" data-ctx="${ctx}" style="margin-top:6px"></div>
+      </div>
+      <div class="field">
+        <label class="chk-row" for="mIsProduct${sfx}">
+          <input type="checkbox" id="mIsProduct${sfx}" class="chk-box" ${d.isProduct?'checked':''}>
+          <span style="display:flex;align-items:center;gap:6px">${ic('shopping_bag',15)} ${L('Product purchase — add to My Purchases','منتج — يضاف لقائمة مشترياتي')}</span>
+        </label>
+      </div>
+    </div>`;
+}
+
+function _txSyncRowsUI(){
+  const wrap = document.getElementById('txEntries');
+  if(!wrap) return;
+  wrap.classList.toggle('multi', wrap.querySelectorAll('.tx-entry').length > 1);
+}
+
+function _txAddRow(){
+  const wrap = document.getElementById('txEntries');
+  if(!wrap) return;
+  _txRowSeq++;
+  const sfx = String(_txRowSeq);
+  _SDE_AMOUNT_FIELD['tx'+sfx] = 'mPayment'+sfx;
+  wrap.insertAdjacentHTML('beforeend', _txEntryHTML(sfx));
+  const row = wrap.lastElementChild;
+  row.classList.add('tx-entry-in');
+  _txSyncRowsUI();
+  setTimeout(()=>{
+    try{ row.scrollIntoView({behavior:'smooth', block:'center'}); }catch(_){}
+    const inp = document.getElementById('mPayment'+sfx);
+    if(inp) inp.focus();
+  }, 80);
+  _txCalcProvided();
+}
+
+function _txRemoveRow(sfx){
+  const wrap = document.getElementById('txEntries');
+  if(!wrap) return;
+  const rows = wrap.querySelectorAll('.tx-entry');
+  if(rows.length <= 1) return;
+  const row = wrap.querySelector(`.tx-entry[data-sfx="${sfx}"]`);
+  if(row) row.remove();
+  _txSyncRowsUI();
+  _txCalcProvided();
+}
+
 function showTxModal(tx){
+  _txRowSeq = 1; // entry #1 uses the un-suffixed ids; extras start at 2
+  // the first entry's suffix is '' ; extras get sfx '2','3',… (see _txAddRow)
   document.getElementById('modalContent').innerHTML=`
     <div class="modal-handle"></div>
     <div class="modal-hdr">
@@ -35134,37 +35243,25 @@ function showTxModal(tx){
       </div>
     </div>
     <div class="field"><label>${L('Date','التاريخ')}</label><input type="date" id="mDate" value="${tx?.date||today()}" onchange="_txCalcProvided()"></div>
-    <div class="field"><label>${L('Amount Paid','المبلغ المدفوع')} <span class="f-badge">${curLabel()}</span></label><input type="text" inputmode="decimal" id="mPayment" data-calc placeholder="${L('0.00 — or enter a formula like 500+200','0.00 — أو أدخل معادلة مثل 500+200')}" onblur="applyFormula(this);_txCalcProvided()" oninput="_txCalcProvided()" value="${tx?.payment||''}"></div>
-    <div class="field">
-      <label style="display:flex;justify-content:space-between;align-items:center;flex-direction:row">
-        <span>${L('Provided (Auto)','المتوفر (تلقائي)')}</span>
-        <span id="mProvidedBadge" style="font-size:calc(10px*var(--app-text-scale,1));font-weight:700;padding:3px 9px;border-radius:99px;display:none"></span>
-      </label>
-      <input type="text" inputmode="decimal" id="mProvided" data-calc placeholder="0.00" readonly
-        style="background:var(--surface2);color:var(--muted);cursor:default;font-weight:900;font-variant-numeric:tabular-nums"
-        value="${tx?.provided||''}">
-      <div id="mProvidedHint" style="font-size:calc(10px*var(--app-text-scale,1));color:var(--muted);margin-top:5px"></div>
-    </div>
-    <div class="field">
-      <label>${L('Notes','الملاحظات')}</label>
-      <input type="text" id="mNotes" list="sdeList-tx" placeholder="${L('e.g. Materials, Labor, Equipment…','مثال: خامات، عمالة، معدات…')}" value="${esc(tx?.notes||'')}" oninput="_sdeOnInput('mNotes','sdeBox-tx','tx');_aipOnInput('mNotes','tx')">
-      <datalist id="sdeList-tx"></datalist>
-      <!-- AI UX Phase 1 — Smart Preview Card: additive, sits directly under
-           Description. Independent of #sdeBox-tx below (which keeps doing
-           exactly what it did before); this is a new, separate widget. -->
-      <div id="aipCard-tx" class="aip-card" data-ctx="tx"></div>
-      <div id="sdeBox-tx" class="sde-box" data-field="mNotes" data-ctx="tx" style="margin-top:6px"></div>
-    </div>
-    <div class="field">
-      <label class="chk-row" for="mIsProduct">
-        <input type="checkbox" id="mIsProduct" class="chk-box" ${tx?.isProduct?'checked':''}>
-        <span style="display:flex;align-items:center;gap:6px">${ic('shopping_bag',15)} ${L('Product purchase — add to My Purchases','منتج — يضاف لقائمة مشترياتي')}</span>
-      </label>
+    <div id="txEntries">${_txEntryHTML('', tx)}</div>
+    ${tx ? '' : `<button type="button" class="tx-add-btn" onclick="_txAddRow()">${ic('plus',16)} ${L('Add new','إضافة معاملة جديدة')}</button>`}
+    <div class="tx-provided-card">
+      <div class="field">
+        <label style="display:flex;justify-content:space-between;align-items:center;flex-direction:row">
+          <span>${L('Provided (Auto)','المتوفر (تلقائي)')}</span>
+          <span id="mProvidedBadge" style="font-size:calc(10px*var(--app-text-scale,1));font-weight:700;padding:3px 9px;border-radius:99px;display:none"></span>
+        </label>
+        <input type="text" inputmode="decimal" id="mProvided" data-calc placeholder="0.00" readonly
+          style="background:var(--surface2);color:var(--muted);cursor:default;font-weight:900;font-variant-numeric:tabular-nums"
+          value="${tx?.provided||''}">
+        <div id="mProvidedHint" style="font-size:calc(10px*var(--app-text-scale,1));color:var(--muted);margin-top:5px"></div>
+      </div>
     </div>
     <div id="txStatusCard" style="display:none;border-radius:var(--radius-sm);padding:11px 14px;margin-bottom:4px;font-size:calc(12px*var(--app-text-scale,1));line-height:1.6"></div>
     <div class="modal-btns"><button class="mbtn save" onclick="saveTx()">${L('Save','حفظ')}</button><button class="mbtn cancel" onclick="closeModal()">${L('Cancel','إلغاء')}</button></div>`;
   document.getElementById('modalOverlay').style.display='flex';
   setTimeout(attachCalcKb,60);
+  _txSyncRowsUI();
   _txCalcProvided();
   if(tx?.notes) _sdeRenderBox('mNotes','sdeBox-tx','tx');
   if(tx?.notes) _aipOnInput('mNotes','tx',true);
@@ -35172,11 +35269,14 @@ function showTxModal(tx){
 
 function _txCalcProvided(){
   const dateVal = document.getElementById('mDate')?.value || today();
-  const pay = parseFloat(document.getElementById('mPayment')?.value)||0;
+  // Total of every entry currently in the sheet (one shared Provided for all).
+  const payEls = document.querySelectorAll('#txEntries input[id^="mPayment"]');
+  let pay = 0, filled = 0;
+  payEls.forEach(el=>{ const v = parseFloat(el.value)||0; pay += v; if(v>0) filled++; });
   // Target is now the day's target (set once via the "Today's Target" card),
   // not a per-transaction manual field. Provided is cumulative: the day's
   // target minus every payment logged for that date so far, including the
-  // one currently being entered/edited here.
+  // entries currently being entered/edited here.
   const excludeIdx = editTarget?.type==='tx' ? editTarget.idx : -1;
   const tgt = getDailyTarget(activeMonth, dateVal);
   const otherPayments = _dailyPaymentsSum(activeMonth, dateVal, excludeIdx);
@@ -35184,9 +35284,15 @@ function _txCalcProvided(){
   const el  = document.getElementById('mProvided');
   const badge = document.getElementById('mProvidedBadge');
   const hint = document.getElementById('mProvidedHint');
-  if(hint) hint.textContent = tgt>0
-    ? L(`Target for ${dateVal}: ${fmtEGP(tgt)}`,`تارجت يوم ${dateVal}: ${fmtEGP(tgt)}`)
-    : L('No target set for this day yet','لم يتم تحديد تارجت لهذا اليوم بعد');
+  if(hint){
+    let t = tgt>0
+      ? L(`Target for ${dateVal}: ${fmtEGP(tgt)}`,`تارجت يوم ${dateVal}: ${fmtEGP(tgt)}`)
+      : L('No target set for this day yet','لم يتم تحديد تارجت لهذا اليوم بعد');
+    if(payEls.length>1 && pay>0){
+      t += ' · ' + L(`This sheet total: ${fmtEGP(pay)} (${filled})`,`إجمالي الشاشة: ${fmtEGP(pay)} (${filled})`);
+    }
+    hint.textContent = t;
+  }
   if(!el) return;
   el.value = (pay||tgt) ? prv.toFixed(2) : '';
   if(badge){
@@ -35531,69 +35637,88 @@ function saveTx(){
   _valClear();
   let valid = true;
 
-  // Date
+  // Date (shared by every entry in the sheet)
   const dateVal = document.getElementById('mDate').value;
   const dateChk = _valDate(dateVal, true);
   if (!dateChk.ok) { _valError('mDate', dateChk.err); valid = false; }
 
-  // Payment (required, > 0)
-  const payRaw = document.getElementById('mPayment').value;
-  const payChk = _valAmount(payRaw, true);
-  if (!payChk.ok) { if (valid) _valError('mPayment', payChk.err); valid = false; }
+  // Entries: each needs Amount Paid (> 0). In multi-entry mode, a completely
+  // blank extra entry (no amount, no notes) is simply skipped.
+  const rowEls = Array.from(document.querySelectorAll('#txEntries .tx-entry'));
+  const multi = rowEls.length > 1;
+  const rows = [];
+  rowEls.forEach(rowEl=>{
+    const sfx = rowEl.dataset.sfx || '';
+    const payRaw = document.getElementById('mPayment'+sfx)?.value || '';
+    const notesVal = document.getElementById('mNotes'+sfx)?.value || '';
+    if (multi && !String(payRaw).trim() && !notesVal.trim()) return;
+    const payChk = _valAmount(payRaw, true);
+    if (!payChk.ok) { if (valid) _valError('mPayment'+sfx, payChk.err); valid = false; return; }
+    rows.push({ sfx, payChk, notesVal, isProduct: !!document.getElementById('mIsProduct'+sfx)?.checked });
+  });
+  if (valid && !rows.length) {
+    _valError('mPayment', _valAmount('', true).err);
+    valid = false;
+  }
+  if (!valid) return;
 
   // Target is no longer entered per-transaction — it's the day's target
   // (set once via the "Today's Target" card), looked up by date here.
   const dayTarget = getDailyTarget(activeMonth, dateVal);
 
-  // Provided is a calculated status (payment - target) and is allowed to be negative
-  // (negative just means "over budget" — it is NOT a validation error).
-  const prvRaw = document.getElementById('mProvided').value;
-  const prvVal = prvRaw.trim() ? (parseFloat(String(prvRaw).replace(/,/g, '.')) || 0) : 0;
+  // Provided is cumulative for the day (target − everything paid so far) and
+  // is allowed to be negative (over budget — NOT a validation error). With
+  // several entries each record stores the running value after it, so the
+  // last one equals the shared Provided shown on screen.
+  const excludeIdx = editTarget?.type==='tx' ? editTarget.idx : -1;
+  let running = _dailyPaymentsSum(activeMonth, dateVal, excludeIdx);
 
-  if (!valid) return;
-
-  const notesVal = document.getElementById('mNotes').value;
-  const sdeMeta = _sdeReadMeta('sdeBox-tx');
-  if(sdeMeta && notesVal.trim()) _sdeCommitLearning(notesVal.trim(), sdeMeta);
-
-  const tx = {
-    date: dateVal,
-    payment: payChk.value,
-    target: dayTarget,
-    provided: prvVal,
-    notes: notesVal,
-    isProduct: !!document.getElementById('mIsProduct')?.checked,
-    ...(sdeMeta ? {
-      smartCategory:    sdeMeta.category.en,
-      smartSubcategory: sdeMeta.subcategory.en,
-      smartType:        sdeMeta.type,
-      smartTags:        sdeMeta.tags,
-      smartConfidence:  sdeMeta.confidence,
-      smartEntities:    sdeMeta.entities || null
-    } : {})
-  };
+  const txs = rows.map(r=>{
+    running += r.payChk.value;
+    const sdeMeta = _sdeReadMeta('sdeBox-tx'+r.sfx);
+    if(sdeMeta && r.notesVal.trim()) _sdeCommitLearning(r.notesVal.trim(), sdeMeta);
+    return {
+      date: dateVal,
+      payment: r.payChk.value,
+      target: dayTarget,
+      provided: Math.round((dayTarget - running)*100)/100,
+      notes: r.notesVal,
+      isProduct: r.isProduct,
+      ...(sdeMeta ? {
+        smartCategory:    sdeMeta.category.en,
+        smartSubcategory: sdeMeta.subcategory.en,
+        smartType:        sdeMeta.type,
+        smartTags:        sdeMeta.tags,
+        smartConfidence:  sdeMeta.confidence,
+        smartEntities:    sdeMeta.entities || null
+      } : {})
+    };
+  });
 
   const _doSaveTx = () => {
     if(!canMutateMonth(activeMonth)) return;
-    if(editTarget){DATA[activeMonth].transactions[editTarget.idx]={...DATA[activeMonth].transactions[editTarget.idx],...tx};showToast(L('Updated ✓','تم التحديث ✓'), 'success', undefined, 'pay');}
-    else{DATA[activeMonth].transactions.push(tx);showToast(L('Added ✓','تمت الإضافة ✓'), 'success', undefined, 'pay');}
+    const baseTs = Date.now();
+    if(editTarget){
+      const t0 = txs[0]; t0._ts = baseTs;
+      DATA[activeMonth].transactions[editTarget.idx]={...DATA[activeMonth].transactions[editTarget.idx],...t0};
+      showToast(L('Updated ✓','تم التحديث ✓'), 'success', undefined, 'pay');
+    } else {
+      txs.forEach((t,i)=>{ t._ts = baseTs + i; DATA[activeMonth].transactions.push(t); });
+      showToast(txs.length>1
+        ? L(`${txs.length} transactions added ✓`,`تمت إضافة ${txs.length} معاملات ✓`)
+        : L('Added ✓','تمت الإضافة ✓'), 'success', undefined, 'pay');
+    }
     closeModal();persistData();_autoDropReadyToClose(activeMonth);renderView();
   };
 
-  // Only check duplicates for new entries (not edits)
+  // Only check duplicates for new entries (not edits) — against transactions
+  // that already exist, never against the other entries in this same sheet.
   if (!editTarget) {
-    const dupCandidate = { bank: '__tx__', type: 'tx', amount: tx.payment };
-    // For transactions, check same amount+date within last 5 min
-    const recentTx = (DATA[activeMonth].transactions||[]).find(t => {
-      const ts = t._ts || 0;
-      return t.payment === tx.payment && t.date === tx.date && (Date.now() - ts) < 5*60*1000;
-    });
-    if (recentTx) {
-      showDuplicateWarning(_doSaveTx);
-      return;
-    }
+    const existing = DATA[activeMonth].transactions || [];
+    const isDup = txs.some(tx => existing.some(t =>
+      t.payment === tx.payment && t.date === tx.date && (Date.now() - (t._ts || 0)) < 5*60*1000));
+    if (isDup) { showDuplicateWarning(_doSaveTx); return; }
   }
-  tx._ts = Date.now();
   _doSaveTx();
 }
 
