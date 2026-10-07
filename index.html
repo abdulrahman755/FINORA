@@ -2229,6 +2229,27 @@ tr.row-selected td{background:var(--green-tint)}
 /* ── Textarea ── */
 .field textarea,.f-txta{min-height:88px;resize:vertical;padding-top:12px}
 
+/* ── Checkbox (e.g. "Product purchase") — overrides the universal .field input box ── */
+.field input.chk-box{
+  -webkit-appearance:none;appearance:none;
+  width:24px!important;height:24px!important;min-height:24px!important;
+  padding:0!important;margin:0;flex-shrink:0;position:relative;cursor:pointer;
+  border:2px solid var(--border-strong);border-radius:8px;
+  background:var(--surface);transition:background .15s,border-color .15s,transform .1s;
+}
+.field input.chk-box:active{transform:scale(.92)}
+.field input.chk-box:checked{background:var(--green);border-color:var(--green)}
+.field input.chk-box:checked::after{
+  content:'';position:absolute;left:7px;top:2px;width:6px;height:12px;
+  border:solid #fff;border-width:0 2.5px 2.5px 0;transform:rotate(45deg);
+}
+.chk-row{
+  display:flex;align-items:center;gap:12px;cursor:pointer;font-weight:700;
+  padding:12px 14px;border:1.5px solid var(--border);border-radius:var(--radius-sm);
+  background:var(--surface2);
+}
+.chk-row:has(input:checked){border-color:var(--green);background:var(--green-tint)}
+
 /* ── Select — custom arrow ── */
 .field select,.f-sel{
   cursor:pointer;
@@ -8081,6 +8102,20 @@ html.wdash-sheet-lock,html.wdash-sheet-lock body{overflow:hidden}
 .pln-cal-cell.today{border-color:#0d9488;border-width:1.5px;background:#0d948814;box-shadow:0 3px 10px #0d948833}
 .pln-cal-daynum{font-size:calc(12px*var(--app-text-scale,1));font-weight:800;color:var(--text2)}
 .pln-cal-dot{width:5px;height:5px;border-radius:50%;background:#0d9488}
+.pln-cal-count{min-width:18px;height:18px;padding:0 5px;border-radius:99px;background:#0d9488;color:#fff;font-size:calc(10px*var(--app-text-scale,1));font-weight:800;display:flex;align-items:center;justify-content:center;box-sizing:border-box}
+
+/* Day sheet — one-step quick add */
+.pln-item-price{font-weight:800;color:var(--green);white-space:nowrap}
+.pln-item-row.done .pln-item-price{color:var(--muted);text-decoration:line-through}
+.pln-day-total{display:flex;justify-content:space-between;align-items:center;margin-top:6px;padding:14px 16px;border-radius:var(--radius-sm);background:var(--green-tint);border:1.5px solid var(--green);font-weight:800;font-size:calc(15px*var(--app-text-scale,1));color:var(--text)}
+.pln-day-total b{font-size:calc(18px*var(--app-text-scale,1));font-weight:900;color:var(--green)}
+.pln-quick{display:flex;gap:8px;margin:14px 0 6px}
+.pln-quick input{min-height:48px;padding:0 12px;border:1.5px solid var(--border);border-radius:var(--radius-sm);background:var(--surface2);color:var(--text);font-size:calc(14px*var(--app-text-scale,1));font-family:inherit;font-weight:600;outline:none;box-sizing:border-box;min-width:0}
+.pln-quick input:focus{border-color:var(--green);box-shadow:0 0 0 3px var(--green-glow)}
+.pln-quick .pln-q-title{flex:1}
+.pln-quick .pln-q-cost{width:80px;text-align:center}
+.pln-quick button{width:48px;min-height:48px;border:none;border-radius:var(--radius-sm);background:var(--green);color:#fff;font-size:26px;font-weight:700;line-height:1;cursor:pointer;flex-shrink:0}
+.pln-quick button:active{transform:scale(.94)}
 
 .pln-day-empty{text-align:center;color:var(--muted);padding:20px 10px}
 
@@ -15328,9 +15363,6 @@ function _buyCollectAllProducts(){
     for(let i=mm.transactions.length-1;i>=0;i--){
       const t=mm.transactions[i];
       if(!t || !t.isProduct) continue;
-      const c=_aiaClassify(t).category;
-      const name=typeof c==='string' ? c : (c && c.en) || '';
-      if(!BUY_PURCHASE_CATEGORIES.includes(name)) continue;
       rows.push({monthKey:mk, idx:i, t});
     }
   });
@@ -15338,7 +15370,7 @@ function _buyCollectAllProducts(){
   const out=[];
   for(const row of rows){
     const name=_txlgItemName(row.t.notes)||'';
-    const key=name.toLowerCase();
+    const key=name ? name.toLowerCase() : ('__noname__'+row.monthKey+'#'+row.idx);
     if(seen.has(key)) continue;
     seen.add(key);
     out.push(row);
@@ -19389,15 +19421,6 @@ function renderPlanner(){
       <button type="button" class="pln-month-arrow" onclick="plnChangeMonth(1)" aria-label="${L('Next month','الشهر التالي')}">${ic(_navDirIcon('next'),18)}</button>
     </div>
 
-    <div class="pln-search-bar">
-      ${ic('search',15)}
-      <input type="text" id="pln_search_input" placeholder="${L('Search plans…','ابحث في الخطط…')}" value="${esc(PLN_SEARCH_Q)}" oninput="plnSearchOnInput(this.value)">
-      <button type="button" id="pln_search_clear" class="pln-search-clear" style="display:${PLN_SEARCH_Q?'flex':'none'}" onclick="plnClearSearch()">${ic('close',13)}</button>
-    </div>
-    <div class="pln-filter-chips" id="pln_filter_chips">
-      ${PLN_FILTERS.map(f=>`<button type="button" class="pln-filter-chip ${PLN_FILTER===f.key?'active':''}" data-filter="${f.key}" onclick="plnSetFilter('${f.key}')">${L(f.en,f.ar)}</button>`).join('')}
-    </div>
-
     <div id="pln_body_area">${plnBuildBody()}</div>
   </div>`;
 }
@@ -19405,16 +19428,8 @@ function renderPlanner(){
 // filter results list — whichever is active. Rebuilt in place by
 // plnRefreshBody() so the search input above never loses focus while typing.
 function plnBuildBody(){
-  if(PLN_SEARCH_Q.trim() || PLN_FILTER!=='all') return plnRenderSearchResults();
-  return `
-    <div class="pln-seg">
-      <button type="button" class="pln-seg-btn ${PLN_VIEW_MODE==='calendar'?'active':''}" onclick="plnSetViewMode('calendar')">${L('Calendar','تقويم')}</button>
-      <button type="button" class="pln-seg-btn ${PLN_VIEW_MODE==='week'?'active':''}" onclick="plnSetViewMode('week')">${L('Week','أسبوع')}</button>
-      <button type="button" class="pln-seg-btn ${PLN_VIEW_MODE==='month'?'active':''}" onclick="plnSetViewMode('month')">${L('Month','شهر')}</button>
-    </div>
-    ${PLN_VIEW_MODE==='calendar' ? `<div class="sc-card" style="padding:12px">${plnBuildCalendarGrid(PLN_VIEW_YEAR, PLN_VIEW_MONTH)}</div>` : ''}
-    ${PLN_VIEW_MODE==='week' ? plnBuildWeekView() : ''}
-    ${PLN_VIEW_MODE==='month' ? plnBuildMonthSummary(PLN_VIEW_YEAR, PLN_VIEW_MONTH) : ''}`;
+  // Simplified Planner: just the month calendar. Tap a day to add plans.
+  return `<div class="sc-card" style="padding:12px">${plnBuildCalendarGrid(PLN_VIEW_YEAR, PLN_VIEW_MONTH)}</div>`;
 }
 function plnRefreshBody(){
   const el = document.getElementById('pln_body_area');
@@ -19640,11 +19655,11 @@ function plnBuildCalendarGrid(year, monthIdx){
   for(let i=0;i<startOffset;i++) cells += `<div class="pln-cal-cell out"></div>`;
   for(let day=1; day<=daysInMonth; day++){
     const dateStr = year+'-'+String(monthIdx+1).padStart(2,'0')+'-'+String(day).padStart(2,'0');
-    const hasActivity = (byDate[dateStr]||[]).length || (expByDate[dateStr]||[]).length;
+    const planCount = (byDate[dateStr]||[]).length;
     const isToday = dateStr===todayStr;
     cells += `<div class="pln-cal-cell ${isToday?'today':''}" onclick="plnOpenDay('${dateStr}')">
       <div class="pln-cal-daynum">${day}</div>
-      ${hasActivity?'<div class="pln-cal-dot"></div>':''}
+      ${planCount?`<div class="pln-cal-count">${planCount}</div>`:''}
     </div>`;
   }
   return `<div class="pln-cal-grid">${dowNames.map(d=>`<div class="pln-cal-dow">${d}</div>`).join('')}${cells}</div>`;
@@ -19670,43 +19685,45 @@ function plnDaySheetHTML(dateStr){
   const dowEN  = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][d.getDay()];
   const dowAR  = ['الأحد','الإثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'][d.getDay()];
   const monthLbl = lang==='ar' ? MONTH_AR_NAMES[d.getMonth()] : PLN_MONTH_EN[d.getMonth()];
-  const plans    = PLANNER.plans.filter(p=>p.date===dateStr);
-  const expenses = PLANNER.expenses.filter(e=>e.date===dateStr);
-  // Completed plans move below pending ones (spec §11), original order kept within each group.
+  const plans   = PLANNER.plans.filter(p=>p.date===dateStr);
   const pending = plans.filter(p=>!p.done);
   const done    = plans.filter(p=>p.done);
-  const kpi     = plnDayKpi(dateStr);
 
   return `
     <div class="modal-title">${lang==='ar'?dowAR:dowEN}
       <div style="font-weight:700;font-size:calc(12.5px*var(--app-text-scale,1));color:var(--muted);margin-top:2px">${d.getDate()} ${monthLbl}</div>
     </div>
-    <div class="pln-smart-card">
-      <div class="pln-smart-title">${ic('chart',12)} ${L('Summary','ملخص')}</div>
-      <div class="pln-smart-row"><span>${L('Total Planned','إجمالي المخطط')}</span><b>${fmtEGP(kpi.planned)}</b></div>
-      <div class="pln-smart-row"><span>${L('Total Spent','إجمالي المصروف')}</span><b>${fmtEGP(kpi.spent)}</b></div>
-      <div class="pln-smart-row pln-smart-diff ${kpi.diff<0?'over':'saved'}">
-        <span>${kpi.diff<0 ? L('Over','تجاوز') : L('Saved','تم توفير')}</span><b>${fmtEGP(Math.abs(kpi.diff))}</b>
-      </div>
+    <div class="pln-quick">
+      <input type="text" id="pln_q_title" class="pln-q-title" placeholder="${L('Write your plan…','اكتب الخطة…')}" onkeydown="if(event.key==='Enter'){event.preventDefault();plnQuickAdd('${dateStr}')}">
+      <input type="text" inputmode="decimal" id="pln_q_cost" class="pln-q-cost" placeholder="${L('Price','السعر')}" onkeydown="if(event.key==='Enter'){event.preventDefault();plnQuickAdd('${dateStr}')}">
+      <button type="button" onclick="plnQuickAdd('${dateStr}')" aria-label="${L('Add','إضافة')}">+</button>
     </div>
-
-    <div class="pln-section-title">${L('Plans','الخطط')}</div>
-    <button type="button" class="wide-add-btn green-dashed" onclick="plnShowForm('${dateStr}')">+ ${L('Add Plan','إضافة خطة')}</button>
     ${!plans.length ? `<div class="pln-day-empty">
         ${ic('calendar',22)}
         <div style="margin-top:6px;font-weight:700">${L('No plans for this day yet','لا توجد خطط لهذا اليوم بعد')}</div>
-      </div>` : `<div class="pln-item-list">${pending.map(plnRenderItemRow).join('')}${done.map(plnRenderItemRow).join('')}</div>`}
-
-    <div class="pln-section-title">${L('Expenses','المصاريف')}</div>
-    <button type="button" class="wide-add-btn blue-dashed" onclick="plnShowExpenseForm('${dateStr}')">+ ${L('Add Expense','إضافة مصروف')}</button>
-    ${!expenses.length ? `<div class="pln-day-empty">
-        ${ic('wallet',22)}
-        <div style="margin-top:6px;font-weight:700">${L('No expenses logged yet','لا توجد مصاريف مسجلة بعد')}</div>
-      </div>` : `<div class="pln-item-list">${expenses.map(plnRenderExpenseRow).join('')}</div>`}
-
+      </div>` : `<div class="pln-item-list">${pending.map(plnRenderItemRow).join('')}${done.map(plnRenderItemRow).join('')}</div>
+      <div class="pln-day-total"><span>${L('Total','المجموع')}</span><b>${fmtEGP(plans.reduce((t,x)=>t+(parseFloat(x.cost)||0),0))}</b></div>`}
     <div class="modal-btns">
       <button class="mbtn cancel" onclick="closeModal()">${L('Close','إغلاق')}</button>
     </div>`;
+}
+
+// One-step add from the day sheet: title (+ optional price), Enter or "+".
+function plnQuickAdd(dateStr){
+  const tEl = document.getElementById('pln_q_title');
+  const cEl = document.getElementById('pln_q_cost');
+  const title = ((tEl&&tEl.value)||'').trim();
+  if(!title){ showToast(L('Enter a title','اكتب الخطة أولًا'), 'warn'); if(tEl) tEl.focus(); return; }
+  const cost = parseFloat(String((cEl&&cEl.value)||'').replace(/,/g,'.'))||0;
+  PLANNER.plans.push({
+    id: 'pln_'+Date.now()+'_'+Math.random().toString(36).slice(2,7),
+    date: dateStr, title, cost, category:'other', priority:'medium', notes:'', time:'', repeat:'none', done:false
+  });
+  savePlanner();
+  renderView();
+  SoundManager.play(SoundManager.SOUND.UI.SUCCESS);
+  plnOpenDay(dateStr, true);
+  setTimeout(()=>{ const n=document.getElementById('pln_q_title'); if(n) n.focus(); }, 60);
 }
 
 // Opens the Day Planner bottom sheet. `silent` skips the open sound/handle
@@ -19719,22 +19736,12 @@ function plnOpenDay(dateStr, silent){
 
 // ── Planned item card (swipe-left reveals Edit/Delete — spec §6) ───────────
 function plnRenderItemRow(p){
-  const pri = p.priority || 'medium';
-  const priLbl = PLN_PRI_LABELS[pri] || PLN_PRI_LABELS.medium;
   return `<div class="pln-item-row ${p.done?'done':''}">
-    <div class="pln-item-content" style="--pln-pri-color:var(--pln-c-${pri})" ontouchstart="_plnTouchStart(event)" ontouchmove="_plnTouchMove(event)" ontouchend="_plnTouchEnd()" ontouchcancel="_plnTouchEnd()" onclick="_plnRowTap(event)">
+    <div class="pln-item-content" ontouchstart="_plnTouchStart(event)" ontouchmove="_plnTouchMove(event)" ontouchend="_plnTouchEnd()" ontouchcancel="_plnTouchEnd()" onclick="_plnRowTap(event)">
       <input type="checkbox" class="pln-item-check" ${p.done?'checked':''} onclick="event.stopPropagation();plnToggleDone('${p.id}')">
       <div style="flex:1;min-width:0">
-        <div class="pln-item-title ${p.done?'done':''}">${esc(p.title)}</div>
-        <div class="pln-item-meta">
-          ${renderCategoryBadge(p.category,{size:11})}
-          <span class="pln-item-pri-pill pri-${pri}">${L(priLbl[0],priLbl[1])}</span>
-          ${p.time?`<span class="pln-item-time">${ic('clock',10)} ${esc(p.time)}</span>`:''}
-          ${p.repeat && p.repeat!=='none' ? `<span class="pln-item-time">${ic('refresh',10)}</span>`:''}
-        </div>
-        ${p.notes?`<div class="pln-item-notes">${esc(p.notes)}</div>`:''}
+        <div class="pln-item-title ${p.done?'done':''}">${esc(p.title)}${parseFloat(p.cost)>0?` <span class="pln-item-price">${L('for','ب')} ${fmtEGP(p.cost)}</span>`:''}</div>
       </div>
-      <div class="pln-item-cost">${fmtEGP(p.cost)}</div>
     </div>
     <div class="pln-item-actions">
       <button type="button" class="pln-item-edit" onclick="plnShowForm('${p.date}','${p.id}')">${ic('edit',16)}</button>
@@ -19797,52 +19804,18 @@ function plnDeleteItem(id){
   });
 }
 
-// ── Add / Edit Plan form (spec §7) ──────────────────────────────────────────
+// ── Edit Plan form — title + price only ─────────────────────────────────────
 function plnShowForm(dateStr, editId){
   const existing = editId ? PLANNER.plans.find(x=>x.id===editId) : null;
-  _plnFormCategory = existing ? existing.category : 'other';
-  _plnFormPriority = existing ? existing.priority : 'medium';
-
   document.getElementById('modalContent').innerHTML = `
     <div class="modal-title">${existing ? L('Edit Plan','تعديل الخطة') : L('Add Plan','إضافة خطة')}</div>
     <div class="field">
-      <label>${L('Title','العنوان')} *</label>
-      <input type="text" id="pln_f_title" placeholder="${L('e.g. Groceries','مثال: بقالة')}" value="${existing?esc(existing.title):''}">
+      <label>${L('Plan','الخطة')} *</label>
+      <input type="text" id="pln_f_title" value="${existing?esc(existing.title):''}">
     </div>
     <div class="field">
-      <label>${L('Estimated Cost','التكلفة التقديرية')} *</label>
+      <label>${L('Price','السعر')} <span style="font-weight:600;color:var(--muted)">(${L('optional','اختياري')})</span></label>
       <input type="text" inputmode="decimal" id="pln_f_cost" placeholder="0" value="${existing&&existing.cost?existing.cost:''}">
-    </div>
-    <div class="field">
-      <label>${L('Category','الفئة')}</label>
-      <div class="pln-cat-picker" id="pln_f_catPicker">
-        ${PLN_CATEGORIES.map(k=>`<div class="pln-cat-chip ${k===_plnFormCategory?'active':''}" data-cat="${k}" onclick="plnFormPickCategory('${k}')">${renderCategoryBadge(k,{clickable:true})}</div>`).join('')}
-      </div>
-    </div>
-    <div class="field">
-      <label>${L('Priority','الأولوية')}</label>
-      <div class="pln-pri-picker" id="pln_f_priPicker">
-        ${['low','medium','high'].map(p=>`<button type="button" class="pln-pri-btn pri-${p} ${p===_plnFormPriority?'active':''}" data-pri="${p}" onclick="plnFormPickPriority('${p}')">${L(PLN_PRI_LABELS[p][0],PLN_PRI_LABELS[p][1])}</button>`).join('')}
-      </div>
-    </div>
-    <div class="field">
-      <label>${L('Notes','ملاحظات')} <span style="font-weight:600;color:var(--muted)">(${L('optional','اختياري')})</span></label>
-      <input type="text" id="pln_f_notes" value="${existing&&existing.notes?esc(existing.notes):''}">
-    </div>
-    <div style="display:flex;gap:var(--sp3)">
-      <div class="field" style="flex:1">
-        <label>${L('Time','الوقت')} <span style="font-weight:600;color:var(--muted)">(${L('optional','اختياري')})</span></label>
-        <input type="time" id="pln_f_time" value="${existing&&existing.time?existing.time:''}">
-      </div>
-      <div class="field" style="flex:1">
-        <label>${L('Repeat','التكرار')}</label>
-        <select id="pln_f_repeat">
-          <option value="none" ${!existing||existing.repeat==='none'?'selected':''}>${L('None','بدون')}</option>
-          <option value="daily" ${existing&&existing.repeat==='daily'?'selected':''}>${L('Daily','يوميًا')}</option>
-          <option value="weekly" ${existing&&existing.repeat==='weekly'?'selected':''}>${L('Weekly','أسبوعيًا')}</option>
-          <option value="monthly" ${existing&&existing.repeat==='monthly'?'selected':''}>${L('Monthly','شهريًا')}</option>
-        </select>
-      </div>
     </div>
     <div class="modal-btns">
       <button class="mbtn save" onclick="plnSaveForm('${dateStr}'${editId?`,'${editId}'`:''})">${ic('check',15)} ${L('Save','حفظ')}</button>
@@ -19850,31 +19823,17 @@ function plnShowForm(dateStr, editId){
     </div>`;
   _sheetOpen();
 }
-function plnFormPickCategory(key){
-  _plnFormCategory = key;
-  document.querySelectorAll('#pln_f_catPicker .pln-cat-chip').forEach(el=>el.classList.toggle('active', el.dataset.cat===key));
-}
-function plnFormPickPriority(pri){
-  _plnFormPriority = pri;
-  document.querySelectorAll('#pln_f_priPicker .pln-pri-btn').forEach(el=>el.classList.toggle('active', el.dataset.pri===pri));
-}
 function plnSaveForm(dateStr, editId){
   const title = (document.getElementById('pln_f_title').value||'').trim();
   if(!title){ showToast(L('Enter a title','أدخل عنوانًا'), 'warn'); return; }
-  const cost   = parseFloat(document.getElementById('pln_f_cost').value)||0;
-  const notes  = (document.getElementById('pln_f_notes').value||'').trim();
-  const time   = document.getElementById('pln_f_time').value || '';
-  const repeat = document.getElementById('pln_f_repeat').value || 'none';
-  const category = _plnFormCategory || 'other';
-  const priority = _plnFormPriority || 'medium';
-
+  const cost = parseFloat(String(document.getElementById('pln_f_cost').value||'').replace(/,/g,'.'))||0;
   if(editId){
     const p = PLANNER.plans.find(x=>x.id===editId);
-    if(p) Object.assign(p, {title, cost, category, priority, notes, time, repeat});
+    if(p) Object.assign(p, {title, cost});
   } else {
     PLANNER.plans.push({
       id: 'pln_'+Date.now()+'_'+Math.random().toString(36).slice(2,7),
-      date: dateStr, title, cost, category, priority, notes, time, repeat, done:false
+      date: dateStr, title, cost, category:'other', priority:'medium', notes:'', time:'', repeat:'none', done:false
     });
   }
   savePlanner();
@@ -35197,8 +35156,8 @@ function showTxModal(tx){
       <div id="sdeBox-tx" class="sde-box" data-field="mNotes" data-ctx="tx" style="margin-top:6px"></div>
     </div>
     <div class="field">
-      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:700" for="mIsProduct">
-        <input type="checkbox" id="mIsProduct" ${tx?.isProduct?'checked':''} style="width:18px;height:18px;accent-color:var(--green);margin:0">
+      <label class="chk-row" for="mIsProduct">
+        <input type="checkbox" id="mIsProduct" class="chk-box" ${tx?.isProduct?'checked':''}>
         <span style="display:flex;align-items:center;gap:6px">${ic('shopping_bag',15)} ${L('Product purchase — add to My Purchases','منتج — يضاف لقائمة مشترياتي')}</span>
       </label>
     </div>
