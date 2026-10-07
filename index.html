@@ -36,7 +36,25 @@
   }
 })();
 </script>
+<script>
+/* Lock-screen flash guard. #lockScreen is visible by default in the markup and
+   is only hidden by JS at DOMContentLoaded — after this very large single file
+   has been fully parsed — so with the lock switched OFF it flashed on every
+   launch. Mirror the exact same condition _wsProceedToApp() uses (lock off AND
+   no leftover encrypted data) here, before first paint, and hide it via CSS.
+   The class is removed again as soon as the app boots (see _wsProceedToApp). */
+(function(){
+  try{
+    if(localStorage.getItem('wdp_lock_enabled_v1')==='false'
+       && !localStorage.getItem('wdp_enc_data_v2')
+       && !localStorage.getItem('wdp_enc_months_v2')){
+      document.documentElement.classList.add('ls-skip');
+    }
+  }catch(e){}
+})();
+</script>
 <style>
+html.ls-skip #lockScreen{display:none!important}
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 :root{
   /* Native browser UI (date/time pickers, <select> dropdowns, scrollbars)
@@ -2250,16 +2268,44 @@ tr.row-selected td{background:var(--green-tint)}
 }
 .chk-row:has(input:checked){border-color:var(--green);background:var(--green-tint)}
 
-/* ── New Transaction: multi-entry cards ── */
+/* ── New Transaction sheet — premium layout ── */
+:root{--tx-accent:var(--green)}
+[data-theme="dark"]{--tx-accent:var(--green-light)}
+
+/* date chip */
+.tx-date{
+  display:flex;align-items:center;gap:10px;margin-bottom:14px;padding:0 16px;min-height:52px;
+  border:1.5px solid var(--border);border-radius:16px;background:var(--surface2);cursor:pointer;
+  color:var(--sub);-webkit-tap-highlight-color:transparent
+}
+.tx-date svg{color:var(--tx-accent);flex-shrink:0}
+.tx-date-lbl{font-size:calc(12px*var(--app-text-scale,1));font-weight:700;letter-spacing:.3px}
+.tx-date .date-wrap-auto{
+  flex:1;min-width:0;justify-content:flex-end;height:auto;padding:0;border:0;background:transparent;
+  color:var(--text);font-size:calc(15px*var(--app-text-scale,1));font-weight:800
+}
+.tx-date .date-label-auto{text-align:end}
+.tx-date input[type="date"]{
+  flex:1;min-width:0;width:auto;min-height:0;height:auto;padding:0;margin:0;border:0;border-radius:0;
+  background:transparent;box-shadow:none;outline:none;-webkit-appearance:none;appearance:none;
+  color:var(--text);-webkit-text-fill-color:var(--text);font-family:inherit;
+  font-size:calc(15px*var(--app-text-scale,1));font-weight:800;text-align:end
+}
+
+/* entry cards */
 #txEntries{counter-reset:txe;display:flex;flex-direction:column;gap:12px;margin-bottom:12px}
-.tx-entry{counter-increment:txe;position:relative}
-.tx-entry .field{margin-bottom:12px}
+.tx-entry{
+  counter-increment:txe;position:relative;padding:16px;border-radius:20px;
+  background:var(--surface2);border:1.5px solid var(--border)
+}
+.tx-entry .field{margin-bottom:14px}
 .tx-entry .field:last-child{margin-bottom:0}
 .tx-entry-hdr{display:none;align-items:center;justify-content:space-between;margin-bottom:12px}
-.tx-entry-num{display:flex;align-items:center;gap:8px;font-weight:900;font-size:calc(12px*var(--app-text-scale,1));color:var(--muted);letter-spacing:.4px}
+#txEntries.multi .tx-entry-hdr{display:flex}
+.tx-entry-num{display:flex;align-items:center;gap:8px;font-weight:800;font-size:calc(12px*var(--app-text-scale,1));color:var(--sub);letter-spacing:.3px}
 .tx-entry-num::before{
   content:counter(txe);display:inline-flex;align-items:center;justify-content:center;
-  width:24px;height:24px;border-radius:50%;background:var(--green-tint);color:var(--green-dark);
+  width:24px;height:24px;border-radius:50%;background:var(--green-tint);color:var(--tx-accent);
   font-size:calc(12px*var(--app-text-scale,1));font-weight:900
 }
 .tx-entry-del{
@@ -2268,24 +2314,89 @@ tr.row-selected td{background:var(--green-tint)}
   -webkit-tap-highlight-color:transparent;transition:transform .1s
 }
 .tx-entry-del:active{transform:scale(.9)}
-#txEntries.multi .tx-entry{
-  padding:14px;border:1.5px solid var(--border);border-radius:var(--radius);background:var(--surface2)
-}
-#txEntries.multi .tx-entry-hdr{display:flex}
 .tx-entry.tx-entry-in{animation:txEntryIn .28s ease both}
 @keyframes txEntryIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+/* amount = hero input */
+.tx-entry .tx-amt label{justify-content:flex-start}
+.tx-hint{margin-inline-start:auto;font-size:calc(10px*var(--app-text-scale,1));font-weight:600;color:var(--muted);letter-spacing:0}
+.tx-entry .tx-amt input{
+  min-height:64px;padding:12px 16px;border-radius:16px;
+  font-size:calc(28px*var(--app-text-scale,1));font-weight:800;letter-spacing:.2px;
+  font-variant-numeric:tabular-nums;
+  background:var(--surface);border-color:var(--border-strong)
+}
+.tx-entry .tx-amt input::placeholder{font-weight:600;color:var(--muted);opacity:.7}
+.tx-entry .tx-amt input:focus{border-color:var(--tx-accent);box-shadow:0 0 0 3px var(--green-tint)}
+.tx-entry .tx-notes input{min-height:50px;border-radius:14px}
+
+/* product purchase → compact switch row */
+.tx-entry .tx-prod{padding-top:12px;border-top:1px solid var(--border)}
+.tx-entry .tx-prod .chk-row{
+  padding:0;border:0;background:transparent;gap:10px;min-height:32px;
+  font-size:calc(13px*var(--app-text-scale,1));font-weight:700;color:var(--text2);letter-spacing:0
+}
+.tx-entry .tx-prod .chk-row:has(input:checked){border:0;background:transparent;color:var(--tx-accent)}
+.tx-entry .tx-prod .chk-row > span{order:1;min-width:0}
+.tx-entry .tx-prod .chk-row > span svg{color:var(--muted)}
+.tx-entry .tx-prod .chk-row:has(input:checked) > span svg{color:var(--tx-accent)}
+.tx-entry .field input.chk-box{
+  order:2;margin-inline-start:auto;
+  width:46px!important;height:28px!important;min-height:28px!important;border-radius:99px;border:0;
+  background:var(--surface3);transition:background .2s
+}
+.tx-entry .field input.chk-box::after{
+  content:'';position:absolute;top:3px;left:auto;inset-inline-start:3px;width:22px;height:22px;
+  border:0;border-radius:50%;background:#fff;transform:none;box-shadow:0 1px 4px rgba(0,0,0,.35);
+  transition:inset-inline-start .2s
+}
+.tx-entry .field input.chk-box:checked{background:var(--green);border:0}
+.tx-entry .field input.chk-box:checked::after{
+  left:auto;top:3px;inset-inline-start:21px;width:22px;height:22px;border:0;transform:none
+}
+
+/* add new */
 .tx-add-btn{
-  display:flex;align-items:center;justify-content:center;gap:8px;width:100%;
-  padding:13px 14px;margin-bottom:16px;border:1.5px dashed var(--green);border-radius:var(--radius-sm);
-  background:var(--green-tint);color:var(--green-dark);font-weight:800;
-  font-size:calc(13px*var(--app-text-scale,1));font-family:inherit;cursor:pointer;
-  -webkit-tap-highlight-color:transparent;transition:transform .1s
+  display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:52px;
+  padding:12px 14px;margin-bottom:16px;border:1.5px dashed var(--tx-accent);border-radius:16px;
+  background:transparent;color:var(--tx-accent);font-weight:800;letter-spacing:.2px;
+  font-size:calc(14px*var(--app-text-scale,1));font-family:inherit;cursor:pointer;
+  -webkit-tap-highlight-color:transparent;transition:transform .1s,background .15s
 }
-.tx-add-btn:active{transform:scale(.98)}
-.tx-provided-card{
-  padding:14px;border:1.5px solid var(--border);border-radius:var(--radius);background:var(--surface2);margin-bottom:12px
+.tx-add-btn:active{transform:scale(.98);background:var(--green-tint)}
+
+/* shared Provided summary */
+.tx-sum{
+  --st:var(--muted);--st-bg:transparent;
+  position:relative;margin-bottom:12px;padding:16px;border-radius:20px;
+  border:1.5px solid var(--border);border-inline-start:4px solid var(--st);
+  background:linear-gradient(135deg,var(--st-bg),transparent 75%),var(--surface2);
+  transition:border-color .25s,background .25s
 }
-.tx-provided-card .field{margin-bottom:0}
+.tx-sum[data-state="surplus"]{--st:var(--tx-accent);--st-bg:var(--green-tint)}
+.tx-sum[data-state="deficit"]{--st:var(--red);--st-bg:var(--red-tint)}
+.tx-sum[data-state="balanced"]{--st:var(--blue);--st-bg:var(--blue-tint)}
+.tx-sum-top{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.tx-sum-label{font-size:calc(12px*var(--app-text-scale,1));font-weight:800;color:var(--sub);letter-spacing:.3px}
+.tx-sum-badge{
+  display:none;font-size:calc(11px*var(--app-text-scale,1));font-weight:800;padding:4px 11px;border-radius:99px;
+  background:var(--surface3);color:var(--sub)
+}
+.tx-sum input.tx-sum-val{
+  display:block;width:100%;min-height:0;height:auto;margin:6px 0 10px;padding:0;border:0;border-radius:0;
+  background:transparent;box-shadow:none;outline:none;pointer-events:none;
+  -webkit-appearance:none;appearance:none;font-family:inherit;
+  font-size:calc(34px*var(--app-text-scale,1));font-weight:900;line-height:1.15;letter-spacing:.2px;
+  font-variant-numeric:tabular-nums;color:var(--st);-webkit-text-fill-color:var(--st)
+}
+.tx-sum-bar{height:6px;border-radius:99px;background:var(--surface3);overflow:hidden;margin-bottom:12px}
+.tx-sum-bar i{display:block;height:100%;width:0;border-radius:99px;background:var(--st);transition:width .3s ease,background .25s}
+.tx-sum-stats{display:flex;gap:8px}
+.tx-sum-stats > div{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+.tx-sum-stats span{font-size:calc(10px*var(--app-text-scale,1));font-weight:700;color:var(--muted);letter-spacing:.2px}
+.tx-sum-stats b{font-size:calc(13px*var(--app-text-scale,1));font-weight:800;color:var(--text);font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tx-sum-hint{font-size:calc(11px*var(--app-text-scale,1));color:var(--muted);margin-top:10px}
+.tx-sum-hint:empty{display:none}
 
 /* ── Select — custom arrow ── */
 .field select,.f-sel{
@@ -35178,18 +35289,21 @@ function _txEntryHTML(sfx, d){
         <span class="tx-entry-num">${L('Transaction','معاملة')}</span>
         <button type="button" class="tx-entry-del" onclick="_txRemoveRow('${sfx}')" aria-label="${L('Remove','حذف')}">${ic('trash',15)}</button>
       </div>
-      <div class="field"><label>${L('Amount Paid','المبلغ المدفوع')} <span class="f-badge">${curLabel()}</span></label><input type="text" inputmode="decimal" id="mPayment${sfx}" data-calc placeholder="${L('0.00 — or enter a formula like 500+200','0.00 — أو أدخل معادلة مثل 500+200')}" onblur="applyFormula(this);_txCalcProvided()" oninput="_txCalcProvided()" value="${d.payment||''}"></div>
-      <div class="field">
+      <div class="field tx-amt">
+        <label><span>${L('Amount Paid','المبلغ المدفوع')}</span> <span class="f-badge">${curLabel()}</span><span class="tx-hint">${L('formula OK · 500+200','يقبل معادلة · 500+200')}</span></label>
+        <input type="text" inputmode="decimal" id="mPayment${sfx}" data-calc placeholder="0.00" onblur="applyFormula(this);_txCalcProvided()" oninput="_txCalcProvided()" value="${d.payment||''}">
+      </div>
+      <div class="field tx-notes">
         <label>${L('Notes','الملاحظات')}</label>
         <input type="text" id="mNotes${sfx}" list="sdeList-${ctx}" placeholder="${L('e.g. Materials, Labor, Equipment…','مثال: خامات، عمالة، معدات…')}" value="${esc(d.notes||'')}" oninput="_sdeOnInput('mNotes${sfx}','sdeBox-${ctx}','${ctx}');_aipOnInput('mNotes${sfx}','${ctx}')">
         <datalist id="sdeList-${ctx}"></datalist>
         <div id="aipCard-${ctx}" class="aip-card" data-ctx="${ctx}"></div>
         <div id="sdeBox-${ctx}" class="sde-box" data-field="mNotes${sfx}" data-ctx="${ctx}" style="margin-top:6px"></div>
       </div>
-      <div class="field">
+      <div class="field tx-prod">
         <label class="chk-row" for="mIsProduct${sfx}">
           <input type="checkbox" id="mIsProduct${sfx}" class="chk-box" ${d.isProduct?'checked':''}>
-          <span style="display:flex;align-items:center;gap:6px">${ic('shopping_bag',15)} ${L('Product purchase — add to My Purchases','منتج — يضاف لقائمة مشترياتي')}</span>
+          <span style="display:flex;align-items:center;gap:8px">${ic('shopping_bag',16)} ${L('Product purchase — add to My Purchases','منتج — يضاف لقائمة مشترياتي')}</span>
         </label>
       </div>
     </div>`;
@@ -35242,20 +35356,22 @@ function showTxModal(tx){
         <div class="modal-hdr-sub">${L('Daily spending log','سجل الإنفاق اليومي')}</div>
       </div>
     </div>
-    <div class="field"><label>${L('Date','التاريخ')}</label><input type="date" id="mDate" value="${tx?.date||today()}" onchange="_txCalcProvided()"></div>
+    <label class="tx-date" for="mDate">${ic('calendar',18)}<span class="tx-date-lbl">${L('Date','التاريخ')}</span><input type="date" id="mDate" value="${tx?.date||today()}" onchange="_txCalcProvided()"></label>
     <div id="txEntries">${_txEntryHTML('', tx)}</div>
-    ${tx ? '' : `<button type="button" class="tx-add-btn" onclick="_txAddRow()">${ic('plus',16)} ${L('Add new','إضافة معاملة جديدة')}</button>`}
-    <div class="tx-provided-card">
-      <div class="field">
-        <label style="display:flex;justify-content:space-between;align-items:center;flex-direction:row">
-          <span>${L('Provided (Auto)','المتوفر (تلقائي)')}</span>
-          <span id="mProvidedBadge" style="font-size:calc(10px*var(--app-text-scale,1));font-weight:700;padding:3px 9px;border-radius:99px;display:none"></span>
-        </label>
-        <input type="text" inputmode="decimal" id="mProvided" data-calc placeholder="0.00" readonly
-          style="background:var(--surface2);color:var(--muted);cursor:default;font-weight:900;font-variant-numeric:tabular-nums"
-          value="${tx?.provided||''}">
-        <div id="mProvidedHint" style="font-size:calc(10px*var(--app-text-scale,1));color:var(--muted);margin-top:5px"></div>
+    ${tx ? '' : `<button type="button" class="tx-add-btn" onclick="_txAddRow()">${ic('plus',18)} ${L('Add new','إضافة معاملة جديدة')}</button>`}
+    <div class="tx-sum" id="txSum" data-state="">
+      <div class="tx-sum-top">
+        <span class="tx-sum-label">${L('Provided (Auto)','المتوفر (تلقائي)')}</span>
+        <span id="mProvidedBadge" class="tx-sum-badge"></span>
       </div>
+      <input type="text" id="mProvided" class="tx-sum-val" readonly tabindex="-1" placeholder="0.00" value="${tx?.provided||''}">
+      <div class="tx-sum-bar"><i id="txSumBar"></i></div>
+      <div class="tx-sum-stats">
+        <div><span>${L('Target','التارجت')}</span><b id="txSumTarget">—</b></div>
+        <div><span>${L('Logged before','مسجل سابقًا')}</span><b id="txSumBefore">—</b></div>
+        <div><span>${L('This sheet','هذه الشاشة')}</span><b id="txSumNow">—</b></div>
+      </div>
+      <div id="mProvidedHint" class="tx-sum-hint"></div>
     </div>
     <div id="txStatusCard" style="display:none;border-radius:var(--radius-sm);padding:11px 14px;margin-bottom:4px;font-size:calc(12px*var(--app-text-scale,1));line-height:1.6"></div>
     <div class="modal-btns"><button class="mbtn save" onclick="saveTx()">${L('Save','حفظ')}</button><button class="mbtn cancel" onclick="closeModal()">${L('Cancel','إلغاء')}</button></div>`;
@@ -35270,45 +35386,47 @@ function showTxModal(tx){
 function _txCalcProvided(){
   const dateVal = document.getElementById('mDate')?.value || today();
   // Total of every entry currently in the sheet (one shared Provided for all).
-  const payEls = document.querySelectorAll('#txEntries input[id^="mPayment"]');
-  let pay = 0, filled = 0;
-  payEls.forEach(el=>{ const v = parseFloat(el.value)||0; pay += v; if(v>0) filled++; });
-  // Target is now the day's target (set once via the "Today's Target" card),
-  // not a per-transaction manual field. Provided is cumulative: the day's
-  // target minus every payment logged for that date so far, including the
-  // entries currently being entered/edited here.
+  let pay = 0;
+  document.querySelectorAll('#txEntries input[id^="mPayment"]').forEach(el=>{ pay += parseFloat(el.value)||0; });
+  // Target is the day's target (set once via the "Today's Target" card).
+  // Provided is cumulative: the day's target minus every payment logged for
+  // that date so far, including the entries currently being entered/edited.
   const excludeIdx = editTarget?.type==='tx' ? editTarget.idx : -1;
   const tgt = getDailyTarget(activeMonth, dateVal);
   const otherPayments = _dailyPaymentsSum(activeMonth, dateVal, excludeIdx);
-  const prv = tgt - (otherPayments + pay);
-  const el  = document.getElementById('mProvided');
+  const spent = otherPayments + pay;
+  const prv = tgt - spent;
+  const el    = document.getElementById('mProvided');
   const badge = document.getElementById('mProvidedBadge');
-  const hint = document.getElementById('mProvidedHint');
-  if(hint){
-    let t = tgt>0
-      ? L(`Target for ${dateVal}: ${fmtEGP(tgt)}`,`تارجت يوم ${dateVal}: ${fmtEGP(tgt)}`)
-      : L('No target set for this day yet','لم يتم تحديد تارجت لهذا اليوم بعد');
-    if(payEls.length>1 && pay>0){
-      t += ' · ' + L(`This sheet total: ${fmtEGP(pay)} (${filled})`,`إجمالي الشاشة: ${fmtEGP(pay)} (${filled})`);
-    }
-    hint.textContent = t;
-  }
+  const hint  = document.getElementById('mProvidedHint');
+  const card  = document.getElementById('txSum');
+  const bar   = document.getElementById('txSumBar');
+  const setTxt = (id,t)=>{ const n=document.getElementById(id); if(n) n.textContent=t; };
+  setTxt('txSumTarget', tgt>0 ? fmtEGP(tgt) : '—');
+  setTxt('txSumBefore', otherPayments>0 ? fmtEGP(otherPayments) : '—');
+  setTxt('txSumNow',    pay>0 ? fmtEGP(pay) : '—');
+  if(hint) hint.textContent = tgt>0 ? '' : L('No target set for this day yet','لم يتم تحديد تارجت لهذا اليوم بعد');
+  if(bar) bar.style.width = tgt>0 ? Math.min(100, Math.max(0, spent/tgt*100)).toFixed(1)+'%' : '0%';
   if(!el) return;
-  el.value = (pay||tgt) ? prv.toFixed(2) : '';
+  el.value = (pay||tgt)
+    ? prv.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})
+    : '';
+  let state = '';
+  if(pay||tgt){
+    state = prv>0 ? 'surplus' : (prv<0 ? 'deficit' : 'balanced');
+  }
+  if(card) card.dataset.state = state;
   if(badge){
-    if(pay||tgt){
+    if(state){
       badge.style.display='inline-block';
-      if(prv>0){ badge.textContent='زيادة +'+prv.toFixed(0); badge.style.background='var(--green-tint)'; badge.style.color='var(--green-dark)'; }
-      else if(prv<0){ badge.textContent='عجز '+prv.toFixed(0); badge.style.background='var(--red-tint)'; badge.style.color='var(--red)'; }
-      else { badge.textContent='متوازن'; badge.style.background='var(--blue-tint)'; badge.style.color='var(--blue)'; }
+      const n = Math.abs(prv).toFixed(0);
+      if(state==='surplus'){ badge.textContent=L('Surplus +'+n,'زيادة +'+n); badge.style.background='var(--green-tint)'; badge.style.color='var(--tx-accent)'; }
+      else if(state==='deficit'){ badge.textContent=L('Deficit -'+n,'عجز -'+n); badge.style.background='var(--red-tint)'; badge.style.color='var(--red)'; }
+      else { badge.textContent=L('Balanced','متوازن'); badge.style.background='var(--blue-tint)'; badge.style.color='var(--blue)'; }
     } else { badge.style.display='none'; }
   }
-  // Live budget status card — debounced. This recomputes over every
-  // transaction in the month and rebuilds the card's innerHTML, so running
-  // it synchronously on every single keystroke (e.g. each digit/operator
-  // typed via the calc-toolbar while building a formula like "500+200")
-  // was what made those taps feel laggy. A short debounce lets rapid taps
-  // land instantly while only the final value triggers the heavy rebuild.
+  // Live budget status card — debounced (it recomputes over the whole month
+  // and rebuilds innerHTML; running it per keystroke made calc-keyboard taps laggy).
   clearTimeout(_txCalcProvided._t);
   _txCalcProvided._t = setTimeout(()=>_txUpdateStatusCard(pay, tgt), 150);
 }
@@ -39843,8 +39961,13 @@ function _wsProceedToApp(){
     ls.style.display  = 'none';
     app.style.display = 'flex';
     app.style.flexDirection = 'column';
+    // Early flash-guard class (see <head>) has done its job; remove it so a
+    // later manual/auto lock can show #lockScreen again (!important would win
+    // over the inline display:flex that lockApp() sets).
+    document.documentElement.classList.remove('ls-skip');
     initApp();
   }
+  document.documentElement.classList.remove('ls-skip'); // safety net — never leave the guard on
   // else: lock ON → lockScreen already visible (default HTML state); the
   // tour still runs once the user unlocks and initApp() actually fires
   // (see PIN-unlock success handler, which calls initApp() the same way).
