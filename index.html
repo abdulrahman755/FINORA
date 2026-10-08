@@ -3894,6 +3894,71 @@ tr.row-selected td{background:var(--green-tint)}
 /* Screen wrapper */
 .screen-wrap{display:flex;flex-direction:column;gap:var(--sp4);padding-bottom:80px}
 
+/* ── My Locations (mlx) — scoped to this screen, token-driven so Light/Dark follow the design system ── */
+.mlx{--mlx-acc:var(--accent-finance,var(--green))}
+.mlx .sc-card{box-shadow:var(--shadow-sm)}
+.mlx-panel{padding:18px}
+.mlx-status{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}
+.mlx-status-l{display:flex;align-items:center;gap:10px;min-width:0;font-weight:800;font-size:calc(16px*var(--app-text-scale,1));color:var(--text);letter-spacing:-.1px}
+.mlx-dot{width:9px;height:9px;border-radius:50%;flex:none;background:var(--muted);opacity:.45}
+.mlx-dot.on{background:var(--mlx-acc);opacity:1;box-shadow:0 0 0 3px var(--green-glow)}
+@keyframes mlxPulse{0%{box-shadow:0 0 0 0 var(--green-glow)}70%{box-shadow:0 0 0 7px transparent}100%{box-shadow:0 0 0 0 transparent}}
+@media (prefers-reduced-motion:no-preference){.mlx-dot.on{animation:mlxPulse 2.4s ease-out infinite}}
+.mlx-btn{appearance:none;font:inherit;font-weight:700;font-size:calc(13.5px*var(--app-text-scale,1));cursor:pointer;border-radius:var(--radius-sm);padding:0 16px;min-height:38px;display:inline-flex;align-items:center;justify-content:center;gap:6px;white-space:nowrap;transition:transform .15s var(--ease-standard,ease),background .15s,border-color .15s,color .15s}
+.mlx-btn.primary{background:var(--mlx-acc);border:1px solid var(--mlx-acc);color:#fff}
+.mlx-btn.ghost{background:transparent;border:1px solid var(--border-strong);color:var(--text)}
+.mlx-btn:active{transform:scale(.97)}
+.mlx-btn:focus-visible,.mlx-chip:focus-visible,.mlx-add:focus-visible,.mlx-star:focus-visible,.mlx-photo-add:focus-visible,.mlx-linkbtn:focus-visible{outline:var(--focus-ring-width,2px) solid var(--focus-ring-color,var(--mlx-acc));outline-offset:2px}
+.mlx-prog-row{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:8px;color:var(--muted);font-size:calc(12.5px*var(--app-text-scale,1))}
+.mlx-prog-row b{color:var(--text);font-weight:700}
+.mlx-pct{font-variant-numeric:tabular-nums;font-weight:700;color:var(--text)}
+.mlx-prog-msg{color:var(--muted);font-size:calc(12.5px*var(--app-text-scale,1))}
+.mlx-track{height:6px;border-radius:var(--radius-pill);background:var(--surface3);overflow:hidden}
+.mlx-fill{height:100%;border-radius:inherit;background:var(--mlx-acc);transition:width 1s linear}
+.mlx-sep{height:1px;background:var(--border);margin:16px 0}
+.mlx-label-s{color:var(--muted);font-size:calc(12px*var(--app-text-scale,1));font-weight:600}
+.mlx-chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.mlx-chip{appearance:none;font:inherit;font-weight:700;font-size:calc(12.5px*var(--app-text-scale,1));cursor:pointer;min-height:34px;padding:0 14px;border-radius:var(--radius-pill);background:var(--surface2);border:1px solid var(--border);color:var(--text);transition:transform .15s,background .15s,border-color .15s,color .15s}
+.mlx-chip.on{background:var(--mlx-acc);border-color:var(--mlx-acc);color:#fff}
+.mlx-chip:active{transform:scale(.96)}
+.mlx-note{margin-top:14px;color:var(--muted);font-size:calc(11.5px*var(--app-text-scale,1));line-height:1.65}
+.mlx-add{appearance:none;font:inherit;width:100%;min-height:46px;display:flex;align-items:center;justify-content:center;gap:8px;border:1px solid var(--green-glow);border-radius:var(--radius);background:var(--green-tint);color:var(--green-dark,var(--mlx-acc));font-weight:800;font-size:calc(13.5px*var(--app-text-scale,1));cursor:pointer;transition:transform .15s,border-color .15s}
+.mlx-add:active{transform:scale(.985)}
+[data-theme="dark"] .mlx-add{color:var(--green-light,#3DBE8B)}
+.mlx-card{padding:16px}
+.mlx-card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.mlx-card-id{min-width:0;flex:1}
+.mlx-name{font-weight:800;font-size:calc(15.5px*var(--app-text-scale,1));line-height:1.55;color:var(--text);overflow-wrap:anywhere}
+.mlx-meta{display:flex;flex-wrap:wrap;align-items:center;gap:2px 8px;margin-top:2px;color:var(--muted);font-size:calc(12px*var(--app-text-scale,1))}
+.mlx-meta>*+*::before{content:'·';margin-inline-end:8px;opacity:.55}
+.mlx-map{display:inline-flex;align-items:center;gap:4px;color:var(--mlx-acc);font-weight:700;text-decoration:none}
+.mlx-acts{display:flex;gap:6px;flex:none}
+.mlx-stats{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.mlx-pill{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:var(--radius-pill);background:var(--surface2);color:var(--muted);font-size:calc(11.5px*var(--app-text-scale,1));font-weight:600}
+.mlx-pill b{color:var(--text);font-weight:800;font-variant-numeric:tabular-nums}
+.mlx-foot{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:14px;padding-top:12px;border-top:1px solid var(--border)}
+.mlx-stars{display:inline-flex;gap:2px}
+.mlx-star{appearance:none;background:none;border:0;padding:3px;font-size:22px;line-height:1;cursor:pointer;color:var(--border-strong);transition:transform .12s,color .12s}
+.mlx-star.on{color:#E6A21F}
+.mlx-star:active{transform:scale(.88)}
+.mlx-photos{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.mlx-thumb{width:60px;height:60px;object-fit:cover;border-radius:var(--radius-sm);border:1px solid var(--border);cursor:pointer}
+.mlx-photo-add{appearance:none;font:inherit;width:60px;height:60px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border-radius:var(--radius-sm);border:1px dashed var(--border-strong);background:transparent;color:var(--muted);cursor:pointer;font-weight:700;font-size:calc(10.5px*var(--app-text-scale,1))}
+.mlx-clear{text-align:center;padding:4px 0 8px}
+.mlx-linkbtn{appearance:none;font:inherit;background:transparent;border:0;color:var(--muted);font-size:calc(12px*var(--app-text-scale,1));text-decoration:underline;text-underline-offset:3px;cursor:pointer;padding:8px 12px}
+.mlx-form{padding:16px}
+.mlx-lab{display:block;color:var(--muted);font-size:calc(12px*var(--app-text-scale,1));font-weight:600;margin:12px 0 6px}
+.mlx-lab.first{margin-top:0}
+.mlx-input{width:100%;box-sizing:border-box;min-height:44px;padding:10px 12px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface2);color:var(--text);font:inherit;font-size:16px}
+.mlx-input:focus{outline:none;border-color:var(--mlx-acc);box-shadow:0 0 0 3px var(--green-glow)}
+.mlx-row{display:flex;gap:10px}
+.mlx-grow{flex:1;min-width:0}
+.mlx-w90{width:96px;flex:none}
+.mlx-check{display:flex;align-items:center;gap:10px;margin-top:14px;cursor:pointer;color:var(--text);font-size:calc(13.5px*var(--app-text-scale,1))}
+.mlx-check input{width:18px;height:18px;accent-color:var(--mlx-acc)}
+.mlx-actions{display:flex;gap:8px;margin-top:16px}
+.mlx-actions .mlx-btn.primary{flex:1}
+
 /* Universal card — FINORA redesign: pulled back from "everything is a
    big soft rounded gray card" to a quieter, more architectural surface.
    Default elevation dropped one notch (shadow-sm, not shadow-md) so
@@ -14732,7 +14797,7 @@ function _dfpMonthlyBalanceSeries(m, count){
   const start = Math.max(0, idx - (count - 1));
   const keys = MONTHS_ORDER.slice(start, idx + 1);
   const banks = getAllBanks();
-  return keys.map(key => {
+  return keys.filter(key => DATA[key]).map(key => {
     const mm = DATA[key];
     const total = banks.reduce((s,b)=>s+getBankBalance(mm, b.key), 0);
     return { label: MONTH_NAMES[key]||key, exp: total };
@@ -14779,7 +14844,9 @@ function renderMonthlyComparisonCard(m, sig){
       <div class="dfp-toplist-empty">${L('Needs a previous month to compare against.','محتاج شهر سابق للمقارنة.')}</div>
     </div>`;
   }
-  const balanceSeries = _dfpMonthlyBalanceSeries(m, 6);
+  // Show EVERY recorded month up to (and including) the active/current month,
+  // not just the last 6. MONTHS_ORDER only holds months that exist in the app.
+  const balanceSeries = _dfpMonthlyBalanceSeries(m, MONTHS_ORDER.length);
   const balanceBars = balanceSeries.length >= 2 ? _dfpMonthlyBalanceBarsSVG(balanceSeries) : '';
   const rowsDef = [
     {lbl:L('Income','الإيرادات'), cur:s.totalIncomeMonth, prev:prevStats.totalIncomeMonth, goodUp:true},
@@ -40317,19 +40384,17 @@ const MLOC = (function(){
       {enableHighAccuracy:true,maximumAge:0,timeout:15000});
   }
   function manualHTML(){
-    const inp='width:100%;box-sizing:border-box;padding:9px 10px;border-radius:10px;border:1px solid rgba(128,128,128,.4);background:transparent;color:inherit;font:inherit';
-    const lab='display:block;color:var(--muted);font-size:calc(12px*var(--app-text-scale,1));margin:10px 0 4px';
-    const btn='<button onclick="MLOC.toggleForm()" style="width:100%;padding:11px;border-radius:12px;border:1px dashed var(--accent-finance);background:transparent;color:var(--accent-finance);font-weight:800;cursor:pointer;margin-bottom:12px">'+ic('plus',14)+' '+L('Add a place manually','إضافة مكان يدويًا')+'</button>';
+    const btn='<button class="mlx-add" onclick="MLOC.toggleForm()">'+ic('plus',14)+' <span>'+L('Add a place manually','إضافة مكان يدويًا')+'</span></button>';
     if(!formOpen) return btn;
-    return btn+'<div class="sc-card" style="padding:14px;margin-bottom:12px">'
-      +'<label style="'+lab+';margin-top:0" for="mlName">'+L('Place name','اسم المكان')+'</label><input id="mlName" type="text" maxlength="60" style="'+inp+'">'
-      +'<label style="'+lab+'" for="mlBranch">'+L('Branch / area (optional)','الفرع / المنطقة (اختياري)')+'</label><input id="mlBranch" type="text" maxlength="60" style="'+inp+'">'
-      +'<div style="display:flex;gap:10px"><div style="flex:1"><label style="'+lab+'" for="mlDate">'+L('Visit date','تاريخ الزيارة')+'</label><input id="mlDate" type="date" max="'+dayStr(new Date())+'" value="'+dayStr(new Date())+'" style="'+inp+'"></div>'
-      +'<div style="width:90px"><label style="'+lab+'" for="mlCnt">'+L('Visits','الزيارات')+'</label><input id="mlCnt" type="number" min="1" max="999" value="1" style="'+inp+'"></div></div>'
-      +'<div style="'+lab+'">'+L('Rating (optional)','التقييم (اختياري)')+'</div><div>'+starBtns(formRating,function(i){ return 'MLOC.setFormRating('+i+')'; },'mlFS')+'</div>'
-      +'<label style="display:flex;align-items:center;gap:8px;margin-top:12px;cursor:pointer"><input id="mlUseLoc" type="checkbox" checked> <span>'+L('Use my current location','استخدم موقعي الحالي')+'</span></label>'
-      +'<div style="display:flex;gap:8px;margin-top:14px"><button onclick="MLOC.saveManual()" style="flex:1;padding:10px;border-radius:10px;border:0;font-weight:800;cursor:pointer;background:var(--accent-finance);color:#fff">'+L('Save','حفظ')+'</button>'
-      +'<button onclick="MLOC.toggleForm()" style="padding:10px 16px;border-radius:10px;border:1px solid rgba(128,128,128,.4);background:transparent;color:inherit;cursor:pointer">'+L('Cancel','إلغاء')+'</button></div>'
+    return btn+'<div class="sc-card mlx-form">'
+      +'<label class="mlx-lab first" for="mlName">'+L('Place name','اسم المكان')+'</label><input id="mlName" class="mlx-input" type="text" maxlength="60">'
+      +'<label class="mlx-lab" for="mlBranch">'+L('Branch / area (optional)','الفرع / المنطقة (اختياري)')+'</label><input id="mlBranch" class="mlx-input" type="text" maxlength="60">'
+      +'<div class="mlx-row"><div class="mlx-grow"><label class="mlx-lab" for="mlDate">'+L('Visit date','تاريخ الزيارة')+'</label><input id="mlDate" class="mlx-input" type="date" max="'+dayStr(new Date())+'" value="'+dayStr(new Date())+'"></div>'
+      +'<div class="mlx-w90"><label class="mlx-lab" for="mlCnt">'+L('Visits','الزيارات')+'</label><input id="mlCnt" class="mlx-input" type="number" min="1" max="999" value="1"></div></div>'
+      +'<div class="mlx-lab">'+L('Rating (optional)','التقييم (اختياري)')+'</div><div class="mlx-stars">'+starBtns(formRating,function(i){ return 'MLOC.setFormRating('+i+')'; },'mlFS')+'</div>'
+      +'<label class="mlx-check"><input id="mlUseLoc" type="checkbox" checked> <span>'+L('Use my current location','استخدم موقعي الحالي')+'</span></label>'
+      +'<div class="mlx-actions"><button class="mlx-btn primary" onclick="MLOC.saveManual()">'+L('Save','حفظ')+'</button>'
+      +'<button class="mlx-btn ghost" onclick="MLOC.toggleForm()">'+L('Cancel','إلغاء')+'</button></div>'
       +'</div>';
   }
   // ── Photos (IndexedDB, not localStorage: photos must never eat the quota the finance data lives in) ──
@@ -40432,21 +40497,21 @@ const MLOC = (function(){
   var formRatingSet=function(n){
     formRating=(formRating===n)?0:n;
     if(typeof document!=='undefined' && document.querySelectorAll){
-      document.querySelectorAll('.mlFS').forEach(function(b,i){ b.style.color=(i+1<=formRating)?STAR_ON:STAR_OFF; });
+      document.querySelectorAll('.mlFS').forEach(function(b,i){ b.classList.toggle('on',i+1<=formRating); });
     }
   };
   function setFormRating(n){ formRatingSet(n); }
   function starBtns(cur,handler,cls){
     let h='';
-    for(let i=1;i<=5;i++) h+='<button '+(cls?'class="'+cls+'" ':'')+'onclick="'+handler(i)+'" aria-label="'+i+'" style="background:none;border:0;padding:2px 3px;font-size:22px;line-height:1;cursor:pointer;color:'+(i<=cur?STAR_ON:STAR_OFF)+'">★</button>';
+    for(let i=1;i<=5;i++) h+='<button class="mlx-star'+(cls?' '+cls:'')+(i<=cur?' on':'')+'" onclick="'+handler(i)+'" aria-label="'+i+'">★</button>';
     return h;
   }
   function placeExtras(p){
     const list=photos[p.id]||[];
-    const th=list.map(function(x){ return '<img src="'+x.data+'" alt="" onclick="MLOC.openPhoto(\''+p.id+'\',\''+x.id+'\')" style="width:64px;height:64px;object-fit:cover;border-radius:10px;cursor:pointer">'; }).join('');
-    const add=list.length<MAX_PHOTOS?'<button onclick="document.getElementById(\'mlFile_'+p.id+'\').click()" aria-label="'+L('Add photo','إضافة صورة')+'" style="width:64px;height:64px;border-radius:10px;border:1px dashed var(--accent-finance);background:transparent;color:var(--accent-finance);cursor:pointer;font-weight:700;font-size:calc(11px*var(--app-text-scale,1))">'+ic('plus',16)+'<br>'+L('Photo','صورة')+'</button><input id="mlFile_'+p.id+'" type="file" accept="image/*" style="display:none" onchange="MLOC.addPhoto(\''+p.id+'\',this)">':'';
-    return '<div style="margin-top:10px;display:flex;align-items:center;gap:8px"><span style="color:var(--muted);font-size:calc(12px*var(--app-text-scale,1))">'+L('Rating','التقييم')+'</span><span>'+starBtns(p.rating||0,function(i){ return "MLOC.setRating('"+p.id+"',"+i+")"; })+'</span></div>'
-      +'<div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px">'+th+add+'</div>';
+    const th=list.map(function(x){ return '<img class="mlx-thumb" src="'+x.data+'" alt="" onclick="MLOC.openPhoto(\''+p.id+'\',\''+x.id+'\')">'; }).join('');
+    const add=list.length<MAX_PHOTOS?'<button class="mlx-photo-add" onclick="document.getElementById(\'mlFile_'+p.id+'\').click()" aria-label="'+L('Add photo','إضافة صورة')+'">'+ic('plus',16)+'<span>'+L('Photo','صورة')+'</span></button><input id="mlFile_'+p.id+'" type="file" accept="image/*" style="display:none" onchange="MLOC.addPhoto(\''+p.id+'\',this)">':'';
+    return '<div class="mlx-foot"><span class="mlx-label-s">'+L('Rating','التقييم')+'</span><span class="mlx-stars">'+starBtns(p.rating||0,function(i){ return "MLOC.setRating('"+p.id+"',"+i+")"; })+'</span></div>'
+      +'<div class="mlx-photos">'+th+add+'</div>';
   }
   // Backup bridge. null = photos not loaded yet (never export an empty list by mistake).
   function photosJSON(){
@@ -40472,26 +40537,25 @@ const MLOC = (function(){
   }
   // "Name - Branch - Date - Location" (branch / link omitted when absent)
   function titleLine(p){
-    const parts=[p.name?esc(p.name):(L('Place','مكان')+' '+(p.n||''))];
-    if(p.branch) parts.push(esc(p.branch));
-    parts.push(fmtDay(p.last));
-    if(p.lat!=null && p.lng!=null) parts.push('<a href="https://www.google.com/maps?q='+p.lat+','+p.lng+'" target="_blank" rel="noopener" style="color:var(--accent-finance);text-decoration:underline">'+ic('pin',13)+' '+L('Location','الموقع')+'</a>');
-    return parts.join(' - ');
+    const nm=[p.name?esc(p.name):(L('Place','مكان')+' '+(p.n||''))];
+    if(p.branch) nm.push(esc(p.branch));
+    const meta=['<span>'+fmtDay(p.last)+'</span>'];
+    if(p.lat!=null && p.lng!=null) meta.push('<a class="mlx-map" href="https://www.google.com/maps?q='+p.lat+','+p.lng+'" target="_blank" rel="noopener">'+ic('pin',13)+' '+L('Location','الموقع')+'</a>');
+    return '<div class="mlx-name">'+nm.join(' - ')+'</div><div class="mlx-meta">'+meta.join('')+'</div>';
   }
   function fmtDur(ms){ ms=Math.max(0,ms); const t=Math.floor(ms/1000), m=Math.floor(t/60), r=t%60; return m+':'+(r<10?'0':'')+r; }
   function progInner(){
-    const mut='color:var(--muted);font-size:calc(12px*var(--app-text-scale,1))';
-    if(!st.enabled) return '<div style="'+mut+'">'+L('Turn tracking on to start counting','شغّل التتبع عشان العدّاد يبدأ')+'</div>';
+    if(!st.enabled) return '<div class="mlx-prog-msg">'+L('Turn tracking on to start counting','شغّل التتبع عشان العدّاد يبدأ')+'</div>';
     const c=st.cand;
-    if(!c) return '<div style="'+mut+'">'+L('Waiting for the first location reading…','مستني أول قراءة للموقع…')+'</div>';
+    if(!c) return '<div class="mlx-prog-msg">'+L('Waiting for the first location reading…','مستني أول قراءة للموقع…')+'</div>';
     const total=st.minutes*60000, el=Date.now()-c.since, done=!!c.counted;
     const pct=done?100:Math.max(0,Math.min(100,el/total*100));
-    const bar='<div style="height:10px;border-radius:6px;background:rgba(128,128,128,.25);overflow:hidden"><div style="height:100%;width:'+pct.toFixed(1)+'%;border-radius:6px;background:var(--accent-finance);transition:width 1s linear"></div></div>';
+    const bar='<div class="mlx-track"><div class="mlx-fill" style="width:'+pct.toFixed(1)+'%"></div></div>';
     let line;
     if(done) line='<b>'+L('Visit recorded','تم تسجيل الزيارة')+'</b> · '+L('leave and come back for a new one','امشي وارجع عشان تتسجل زيارة جديدة');
     else if(el>=total) line='<b>'+L('Time reached','اكتملت المدة')+'</b> · '+L('saving on the next location check…','هتتسجل مع القراءة الجاية…');
     else line=L('Elapsed','عدّى')+' <b>'+fmtDur(el)+'</b> · '+L('Remaining','باقي')+' <b>'+fmtDur(total-el)+'</b>';
-    return '<div style="display:flex;justify-content:space-between;gap:8px;margin-bottom:6px;'+mut+'"><span>'+line+'</span><span>'+Math.round(pct)+'%</span></div>'+bar;
+    return '<div class="mlx-prog-row"><span>'+line+'</span><span class="mlx-pct">'+Math.round(pct)+'%</span></div>'+bar;
   }
   function tick(){
     const el=document.getElementById('mlProg');
@@ -40506,43 +40570,41 @@ const MLOC = (function(){
     const list=places.slice().sort((a,b)=>b.last-a.last);
     const on=!!st.enabled;
     const minLbl=(m)=>m===60?L('1 hr','ساعة'):m+' '+L('min','دقيقة');
-    const minBtn=(m)=>`<button onclick="MLOC.setMinutes(${m})" style="padding:7px 12px;border-radius:10px;border:1px solid var(--accent-finance);font-weight:700;cursor:pointer;${st.minutes===m?'background:var(--accent-finance);color:#fff':'background:transparent;color:var(--accent-finance)'}">${minLbl(m)}</button>`;
+    const minBtn=(m)=>`<button class="mlx-chip${st.minutes===m?' on':''}" aria-pressed="${st.minutes===m}" onclick="MLOC.setMinutes(${m})">${minLbl(m)}</button>`;
     const rows=list.map(p=>{
-      return `<div class="sc-card" style="padding:14px;margin-bottom:10px">
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
-          <div style="min-width:0">
-            <div style="font-weight:800;line-height:1.7;word-break:break-word">${titleLine(p)}</div>
-            <div style="color:var(--muted);font-size:calc(12px*var(--app-text-scale,1));margin-top:4px">${L('Visits','عدد الزيارات')}: <b>${p.visits||1}</b>${p.auto?` · ${L('auto','تلقائي')}: ${p.auto}`:''}</div>
-          </div>
-          <div style="display:flex;gap:6px;flex-shrink:0">
+      return `<div class="sc-card mlx-card">
+        <div class="mlx-card-top">
+          <div class="mlx-card-id">${titleLine(p)}</div>
+          <div class="mlx-acts">
             ${p.lat==null?`<button class="icon-btn" onclick="MLOC.attachLoc('${p.id}')" aria-label="${L('Link my current location','اربط بموقعي الحالي')}">${ic('pin',16)}</button>`:''}
             <button class="icon-btn" onclick="MLOC.addVisit('${p.id}')" aria-label="${L('Add a visit','زيارة جديدة')}">${ic('plus',16)}</button>
             <button class="icon-btn" onclick="MLOC.rename('${p.id}')" aria-label="${L('Rename','تعديل الاسم')}">${ic('edit',16)}</button>
             <button class="icon-btn" onclick="MLOC.remove('${p.id}')" aria-label="${L('Delete','مسح')}">${ic('trash',16)}</button>
           </div>
         </div>
+        <div class="mlx-stats"><span class="mlx-pill">${L('Visits','عدد الزيارات')} <b>${p.visits||1}</b></span>${p.auto?`<span class="mlx-pill">${L('auto','تلقائي')} <b>${p.auto}</b></span>`:''}</div>
         ${placeExtras(p)}
       </div>`;
     }).join('');
-    return `<div class="screen-wrap">
+    return `<div class="screen-wrap mlx">
       <div class="sc-header">
         <div class="sc-header-eyebrow">${L('Places','الأماكن')}</div>
         <div class="sc-header-title">${L('My Locations','أماكني')}</div>
         <div class="sc-header-sub">${L('Places where you stay are saved automatically','الأماكن اللي بتقعد فيها بتتسجل تلقائيًا')}</div>
       </div>
-      <div class="sc-card" style="padding:14px;margin-bottom:12px">
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px">
-          <div style="font-weight:800">${on?L('Tracking is on','التتبع شغّال'):L('Tracking is off','التتبع متوقف')}</div>
-          <button onclick="MLOC.toggle()" style="padding:8px 16px;border-radius:10px;border:0;font-weight:800;cursor:pointer;background:var(--accent-finance);color:#fff">${on?L('Turn off','إيقاف'):L('Turn on','تشغيل')}</button>
+      <div class="sc-card mlx-panel">
+        <div class="mlx-status">
+          <div class="mlx-status-l"><span class="mlx-dot${on?' on':''}"></span>${on?L('Tracking is on','التتبع شغّال'):L('Tracking is off','التتبع متوقف')}</div>
+          <button class="mlx-btn ${on?'ghost':'primary'}" onclick="MLOC.toggle()">${on?L('Turn off','إيقاف'):L('Turn on','تشغيل')}</button>
         </div>
-        <div id="mlProg" style="margin-bottom:14px">${progInner()}</div>
-        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px">
-          <span style="color:var(--muted);font-size:calc(12px*var(--app-text-scale,1))">${L('Save a place after staying','سجّل المكان بعد قعاد')}</span>${OPTS.map(minBtn).join('')}
-        </div>
-        <div style="color:var(--muted);font-size:calc(12px*var(--app-text-scale,1));line-height:1.6">${native()?L('Runs in the background (a notification stays visible while tracking). Data stays on this device only.','بيشتغل في الخلفية (بيظهر إشعار ثابت طول ما التتبع شغّال). البيانات بتفضل على الجهاز ده بس.'):L('Works while the app is open on screen (browser limit). Data stays on this device only.','بيشتغل والتطبيق مفتوح على الشاشة (قيد من المتصفح). البيانات بتفضل على الجهاز ده بس.')}</div>
+        <div id="mlProg">${progInner()}</div>
+        <div class="mlx-sep"></div>
+        <div class="mlx-label-s">${L('Save a place after staying','سجّل المكان بعد قعاد')}</div>
+        <div class="mlx-chips">${OPTS.map(minBtn).join('')}</div>
+        <div class="mlx-note">${native()?L('Runs in the background (a notification stays visible while tracking). Data stays on this device only.','بيشتغل في الخلفية (بيظهر إشعار ثابت طول ما التتبع شغّال). البيانات بتفضل على الجهاز ده بس.'):L('Works while the app is open on screen (browser limit). Data stays on this device only.','بيشتغل والتطبيق مفتوح على الشاشة (قيد من المتصفح). البيانات بتفضل على الجهاز ده بس.')}</div>
       </div>
       ${manualHTML()}
-      ${list.length?rows+`<div style="text-align:center;margin-top:6px"><button onclick="MLOC.clearAll()" style="background:transparent;border:0;color:var(--muted);text-decoration:underline;cursor:pointer">${L('Delete all places','مسح كل الأماكن')}</button></div>`
+      ${list.length?rows+`<div class="mlx-clear"><button class="mlx-linkbtn" onclick="MLOC.clearAll()">${L('Delete all places','مسح كل الأماكن')}</button></div>`
         :`<div class="sc-card"><div class="empty"><div class="ei">${ic('pin',32)}</div>${L('No places yet. Turn tracking on and keep the app open.','لسه مفيش أماكن. شغّل التتبع وسيب التطبيق مفتوح.')}</div></div>`}
     </div>`;
   }
