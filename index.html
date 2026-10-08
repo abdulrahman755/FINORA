@@ -7147,6 +7147,19 @@ html.wdash-sheet-lock,html.wdash-sheet-lock body{overflow:hidden}
 .banks-v2 .bnk-vc-controls .bnk-menu{color:var(--text)}
 .banks-v2 .bnk-vc-bottom{position:relative;z-index:1;display:flex;align-items:flex-end;justify-content:space-between;gap:8px}
 .banks-v2 .bnk-vc-holder{min-width:0}
+.banks-v2 .bnk-vc-acct{
+  position:relative;z-index:1;display:flex;flex-direction:column;align-items:flex-start;gap:3px;
+  margin:12px 0 0;cursor:pointer;direction:ltr;-webkit-tap-highlight-color:transparent
+}
+.banks-v2 .bnk-vc-acct-lbl{font-size:calc(8.5px*var(--app-text-scale,1));font-weight:700;letter-spacing:.3px;opacity:.75}
+.banks-v2 .bnk-vc-acct-num{
+  display:inline-flex;align-items:center;gap:8px;max-width:100%;
+  font-family:ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+  font-size:calc(15px*var(--app-text-scale,1));font-weight:700;letter-spacing:1.6px;
+  font-variant-numeric:tabular-nums;white-space:nowrap;text-shadow:0 1px 2px rgba(0,0,0,.25)
+}
+.banks-v2 .bnk-vc-acct-num svg{flex-shrink:0;opacity:.7}
+.banks-v2 .bnk-vc-acct:active .bnk-vc-acct-num{opacity:.7}
 .banks-v2 .bnk-vc-holder-lbl{font-size:calc(8.5px*var(--app-text-scale,1));font-weight:700;text-transform:none;letter-spacing:0.3px;opacity:.75;margin-bottom:2px}
 .banks-v2 .bnk-vc-holder-name{font-size:calc(12px*var(--app-text-scale,1));font-weight:800;letter-spacing:.6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px}
 .banks-v2 .bnk-vc-network{flex-shrink:0;display:flex;align-items:center;gap:6px}
@@ -9254,6 +9267,115 @@ body .screen-wrap .sc-header.sav-plain-header.sav-plain-header::after{display:no
 .rpt-cta2 em{font-style:normal;min-width:20px;height:20px;padding:0 6px;border-radius:99px;display:inline-flex;align-items:center;justify-content:center;font-size:calc(10.5px*var(--app-text-scale,1));font-weight:800;background:var(--surface2);color:var(--muted)}
 .rpt-paper{max-height:50vh}
 .rpt-auto{border-radius:16px;margin:10px 0 2px}
+
+/* ═══════════════════════════════════════════════════════════════════
+   BANKS — quiet-luxury refinement pass
+   Principles: solid surfaces (no glass/blur/glow), hairline dividers that
+   inherit the card's own text colour, one consistent 2-column data grid,
+   small tracked labels over confident numerals, flat controls.
+   All selectors are scoped to .banks-v2 and sit last in the sheet.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* header badges */
+.banks-v2 .bnk-card-badge{font-weight:700;letter-spacing:.7px;padding:3px 10px;font-size:calc(9px*var(--app-text-scale,1))}
+
+/* ── the card itself ── */
+.banks-v2 .bnk-visacard.bnk-visacard-expanded{
+  min-height:0;padding:22px 20px 18px;border-radius:22px;margin-bottom:16px;
+  box-shadow:0 14px 30px -16px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.06)
+}
+.banks-v2 .bnk-visacard-expanded .bnk-vc-sheen{opacity:.4}
+.banks-v2 .bnk-visacard-expanded .bnk-vc-balance{margin:16px 0 0}
+.banks-v2 .bnk-visacard-expanded .bnk-vc-balance-top{margin-bottom:6px}
+
+/* label above balance + FX toggle: understated */
+.banks-v2 .bnk-visacard-expanded .bnk-vc-balance .bal-avail-label{
+  font-size:calc(10px*var(--app-text-scale,1));font-weight:600;letter-spacing:.9px;text-transform:uppercase;opacity:.8
+}
+.banks-v2 .bnk-visacard-expanded .bnk-vc-balance .bal-fx-toggle{
+  background:transparent;border:1px solid color-mix(in srgb,currentColor 30%,transparent);
+  backdrop-filter:none;-webkit-backdrop-filter:none;padding:5px 11px;
+  font-size:calc(9px*var(--app-text-scale,1));font-weight:700;letter-spacing:.9px
+}
+.banks-v2 .bnk-visacard-expanded .bnk-vc-balance .bal-avail-amount{margin-bottom:20px;letter-spacing:.2px}
+
+/* numerals: no glow on plain cards (photo cards keep their legibility shadow) */
+.banks-v2 .bnk-visacard-expanded:not(.bnk-vc-photo) .bal-avail-amount,
+.banks-v2 .bnk-visacard-expanded:not(.bnk-vc-photo) .bal-meta-value,
+.banks-v2 .bnk-visacard-expanded:not(.bnk-vc-photo) .bal-fx-chip-val{text-shadow:none}
+
+/* ── data grid: one rhythm for every stat ── */
+.banks-v2 .bnk-visacard-expanded .bal-meta-row{
+  display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:0;row-gap:18px;align-items:start;
+  border-top:1px solid color-mix(in srgb,currentColor 14%,transparent);padding-top:16px;margin:0
+}
+.banks-v2 .bnk-visacard-expanded .bal-meta-row:has(>.bal-meta-item:only-child){grid-template-columns:minmax(0,1fr);margin-bottom:16px!important}
+.banks-v2 .bnk-visacard-expanded .bal-meta-item{
+  min-width:0!important;margin:0!important;border:0!important;gap:6px;
+  padding-block:0!important;padding-inline-start:0!important;padding-inline-end:10px!important
+}
+.banks-v2 .bnk-visacard-expanded .bal-meta-row:not(:has(>.bal-meta-item:only-child)) .bal-meta-item:nth-child(even){
+  border-inline-start:1px solid color-mix(in srgb,currentColor 14%,transparent)!important;
+  padding-inline-start:18px!important;padding-inline-end:0!important
+}
+.banks-v2 .bnk-visacard-expanded .bal-meta-label{
+  font-size:calc(9px*var(--app-text-scale,1));font-weight:600;letter-spacing:.7px;text-transform:uppercase;opacity:.72;
+  display:flex;align-items:center;gap:5px
+}
+.banks-v2 .bnk-visacard-expanded .bal-meta-value{
+  font-size:calc(13.5px*var(--bnk-num-scale,1));font-weight:700;letter-spacing:.2px;
+  font-variant-numeric:tabular-nums;white-space:nowrap
+}
+
+/* ── currency chips: flat, even ── */
+.banks-v2 .bnk-visacard-expanded .bal-fx-row{
+  gap:8px;border-top:1px solid color-mix(in srgb,currentColor 14%,transparent);padding-top:16px;margin-top:18px
+}
+.banks-v2 .bnk-visacard-expanded .bal-fx-chip{
+  flex:1 0 auto;min-width:72px;gap:3px;padding:9px 11px;border-radius:12px;
+  background:color-mix(in srgb,currentColor 7%,transparent);border:1px solid color-mix(in srgb,currentColor 12%,transparent)
+}
+.banks-v2 .bnk-visacard-expanded .bal-fx-chip-code{font-size:calc(8.5px*var(--app-text-scale,1));font-weight:600;letter-spacing:.9px;opacity:.7}
+.banks-v2 .bnk-visacard-expanded .bal-fx-chip-val{font-size:calc(12px*var(--bnk-num-scale,1));font-weight:700}
+.banks-v2 .bnk-visacard-expanded .bal-fx-note{margin-top:12px;font-weight:500;opacity:.65;letter-spacing:.2px}
+
+/* ── card footer: separated, calm ── */
+.banks-v2 .bnk-visacard-expanded .bnk-vc-bottom{
+  margin-top:18px;padding-top:14px;border-top:1px solid color-mix(in srgb,currentColor 14%,transparent);align-items:flex-end
+}
+.banks-v2 .bnk-visacard-expanded .bnk-vc-holder-lbl{font-weight:600;letter-spacing:.9px;text-transform:uppercase;opacity:.65;margin-bottom:4px}
+.banks-v2 .bnk-visacard-expanded .bnk-vc-holder-name{font-size:calc(13px*var(--app-text-scale,1));font-weight:700;letter-spacing:1.4px}
+
+/* ── add-movement form: a solid sheet, not frosted glass ── */
+.banks-v2 .sc-add-row{
+  margin:0;padding:18px 16px 16px;gap:16px;border-radius:18px;
+  background:var(--surface);border:1px solid var(--border);
+  box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none
+}
+.banks-v2 .sc-add-label{
+  font-size:calc(10px*var(--app-text-scale,1));font-weight:700;letter-spacing:.9px;text-transform:uppercase;
+  color:var(--muted);opacity:1;padding-inline-start:0
+}
+.banks-v2 .tx-type-toggle,.banks-v2 .wm-toggle{
+  padding:3px;gap:3px;border-radius:12px;border:0;background:var(--surface2);box-shadow:none
+}
+.banks-v2 .tx-type-toggle button,.banks-v2 .wm-toggle button{
+  border-radius:10px;font-weight:600;letter-spacing:.2px;min-height:42px;transform:none
+}
+.banks-v2 .tx-type-toggle button.active,.banks-v2 .wm-toggle button.active{
+  background:var(--active-c,var(--green));color:#fff;font-weight:700;box-shadow:none;transform:none
+}
+.banks-v2 .sc-add-row input,.banks-v2 .sc-add-row select{
+  background:var(--surface2);border:1.5px solid transparent;border-radius:12px;box-shadow:none;font-weight:600
+}
+.banks-v2 .sc-add-row input:focus,.banks-v2 .sc-add-row select:focus{
+  background:var(--surface);border-color:var(--green);box-shadow:none
+}
+.banks-v2 .sc-add-submit{
+  background:var(--accent,var(--fin-outcome));border-radius:14px;box-shadow:none;
+  font-weight:700;letter-spacing:.3px;min-height:50px
+}
+.banks-v2 .sc-add-submit:active{transform:scale(.99);box-shadow:none;opacity:.92}
 </style>
 <script>
 // Suppress cross-origin Script errors (in-app browsers like TikTok/Instagram)
@@ -22136,6 +22258,84 @@ const BANK_INTEREST_KEY='wdp_bank_interest_v1';
 let bankInterestSettings={};
 try{ const ri=localStorage.getItem(BANK_INTEREST_KEY); if(ri) bankInterestSettings=JSON.parse(ri); }catch(e){_logErr('bankInterestSettings:read',e);}
 function persistBankInterest(){ try{localStorage.setItem(BANK_INTEREST_KEY,JSON.stringify(bankInterestSettings));}catch(e){_logErr('persistBankInterest:setItem',e);} }
+
+// ── Bank / wallet account numbers (per bank key, shown on the card face) ──
+const BANK_ACCT_NUM_KEY='wdp_bank_acct_nums_v1';
+let bankAccountNumbers={};
+try{ const rn=localStorage.getItem(BANK_ACCT_NUM_KEY); if(rn) bankAccountNumbers=JSON.parse(rn)||{}; }catch(e){_logErr('bankAccountNumbers:read',e);}
+function persistBankAcctNums(){ try{localStorage.setItem(BANK_ACCT_NUM_KEY,JSON.stringify(bankAccountNumbers));}catch(e){_logErr('persistBankAcctNums:setItem',e);} }
+// Letters/digits/space/dash only (covers plain account numbers, IBANs, wallet numbers).
+function _bankAcctSanitize(v){ return String(v||'').replace(/[^A-Za-z0-9 \-]/g,'').slice(0,40); }
+function _bankAcctRaw(v){ return String(v||'').replace(/[\s\-]/g,''); }
+function _bankAcctFormat(v){
+  const raw=_bankAcctRaw(v);
+  return /^[A-Za-z0-9]+$/.test(raw) ? raw.toUpperCase().replace(/(.{4})/g,'$1 ').trim() : String(v||'');
+}
+function _bnkAcctHTML(key, vis){
+  const v=bankAccountNumbers[key];
+  if(!v) return '';
+  const shown = vis ? _bankAcctFormat(v) : ('\u2022\u2022\u2022\u2022 ' + _bankAcctRaw(v).slice(-4));
+  return '<div class="bnk-vc-acct" onclick="event.stopPropagation();bankAcctCopy(\''+key+'\')" title="'+L('Tap to copy','اضغط للنسخ')+'">'
+    + '<span class="bnk-vc-acct-lbl">'+L('Account No.','رقم الحساب')+'</span>'
+    + '<span class="bnk-vc-acct-num">'+esc(shown)+ic('copy',12)+'</span></div>';
+}
+function bankAcctCopy(key){
+  const t=_bankAcctRaw(bankAccountNumbers[key]);
+  if(!t) return;
+  const done=()=>showToast(L('Account number copied \u2713','تم نسخ رقم الحساب \u2713'),'success');
+  const fb=()=>{
+    try{
+      const ta=document.createElement('textarea'); ta.value=t; ta.style.cssText='position:fixed;opacity:0;top:0;left:0';
+      document.body.appendChild(ta); ta.focus(); ta.select();
+      const ok=document.execCommand('copy'); ta.remove();
+      ok?done():showToast(L('Copy failed','تعذّر النسخ'),'warn');
+    }catch(e){ _logErr('bankAcctCopy:fallback',e); }
+  };
+  if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(done,fb); else fb();
+}
+function openBankAcctNumModal(key){
+  const b=getAllBanks().find(x=>x.key===key);
+  if(!b) return;
+  const cur=bankAccountNumbers[key]||'';
+  document.getElementById('modalContent').innerHTML=`
+    <div class="modal-handle"></div>
+    <div class="modal-hdr">
+      <div class="modal-hdr-icon" style="background:linear-gradient(135deg,var(--green-dark),var(--green))">${ic('id',22)}</div>
+      <div>
+        <div class="modal-hdr-title">${L('Account Number','رقم الحساب')}</div>
+        <div class="modal-hdr-sub">${esc(bankDisplayName(b.name))}</div>
+      </div>
+    </div>
+    <div class="field">
+      <label>${L('Account / IBAN / Wallet number','رقم الحساب / IBAN / رقم المحفظة')}</label>
+      <input type="text" id="bankAcctNumInput" dir="ltr" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="40"
+        value="${esc(cur)}" placeholder="${L('e.g. 1234 5678 9012','مثال: 1234 5678 9012')}"
+        oninput="var c=_bankAcctSanitize(this.value);if(c!==this.value)this.value=c"
+        style="font-size:calc(18px*var(--app-text-scale,1));font-weight:800;letter-spacing:1px;font-variant-numeric:tabular-nums">
+    </div>
+    <div class="modal-btns">
+      <button class="mbtn save" onclick="saveBankAcctNum('${key}')">${ic('check',15)} ${L('Save','حفظ')}</button>
+      ${cur?`<button class="mbtn danger" onclick="removeBankAcctNum('${key}')">${ic('trash',15)} ${L('Remove number','حذف الرقم')}</button>`:''}
+      <button class="mbtn cancel" onclick="closeModal()">${L('Cancel','إلغاء')}</button>
+    </div>`;
+  document.getElementById('modalOverlay').style.display='flex';
+  setTimeout(()=>{ const i=document.getElementById('bankAcctNumInput'); if(i) i.focus(); },120);
+}
+function saveBankAcctNum(key){
+  const v=_bankAcctSanitize((document.getElementById('bankAcctNumInput')||{}).value||'').trim();
+  if(v) bankAccountNumbers[key]=v; else delete bankAccountNumbers[key];
+  persistBankAcctNums();
+  closeModal();
+  renderView();
+  showToast(v ? L('\u2713 Account number saved','\u2713 تم حفظ رقم الحساب') : L('Account number removed','تم حذف رقم الحساب'),'success');
+}
+function removeBankAcctNum(key){
+  delete bankAccountNumbers[key];
+  persistBankAcctNums();
+  closeModal();
+  renderView();
+  showToast(L('Account number removed','تم حذف رقم الحساب'),'success');
+}
 // ── Egyptian bank default interest rates (savings accounts) ─────────────────
 // معدلات فائدة افتراضية للبنوك المصرية — مبنية على معدلات CBE 2025
 // المستخدم يقدر يعدلها يدوياً من زرار الفائدة في الكارت
@@ -23032,6 +23232,7 @@ function deleteBankConfirm(key){
     } else {
       CUSTOM_BANKS=CUSTOM_BANKS.filter(bb=>bb.key!==key);
       persistBanks();
+      if(bankAccountNumbers[key]){ delete bankAccountNumbers[key]; persistBankAcctNums(); }
     }
     if(banksOrder) banksOrder=banksOrder.filter(k=>k!==key);
     persistBanksOrder();
@@ -23892,6 +24093,12 @@ function renderBanks(m){
     // been set at all.
     const cardNumFg = cc.numbersColor || cardAutoFg;
     const numVars=bnkNumberStyleVars(cc);
+    // Header pills: when the card has a custom background, derive the pill
+    // colours from that background's readable text colour instead of the
+    // accent (accent-on-accent was nearly invisible on a dark-red card).
+    const _bdgBg = cardBg ? (cardAutoFg==='#ffffff' ? 'rgba(255,255,255,.16)' : 'rgba(0,0,0,.08)') : '';
+    const _bdgStyle1 = cardBg ? `background:${_bdgBg};color:${cardAutoFg}` : `background:${accentColor}18;color:${accentColor}`;
+    const _bdgStyle2 = cardBg ? `background:${_bdgBg};color:${cardAutoFg};margin-inline-start:4px` : `background:var(--green-tint);color:var(--green);margin-inline-start:4px`;
     const isWallet=b.isWallet||false;
     const _logoSrc=getBankLogoSrc(b);
     const logoHTML = _logoSrc
@@ -23922,6 +24129,7 @@ function renderBanks(m){
               <button type="button" class="bnk-menu-item" onclick="bnkCloseOverflow();toggleBal('${b.key}')">${eyeSVG(vis)} ${vis?L('Hide Balance','إخفاء الرصيد'):L('Show Balance','إظهار الرصيد')}</button>
               <button type="button" class="bnk-menu-item" onclick="bnkCloseOverflow();openBankColorPicker('${b.key}')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="8.5" cy="9" r="1.5" fill="currentColor" stroke="none"/><circle cx="15.5" cy="9" r="1.5" fill="currentColor" stroke="none"/><circle cx="12" cy="15" r="1.5" fill="currentColor" stroke="none"/></svg> ${L('Customize Card','تخصيص الكارت')}</button>
               <button type="button" class="bnk-menu-item" onclick="bnkCloseOverflow();openBankLogoChanger('${b.key}')">${ic('photo',15)} ${L('Change Logo','تغيير اللوجو')}</button>
+              <button type="button" class="bnk-menu-item" onclick="bnkCloseOverflow();openBankAcctNumModal('${b.key}')">${ic('id',15)} ${L('Account Number','رقم الحساب')}</button>
               <button type="button" class="bnk-menu-item" onclick="bnkCloseOverflow();openBankInterestModal('${b.key}')" style="${monthInt>0?'color:var(--green)':''}"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg> ${L('Interest Rate','سعر الفائدة')}</button>
               <div class="bnk-menu-divider"></div>
               <button type="button" class="bnk-menu-item danger" onclick="bnkCloseOverflow();deleteBankConfirm('${b.key}')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6l-1 13a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v5m4-5v5"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg> ${L('Delete Account','حذف الحساب')}</button>`;
@@ -23937,8 +24145,8 @@ function renderBanks(m){
           ${logoHTML}
           <div style="min-width:0;flex:1">
             <div class="bnk-card-name" style="${nameColor?'color:'+nameColor:(cardAutoFg?'color:'+cardAutoFg:'')}">${esc(bankDisplayName(b.name))}</div>
-            <span class="bnk-card-badge" style="background:${accentColor}18;color:${accentColor}">${typeBadge}</span>
-            ${monthInt>0?`<span class="bnk-card-badge" style="background:var(--green-tint);color:var(--green);margin-inline-start:4px">${L('Interest','فائدة')}</span>`:''}
+            <span class="bnk-card-badge" style="${_bdgStyle1}">${typeBadge}</span>
+            ${monthInt>0?`<span class="bnk-card-badge" style="${_bdgStyle2}">${L('Interest','فائدة')}</span>`:''}
           </div>
           <div class="bnk-card-controls">
             <div class="bnk-drag drag-handle" data-key="${b.key}" touch-action="none" style="touch-action:none;-webkit-user-select:none;user-select:none" onclick="event.stopPropagation()"><svg width="14" height="18" viewBox="0 0 16 20" fill="none"><circle cx="5" cy="4" r="1.6" fill="currentColor"/><circle cx="11" cy="4" r="1.6" fill="currentColor"/><circle cx="5" cy="10" r="1.6" fill="currentColor"/><circle cx="11" cy="10" r="1.6" fill="currentColor"/><circle cx="5" cy="16" r="1.6" fill="currentColor"/><circle cx="11" cy="16" r="1.6" fill="currentColor"/></svg></div>
@@ -23971,6 +24179,7 @@ function renderBanks(m){
               <div class="bnk-vc-chip" style="background:linear-gradient(135deg,${vcard.chip},${_bnkShade(vcard.chip,-25)})"><span></span><span></span><span></span></div>
               <svg class="bnk-vc-nfc" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="${vcard.fg}" stroke-width="2" stroke-linecap="round"><path d="M8.5 8.5a5 5 0 0 1 0 7"/><path d="M11.5 5.5a9 9 0 0 1 0 13"/><path d="M14.5 2.5a13 13 0 0 1 0 19"/></svg>
             </div>
+            ${_bnkAcctHTML(b.key,vis)}
             <div class="bnk-vc-balance${vcard.light?' bnk-vc-light':''}">
               <div class="bnk-vc-balance-top">
                 <div class="bal-avail-label">${L('Available Balance','الرصيد المتاح')}</div>
@@ -23997,6 +24206,7 @@ function renderBanks(m){
               <div class="bnk-vc-chip" style="background:linear-gradient(135deg,${simCard.chip},${_bnkShade(simCard.chip,-25)})"><span></span><span></span><span></span></div>
               <svg class="bnk-vc-nfc" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="${simCard.fg}" stroke-width="2" stroke-linecap="round"><path d="M8.5 8.5a5 5 0 0 1 0 7"/><path d="M11.5 5.5a9 9 0 0 1 0 13"/><path d="M14.5 2.5a13 13 0 0 1 0 19"/></svg>
             </div>
+            ${_bnkAcctHTML(b.key,vis)}
             <div class="bnk-vc-balance${simCard.light?' bnk-vc-light':''}">
               <div class="bnk-vc-balance-top">
                 <div class="bal-avail-label">${L('Available Balance','الرصيد المتاح')}</div>
@@ -24312,6 +24522,13 @@ function openAddBank(){
       <div id="interestPreviewNote" style="font-size:calc(11px*var(--app-text-scale,1));color:var(--muted);margin-top:3px"></div>
     </div>
 
+    <div class="field">
+      <label>${L('Account Number','رقم الحساب')} <span class="f-opt">${L('(optional)','(اختياري)')}</span></label>
+      <input type="text" id="newBankAcctNum" dir="ltr" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="40"
+        placeholder="${L('e.g. 1234 5678 9012','مثال: 1234 5678 9012')}"
+        oninput="var c=_bankAcctSanitize(this.value);if(c!==this.value)this.value=c">
+    </div>
+
     <div class="modal-btns"><button class="mbtn save" onclick="saveNewBank()">${ic('check',16)} ${L('Add Bank','إضافة بنك')}</button><button class="mbtn cancel" onclick="closeModal()">${ic('close',15)} ${L('Cancel','إلغاء')}</button></div>`;
   document.getElementById('modalOverlay').style.display='flex';
 }
@@ -24519,6 +24736,8 @@ function saveNewBank(){
 
   CUSTOM_BANKS.push({key, name, color, accentColor:color, logoSrc, accountType, country});
   persistBanks();
+  const _acctNum = _bankAcctSanitize((document.getElementById('newBankAcctNum')||{}).value||'').trim();
+  if(_acctNum){ bankAccountNumbers[key]=_acctNum; persistBankAcctNums(); }
 
   // ── Auto-assign interest via InterestRateService ───────────────────────────
   const assignedRate = InterestRateService.autoAssignInterest(key, name, accountType);
@@ -25784,6 +26003,7 @@ function exportBackup() {
         banksOrder:  banksOrder,
         // ── Added in v2.2: previously-omitted data families (see storage audit) ──
         bankInterestSettings: bankInterestSettings,
+        bankAccountNumbers:   bankAccountNumbers,
         // ── Added with MIORA action layer ──
         bankFeeOverrides:     bankFeeOverrides,
         countryRateData:      countryRateData,
@@ -25996,6 +26216,7 @@ function _doRestore() {
       // files (v2.0/v2.1) simply won't have these keys, so each falls back to
       // its current in-memory value and is left untouched.
       bankInterestSettings = d.bankInterestSettings || bankInterestSettings;
+      bankAccountNumbers   = d.bankAccountNumbers   || bankAccountNumbers;
       bankFeeOverrides   = d.bankFeeOverrides    || bankFeeOverrides;
       countryRateData    = d.countryRateData     || countryRateData;
       SAVINGS            = d.savings             || SAVINGS;
@@ -26021,7 +26242,7 @@ function _doRestore() {
     }
     persistData(); persistCurrency(CURRENT_CURRENCY); persistBanks();
     persistHiddenBanks(); persistBankColors(); persistBanksOrder(); persistMonths();
-    persistBankInterest(); persistBankFeeOverrides(); persistCountryRates();
+    persistBankInterest(); persistBankFeeOverrides(); persistCountryRates(); persistBankAcctNums();
     saveSavings(); tlSave();
     saveReminders(); savePlanner();
     if(typeof SoundManager!=='undefined') SoundManager.play(SoundManager.SOUND.DATA.RESTORE);
