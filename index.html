@@ -40130,7 +40130,7 @@ const MLOC = (function(){
   const PLACES_KEY='wdp_myloc_places_v1', STATE_KEY='wdp_myloc_state_v1';
   const RADIUS_M=120, MAX_ACC_M=100, MAX_GAP_MS=3*3600*1000, MAX_PLACES=200, SAVE_EVERY_MS=30000;
   const OPTS=[5,10,15,30,45,60];
-  let hbId=null, tickId=null, _np, formOpen=false;
+  let hbId=null, tickId=null, _np, formOpen=false, formRating=0;
   // Native (Capacitor) background watcher, if the app is wrapped; null on the web.
   function native(){
     if(_np!==undefined) return _np;
@@ -40246,12 +40246,12 @@ const MLOC = (function(){
   }
   function remove(id){
     load(); if(!confirm(L('Delete this place?','مسح المكان ده؟'))) return;
-    places=places.filter(x=>x.id!==id); savePlaces(); refresh();
+    places=places.filter(x=>x.id!==id); phDropPlace(id); savePlaces(); refresh();
   }
   function clearAll(){
     load(); if(!places.length) return;
     if(!confirm(L('Delete all saved places?','مسح كل الأماكن المسجّلة؟'))) return;
-    places=[]; st.cand=null; savePlaces(); saveState(true); refresh();
+    places=[]; st.cand=null; phDropAll(); savePlaces(); saveState(true); refresh();
   }
   function esc(s){ return String(s).replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch])); }
   function fmt(ts){
@@ -40261,7 +40261,7 @@ const MLOC = (function(){
   }
   // ── Manual entry: add a place (optionally at the current position) or +1 visit ──
   function dayStr(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
-  function toggleForm(){ formOpen=!formOpen; refresh(); }
+  function toggleForm(){ formOpen=!formOpen; formRating=0; refresh(); }
   function addVisit(id){
     load(); const p=places.find(x=>x.id===id); if(!p) return;
     p.visits=(p.visits||0)+1; p.last=Date.now();
@@ -40284,17 +40284,17 @@ const MLOC = (function(){
     if(!p && name){ const k=name.toLowerCase(), bk=(branch||'').toLowerCase(); p=places.find(x=>x.name && x.name.toLowerCase()===k && (x.branch||'').toLowerCase()===bk)||null; }
     let msg;
     if(p){
-      p.visits=(p.visits||0)+cnt; if(ts>p.last) p.last=ts; if(!p.name && name) p.name=name; if(!p.branch && branch) p.branch=branch;
+      p.visits=(p.visits||0)+cnt; if(ts>p.last) p.last=ts; if(!p.name && name) p.name=name; if(!p.branch && branch) p.branch=branch; if(formRating>0) p.rating=formRating;
       if((p.lat==null||p.lng==null) && lat!=null){ p.lat=lat; p.lng=lng; }
       msg=L('Place already saved, visits updated','المكان موجود، اتحدّثت الزيارات');
     } else {
       const n=places.reduce((m,x)=>Math.max(m,x.n||0),0)+1;
-      places.push({id:'ml'+Date.now().toString(36)+n,n:n,lat:lat,lng:lng,name:name,branch:branch,visits:cnt,first:ts,last:ts});
+      places.push({id:'ml'+Date.now().toString(36)+n,n:n,lat:lat,lng:lng,name:name,branch:branch,rating:formRating,visits:cnt,first:ts,last:ts});
       if(places.length>MAX_PLACES){ places.sort((a,b)=>b.last-a.last); places.length=MAX_PLACES; }
       msg=L('Place added','تمت إضافة المكان');
     }
     if(lat!=null && st.cand && !st.cand.counted && dist(st.cand.lat,st.cand.lng,lat,lng)<=RADIUS_M){ st.cand.counted=true; saveState(true); }
-    savePlaces(); formOpen=false;
+    savePlaces(); formOpen=false; formRating=0;
     try{ showToast(msg); }catch(e){}
     refresh();
   }
@@ -40326,10 +40326,142 @@ const MLOC = (function(){
       +'<label style="'+lab+'" for="mlBranch">'+L('Branch / area (optional)','الفرع / المنطقة (اختياري)')+'</label><input id="mlBranch" type="text" maxlength="60" style="'+inp+'">'
       +'<div style="display:flex;gap:10px"><div style="flex:1"><label style="'+lab+'" for="mlDate">'+L('Visit date','تاريخ الزيارة')+'</label><input id="mlDate" type="date" max="'+dayStr(new Date())+'" value="'+dayStr(new Date())+'" style="'+inp+'"></div>'
       +'<div style="width:90px"><label style="'+lab+'" for="mlCnt">'+L('Visits','الزيارات')+'</label><input id="mlCnt" type="number" min="1" max="999" value="1" style="'+inp+'"></div></div>'
+      +'<div style="'+lab+'">'+L('Rating (optional)','التقييم (اختياري)')+'</div><div>'+starBtns(formRating,function(i){ return 'MLOC.setFormRating('+i+')'; },'mlFS')+'</div>'
       +'<label style="display:flex;align-items:center;gap:8px;margin-top:12px;cursor:pointer"><input id="mlUseLoc" type="checkbox" checked> <span>'+L('Use my current location','استخدم موقعي الحالي')+'</span></label>'
       +'<div style="display:flex;gap:8px;margin-top:14px"><button onclick="MLOC.saveManual()" style="flex:1;padding:10px;border-radius:10px;border:0;font-weight:800;cursor:pointer;background:var(--accent-finance);color:#fff">'+L('Save','حفظ')+'</button>'
       +'<button onclick="MLOC.toggleForm()" style="padding:10px 16px;border-radius:10px;border:1px solid rgba(128,128,128,.4);background:transparent;color:inherit;cursor:pointer">'+L('Cancel','إلغاء')+'</button></div>'
       +'</div>';
+  }
+  // ── Photos (IndexedDB, not localStorage: photos must never eat the quota the finance data lives in) ──
+  // Backup bridge: see the hooks after the module — photos travel inside backups under data.extras.
+  const PH_DB='wdp-myloc-db', PH_STORE='photos', MAX_PHOTOS=4, PH_MAX_CHARS=140000;
+  const STAR_ON='#f5a623', STAR_OFF='rgba(128,128,128,.45)';
+  const PH_RE=/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+\/=]+$/;
+  let photos={}, phLoaded=false, phStarted=false, _phDb=null;
+  function toast(m){ try{ showToast(m); }catch(e){} }
+  function phOpen(){
+    return new Promise(function(res,rej){
+      if(_phDb) return res(_phDb);
+      if(typeof indexedDB==='undefined') return rej(new Error('IndexedDB unavailable'));
+      let r; try{ r=indexedDB.open(PH_DB,1); }catch(e){ return rej(e); }
+      r.onupgradeneeded=function(){ const d=r.result; if(!d.objectStoreNames.contains(PH_STORE)) d.createObjectStore(PH_STORE,{keyPath:'id'}); };
+      r.onsuccess=function(){ _phDb=r.result; res(_phDb); };
+      r.onerror=function(){ rej(r.error||new Error('IndexedDB error')); };
+    });
+  }
+  function phTx(mode,fn){
+    return phOpen().then(function(db){
+      return new Promise(function(res,rej){
+        const tx=db.transaction(PH_STORE,mode); let out;
+        try{ out=fn(tx.objectStore(PH_STORE)); }catch(e){ return rej(e); }
+        tx.oncomplete=function(){ res(out&&out.result!==undefined?out.result:undefined); };
+        tx.onerror=tx.onabort=function(){ rej(tx.error||new Error('IndexedDB transaction failed')); };
+      });
+    });
+  }
+  function phLoad(){
+    return phTx('readonly',function(s){ return s.getAll(); }).then(function(all){
+      photos={};
+      (all||[]).forEach(function(r){ if(r&&r.pid&&r.data){ (photos[r.pid]=photos[r.pid]||[]).push(r); } });
+      Object.keys(photos).forEach(function(k){ photos[k].sort(function(a,b){ return (a.ts||0)-(b.ts||0); }); });
+      phLoaded=true; refresh();
+    });
+  }
+  function phEnsure(){ if(phStarted) return; phStarted=true; phLoad().catch(function(){}); }
+  function phPut(rec){ return phTx('readwrite',function(s){ return s.put(rec); }); }
+  function phDel(id){ return phTx('readwrite',function(s){ return s.delete(id); }); }
+  function phDropPlace(pid){ (photos[pid]||[]).forEach(function(r){ phDel(r.id).catch(function(){}); }); delete photos[pid]; }
+  function phDropAll(){ photos={}; phTx('readwrite',function(s){ return s.clear(); }).catch(function(){}); }
+  // Downscale + re-encode so a photo costs ~70-100 KB instead of several MB.
+  function compress(file){
+    return new Promise(function(res,rej){
+      const url=URL.createObjectURL(file), img=new Image();
+      img.onload=function(){
+        try{
+          const steps=[[1000,.7],[900,.6],[800,.5],[700,.45],[600,.4]];
+          for(let i=0;i<steps.length;i++){
+            const sc=Math.min(1,steps[i][0]/Math.max(img.naturalWidth,img.naturalHeight,1));
+            const cv=document.createElement('canvas');
+            cv.width=Math.max(1,Math.round(img.naturalWidth*sc)); cv.height=Math.max(1,Math.round(img.naturalHeight*sc));
+            cv.getContext('2d').drawImage(img,0,0,cv.width,cv.height);
+            const d=cv.toDataURL('image/jpeg',steps[i][1]);
+            if(d.length<=PH_MAX_CHARS){ URL.revokeObjectURL(url); return res(d); }
+          }
+          URL.revokeObjectURL(url); rej(new Error('image too large'));
+        }catch(e){ URL.revokeObjectURL(url); rej(e); }
+      };
+      img.onerror=function(){ URL.revokeObjectURL(url); rej(new Error('unreadable image')); };
+      img.src=url;
+    });
+  }
+  function addPhoto(pid,inp){
+    const f=inp&&inp.files&&inp.files[0];
+    if(inp){ try{ inp.value=''; }catch(e){} }
+    if(!f) return; load();
+    if(!places.some(function(x){ return x.id===pid; })) return;
+    if((photos[pid]||[]).length>=MAX_PHOTOS){ toast(L('Up to '+MAX_PHOTOS+' photos per place','أقصى عدد '+MAX_PHOTOS+' صور لكل مكان')); return; }
+    toast(L('Saving photo…','بحفظ الصورة…'));
+    compress(f).then(function(data){
+      const rec={id:'ph'+Date.now().toString(36)+Math.random().toString(36).slice(2,6),pid:pid,data:data,ts:Date.now()};
+      return phPut(rec).then(function(){ (photos[pid]=photos[pid]||[]).push(rec); toast(L('Photo saved','تم حفظ الصورة')); refresh(); });
+    }).catch(function(){ toast(L('Could not save the photo','تعذّر حفظ الصورة')); });
+  }
+  function deletePhoto(pid,id){
+    phDel(id).then(function(){ photos[pid]=(photos[pid]||[]).filter(function(r){ return r.id!==id; }); refresh(); })
+      .catch(function(){ toast(L('Could not delete the photo','تعذّر مسح الصورة')); });
+  }
+  function closePhoto(){ const o=document.getElementById('mlPhotoView'); if(o&&o.parentNode) o.parentNode.removeChild(o); }
+  function openPhoto(pid,id){
+    const rec=(photos[pid]||[]).find(function(x){ return x.id===id; }); if(!rec) return;
+    closePhoto();
+    const ov=document.createElement('div'); ov.id='mlPhotoView';
+    ov.style.cssText='position:fixed;top:0;left:0;right:0;bottom:0;z-index:99999;background:rgba(0,0,0,.88);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:16px;padding-top:calc(16px + env(safe-area-inset-top,0px));padding-bottom:calc(16px + env(safe-area-inset-bottom,0px))';
+    ov.addEventListener('click',function(e){ if(e.target===ov) closePhoto(); });
+    const im=document.createElement('img'); im.src=rec.data; im.style.cssText='max-width:100%;max-height:75%;border-radius:12px;object-fit:contain';
+    const row=document.createElement('div'); row.style.cssText='display:flex;gap:10px';
+    const mk=function(txt,bg,fn){ const b=document.createElement('button'); b.textContent=txt; b.style.cssText='padding:10px 18px;border-radius:10px;border:0;font-weight:800;cursor:pointer;color:#fff;background:'+bg; b.addEventListener('click',fn); return b; };
+    row.appendChild(mk(L('Delete photo','مسح الصورة'),'#dc4f4f',function(){ if(confirm(L('Delete this photo?','مسح الصورة دي؟'))){ closePhoto(); deletePhoto(pid,id); } }));
+    row.appendChild(mk(L('Close','إغلاق'),'rgba(128,128,128,.6)',closePhoto));
+    ov.appendChild(im); ov.appendChild(row); document.body.appendChild(ov);
+  }
+  // ── Rating ──
+  function setRating(id,n){
+    load(); const p=places.find(function(x){ return x.id===id; }); if(!p) return;
+    p.rating=(p.rating===n)?0:n; savePlaces(); refresh();
+  }
+  var formRatingSet=function(n){
+    formRating=(formRating===n)?0:n;
+    if(typeof document!=='undefined' && document.querySelectorAll){
+      document.querySelectorAll('.mlFS').forEach(function(b,i){ b.style.color=(i+1<=formRating)?STAR_ON:STAR_OFF; });
+    }
+  };
+  function setFormRating(n){ formRatingSet(n); }
+  function starBtns(cur,handler,cls){
+    let h='';
+    for(let i=1;i<=5;i++) h+='<button '+(cls?'class="'+cls+'" ':'')+'onclick="'+handler(i)+'" aria-label="'+i+'" style="background:none;border:0;padding:2px 3px;font-size:22px;line-height:1;cursor:pointer;color:'+(i<=cur?STAR_ON:STAR_OFF)+'">★</button>';
+    return h;
+  }
+  function placeExtras(p){
+    const list=photos[p.id]||[];
+    const th=list.map(function(x){ return '<img src="'+x.data+'" alt="" onclick="MLOC.openPhoto(\''+p.id+'\',\''+x.id+'\')" style="width:64px;height:64px;object-fit:cover;border-radius:10px;cursor:pointer">'; }).join('');
+    const add=list.length<MAX_PHOTOS?'<button onclick="document.getElementById(\'mlFile_'+p.id+'\').click()" aria-label="'+L('Add photo','إضافة صورة')+'" style="width:64px;height:64px;border-radius:10px;border:1px dashed var(--accent-finance);background:transparent;color:var(--accent-finance);cursor:pointer;font-weight:700;font-size:calc(11px*var(--app-text-scale,1))">'+ic('plus',16)+'<br>'+L('Photo','صورة')+'</button><input id="mlFile_'+p.id+'" type="file" accept="image/*" style="display:none" onchange="MLOC.addPhoto(\''+p.id+'\',this)">':'';
+    return '<div style="margin-top:10px;display:flex;align-items:center;gap:8px"><span style="color:var(--muted);font-size:calc(12px*var(--app-text-scale,1))">'+L('Rating','التقييم')+'</span><span>'+starBtns(p.rating||0,function(i){ return "MLOC.setRating('"+p.id+"',"+i+")"; })+'</span></div>'
+      +'<div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px">'+th+add+'</div>';
+  }
+  // Backup bridge. null = photos not loaded yet (never export an empty list by mistake).
+  function photosJSON(){
+    if(!phLoaded) return null;
+    const all=[]; Object.keys(photos).forEach(function(k){ photos[k].forEach(function(r){ all.push({id:r.id,pid:r.pid,data:r.data,ts:r.ts}); }); });
+    return JSON.stringify(all);
+  }
+  function restorePhotos(json){
+    let arr; try{ arr=JSON.parse(json); }catch(e){ return; }
+    if(!Array.isArray(arr)) return;
+    const ok=arr.filter(function(r){ return r && typeof r.id==='string' && typeof r.pid==='string' && typeof r.data==='string' && PH_RE.test(r.data); })
+      .map(function(r){ return {id:r.id,pid:r.pid,data:r.data,ts:+r.ts||0}; });
+    photos={}; ok.forEach(function(r){ (photos[r.pid]=photos[r.pid]||[]).push(r); });
+    phLoaded=true; phStarted=true;
+    phTx('readwrite',function(s){ s.clear(); ok.forEach(function(r){ s.put(r); }); return null; }).catch(function(){});
   }
   function plainLabel(p){ return (p.name||(L('Place','مكان')+' '+(p.n||'')))+(p.branch?' - '+p.branch:''); }
   function fmtDay(ts){
@@ -40370,6 +40502,7 @@ const MLOC = (function(){
   function render(){
     load();
     ensureTick();
+    phEnsure();
     const list=places.slice().sort((a,b)=>b.last-a.last);
     const on=!!st.enabled;
     const minLbl=(m)=>m===60?L('1 hr','ساعة'):m+' '+L('min','دقيقة');
@@ -40388,6 +40521,7 @@ const MLOC = (function(){
             <button class="icon-btn" onclick="MLOC.remove('${p.id}')" aria-label="${L('Delete','مسح')}">${ic('trash',16)}</button>
           </div>
         </div>
+        ${placeExtras(p)}
       </div>`;
     }).join('');
     return `<div class="screen-wrap">
@@ -40421,9 +40555,34 @@ const MLOC = (function(){
       else { saveState(true); }
     });
   }
-  return {toggle,setMinutes,rename,remove,clearAll,render,boot,toggleForm,saveManual,addVisit,attachLoc};
+  try{ phEnsure(); }catch(e){}
+  return {toggle,setMinutes,rename,remove,clearAll,render,boot,toggleForm,saveManual,addVisit,attachLoc,setRating,setFormRating,addPhoto,openPhoto,photosJSON,restorePhotos};
 })();
 function renderMyLocations(){ return MLOC.render(); }
+// My Locations photos live in IndexedDB; carry them through the app's existing backup/restore
+// (which only knows localStorage) without ever writing them into localStorage.
+try{
+  if(typeof _bkExtrasCollect==='function'){
+    const _mlOc=_bkExtrasCollect;
+    _bkExtrasCollect=function(){
+      const o=_mlOc.apply(this,arguments);
+      try{ const j=MLOC.photosJSON(); if(j!==null) o['wdp_myloc_photos_v1']=j; }catch(e){}
+      return o;
+    };
+  }
+  if(typeof _bkExtrasApply==='function'){
+    const _mlOa=_bkExtrasApply;
+    _bkExtrasApply=function(ex){
+      if(ex && typeof ex==='object' && typeof ex['wdp_myloc_photos_v1']==='string'){
+        const rest=Object.assign({},ex), j=rest['wdp_myloc_photos_v1']; delete rest['wdp_myloc_photos_v1'];
+        try{ MLOC.restorePhotos(j); }catch(e){}
+        return _mlOa.call(this,rest);
+      }
+      return _mlOa.apply(this,arguments);
+    };
+  }
+}catch(e){}
+
 if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',function(){ MLOC.boot(); });
 else setTimeout(function(){ MLOC.boot(); },1500);
 
