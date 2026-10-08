@@ -10070,6 +10070,10 @@ function fpInitSmartHeader(){
               <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
               <span data-i18n-en="Reminders" data-i18n-ar="التذكيرات">Reminders</span>
             </button>
+            <button class="hdr-more-item" onclick="hdrCloseMoreMenu();setView('mylocations')">
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0zM12 13a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/></svg>
+              <span data-i18n-en="My Locations" data-i18n-ar="أماكني">My Locations</span>
+            </button>
             <div class="hdr-more-sep" role="separator"></div>
             <button class="hdr-more-item" onclick="hdrCloseMoreMenu();toggleTheme()">
               <span class="hdr-more-ico" id="themeToggleBtnHdr"></span>
@@ -12708,6 +12712,7 @@ function renderView(preserveScroll){
     else if(currentView==='bankreport') _html=renderBankReport();
     else if(currentView==='yearlyanalytics') _html=renderYearlyAnalytics();
     else if(currentView==='healthdash') _html=renderHealthDashboard();
+    else if(currentView==='mylocations') _html=renderMyLocations();
     else if(currentView==='reportsdash') _html=renderReportsDashboard();
     c.innerHTML=_html;
     if(currentView==='wsdash') try{ DashboardLazy.observeAll(); }catch(e){_logErr('renderView:DashboardLazy',e);}
@@ -40113,6 +40118,163 @@ function exportToExcel(){
   window.addEventListener('offline', onOffline);
   window.addEventListener('online', onOnline);
 })();
+
+// ── My Locations (MLOC) ────────────────────────────────────────────────
+// Opt-in, on-device place log. While the app is open and visible it watches
+// the position; a stay of >= N minutes (15/30) inside a small radius is
+// recorded as a visit. A place seen again only bumps `visits` and `last`.
+// Web limitation: the browser gives no location access once the app is
+// closed/backgrounded, so continuity across a short gap (<= MAX_GAP_MS) is
+// inferred from the last fix. Data never leaves the device (localStorage).
+const MLOC = (function(){
+  const PLACES_KEY='wdp_myloc_places_v1', STATE_KEY='wdp_myloc_state_v1';
+  const RADIUS_M=120, MAX_ACC_M=100, MAX_GAP_MS=3*3600*1000, MAX_PLACES=200, SAVE_EVERY_MS=30000;
+  let watchId=null, places=[], st={enabled:false,minutes:15,cand:null}, lastSave=0, loaded=false;
+
+  function load(){
+    if(loaded) return; loaded=true;
+    try{ const p=JSON.parse(localStorage.getItem(PLACES_KEY)||'[]'); places=Array.isArray(p)?p:[]; }catch(e){ places=[]; }
+    try{ const s=JSON.parse(localStorage.getItem(STATE_KEY)||'null'); if(s&&typeof s==='object') st=Object.assign(st,s); }catch(e){}
+    if(st.minutes!==30) st.minutes=15;
+  }
+  function savePlaces(){ try{ localStorage.setItem(PLACES_KEY,JSON.stringify(places)); }catch(e){ console.warn('[wdp-storage]',e); } }
+  function saveState(force){
+    const now=Date.now(); if(!force && now-lastSave<SAVE_EVERY_MS) return; lastSave=now;
+    try{ localStorage.setItem(STATE_KEY,JSON.stringify(st)); }catch(e){ console.warn('[wdp-storage]',e); }
+  }
+  function dist(la1,lo1,la2,lo2){
+    const R=6371000, r=Math.PI/180, dLa=(la2-la1)*r, dLo=(lo2-lo1)*r;
+    const a=Math.sin(dLa/2)**2+Math.cos(la1*r)*Math.cos(la2*r)*Math.sin(dLo/2)**2;
+    return 2*R*Math.asin(Math.sqrt(a));
+  }
+  function findPlace(lat,lng){
+    let best=null,bd=RADIUS_M+1;
+    places.forEach(p=>{ const d=dist(p.lat,p.lng,lat,lng); if(d<bd){ bd=d; best=p; } });
+    return best;
+  }
+  function commit(c){
+    const now=Date.now(), p=findPlace(c.lat,c.lng);
+    if(p){ p.visits=(p.visits||0)+1; p.last=now; }
+    else{
+      const n=places.reduce((m,x)=>Math.max(m,x.n||0),0)+1;
+      places.push({id:'ml'+now.toString(36)+n,n:n,lat:c.lat,lng:c.lng,name:'',visits:1,first:now,last:now});
+      if(places.length>MAX_PLACES){ places.sort((a,b)=>b.last-a.last); places.length=MAX_PLACES; }
+    }
+    savePlaces();
+    try{ showToast(L('Location saved','تم تسجيل المكان')); }catch(e){}
+    if(typeof currentView!=='undefined' && currentView==='mylocations') try{ renderView(); }catch(e){}
+  }
+  function onFix(pos){
+    const c=pos&&pos.coords; if(!c||!(c.accuracy<=MAX_ACC_M)) return;
+    const now=Date.now(), cand=st.cand;
+    if(cand && now-cand.last<=MAX_GAP_MS && dist(cand.lat,cand.lng,c.latitude,c.longitude)<=RADIUS_M){
+      cand.last=now;
+      if(!cand.counted && now-cand.since>=st.minutes*60000){ cand.counted=true; commit(cand); saveState(true); return; }
+    } else {
+      st.cand={lat:c.latitude,lng:c.longitude,since:now,last:now,counted:false};
+    }
+    saveState(false);
+  }
+  function onErr(err){
+    if(err && err.code===1){ // permission denied → switch off, tell the user
+      st.enabled=false; stop(); saveState(true);
+      try{ showToast(L('Location permission denied','تم رفض إذن الموقع')); }catch(e){}
+      if(typeof currentView!=='undefined' && currentView==='mylocations') try{ renderView(); }catch(e){}
+    }
+  }
+  function start(){
+    if(watchId!==null || !('geolocation' in navigator)) return;
+    try{ watchId=navigator.geolocation.watchPosition(onFix,onErr,{enableHighAccuracy:false,maximumAge:60000,timeout:30000}); }catch(e){ watchId=null; }
+  }
+  function stop(){
+    if(watchId!==null){ try{ navigator.geolocation.clearWatch(watchId); }catch(e){} watchId=null; }
+  }
+  function refresh(){ if(currentView==='mylocations') try{ renderView(); }catch(e){} }
+
+  function toggle(){
+    load();
+    if(!('geolocation' in navigator)){ try{ showToast(L('Location is not supported on this device','الموقع غير مدعوم على الجهاز ده')); }catch(e){} return; }
+    st.enabled=!st.enabled;
+    if(st.enabled){ st.cand=null; start(); } else { stop(); st.cand=null; }
+    saveState(true); refresh();
+  }
+  function setMinutes(m){ load(); st.minutes=(m===30?30:15); saveState(true); refresh(); }
+  function rename(id){
+    load(); const p=places.find(x=>x.id===id); if(!p) return;
+    const v=prompt(L('Place name','اسم المكان'),p.name||'');
+    if(v===null) return; p.name=String(v).trim().slice(0,60); savePlaces(); refresh();
+  }
+  function remove(id){
+    load(); if(!confirm(L('Delete this place?','مسح المكان ده؟'))) return;
+    places=places.filter(x=>x.id!==id); savePlaces(); refresh();
+  }
+  function clearAll(){
+    load(); if(!places.length) return;
+    if(!confirm(L('Delete all saved places?','مسح كل الأماكن المسجّلة؟'))) return;
+    places=[]; st.cand=null; savePlaces(); saveState(true); refresh();
+  }
+  function esc(s){ return String(s).replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch])); }
+  function fmt(ts){
+    const loc=(typeof lang!=='undefined'&&lang==='ar')?'ar-EG':'en-GB';
+    try{ return new Date(ts).toLocaleString(loc,{dateStyle:'medium',timeStyle:'short',timeZone:_globalTimeZone()}); }
+    catch(e){ try{ return new Date(ts).toLocaleString(loc); }catch(e2){ return ''; } }
+  }
+  function render(){
+    load();
+    const list=places.slice().sort((a,b)=>b.last-a.last);
+    const on=!!st.enabled;
+    const minBtn=(m)=>`<button onclick="MLOC.setMinutes(${m})" style="padding:7px 14px;border-radius:10px;border:1px solid var(--accent-finance);font-weight:700;cursor:pointer;${st.minutes===m?'background:var(--accent-finance);color:#fff':'background:transparent;color:var(--accent-finance)'}">${m} ${L('min','دقيقة')}</button>`;
+    const rows=list.map(p=>{
+      const name=p.name?esc(p.name):(L('Place','مكان')+' '+(p.n||''));
+      return `<div class="sc-card" style="padding:14px;margin-bottom:10px">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+          <div style="min-width:0">
+            <div style="font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${ic('pin',14)} ${name}</div>
+            <div style="color:var(--muted);font-size:calc(12px*var(--app-text-scale,1));margin-top:4px">${L('Visits','عدد الزيارات')}: <b>${p.visits||1}</b></div>
+            <div style="color:var(--muted);font-size:calc(12px*var(--app-text-scale,1))">${L('Last visit','آخر زيارة')}: ${fmt(p.last)}</div>
+          </div>
+          <div style="display:flex;gap:6px;flex-shrink:0">
+            <a href="https://www.google.com/maps?q=${p.lat},${p.lng}" target="_blank" rel="noopener" class="icon-btn" aria-label="${L('Open in maps','افتح في الخريطة')}" style="display:inline-flex;align-items:center;justify-content:center">${ic('pin',16)}</a>
+            <button class="icon-btn" onclick="MLOC.rename('${p.id}')" aria-label="${L('Rename','تعديل الاسم')}">${ic('edit',16)}</button>
+            <button class="icon-btn" onclick="MLOC.remove('${p.id}')" aria-label="${L('Delete','مسح')}">${ic('trash',16)}</button>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+    return `<div class="screen-wrap">
+      <div class="sc-header">
+        <div class="sc-header-eyebrow">${L('Places','الأماكن')}</div>
+        <div class="sc-header-title">${L('My Locations','أماكني')}</div>
+        <div class="sc-header-sub">${L('Places where you stay are saved automatically','الأماكن اللي بتقعد فيها بتتسجل تلقائيًا')}</div>
+      </div>
+      <div class="sc-card" style="padding:14px;margin-bottom:12px">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px">
+          <div style="font-weight:800">${on?L('Tracking is on','التتبع شغّال'):L('Tracking is off','التتبع متوقف')}</div>
+          <button onclick="MLOC.toggle()" style="padding:8px 16px;border-radius:10px;border:0;font-weight:800;cursor:pointer;background:var(--accent-finance);color:#fff">${on?L('Turn off','إيقاف'):L('Turn on','تشغيل')}</button>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px">
+          <span style="color:var(--muted);font-size:calc(12px*var(--app-text-scale,1))">${L('Save a place after staying','سجّل المكان بعد قعاد')}</span>${minBtn(15)}${minBtn(30)}
+        </div>
+        <div style="color:var(--muted);font-size:calc(12px*var(--app-text-scale,1));line-height:1.6">${L('Works while the app is open on screen (browser limit). Data stays on this device only.','بيشتغل والتطبيق مفتوح على الشاشة (قيد من المتصفح). البيانات بتفضل على الجهاز ده بس.')}</div>
+      </div>
+      ${list.length?rows+`<div style="text-align:center;margin-top:6px"><button onclick="MLOC.clearAll()" style="background:transparent;border:0;color:var(--muted);text-decoration:underline;cursor:pointer">${L('Delete all places','مسح كل الأماكن')}</button></div>`
+        :`<div class="sc-card"><div class="empty"><div class="ei">${ic('pin',32)}</div>${L('No places yet. Turn tracking on and keep the app open.','لسه مفيش أماكن. شغّل التتبع وسيب التطبيق مفتوح.')}</div></div>`}
+    </div>`;
+  }
+  function boot(){
+    load();
+    if(st.enabled) start();
+    document.addEventListener('visibilitychange',function(){
+      if(!st.enabled) return;
+      if(document.visibilityState==='visible'){ stop(); start(); }
+      else { saveState(true); }
+    });
+  }
+  return {toggle,setMinutes,rename,remove,clearAll,render,boot};
+})();
+function renderMyLocations(){ return MLOC.render(); }
+if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',function(){ MLOC.boot(); });
+else setTimeout(function(){ MLOC.boot(); },1500);
 
 // ── PWA: IndexedDB offline data layer (WDP_IDB) ────────────────────────
 // Additive local database, separate from the existing localStorage-based
