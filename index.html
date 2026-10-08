@@ -5546,6 +5546,38 @@ button,
 .wdp-ptr-indicator.wdp-ptr-ready .wdp-ptr-spinner{border-top-color:var(--green)}
 .wdp-ptr-indicator.wdp-ptr-spinning .wdp-ptr-spinner{animation:wdpPtrSpin .7s linear infinite}
 @keyframes wdpPtrSpin{to{transform:rotate(360deg)}}
+/* FINORA wallet refresh: the pull indicator is the app's wallet — it grows while you pull,
+   opens its flap when ready and drops coins in while refreshing; a gold-coin pill confirms. */
+.wdp-ptr-indicator{width:54px;height:54px;border:1.5px solid var(--border)}
+.wdp-ptr-wallet{width:36px;height:36px;display:block}
+.wdp-ptr-wallet svg{width:100%;height:100%;overflow:visible;transform:scale(calc(.62 + var(--ptr-p,0)*.38)) rotate(calc((1 - var(--ptr-p,0))*-14deg));transition:transform .12s linear}
+.w-flap{transform-box:fill-box;transform-origin:0% 100%;transition:transform .28s cubic-bezier(.34,1.56,.64,1)}
+.w-coin{opacity:0;transform-box:fill-box;transform-origin:center}
+.wdp-ptr-indicator.wdp-ptr-ready .w-flap{transform:rotate(-14deg)}
+.wdp-ptr-indicator.wdp-ptr-ready .w-coin{opacity:1}
+.wdp-ptr-indicator.wdp-ptr-spinning .w-coin{animation:wdpCoinDrop .75s cubic-bezier(.5,0,.8,.5) infinite}
+.wdp-ptr-indicator.wdp-ptr-spinning .wdp-ptr-wallet svg{animation:wdpWalletBob .75s ease-in-out infinite;transition:none}
+@keyframes wdpCoinDrop{0%{transform:translateY(-16px) scale(.9);opacity:0}25%{opacity:1}80%{transform:translateY(5px) scale(.7);opacity:1}100%{transform:translateY(7px) scale(.5);opacity:0}}
+@keyframes wdpWalletBob{0%,100%{transform:scale(1)}50%{transform:scale(1.08,.93)}}
+.wdp-rf-done{position:fixed;top:calc(env(safe-area-inset-top,0px) + 70px);left:50%;z-index:9999;display:flex;align-items:center;gap:9px;padding:7px 20px 7px 8px;border-radius:999px;background:linear-gradient(135deg,#0A4A34,#0F7A55 60%,#2BC48C);color:#fff;font-weight:800;font-size:14px;letter-spacing:.2px;box-shadow:0 10px 28px rgba(10,74,52,.38);pointer-events:none;opacity:0;transform:translate(-50%,-16px) scale(.7);transition:transform .5s cubic-bezier(.34,1.56,.64,1),opacity .25s ease}
+.wdp-rf-done.show{opacity:1;transform:translate(-50%,0) scale(1)}
+.wdp-rf-ico{position:relative;width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.16);padding:4px;box-sizing:border-box;display:inline-block;flex:none}
+.wdp-rf-ico>svg:first-child{width:100%;height:100%;overflow:visible}
+.wdp-rf-check{position:absolute;right:-4px;bottom:-4px;width:16px;height:16px;border-radius:50%;background:#2BC48C;border:1.5px solid #fff;padding:2px;box-sizing:border-box}
+.wdp-rf-check path{stroke-dasharray:24;stroke-dashoffset:24}
+.wdp-rf-done.show .wdp-rf-check path{animation:wdpDraw .45s .35s ease forwards}
+.wdp-rf-done.show .wdp-rf-ico>svg:first-child{animation:wdpWiggle .7s .1s ease}
+.wdp-rf-done.show .w-flap{animation:wdpFlapPop .8s .1s ease forwards}
+.wdp-rf-done.show .w-coin{animation:wdpCoinIn .8s .1s ease forwards}
+.wdp-rf-spark{position:absolute;width:6px;height:6px;border-radius:50%;background:#D4AF37;opacity:0;pointer-events:none}
+.wdp-rf-spark.s1{left:14px;top:-2px;--dx:-8px;--dy:-10px}.wdp-rf-spark.s2{left:30px;top:-4px;--dx:2px;--dy:-12px}.wdp-rf-spark.s3{left:46px;top:-1px;--dx:10px;--dy:-9px}
+.wdp-rf-done.show .wdp-rf-spark{animation:wdpSpark .8s .4s ease-out forwards}
+@keyframes wdpDraw{to{stroke-dashoffset:0}}
+@keyframes wdpWiggle{0%{transform:rotate(0)}25%{transform:rotate(-10deg) scale(1.1)}55%{transform:rotate(8deg) scale(1.08)}100%{transform:rotate(0) scale(1)}}
+@keyframes wdpFlapPop{0%{transform:rotate(0)}30%,65%{transform:rotate(-16deg)}100%{transform:rotate(0)}}
+@keyframes wdpCoinIn{0%{transform:translateY(-18px);opacity:0}30%{opacity:1}75%{transform:translateY(8px);opacity:1}100%{transform:translateY(9px);opacity:0}}
+@keyframes wdpSpark{0%{transform:translate(0,0) scale(0);opacity:1}100%{transform:translate(var(--dx),var(--dy)) scale(1.3);opacity:0}}
+@media (prefers-reduced-motion:reduce){.wdp-rf-done,.wdp-rf-done *,.wdp-ptr-indicator *{animation:none!important;transition:none!important}.wdp-rf-check path{stroke-dashoffset:0}}
 
 /* ── Layout-matched skeleton loaders ─────────────────────────────────────────── */
 .skel-bank-card{
@@ -30549,18 +30581,24 @@ let _rqStatusSel='received';
 // stored/learned exactly like Company/Engineer/Model via _rqFieldOptions /
 // _rqLearnField under the 'irtype' key.
 const _RQ_IR_SUBTYPE_QUICK=[
-  {key:'column-reinforcement',  en:'Column Reinforcement',        ar:'حديد الأعمدة'},
-  {key:'column-formwork',       en:'Column Formwork',             ar:'نجارة الأعمدة'},
-  {key:'slab-reinforcement',    en:'Slab Reinforcement',          ar:'حديد السقف'},
-  {key:'beam-reinforcement',    en:'Beam Reinforcement',          ar:'حديد الكمرات'},
-  {key:'slab-formwork',         en:'Slab Formwork',               ar:'نجارة السقف'},
+  {key:'column-reinforcement',  en:'Column Reinforcement',        ar:'حدادة أعمدة', alt:['حديد الأعمدة','حدادة الأعمدة']},
+  {key:'column-formwork',       en:'Column Formwork',             ar:'نجارة أعمدة', alt:['نجارة الأعمدة']},
+  {key:'slab-reinforcement',    en:'Slab Reinforcement',          ar:'حدادة سقف', alt:['حديد السقف','حدادة السقف']},
+  {key:'beam-reinforcement',    en:'Beam Reinforcement',          ar:'حدادة كمرات', alt:['حديد الكمرات','حدادة الكمرات']},
+  {key:'slab-formwork',         en:'Slab Formwork',               ar:'نجارة سقف', alt:['نجارة السقف']},
+  {key:'footing-formwork',      en:'Footing Formwork',            ar:'نجارة قاعدة مسلحة', alt:['نجارة القاعدة المسلحة']},
+  {key:'qasiya-waterproofing',  en:'Qasiya Waterproofing',        ar:'عزل قصية', alt:['عزل القصية']},
+  {key:'waterproofing-first-coat', en:'Waterproofing First Coat', ar:'وش أول عزل', alt:['وش اول عزل']},
+  {key:'waterproofing-second-coat',en:'Waterproofing Second Coat',ar:'وش تاني عزل', alt:['وش ثاني عزل']},
+  {key:'waterproofing-prep',    en:'Waterproofing Preparation',   ar:'تجهيزات عزل'},
+  {key:'retaining-wall-waterproofing-prep', en:'Retaining Wall Waterproofing Preparation', ar:'تجهيزات عزل حائط ساند'},
   {key:'concrete-casting',      en:'Concrete Casting',            ar:'الصبة'},
   {key:'column-casting',        en:'Column Casting',              ar:'صبة الأعمدة'},
   {key:'slab-casting',          en:'Slab Casting',                ar:'صبة السقف'},
   {key:'honeycomb-repair',      en:'Honeycomb / Concrete Repair', ar:'معالجة الخرسانة'},
   {key:'slab-cleaning',         en:'Slab Cleaning',               ar:'نظافة السقف قبل الصب'},
-  {key:'waterproofing-membrane',en:'Waterproofing / Membrane',    ar:'الممبرين'},
-  {key:'cartonal',              en:'Cartonal',                    ar:'الكرتونال'},
+  {key:'waterproofing-membrane',en:'Waterproofing / Membrane',    ar:'ممبرين', alt:['الممبرين']},
+  {key:'cartonal',              en:'Cartonal',                    ar:'استلام كارتونال', alt:['الكرتونال','كارتونال']},
   {key:'first-coat',            en:'First Coat',                  ar:'الطرطشة / الطبقة الأولى'},
   {key:'plaster-masonry',       en:'Plaster / Masonry',           ar:'المباني والمحارة'},
   {key:'surveying-works',       en:'Surveying Works',             ar:'الأعمال المساحية'},
@@ -30574,7 +30612,7 @@ const _RQ_IR_SUBTYPE_QUICK=[
 function _rqIrSubtypeKeyFromLabel(label){
   const v=String(label||'').trim().toLowerCase();
   if(!v) return null;
-  const hit=_RQ_IR_SUBTYPE_QUICK.find(o=>o.en.toLowerCase()===v||o.ar.toLowerCase()===v);
+  const hit=_RQ_IR_SUBTYPE_QUICK.find(o=>o.en.toLowerCase()===v||o.ar.toLowerCase()===v||(o.alt||[]).some(a=>a.toLowerCase()===v));
   return hit?hit.key:null;
 }
 function _rqIsIrType(typeVal){ return String(typeVal||'').trim().toLowerCase()==='ir'; }
@@ -30813,7 +30851,8 @@ function _rqCommentSuggestionsFor(typeVal,irTypeVal){
     const subKey=_rqIrSubtypeKeyFromLabel(irTypeVal);
     builtin=subKey?(_RQ_IR_SUBTYPE_COMMENTS[subKey]||[]):[];
   }else{
-    builtin=_RQ_COMMENT_SUGGESTIONS[k]||[];
+    const sk2=_rqIrSubtypeKeyFromLabel(irTypeVal);
+    builtin=[...(_RQ_COMMENT_SUGGESTIONS[k]||[]),...(sk2?(_RQ_IR_SUBTYPE_COMMENTS[sk2]||[]):[])]; // work-type comments apply to every paper type
   }
   const suggKey=_rqSuggKey(typeVal,irTypeVal);
   const custom=_rqCustomSugg[suggKey]||[];
@@ -31266,17 +31305,36 @@ function _rqFloorKey(raw){
   if(!t) return '';
   t=t.replace(/[أإآ]/g,'ا').replace(/ى/g,'ي').replace(/ة/g,'ه').replace(/\s+/g,' ');
   t=t.replace(/^(الدور|دور|floor)\s+/,'').replace(/\s+floor$/,'').replace(/^ال(?=.{2,})/,'').trim();
-  return _RQ_FLOOR_ALIASES[t]||'';
+  const al=_RQ_FLOOR_ALIASES[t];
+  if(al) return _RQ_FLOOR_ORDER.includes(al)?al:'';
+  for(const k of _RQ_FLOOR_ORDER){ if(_rqFloorNorm(_RQ_FLOORS_EN[k])===t||_rqFloorNorm(_RQ_FLOORS_AR[k])===t) return k; }
+  return '';
+}
+function _rqFloorNorm(x){
+  return String(x||'').trim().toLowerCase().replace(/[أإآ]/g,'ا').replace(/ى/g,'ي').replace(/ة/g,'ه').replace(/\s+/g,' ')
+    .replace(/^(الدور|دور|floor)\s+/,'').replace(/\s+floor$/,'').replace(/^ال(?=.{2,})/,'').trim();
 }
 let _rqLevelAuto='';
-function _rqSaveFloorLevels(){ try{ localStorage.setItem(_RQ_FLOOR_LEVELS_KEY,JSON.stringify(_RQ_FLOOR_LEVELS)); }catch(e){ _logErr('_rqSaveFloorLevels',e); } }
+const _RQ_FLOORS_V2_KEY='wdp_rq_floors_v2';
+const _RQ_FLOOR_ORDER_DEFAULT=_RQ_FLOOR_ORDER.slice();
+function _rqSaveFloorLevels(){
+  try{
+    const names={}, levels={};
+    _RQ_FLOOR_ORDER.forEach(k=>{ names[k]={en:_RQ_FLOORS_EN[k],ar:_RQ_FLOORS_AR[k]}; levels[k]=_RQ_FLOOR_LEVELS[k]||''; });
+    localStorage.setItem(_RQ_FLOORS_V2_KEY,JSON.stringify({order:_RQ_FLOOR_ORDER.slice(),names,levels}));
+    localStorage.setItem(_RQ_FLOOR_LEVELS_KEY,JSON.stringify(_RQ_FLOOR_LEVELS));
+  }catch(e){ _logErr('_rqSaveFloorLevels',e); }
+}
 function _rqSetFloorLevel(key,val){
-  if(!(key in _RQ_FLOOR_LEVELS_DEFAULT)) return;
+  if(!_RQ_FLOOR_ORDER.includes(key)) return;
   _RQ_FLOOR_LEVELS[key]=String(val||'').trim();
   _rqSaveFloorLevels();
   _rqOnFloorInput();
 }
 function _rqResetFloorLevels(){
+  _RQ_FLOOR_ORDER.length=0; _RQ_FLOOR_ORDER_DEFAULT.forEach(k=>_RQ_FLOOR_ORDER.push(k));
+  [_RQ_FLOOR_LEVELS,_RQ_FLOORS_EN,_RQ_FLOORS_AR].forEach(m=>Object.keys(m).forEach(k=>{ if(!(k in _RQ_FLOOR_LEVELS_DEFAULT)&&k!=='gr'&&k!=='sixth') delete m[k]; }));
+  Object.assign(_RQ_FLOORS_EN,_RQ_FLOOR_NAMES_DEFAULT.en); Object.assign(_RQ_FLOORS_AR,_RQ_FLOOR_NAMES_DEFAULT.ar);
   Object.assign(_RQ_FLOOR_LEVELS,_RQ_FLOOR_LEVELS_DEFAULT);
   _rqSaveFloorLevels();
   _rqRenderLevelsPanel();
@@ -31285,7 +31343,7 @@ function _rqResetFloorLevels(){
 function _rqRenderLevelsPanel(){
   const box=document.getElementById('rqLvlPanel'); if(!box) return;
   box.innerHTML=`<div class="rq-lvl-note">${L('Used to auto-fill Level from Floor. Saved receipts keep their own level.','بتتستخدم لتعبئة المنسوب تلقائي من الدور. الاستلامات المحفوظة بتفضل بمنسوبها.')}</div>`
-    +_RQ_FLOOR_ORDER.map(k=>`<label class="rq-lvl-row"><span>${esc(L(_RQ_FLOORS_EN[k],_RQ_FLOORS_AR[k]))}</span><input type="text" dir="ltr" autocomplete="off" inputmode="text" placeholder="—" value="${esc(_RQ_FLOOR_LEVELS[k]||'')}" oninput="_rqSetFloorLevel('${k}',this.value)"></label>`).join('')
+    +_rqFloorsEditorHTML()
     +`<button type="button" class="rq-lvl-reset" onclick="_rqResetFloorLevels()">${L('Reset to defaults','رجوع للقيم الأصلية')}</button>`;
 }
 function _rqToggleLevelsPanel(){
@@ -31358,7 +31416,7 @@ function renderMyRequests(){
         ${cell(ic('map',12),L('Zone','المنطقة'),dZone)}
         ${cell(ic('pin',12),L('Plot No.','رقم القطعة'),dPlot)}
         ${cell(ic('clipboard',12),L('Form / Model','النموذج'),dModel)}
-        ${cell(ic('type',12),_rqIsIrType(r.type)?L('IR type','نوع الـ IR'):L('Work','الشغل'),_rqIrLabel(r))}
+        ${cell(ic('type',12),L('Inspection type','نوع الاستلامة'),_rqIrLabel(r))}
         ${cell(ic('floor',12),L('Floor','الدور'),_rqFloorLabel(r.floor))}
         ${cell(ic('ruler',12),L('Level','المنسوب'),r.level,true)}
       </dl>
@@ -31438,18 +31496,21 @@ function openRequestModal(id){
       </div>
       <div class="rq-sugg-row" id="rqModelSugg"></div>
       <div class="rq-row2">
-      <div class="field"><label>${L('Floor','الدور')}</label><input type="text" id="rqFloor" list="rqDlFloor" dir="auto" autocomplete="off" placeholder="${L('e.g. Third','مثال: الثالث')}" value="${esc(r?.floor||'')}" oninput="_rqOnFloorInput()"><datalist id="rqDlFloor">${['Basement','Ground','First','Second','Third','Fourth','Fifth','Roof'].map(v=>`<option value="${L(v,_RQ_FLOORS_AR[v.toLowerCase()])}"></option>`).join('')}</datalist></div>
+      <div class="field"><label>${L('Floor','الدور')}</label><input type="text" id="rqFloor" list="rqDlFloor" dir="auto" autocomplete="off" placeholder="${L('e.g. Third','مثال: الثالث')}" value="${esc(r?.floor||'')}" oninput="_rqOnFloorInput()"><datalist id="rqDlFloor">${_RQ_FLOOR_ORDER.map(k=>`<option value="${esc(L(_RQ_FLOORS_EN[k],_RQ_FLOORS_AR[k]))}"></option>`).join('')}</datalist></div>
       <div class="field"><label>${L('Level','المنسوب')}</label><input type="text" id="rqLevel" dir="ltr" autocomplete="off" inputmode="text" placeholder="${L('e.g. +12.50','مثال: +12.50')}" value="${esc(r?.level||'')}"></div>
       </div>
       <button type="button" class="rq-lvl-btn" onclick="_rqToggleLevelsPanel()">${ic('ruler',13)} ${L('Edit floor levels','تعديل مناسيب الأدوار')}</button>
       <div class="rq-lvl-panel" id="rqLvlPanel" style="display:none"></div>
-      <div class="field"><label>${L('Receipt type','نوع الاستلامة')}</label>
+      <div class="field"><label>${L('Receipt type','نوع الورقة')}</label>
         <div class="rq-selwrap"><select id="rqTypeSel" class="rq-typesel${_rqTypeSelInitial(r)?' has-val':''}" onchange="_rqTypeSelChange(this)">${_rqTypeSelectOptionsHTML(r,uniq('type'))}</select></div>
         <div id="rqTypeCustomWrap" class="rq-custom-wrap">
           <input type="text" id="rqType" list="rqDlType" dir="auto" autocomplete="off" data-autotranslate="1" placeholder="${L('…or type it yourself (any text)','…أو اكتبه بنفسك (أي نص)')}" value="${esc(r?.type||'')}" oninput="_rqOnTypeManual()">${dl('rqDlType','type')}<div class="at-status" data-at-for="rqType"></div>
         </div></div>
-      <div class="field rq-custom-wrap" id="rqIrTypeWrap" style="${_rqTypeSelInitial(r)==='ir:_other'?'':'display:none'}"><label>${L('IR type','نوع الـ IR')}</label>
-        <input type="text" id="rqIrType" list="rqDlIrType" dir="auto" autocomplete="off" placeholder="${L('Type the IR work type…','اكتب نوع الشغل…')}" value="${esc(r?.irType||'')}" oninput="_rqRenderCommentSuggestions()"><datalist id="rqDlIrType">${_rqFieldOptions('irtype',uniq('irType')).map(v=>`<option value="${esc(v)}"></option>`).join('')}</datalist></div>
+      <div class="field"><label>${L('Inspection type','نوع الاستلامة')}</label>
+        <div class="rq-selwrap"><select id="rqWorkSel" class="rq-typesel${_rqWorkSelInitial(r)?' has-val':''}" onchange="_rqWorkSelChange(this)">${_rqWorkSelectOptionsHTML(r)}</select></div>
+        <div class="rq-custom-wrap">
+          <input type="text" id="rqIrType" list="rqDlIrType" dir="auto" autocomplete="off" placeholder="${L('…or type it yourself (any text)','…أو اكتبه بنفسك (أي نص)')}" value="${esc(r?.irType||'')}" oninput="_rqOnWorkManual()"><datalist id="rqDlIrType">${_rqFieldOptions('irtype',uniq('irType')).map(v=>`<option value="${esc(v)}"></option>`).join('')}</datalist>
+        </div></div>
     </div>
 
     <div class="rq-sec">
@@ -31483,26 +31544,17 @@ function openRequestModal(id){
 function _rqTypeSelInitial(r){
   const t=String(r?.type||'').trim();
   if(!t) return '';
-  if(_rqIsIrType(t)){
-    const sk=_rqIrSubtypeKeyFromLabel(r?.irType||'');
-    return sk?('ir:'+sk):'ir:_other';
-  }
   const hit=_RQ_TYPE_QUICK.find(v=>v.toLowerCase()===t.toLowerCase());
   return hit||'_other';
 }
-// (a custom/history-typed type opens as "Other…" with its text visible, so nothing is lost)
+// Receipt type = the paper type only (IR, MIR, RFI, CPP, CPR…) or typed by hand.
 function _rqTypeSelectOptionsHTML(r,historyVals){
   const cur=_rqTypeSelInitial(r);
   const o=(v,label)=>`<option value="${esc(v)}"${cur===v?' selected':''}>${esc(label)}</option>`;
-  const plain=_RQ_TYPE_QUICK.filter(v=>!_rqIsIrType(v));
   const hasCur=r&&r.type&&cur==='_other';
-  return `<option value=""${cur===''?' selected':''}>${L('Select receipt type…','اختر نوع الاستلامة…')}</option>
-    <optgroup label="${L('Inspection Request (IR) — work','طلب فحص (IR) — نوع الشغل')}">
-      ${_RQ_IR_SUBTYPE_QUICK.map(x=>o('ir:'+x.key,'IR · '+L(x.en,x.ar))).join('')}
-      ${o('ir:_other','IR · '+L('Other work…','شغل آخر…'))}
-    </optgroup>
-    <optgroup label="${L('Requests & submittals','الطلبات والتسليمات')}">
-      ${plain.map(v=>o(v,v)).join('')}
+  return `<option value=""${cur===''?' selected':''}>${L('Select receipt type…','اختر نوع الورقة…')}</option>
+    <optgroup label="${L('Document types','أنواع الورقيات')}">
+      ${_RQ_TYPE_QUICK.map(v=>o(v,v)).join('')}
     </optgroup>
     <optgroup label="${L('Other','أخرى')}">
       ${o('_other',hasCur?String(r.type):L('Other…','نوع آخر…'))}
@@ -31511,31 +31563,42 @@ function _rqTypeSelectOptionsHTML(r,historyVals){
 function _rqTypeSelChange(sel){
   const v=sel.value||'';
   const typeInp=document.getElementById('rqType');
-  const irInp=document.getElementById('rqIrType');
-  const cw=document.getElementById('rqTypeCustomWrap');
-  const iw=document.getElementById('rqIrTypeWrap');
-  if(!typeInp||!irInp) return;
-  let showCustom=false, showIr=false;
-  if(v===''){ typeInp.value=''; irInp.value=''; }
-  else if(v==='ir:_other'){
-    typeInp.value='IR';
-    if(_rqIrSubtypeKeyFromLabel(irInp.value)) irInp.value='';
-    showIr=true;
-  }
-  else if(v.indexOf('ir:')===0){
-    const hit=_RQ_IR_SUBTYPE_QUICK.find(x=>'ir:'+x.key===v);
-    typeInp.value='IR';
-    irInp.value=hit?L(hit.en,hit.ar):'';
-  }
-  else if(v==='_other'){
-    typeInp.value=''; irInp.value=''; showCustom=true;
-  }
-  else { typeInp.value=v; irInp.value=''; }
-  if(cw) cw.style.display='';
-  if(iw) iw.style.display=showIr?'':'none';
+  if(!typeInp) return;
+  typeInp.value=(v===''||v==='_other')?'':v;
   sel.classList.toggle('has-val',!!v);
   _rqRenderCommentSuggestions();
-  if(showCustom) typeInp.focus(); else if(showIr) irInp.focus();
+  if(v==='_other') typeInp.focus();
+}
+// Inspection type = the work being inspected (slab reinforcement, column formwork,
+// waterproofing first coat…) — stored in rec.irType for every paper type.
+function _rqWorkSelInitial(r){
+  const t=String(r?.irType||'').trim();
+  if(!t) return '';
+  const k=_rqIrSubtypeKeyFromLabel(t);
+  return k?('w:'+k):'_other';
+}
+function _rqWorkSelectOptionsHTML(r){
+  const cur=_rqWorkSelInitial(r);
+  const o=(v,label)=>`<option value="${esc(v)}"${cur===v?' selected':''}>${esc(label)}</option>`;
+  const hasCur=r&&r.irType&&cur==='_other';
+  return `<option value=""${cur===''?' selected':''}>${L('Select inspection type…','اختر نوع الاستلامة…')}</option>
+    ${_RQ_IR_SUBTYPE_QUICK.map(x=>o('w:'+x.key,L(x.en,x.ar))).join('')}
+    ${o('_other',hasCur?String(r.irType):L('Other…','نوع آخر…'))}`;
+}
+function _rqWorkSelChange(sel){
+  const v=sel.value||'';
+  const inp=document.getElementById('rqIrType');
+  if(!inp) return;
+  if(v===''||v==='_other') inp.value='';
+  else{ const hit=_RQ_IR_SUBTYPE_QUICK.find(x=>'w:'+x.key===v); inp.value=hit?L(hit.en,hit.ar):''; }
+  sel.classList.toggle('has-val',!!v);
+  _rqRenderCommentSuggestions();
+  if(v==='_other') inp.focus();
+}
+function _rqOnWorkManual(){
+  const sel=document.getElementById('rqWorkSel'), inp=document.getElementById('rqIrType');
+  if(sel&&inp){ const k=_rqIrSubtypeKeyFromLabel(inp.value); sel.value=k?('w:'+k):(inp.value.trim()?'_other':''); sel.classList.toggle('has-val',!!sel.value); }
+  _rqRenderCommentSuggestions();
 }
 // Quick-pick chips for Receipt type: the fixed CPP/CPR/IR set plus any other
 // values the user has typed before (from history), deduped, fixed set first.
@@ -31565,7 +31628,6 @@ function _rqOnTypeManual(){
   if(sel && typeInp){
     if(sel.value!=='_other') sel.value='_other';
     sel.classList.toggle('has-val',!!typeInp.value.trim());
-    if(irInp && !_rqIsIrType(typeInp.value)) irInp.value='';
   }
   _rqOnTypeInput();
 }
@@ -31573,13 +31635,7 @@ function _rqOnTypeInput(){
   _rqRenderCommentSuggestions();
   _rqToggleIrTypeField();
 }
-function _rqToggleIrTypeField(){
-  const wrap=document.getElementById('rqIrTypeWrap');
-  if(!wrap) return;
-  const typeVal=document.getElementById('rqType')?.value||'';
-  const selV=document.getElementById('rqTypeSel')?.value||'';
-  wrap.style.display=(selV==='ir:_other'||(selV==='_other'&&_rqIsIrType(typeVal)))?'':'none';
-}
+function _rqToggleIrTypeField(){ /* inspection type is always visible now */ }
 function _rqIrSubtypeChipsHTML(historyVals){
   const fixed=_RQ_IR_SUBTYPE_QUICK.map(o=>L(o.en,o.ar));
   const seen=new Set(fixed.map(v=>v.toLowerCase()));
@@ -31737,7 +31793,7 @@ function saveRequest(){
     _rqPendingCoLogo=undefined;
   }
   const rec={company,engineer:g('rqEngineer'),date:g('rqDate')||today(),type:g('rqType'),zone:g('rqZone'),plot:g('rqPlot'),model:g('rqModel'),floor:g('rqFloor'),level:g('rqLevel'),status:_rqStatusSel,notes:g('rqNotes')};
-  if(_rqIsIrType(rec.type)) rec.irType=g('rqIrType'); else if(!_rqEditId) rec.irType='';
+  rec.irType=g('rqIrType'); // inspection type, kept for every receipt type
   _atLearnEdits(document.getElementById('rqNotes'));
   _rqLearnCommentSuggestions(rec.type,rec.irType,rec.notes);
   _rqLearnField('company',rec.company);
@@ -31813,7 +31869,7 @@ async function _atTranslateMyMemory(text,target){
 // small post-fix list corrects the known literal mistakes.
 // Add terms by appending [arabicPattern, 'English term'] rows below — letters
 // are matched leniently (أ/إ/آ=ا, ى=ي, ة=ه), `|` `(…)` `?` are regex, space = any gap.
-const _AT_GLOSS_VER=3; // bump when the glossary changes → cached card translations refresh
+const _AT_GLOSS_VER=4; // bump when the glossary changes → cached card translations refresh
 const _AT_GLOSS=[
   // — phrases (matched first, longest wins) —
   ['(يوجد|وجود) (اعشاش|تعشيش)','honeycombing observed'],
@@ -31936,7 +31992,791 @@ const _AT_GLOSS=[
   ['(مساحيه|مساحي|مساحه)','survey'],
 ];
 const _AR_CHAR_CLASS={'ا':'[اأإآ]','أ':'[اأإآ]','إ':'[اأإآ]','آ':'[اأإآ]','ي':'[يى]','ى':'[يى]','ه':'[هة]','ة':'[هة]'};
-const _AT_GLOSS_RE=_AT_GLOSS.map(([ar,en])=>{
+// ── User's civil-engineering dictionary (Arabic=English), used first by the translator ──
+const _AT_CIVIL_RAW=`مهندس موقع=Site Engineer
+مهندس تنفيذ=Construction Engineer
+مهندس استشاري=Consultant Engineer
+مهندس مكتب فني=Technical Office Engineer
+مدير مشروع=Project Manager
+مدير موقع=Site Manager
+مهندس جودة=QA/QC Engineer
+مهندس تخطيط=Planning Engineer
+مهندس حصر كميات=Quantity Surveyor
+مهندس سلامة=HSE Engineer
+مساح=Surveyor
+مراقب أعمال=Site Supervisor
+مقاول عام=General Contractor
+مقاول باطن=Subcontractor
+مقاول متخصص=Specialist Contractor
+مورد=Supplier
+استشاري=Consultant
+مالك المشروع=Client
+جهة مالكة=Employer
+مقاول=Contractor
+الموقع=Site
+منطقة العمل=Work Area
+منطقة التنفيذ=Construction Area
+أعمال مدنية=Civil Works
+أعمال إنشائية=Structural Works
+أعمال معمارية=Architectural Works
+أعمال ميكانيكية=Mechanical Works
+أعمال كهربائية=Electrical Works
+أعمال التشطيبات=Finishing Works
+أعمال البنية التحتية=Infrastructure Works
+أعمال المرافق=Utility Works
+أعمال الطرق=Road Works
+أعمال الصرف=Drainage Works
+أعمال المياه=Water Works
+أعمال الحفر=Excavation Works
+أعمال الردم=Backfilling Works
+أعمال الخرسانة=Concrete Works
+أعمال الحديد=Reinforcement Works
+أعمال المباني=Masonry Works
+أعمال المحارة=Plastering Works
+أعمال العزل=Waterproofing Works
+أعمال الترميم=Repair Works
+أعمال التدعيم=Strengthening Works
+أعمال الإزالة=Demolition Works
+أعمال التكسير=Chipping Works
+أعمال الاستبدال=Replacement Works
+أعمال الصيانة=Maintenance Works
+بدء العمل=Commencement of Work
+توقف العمل=Work Stoppage
+استئناف العمل=Resumption of Work
+منطقة ممنوع الدخول إليها=Restricted Area
+واجهة العمل=Work Front
+برنامج العمل=Work Program
+خطة التنفيذ=Execution Plan
+تسلسل التنفيذ=Sequence of Work
+طريقة التنفيذ=Method of Construction
+معدل الإنجاز=Progress Rate
+نسبة الإنجاز=Percentage of Completion
+الأعمال المنفذة=Executed Works
+الأعمال المتبقية=Remaining Works
+الأعمال المتأخرة=Delayed Works
+الأعمال الجارية=Ongoing Works
+الأعمال المؤقتة=Temporary Works
+الأعمال الدائمة=Permanent Works
+اعتماد الأعمال=Work Approval
+استلام الأعمال=Work Inspection
+رفض الأعمال=Work Rejection
+إعادة التنفيذ=Rework
+إصلاح العيوب=Defect Rectification
+عيب تنفيذي=Construction Defect
+مخالفة تنفيذية=Non-Conformance
+ملاحظة استشارية=Consultant Comment
+تعليمات الموقع=Site Instruction
+محضر اجتماع=Meeting Minutes
+اجتماع تنسيقي=Coordination Meeting
+اجتماع موقع=Site Meeting
+اجتماع بدء العمل=Kick-off Meeting
+مقايسة=Measurement Sheet
+مستخلص=Payment Application
+مستخلص مقاول=Contractor’s Payment Application
+مستخلص جاري=Interim Payment Certificate
+مستخلص ختامي=Final Account
+دفعة مقدمة=Advance Payment
+دفعة محتجزة=Retention
+ضمان حسن التنفيذ=Performance Bond
+خطاب ضمان=Bank Guarantee
+أمر تغيير=Variation Order
+أمر شراء=Purchase Order
+أمر تكليف=Work Order
+أمر مباشر=Direct Order
+محضر استلام=Taking-Over Certificate
+استلام ابتدائي=Preliminary Acceptance
+استلام نهائي=Final Acceptance
+تسليم الموقع=Site Handover
+استلام الموقع=Site Possession
+كميات فعلية=Actual Quantities
+كميات تقديرية=Estimated Quantities
+كمية منفذة=Executed Quantity
+كمية متبقية=Remaining Quantity
+كمية إضافية=Additional Quantity
+كمية مهدرة=Wasted Quantity
+هالك=Waste
+إنتاجية=Productivity
+عمالة=Labor
+قوة عاملة=Workforce
+طاقم العمل=Work Crew
+صنايعي=Tradesman
+صنايعي ماهر=Skilled Worker
+نجار مسلح=Formwork Carpenter
+حداد مسلح=Steel Fixer
+مبيض محارة=Plasterer
+عامل مباني=Mason
+عامل خرسانة=Concrete Worker
+سائق=Driver
+مشغل معدة=Equipment Operator
+عامل مساعد=Helper
+أعمال المساحة=Surveying Works
+مساح الموقع=Site Surveyor
+توقيع المحاور=Setting Out of Axes
+محور=Axis
+خط المحور=Centerline
+شبكة المحاور=Grid Lines
+محور طولي=Longitudinal Axis
+محور عرضي=Transverse Axis
+نقطة ثابتة=Control Point
+نقطة مرجعية=Reference Point
+نقطة توقيع=Setting-Out Point
+منسوب=Level
+منسوب الأرض الطبيعية=Natural Ground Level
+منسوب الأرض القائمة=Existing Ground Level
+منسوب التشطيب=Finished Floor Level
+منسوب الحفر=Excavation Level
+منسوب التأسيس=Formation Level
+منسوب الخرسانة العادية=Blinding Level
+منسوب أعلى الخرسانة=Top of Concrete Level
+منسوب أسفل الخرسانة=Bottom of Concrete Level
+فرق المنسوب=Level Difference
+ميزانية شبكية=Grid Leveling
+ميزان القامة=Staff Level
+ميزان ليزر=Laser Level
+توتال استيشن=Total Station
+جهاز الميزان=Level Instrument
+إحداثيات=Coordinates
+إحداثي شرقي=Easting
+إحداثي شمالي=Northing
+مسافة أفقية=Horizontal Distance
+مسافة مائلة=Slope Distance
+زاوية أفقية=Horizontal Angle
+زاوية رأسية=Vertical Angle
+رفع مساحي=Survey
+رفع مساحي للموقع=Site Survey
+رفع مساحي قائم=As-Built Survey
+توقيع حفرة=Setting Out Excavation
+توقيع قاعدة=Footing Setting Out
+توقيع عمود=Column Setting Out
+توقيع حائط=Wall Setting Out
+توقيع مبنى=Building Setting Out
+شرب المحاور=Transferring Levels
+خط كنتور=Contour Line
+ميل=Slope
+ميول الحفر=Excavation Slope
+ميل الطريق=Road Gradient
+ميل الصرف=Drainage Gradient
+ضبط رأسي=Vertical Alignment
+ضبط أفقي=Horizontal Alignment
+خيط الشاغول=Plumb Bob Line
+شاغول=Plumb Bob
+خيط شد=String Line
+خيط توقيع=Setting-Out String
+علامة مساحية=Survey Marker
+علامة ثابتة=Permanent Marker
+مسمار مساحي=Survey Nail
+نقطة تحكم=Control Point
+تثبيت المحاور=Axis Fixing
+مراجعة المحاور=Axis Verification
+مراجعة المناسيب=Level Verification
+مطابقة الإحداثيات=Coordinate Verification
+حفر=Excavation
+حفر مفتوح=Open Excavation
+حفر أساسات=Foundation Excavation
+حفر يدوي=Manual Excavation
+حفر ميكانيكي=Mechanical Excavation
+حفر بالمعدة=Machine Excavation
+حفر جوانب=Side Excavation
+قاع الحفر=Excavation Bottom
+جوانب الحفر=Excavation Sides
+عمق الحفر=Excavation Depth
+عرض الحفر=Excavation Width
+طول الحفر=Excavation Length
+حفرة أساس=Foundation Pit
+حفرة خدمات=Utility Trench
+خندق=Trench
+خندق مرافق=Utility Trench
+حفر خطي=Linear Excavation
+توسعة الحفر=Excavation Enlargement
+تجاوز الحفر=Over-Excavation
+حفر زيادة=Excess Excavation
+تسوية قاع الحفر=Bottom Trimming
+تسوية التربة=Soil Leveling
+تنظيف الحفر=Excavation Cleaning
+تربة طبيعية=Natural Soil
+تربة إحلال=Replacement Soil
+تربة ردم=Backfill Material
+تربة ضعيفة=Weak Soil
+تربة انتفاشية=Expansive Soil
+تربة رملية=Sandy Soil
+تربة طينية=Clayey Soil
+تربة صخرية=Rocky Soil
+طبقة تربة=Soil Layer
+إحلال تربة=Soil Replacement
+إحلال كامل=Full Soil Replacement
+إحلال جزئي=Partial Soil Replacement
+ردم=Backfilling
+ردم حول الأساسات=Backfilling Around Foundations
+ردم طبقات=Layered Backfilling
+سمك طبقة الردم=Backfill Layer Thickness
+دمك=Compaction
+دمك ميكانيكي=Mechanical Compaction
+دمك يدوي=Manual Compaction
+نسبة الدمك=Compaction Ratio
+اختبار الدمك=Compaction Test
+بروكتور=Proctor Test
+الكثافة الجافة=Dry Density
+الكثافة القصوى=Maximum Dry Density
+الرطوبة المثلى=Optimum Moisture Content
+تربة محسنة=Improved Soil
+تربة مختارة=Selected Fill
+مواد إحلال=Replacement Material
+زلط=Gravel
+رمل=Sand
+رمل نظيف=Clean Sand
+رمل خشن=Coarse Sand
+رمل ناعم=Fine Sand
+خرسانة مهدرة=Lean Concrete
+نزح مياه=Dewatering
+مياه جوفية=Groundwater
+مضخة نزح=Dewatering Pump
+حفرة تجميع مياه=Sump Pit
+خزان تجميع=Collection Sump
+تدعيم جوانب الحفر=Excavation Shoring
+تدعيم مؤقت=Temporary Shoring
+سند جوانب الحفر=Excavation Support
+تربة منهارة=Collapsed Soil
+انهيار جوانب الحفر=Side Collapse
+انهيار الحفر=Excavation Collapse
+مصرف مؤقت=Temporary Drain
+تجفيف الموقع=Site Dewatering
+تسوية الموقع=Site Grading
+تجهيز الموقع=Site Preparation
+إزالة المخلفات=Debris Removal
+إزالة التربة الزائدة=Surplus Soil Removal
+نقل ناتج الحفر=Disposal of Excavated Material
+ناتج الحفر=Excavated Material
+تشوين=Stockpiling
+تشوين التربة=Soil Stockpile
+تشوين الخامات=Material Storage
+تربة غير صالحة=Unsuitable Material
+تربة صالحة للردم=Suitable Backfill
+أساس=Foundation
+أساسات=Foundations
+أساس منفرد=Isolated Footing
+أساس مشترك=Combined Footing
+أساس شريطي=Strip Footing
+أساس مستمر=Continuous Footing
+لبشة=Raft Foundation
+لبشة مسلحة=Reinforced Concrete Raft
+لبشة عكسية=Inverted Raft
+قاعدة منفصلة=Isolated Footing
+قاعدة مشتركة=Combined Footing
+قاعدة شريطية=Strip Footing
+قاعدة جار=Edge Footing
+قاعدة عمود=Column Footing
+قاعدة حائط=Wall Footing
+قاعدة مسلحة=Reinforced Footing
+قاعدة خرسانة عادية=Plain Concrete Footing
+قاعدة على خوازيق=Piled Foundation
+خازوق=Pile
+خوازيق=Piles
+خازوق حفر=Bored Pile
+خازوق مدقوق=Driven Pile
+خازوق خرساني=Concrete Pile
+خازوق مملوء=Cast-in-Place Pile
+رأس الخازوق=Pile Head
+تكسير رأس الخازوق=Pile Head Breaking
+تسوية رأس الخازوق=Pile Head Trimming
+كاب الخوازيق=Pile Cap
+مجموعة خوازيق=Pile Group
+اختبار خازوق=Pile Test
+اختبار تحميل=Load Test
+اختبار تحميل رأسي=Vertical Load Test
+اختبار تحميل أفقي=Lateral Load Test
+اختبار سلامة الخازوق=Pile Integrity Test
+اختبار موجات صوتية=Cross-Hole Sonic Logging
+رقبة العمود=Column Neck
+بيدستال=Pedestal
+ميدة=Ground Beam
+ميدة أرضية=Ground Beam
+ميدة ربط=Tie Beam
+شداد=Strap Beam
+خرسانة عادية=Plain Concrete
+خرسانة نظافة=Blinding Concrete
+خرسانة فرشة=Blinding Concrete
+عزل أسفل الأساس=Foundation Waterproofing
+غشاء بولي إيثيلين=Polyethylene Sheet
+عزل رطوبة=Damp Proofing
+خرسانة تأسيس=Foundation Concrete
+أبعاد القاعدة=Footing Dimensions
+سمك القاعدة=Footing Thickness
+عمق التأسيس=Foundation Depth
+غطاء خرساني=Concrete Cover
+تسليح القاعدة=Footing Reinforcement
+شبكة سفلية=Bottom Reinforcement Mesh
+شبكة علوية=Top Reinforcement Mesh
+حديد إضافي=Additional Reinforcement
+أشاير العمود=Column Starter Bars
+أشاير الحائط=Wall Starter Bars
+حديد فرش=Bottom Main Bars
+حديد غطاء=Top Distribution Bars
+كرسي=Reinforcement Chair
+بسكوت=Concrete Spacer
+بلوك غطاء=Cover Block
+تربيط الحديد=Rebar Tying
+صب القاعدة=Footing Casting
+فاصل صب=Construction Joint
+فاصل تمدد=Expansion Joint
+فاصل هبوط=Settlement Joint
+خرسانة=Concrete
+خرسانة مسلحة=Reinforced Concrete
+خرسانة سابقة الإجهاد=Prestressed Concrete
+خرسانة جاهزة=Ready-Mix Concrete
+خرسانة مصبوبة بالموقع=Cast-in-Situ Concrete
+خرسانة عالية المقاومة=High-Strength Concrete
+خرسانة عالية الأداء=High-Performance Concrete
+خرسانة ذاتية الدمك=Self-Compacting Concrete
+خرسانة خفيفة الوزن=Lightweight Concrete
+خرسانة ثقيلة الوزن=Heavyweight Concrete
+خرسانة ليفية=Fiber Reinforced Concrete
+خرسانة مقاومة للماء=Waterproof Concrete
+خرسانة مقاومة للكبريتات=Sulfate Resistant Concrete
+خرسانة ميول=Screed Concrete
+خرسانة أرضيات=Floor Concrete
+خرسانة ميول الأسطح=Roof Screed
+صب خرسانة=Concrete Pouring
+عملية الصب=Concrete Casting
+صب متواصل=Continuous Pour
+صب على مراحل=Staged Pour
+كمية الصبة=Concrete Pour Quantity
+بداية الصب=Start of Pour
+نهاية الصب=End of Pour
+مضخة خرسانة=Concrete Pump
+مضخة ثابتة=Stationary Concrete Pump
+مضخة متحركة=Boom Pump
+ذراع المضخة=Pump Boom
+خرطوم المضخة=Pump Hose
+خط الضخ=Pump Line
+خلاطة=Concrete Mixer
+خلاطة مركزية=Central Mixer
+سيارة خرسانة=Transit Mixer
+سيارة مضخة=Concrete Pump Truck
+مكعبات خرسانة=Concrete Cubes
+عينة خرسانة=Concrete Sample
+اختبار مكعبات=Cube Test
+اختبار مقاومة الضغط=Compressive Strength Test
+مقاومة الضغط=Compressive Strength
+اختبار الهبوط=Slump Test
+قيمة الهبوط=Slump
+قمع الهبوط=Slump Cone
+صب العينة=Sample Casting
+معالجة الخرسانة=Concrete Curing
+رش المياه=Water Curing
+خيش مبلل=Wet Hessian
+مركب معالجة=Curing Compound
+زمن الشك الابتدائي=Initial Setting Time
+زمن الشك النهائي=Final Setting Time
+زمن التشغيل=Working Time
+زمن النقل=Delivery Time
+فترة الصب=Pouring Time
+خرسانة طازجة=Fresh Concrete
+خرسانة متصلدة=Hardened Concrete
+نزيف الخرسانة=Bleeding
+انفصال حبيبي=Segregation
+تشغيلية الخرسانة=Workability
+تماسك الخرسانة=Cohesion
+نسبة الماء للأسمنت=Water-Cement Ratio
+محتوى الأسمنت=Cement Content
+ملدن=Plasticizer
+ملدن فائق=Superplasticizer
+مسرع شك=Accelerator
+مبطئ شك=Retarder
+إضافة مانعة للنفاذية=Waterproofing Admixture
+أسمنت=Cement
+أسمنت بورتلاندي=Portland Cement
+أسمنت مقاوم للكبريتات=Sulfate Resistant Cement
+ركام=Aggregate
+ركام خشن=Coarse Aggregate
+ركام ناعم=Fine Aggregate
+مقاس الركام=Aggregate Size
+ماء الخلط=Mixing Water
+خلطة خرسانية=Concrete Mix
+تصميم الخلطة=Mix Design
+نسبة الخلط=Mix Proportion
+رتبة الخرسانة=Concrete Grade
+عينة اختبار=Test Specimen
+مكعب قياسي=Standard Cube
+اسطوانة خرسانية=Concrete Cylinder
+تكسير المكعبات=Cube Crushing
+نتيجة التكسير=Crushing Result
+مقاومة 7 أيام=7-Day Strength
+مقاومة 28 يوم=28-Day Strength
+صب على جاف=Dry Pour
+صب تحت الماء=Underwater Concreting
+خرسانة مرفوضة=Rejected Concrete
+خرسانة غير مطابقة=Non-Conforming Concrete
+إعادة الصب=Recasting
+فاصل صب رأسي=Vertical Construction Joint
+فاصل صب أفقي=Horizontal Construction Joint
+سطح فاصل الصب=Construction Joint Surface
+تخشين الفاصل=Joint Roughening
+مادة رابطة=Bonding Agent
+إيبوكسي=Epoxy
+مونة إصلاح=Repair Mortar
+جراوت=Grout
+مونة غير منكمشة=Non-Shrink Grout
+تعشيش=Honeycombing
+تعشيش شديد=Severe Honeycombing
+تعشيش سطحي=Surface Honeycombing
+تعشيش عميق=Deep Honeycombing
+نزيف=Bleeding
+شرخ=Crack
+شقوق=Cracks
+شرخ شعري=Hairline Crack
+شرخ إنشائي=Structural Crack
+شرخ غير إنشائي=Non-Structural Crack
+شرخ انكماش=Shrinkage Crack
+شرخ حراري=Thermal Crack
+شرخ هبوط=Settlement Crack
+شرخ قص=Shear Crack
+شرخ عزوم=Flexural Crack
+شرخ رأسي=Vertical Crack
+شرخ أفقي=Horizontal Crack
+شرخ مائل=Diagonal Crack
+اتساع الشرخ=Crack Width
+انتشار الشرخ=Crack Propagation
+تقشر الخرسانة=Spalling
+تفتت الخرسانة=Concrete Deterioration
+تآكل الخرسانة=Concrete Deterioration
+تآكل الحديد=Reinforcement Corrosion
+صدأ الحديد=Reinforcement Corrosion
+انكشاف الحديد=Exposed Reinforcement
+فقد الغطاء الخرساني=Loss of Concrete Cover
+ضعف الخرسانة=Concrete Weakness
+خرسانة ضعيفة=Weak Concrete
+انفصال الغطاء=Delamination
+فجوة=Void
+فراغات=Voids
+ثقوب الشدة=Formwork Tie Holes
+أثر الشدة=Formwork Mark
+نزيف مياه=Water Seepage
+تسرب مياه=Water Leakage
+عيب سطحي=Surface Defect
+خشونة سطح=Surface Roughness
+تفاوت السطح=Surface Irregularity
+تعشيش عند العمود=Column Honeycombing
+تعشيش أسفل الكمرة=Beam Soffit Honeycombing
+تعشيش أسفل البلاطة=Slab Soffit Honeycombing
+تعشيش عند فاصل الصب=Joint Honeycombing
+إصلاح التعشيش=Honeycomb Repair
+تكسير الخرسانة الضعيفة=Removal of Unsound Concrete
+تخشين السطح=Surface Roughening
+تنظيف الحديد=Reinforcement Cleaning
+معالجة الصدأ=Rust Treatment
+شدة خشبية=Timber Formwork
+نجارة مسلحة=Formwork
+لوح خشب=Timber Board
+خشب موسكي=Softwood Timber
+خشب كونتر=Plywood
+كونتر بحري=Marine Plywood
+لوح كونتر=Plywood Sheet
+عروق خشب=Timber Joists
+عرقة=Timber Joist
+حمال=Bearer
+تطريحة=Secondary Joist
+برندة=Waler
+قوائم=Props
+فرشة=Sole Plate
+مراية=Side Form Board
+قمط=Clamp
+قمطة=Clamp
+ضفدع=Wedge Clamp
+زرجينة=Formwork Tie Rod
+زرجينة حديد=Steel Tie Rod
+صامولة=Nut
+واشر=Washer
+قميص=Formwork Sleeve
+قالب=Formwork Mold
+شدة عمود=Column Formwork
+شدة كمرة=Beam Formwork
+شدة سقف=Slab Formwork
+شدة حائط=Wall Formwork
+شدة قاعدة=Footing Formwork
+شدة سلم=Stair Formwork
+شدة رقبة عمود=Pedestal Formwork
+تربيط الشدة=Formwork Tying
+تدعيم الشدة=Formwork Bracing
+زنق الشدة=Formwork Clamping
+ضبط الشدة=Formwork Alignment
+تربيط القوائم=Prop Bracing
+تخشيب=Timber Formwork Installation
+فك الشدة=Formwork Stripping
+فك النجارة=Formwork Removal
+إعادة استخدام الشدة=Formwork Reuse
+زيت شدة=Form Release Agent
+زيت فك=Release Agent
+دهان الشدة=Formwork Coating
+تنظيف الشدة=Formwork Cleaning
+غلق الشدة=Formwork Closing
+فتح الشدة=Formwork Opening
+استعدال الشدة=Formwork Adjustment
+تسقيط الشدة=Formwork Misalignment
+تزهير الشدة=Formwork Bulging
+تسريب لباني=Cement Paste Leakage
+فك مبكر=Early Stripping
+فك متأخر=Delayed Stripping
+قوة الشدة=Formwork Stability
+تحمل الشدة=Formwork Load Capacity
+هبوط الشدة=Formwork Deflection
+انبعاج الشدة=Formwork Buckling
+شدة معدنية=Steel Formwork
+شدة نظامية=System Formwork
+شدة معدنية للعمود=Steel Column Formwork
+شدة معدنية للحائط=Steel Wall Formwork
+سقالة=Scaffold
+سقالة معدنية=Steel Scaffold
+سقالة واجهة=Façade Scaffold
+سقالة متحركة=Mobile Scaffold
+سقالة برجية=Scaffold Tower
+قائم معدني=Steel Prop
+جاك=Adjustable Prop
+جاك سقف=Adjustable Steel Prop
+جاك ميكانيكي=Mechanical Jack
+جاك هيدروليك=Hydraulic Jack
+رأس جاك=Prop Head
+قاعدة جاك=Prop Base
+ترايبود=Tripod
+كوبلوك=Cuplock Scaffold
+فريم=Scaffold Frame
+بلانك=Scaffold Plank
+منصة=Working Platform
+درابزين=Guardrail
+سلم سقالة=Scaffold Ladder
+شبكة حماية=Safety Net
+حاجز حماية=Safety Barrier
+مشبك=Clamp
+مشبك ثابت=Fixed Clamp
+مشبك دوار=Swivel Clamp
+ماسورة سقالة=Scaffold Tube
+قاعدة معدنية=Base Plate
+قمط معدني=Steel Clamp
+تدعيم رأسي=Vertical Bracing
+تدعيم أفقي=Horizontal Bracing
+تدعيم قطري=Diagonal Bracing
+شدة طائرة=Flying Formwork
+شدة منزلقة=Slip Formwork
+شدة نفقية=Tunnel Formwork
+شدة متسلقة=Climbing Formwork
+شدة دائرية=Circular Formwork
+حديد تسليح=Reinforcement Steel
+سيخ حديد=Reinforcing Bar
+حديد رئيسي=Main Reinforcement
+حديد توزيع=Distribution Reinforcement
+حديد علوي=Top Reinforcement
+حديد سفلي=Bottom Reinforcement
+حديد مكسح=Bent-Up Bars
+تكسيح الحديد=Bar Bending
+سيخ مكسح=Bent-Up Bar
+كانة=Stirrup
+كانات=Stirrups
+كانة مغلقة=Closed Stirrup
+كانة مفتوحة=Open Stirrup
+كانة عمود=Column Tie
+كانة كمرة=Beam Stirrup
+كانة حائط=Wall Tie
+كانة كابولي=Cantilever Stirrup
+أشاير=Starter Bars
+أشاير عمود=Column Starter Bars
+أشاير حائط=Wall Starter Bars
+أشاير سلم=Stair Starter Bars
+وصلة=Splice
+وصلة تراكب=Lap Splice
+طول الوصلة=Lap Length
+وصلة ميكانيكية=Mechanical Splice
+كوبلر=Mechanical Coupler
+وصلة لحام=Welded Splice
+تربيط=Tying
+سلك رباط=Binding Wire
+سلك تربيط=Tie Wire
+رباط حديد=Rebar Tie
+غطاء سفلي=Bottom Cover
+غطاء جانبي=Side Cover
+غطاء علوي=Top Cover
+بسكوت خرساني=Concrete Spacer
+بسكوت بلاستيك=Plastic Spacer
+كرسي حديد=Steel Chair
+شبكة تسليح=Reinforcement Mesh
+شبكة لحام=Welded Wire Mesh
+قطر السيخ=Bar Diameter
+عدد الأسياخ=Number of Bars
+مسافة الأسياخ=Bar Spacing
+توزيع الأسياخ=Bar Distribution
+اتجاه الحديد=Reinforcement Direction
+حديد إضافي فوق الركيزة=Extra Top Reinforcement
+حديد إضافي أسفل الكمرة=Extra Bottom Reinforcement
+حديد تعليق=Hanger Bars
+حديد تعليق الكانات=Hanger Reinforcement
+حديد جانبي=Side Face Reinforcement
+حديد جلد=Skin Reinforcement
+حديد التواء=Torsional Reinforcement
+حديد قص=Shear Reinforcement
+حديد ضغط=Compression Reinforcement
+حديد شد=Tension Reinforcement
+حديد تقوية=Strengthening Reinforcement
+خطاف=Hook
+خطاف 90 درجة=90° Hook
+خطاف 135 درجة=135° Hook
+خطاف 180 درجة=180° Hook
+ثني الحديد=Bar Bending
+قطع الحديد=Bar Cutting
+فرد الحديد=Bar Straightening
+تشكيل الحديد=Rebar Fabrication
+بنك تقطيع=Cutting Bench
+بنك حدادة=Rebar Fabrication Bench
+ماكينة تقطيع=Bar Cutting Machine
+ماكينة ثني=Bar Bending Machine
+حديد مصنع=Fabricated Rebar
+حديد توريد=Delivered Rebar
+تشوين الحديد=Rebar Storage
+رص الحديد=Rebar Stacking
+أقطار مختلفة=Different Bar Diameters
+وزن الحديد=Reinforcement Weight
+طن حديد=Ton of Reinforcement
+جدول حصر الحديد=Bar Bending Schedule
+جدول تقطيع الحديد=Cutting List
+مارك الحديد=Bar Mark
+رقم السيخ=Bar Number
+شكل السيخ=Bar Shape
+طول السيخ=Bar Length
+وزن المتر الطولي=Unit Weight
+وزن السيخ=Bar Weight
+فاقد الحديد=Rebar Waste
+هالك الحديد=Rebar Scrap
+خردة=Scrap
+مراجعة الحديد=Rebar Inspection
+استلام الحديد=Rebar Inspection
+مطابقة الحديد=Rebar Verification
+تعارض الحديد=Rebar Clash
+تزاحم الحديد=Rebar Congestion
+كثافة الحديد=Reinforcement Congestion
+حديد مزدوج=Double Reinforcement
+حديد إضافي عند الفتحات=Opening Reinforcement
+حديد حول فتحة=Opening Trimmer Bars
+حديد حافة=Edge Reinforcement
+حديد ربط=Tie Reinforcement
+عمود=Column
+عمود خرساني=Concrete Column
+عمود مسلح=Reinforced Concrete Column
+عمود دائري=Circular Column
+عمود مربع=Square Column
+عمود مستطيل=Rectangular Column
+عمود طرفي=Edge Column
+عمود ركني=Corner Column
+عمود داخلي=Interior Column
+عمود مستمر=Continuous Column
+قطاع العمود=Column Section
+أبعاد العمود=Column Dimensions
+محور العمود=Column Centerline
+وش العمود=Column Face
+جوانب العمود=Column Faces
+رأس العمود=Column Head
+قاعدة العمود=Column Base
+كانات العمود=Column Ties
+تكثيف الكانات=Closely Spaced Ties
+منطقة التكثيف=Confinement Zone
+منطقة الوصلة=Lap Splice Zone
+وصلة العمود=Column Lap Splice
+شاقول العمود=Column Plumbness
+رأسية العمود=Column Verticality
+انحراف العمود=Column Deviation
+كمرة=Beam
+كمرة ساقطة=Drop Beam
+كمرة مخفية=Concealed Beam
+كمرة مقلوبة=Inverted Beam
+كمرة رئيسية=Main Beam
+كمرة ثانوية=Secondary Beam
+كمرة طرفية=Edge Beam
+كمرة كابولية=Cantilever Beam
+كمرة ربط=Tie Beam
+كمرة تحويلية=Transfer Beam
+كمرة عميقة=Deep Beam
+بطن الكمرة=Beam Soffit
+وجه الكمرة=Beam Face
+أعلى الكمرة=Beam Top
+أسفل الكمرة=Beam Bottom
+جانب الكمرة=Beam Side
+كانات الكمرة=Beam Stirrups
+حديد الكمرة السفلي=Bottom Beam Reinforcement
+حديد الكمرة العلوي=Top Beam Reinforcement
+حديد إضافي علوي=Top Extra Reinforcement
+حديد إضافي سفلي=Bottom Extra Reinforcement
+حديد الكابولي=Cantilever Reinforcement
+بلاطة=Slab
+بلاطة مصمتة=Solid Slab
+بلاطة هوردي=Ribbed Slab
+بلاطة كمرية=Ribbed Slab
+بلاطة فلات=Flat Slab
+بلاطة مفرغة=Voided Slab
+بلاطة فلات سلاب=Flat Slab
+بلاطة اتجاه واحد=One-Way Slab
+بلاطة اتجاهين=Two-Way Slab
+بلاطة كابولية=Cantilever Slab
+بلاطة أرضية=Ground Slab
+بلاطة سقف=Roof Slab
+سمك البلاطة=Slab Thickness
+بطن البلاطة=Slab Soffit
+وش البلاطة=Slab Surface
+حديد البلاطة السفلي=Bottom Slab Reinforcement
+حديد البلاطة العلوي=Top Slab Reinforcement
+حديد الفرش=Main Reinforcement
+حديد الغطاء=Distribution Reinforcement
+حديد فوق الركائز=Top Support Reinforcement
+حديد منتصف البحر=Midspan Reinforcement
+بحر=Span
+بحر صافي=Clear Span
+عمق الكمرة=Beam Depth
+عرض الكمرة=Beam Width
+عمق البلاطة=Slab Depth
+عمق فعال=Effective Depth
+محور محايد=Neutral Axis
+منطقة الضغط=Compression Zone
+منطقة الشد=Tension Zone
+قطاع حرج=Critical Section
+ركيزة=Support
+مسند=Support
+وجه الركيزة=Face of Support
+منطقة الركيزة=Support Zone
+عزم موجب=Positive Moment
+عزم سالب=Negative Moment
+قوة قص=Shear Force
+عزم انحناء=Bending Moment
+عزم التواء=Torsional Moment
+ترخيم=Deflection
+هبوط=Settlement
+كابولي=Cantilever
+فتحة بلاطة=Slab Opening
+فتحة خدمات=Service Opening
+فتحة درج=Stair Opening
+بيت الدرج=Stairwell
+سلم=Staircase
+درج=Stair
+بسطة=Landing
+بسطة وسطى=Intermediate Landing
+بسطة علوية=Top Landing
+نايمة=Tread
+عرض السلم=Stair Width
+ارتفاع القائمة=Riser Height
+عرض النائمة=Tread Width
+بطن السلم=Stair Soffit
+بلاطة السلم=Stair Slab
+كمرة السلم=Stair Beam`;
+const _AT_CIVIL=(function(){
+  const seen=new Set(), rows=[];
+  _AT_CIVIL_RAW.split('\n').forEach(line=>{
+    const i=line.indexOf('='); if(i<1) return;
+    const ar=line.slice(0,i).trim(), en=line.slice(i+1).trim();
+    if(!ar||!en) return;
+    const words=ar.split(/\s+/).map(w=>w.replace(/^ال(?=.{2})/,''));
+    const key=words.join(' ').replace(/[\u064B-\u065F\u0640]/g,'').replace(/[أإآ]/g,'ا').replace(/ى/g,'ي').replace(/ة/g,'ه');
+    if(seen.has(key)) return;
+    seen.add(key);
+    rows.push({n:words.length,l:key.length,r:[words.map((w,j)=>j?'(ال)?'+w:w).join(' '),en]});
+  });
+  rows.sort((a,b)=>(b.n-a.n)||(b.l-a.l));
+  return rows.map(x=>x.r);
+})();
+const _AT_GLOSS_RE=[..._AT_CIVIL,..._AT_GLOSS].map(([ar,en])=>{
   const body=ar.replace(/[\u0621-\u064A]/g,c=>_AR_CHAR_CLASS[c]||c).replace(/ /g,'\\s+');
   return {en, len:ar.length, re:new RegExp('(?<![\\u0600-\\u06FF])([وبلكف])?(?:ال)?(?:'+body+')(?![\\u0600-\\u06FF])','g')};
 });  // array order matters: phrases are listed before single terms, so they win
@@ -37277,10 +38117,24 @@ function _notesDrawDone(){
   _notesDrawCancel();
 }
 
+let _notesLoadFailed=false; // true when stored notes could not be read — saving an empty list is then blocked
 function _notesLoad(){
   try{
     const raw = localStorage.getItem(NOTES_KEY);
-    if(raw) return JSON.parse(raw);
+    if(raw){
+      try{
+        const v = JSON.parse(raw);
+        if(!Array.isArray(v)) throw new Error('notes value is not a list');
+        _notesLoadFailed=false;
+        return v;
+      }catch(pe){
+        // Unreadable data: keep a raw copy aside and refuse to overwrite it with an empty list.
+        _notesLoadFailed=true;
+        try{ localStorage.setItem(NOTES_KEY+'_corrupt', raw); }catch(e){}
+        _logErr('_notesLoad:parse', pe);
+        return [];
+      }
+    }
     // One-time migration from the earlier plain-text quick-notes version,
     // so nothing anyone already wrote gets lost by this upgrade.
     let old = [];
@@ -37291,14 +38145,61 @@ function _notesLoad(){
       bodyHTML: esc(n.text||'').replace(/\n/g,'<br>'),
       pinned:false, createdAt:n.createdAt||Date.now(), updatedAt:n.createdAt||Date.now(),
     }));
-    _notesSave(migrated);
+    if(migrated.length) _notesSave(migrated); // never create an empty "[]" key — that would block restore-from-mirror
     return migrated;
   }catch(e){ _logErr('_notesLoad', e); return []; }
 }
 function _notesSave(list){
+  if(_notesLoadFailed && !(list&&list.length)) return; // never replace unreadable data with an empty list
   try{ localStorage.setItem(NOTES_KEY, JSON.stringify(list)); }
-  catch(e){ _logErr('_notesSave', e); }
+  catch(e){
+    _logErr('_notesSave', e);
+    try{ showToast(L('⚠ Storage is full — this note was NOT saved here','⚠ المساحة ممتلئة — الملاحظة لم تُحفظ'),'error'); }catch(e2){}
+  }
+  _notesIdbPut(list);
 }
+// ── Safety copy of all notes in IndexedDB (much larger quota than localStorage).
+//    If the browser ever clears localStorage, notes come back from here on next launch.
+function _notesIdbOpen(){
+  return new Promise((res,rej)=>{
+    try{
+      const r=indexedDB.open('wdp_notes_mirror',1);
+      r.onupgradeneeded=()=>r.result.createObjectStore('kv');
+      r.onsuccess=()=>res(r.result);
+      r.onerror=()=>rej(r.error);
+    }catch(e){ rej(e); }
+  });
+}
+async function _notesIdbPut(list){
+  try{
+    const db=await _notesIdbOpen();
+    const tx=db.transaction('kv','readwrite'), st=tx.objectStore('kv');
+    const g=st.get('notes');
+    g.onsuccess=()=>{
+      const cur=g.result;
+      if(cur&&Array.isArray(cur.list)&&cur.list.length) st.put(cur,'notes_prev'); // last non-empty state kept as a second copy
+      st.put({t:Date.now(),list:list||[]},'notes');
+    };
+    tx.oncomplete=()=>db.close();
+  }catch(e){ _logErr('_notesIdbPut',e); }
+}
+async function _notesIdbGet(key){
+  const db=await _notesIdbOpen();
+  return await new Promise(res=>{ const r=db.transaction('kv').objectStore('kv').get(key); r.onsuccess=()=>{ db.close(); res(r.result||null); }; r.onerror=()=>{ db.close(); res(null); }; });
+}
+(async function _notesBootRestore(){
+  try{
+    try{ if(navigator.storage&&navigator.storage.persist) await navigator.storage.persist(); }catch(e){}
+    if(localStorage.getItem(NOTES_KEY)!==null) return;          // notes key present → nothing was lost
+    const rec=await _notesIdbGet('notes');
+    let list=rec&&Array.isArray(rec.list)?rec.list:[];
+    if(!list.length){ const prev=await _notesIdbGet('notes_prev'); list=prev&&Array.isArray(prev.list)?prev.list:[]; }
+    if(!list.length) return;
+    localStorage.setItem(NOTES_KEY, JSON.stringify(list));
+    try{ renderNotesList(); }catch(e){}
+    try{ showToast(L('Notes restored from backup','تم استرجاع الملاحظات من النسخة الاحتياطية'),'success'); }catch(e){}
+  }catch(e){ _logErr('_notesBootRestore',e); }
+})();
 function _notesSorted(){
   let list = _notesLoad();
   if(_notesActiveFolder !== 'all'){
@@ -37946,7 +38847,7 @@ function closeNoteEditor(){
   // clutter it forever with nothing to show.
   const list = _notesLoad();
   const n = list.find(x => x.id === _notesCurrentId);
-  if(n && !n.title.trim() && !_notesPreview(n.bodyHTML)){
+  if(n && !n.title.trim() && !_notesPreview(n.bodyHTML) && !/<(img|svg|canvas|table|video|audio)\b|qn-attach|qn-file-chip|qn-chk|download=/i.test(n.bodyHTML||'')){
     _notesSave(list.filter(x => x.id !== _notesCurrentId));
   }
   _notesCurrentId = null;
@@ -39604,7 +40505,7 @@ function _rqReportLine(r){
   let plot=String(r.plot||'').trim();
   if(plot && /^[0-9٠-٩]+$/.test(plot)) plot=(ar?'عمارة رقم ':'plot number ')+plot;
   const model=String(r.model||'').trim();
-  const tail=String(_rqIsIrType(r.type)?(r.irType||''):(r.type||'')).trim();
+  const tail=String(r.irType||(_rqIsIrType(r.type)?'':(r.type||''))).trim();
   let line=[zone?(ar?'منطقة ':'zone ')+zone:'', plot, model?(ar?'نموذج ':'model ')+model:''].filter(Boolean).join(' ');
   if(tail) line+=(line?' - ':'')+tail;
   return line||String(r.company||'').trim();
@@ -39623,12 +40524,78 @@ function _rqReportDateLabel(dateISO){
 // auto-translation the cards use (shown as typed until it lands).
 const _RQ_FLOORS_AR={ground:'الأرضي',gr:'الأرضي',first:'الأول',second:'الثاني',third:'الثالث',fourth:'الرابع',fifth:'الخامس',sixth:'السادس',roof:'السطح',basement:'البدروم'};
 const _RQ_FLOORS_EN={ground:'Ground',gr:'Ground',first:'First',second:'Second',third:'Third',fourth:'Fourth',fifth:'Fifth',sixth:'Sixth',roof:'Roof',basement:'Basement'};
+const _RQ_FLOOR_NAMES_DEFAULT={en:Object.assign({},_RQ_FLOORS_EN),ar:Object.assign({},_RQ_FLOORS_AR)};
+(function _rqFloorsInit(){
+  try{
+    const sv=JSON.parse(localStorage.getItem(_RQ_FLOORS_V2_KEY)||'null');
+    if(!sv||typeof sv!=='object'||!Array.isArray(sv.order)) return;
+    _RQ_FLOOR_ORDER.length=0; sv.order.forEach(k=>{ if(typeof k==='string') _RQ_FLOOR_ORDER.push(k); });
+    Object.keys(sv.names||{}).forEach(k=>{ const n=sv.names[k]; if(n&&typeof n==='object'){ if(n.en) _RQ_FLOORS_EN[k]=String(n.en); if(n.ar) _RQ_FLOORS_AR[k]=String(n.ar); } });
+    Object.keys(sv.levels||{}).forEach(k=>{ if(typeof sv.levels[k]==='string') _RQ_FLOOR_LEVELS[k]=sv.levels[k]; });
+  }catch(e){ _logErr('_rqFloorsInit',e); }
+})();
+// ── Floors editor: rename, add, delete, reorder (shared by the form panel and Data entry) ──
+function _rqFloorsEditorHTML(){
+  const inp='border:1px solid var(--border);background:var(--surface);color:var(--text);border-radius:10px;padding:8px 10px;font:inherit;font-size:13px;min-width:0;box-sizing:border-box';
+  const btn='border:1px solid var(--border);background:var(--surface);color:var(--text);border-radius:9px;min-width:30px;height:34px;font-size:13px;cursor:pointer;padding:0 6px';
+  const rows=_RQ_FLOOR_ORDER.map(k=>`<div class="rq-fl-row" style="display:flex;gap:5px;align-items:center;margin:6px 0">
+    <input type="text" dir="auto" autocomplete="off" value="${esc(L(_RQ_FLOORS_EN[k],_RQ_FLOORS_AR[k]))}" onchange="_rqFloorRename('${k}',this.value)" style="${inp};flex:1.5">
+    <input type="text" dir="ltr" autocomplete="off" inputmode="text" placeholder="—" value="${esc(_RQ_FLOOR_LEVELS[k]||'')}" oninput="_rqSetFloorLevel('${k}',this.value)" style="${inp};flex:1">
+    <button type="button" onclick="_rqFloorMove('${k}',-1)" style="${btn}">▲</button><button type="button" onclick="_rqFloorMove('${k}',1)" style="${btn}">▼</button><button type="button" onclick="_rqFloorDel('${k}')" style="${btn};color:var(--red)" aria-label="${L('Delete','حذف')}">×</button>
+  </div>`).join('');
+  const add=`<div class="rq-fl-add" style="display:flex;gap:5px;align-items:center;margin:10px 0 4px">
+    <input class="rq-fl-n" type="text" dir="auto" autocomplete="off" placeholder="${L('New floor name','اسم دور جديد')}" style="${inp};flex:1.5">
+    <input class="rq-fl-l" type="text" dir="ltr" autocomplete="off" placeholder="${L('Level','المنسوب')}" style="${inp};flex:1">
+    <button type="button" onclick="_rqFloorAdd(this)" style="${btn};background:var(--green,#107c5a);color:#fff;border-color:transparent;padding:0 12px">+ ${L('Add','إضافة')}</button>
+  </div>`;
+  return rows+add;
+}
+function _rqFloorsRerender(){
+  _rqSaveFloorLevels();
+  const pn=document.getElementById('rqLvlPanel'); if(pn&&pn.style.display!=='none') _rqRenderLevelsPanel();
+  if(document.getElementById('deLvl')) rqDeRenderLvl();
+  const dl=document.getElementById('rqDlFloor');
+  if(dl) dl.innerHTML=_RQ_FLOOR_ORDER.map(k=>`<option value="${esc(L(_RQ_FLOORS_EN[k],_RQ_FLOORS_AR[k]))}"></option>`).join('');
+  _rqOnFloorInput();
+}
+function _rqFloorRename(k,val){
+  val=String(val||'').trim();
+  if(val){
+    if(k.indexOf('f_')===0||!_RQ_FLOOR_NAMES_DEFAULT.en[k]){ _RQ_FLOORS_EN[k]=val; _RQ_FLOORS_AR[k]=val; }
+    else if(lang==='ar') _RQ_FLOORS_AR[k]=val; else _RQ_FLOORS_EN[k]=val;
+  }
+  _rqFloorsRerender();
+}
+function _rqFloorDel(k){
+  const i=_RQ_FLOOR_ORDER.indexOf(k); if(i<0) return;
+  _RQ_FLOOR_ORDER.splice(i,1); delete _RQ_FLOOR_LEVELS[k];
+  _rqFloorsRerender();
+}
+function _rqFloorMove(k,d){
+  const i=_RQ_FLOOR_ORDER.indexOf(k), j=i+d;
+  if(i<0||j<0||j>=_RQ_FLOOR_ORDER.length) return;
+  const t=_RQ_FLOOR_ORDER[i]; _RQ_FLOOR_ORDER[i]=_RQ_FLOOR_ORDER[j]; _RQ_FLOOR_ORDER[j]=t;
+  _rqFloorsRerender();
+}
+function _rqFloorAdd(btn){
+  const box=btn.closest('.rq-fl-add'); if(!box) return;
+  const nEl=box.querySelector('.rq-fl-n'), lEl=box.querySelector('.rq-fl-l');
+  const name=nEl.value.trim(), lvl=lEl.value.trim();
+  if(!name){ showToast(L('Enter a floor name','اكتب اسم الدور'),'warn'); nEl.focus(); return; }
+  if(_rqFloorKey(name)){ showToast(L('This floor already exists','الدور ده موجود بالفعل'),'warn'); return; }
+  const k='f_'+Date.now().toString(36);
+  _RQ_FLOORS_EN[k]=name; _RQ_FLOORS_AR[k]=name; _RQ_FLOOR_LEVELS[k]=lvl;
+  const r=_RQ_FLOOR_ORDER.indexOf('roof');
+  if(r>=0) _RQ_FLOOR_ORDER.splice(r,0,k); else _RQ_FLOOR_ORDER.push(k);
+  _rqFloorsRerender();
+}
 function _rqFloorLabel(raw){
   const v=String(raw||'').trim(); if(!v) return '';
   const low=v.toLowerCase();
   if(_RQ_FLOORS_EN[low]) return L(_RQ_FLOORS_EN[low],_RQ_FLOORS_AR[low]);
   const k=Object.keys(_RQ_FLOORS_AR).find(x=>_RQ_FLOORS_AR[x]===v);
   if(k) return L(_RQ_FLOORS_EN[k],_RQ_FLOORS_AR[k]);
+  const kk=_rqFloorKey(v); if(kk&&_RQ_FLOORS_EN[kk]) return L(_RQ_FLOORS_EN[kk],_RQ_FLOORS_AR[kk]);
   return v;
 }
 function _rqIrLabel(r){
@@ -40009,7 +40976,7 @@ function rqDePlotDel(id){ _rqPlotUser=_rqPlotUser.filter(e=>e.id!==id); _rqPersi
 // Floor levels (المناسيب) — same store the receipt form's Floor → Level auto-fill uses
 function rqDeRenderLvl(){
   const box=document.getElementById('deLvl'); if(!box) return;
-  box.innerHTML=_RQ_FLOOR_ORDER.map(k=>`<label class="rq-lvl-row"><span>${esc(L(_RQ_FLOORS_EN[k],_RQ_FLOORS_AR[k]))}</span><input type="text" dir="ltr" autocomplete="off" inputmode="text" placeholder="—" value="${esc(_RQ_FLOOR_LEVELS[k]||'')}" oninput="_rqSetFloorLevel('${k}',this.value)"></label>`).join('')
+  box.innerHTML=_rqFloorsEditorHTML()
     +`<button type="button" class="rq-lvl-reset" onclick="_rqResetFloorLevels();rqDeRenderLvl()">${L('Reset to defaults','رجوع للقيم الأصلية')}</button>`;
 }
 
@@ -44327,9 +45294,28 @@ function wdpAutoHideEmptySections(){
   });
 }
 
+// FINORA wallet mark (same idea as the header logo): green wallet, gold clasp, a coin that drops in.
+function _wdpWalletSVG(uid){
+  return '<svg viewBox="0 0 48 48" aria-hidden="true"><defs><linearGradient id="wdpWg'+uid+'" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2BC48C"/><stop offset="1" stop-color="#0A4A34"/></linearGradient></defs>'
+   +'<g class="w-coin"><circle cx="22" cy="12" r="6.5" fill="#D4AF37" stroke="#A97C1F" stroke-width="1.5"/><path d="M22 8.5v7M19.6 10.6c.6-.9 4.2-.9 4.8 0M19.6 13.4c.6.9 4.2.9 4.8 0" fill="none" stroke="#7C5A16" stroke-width="1.2" stroke-linecap="round"/></g>'
+   +'<rect class="w-flap" x="5" y="14" width="32" height="9" rx="4" fill="#0A4A34"/>'
+   +'<rect x="4" y="19" width="40" height="25" rx="7" fill="url(#wdpWg'+uid+')"/>'
+   +'<rect x="29" y="27" width="16" height="11" rx="5.5" fill="#D4AF37" stroke="#A97C1F" stroke-width="1.2"/><circle cx="36" cy="32.5" r="2.3" fill="#7C5A16"/></svg>';
+}
+// Confirmation after a pull-to-refresh: one pill at a time (a second pull replaces it, never stacks).
+function _wdpRefreshDone(){
+  const old=document.getElementById('wdpRefreshDone'); if(old) old.remove();
+  const el=document.createElement('div');
+  el.id='wdpRefreshDone'; el.className='wdp-rf-done';
+  el.innerHTML='<span class="wdp-rf-ico">'+_wdpWalletSVG('done')+'<svg class="wdp-rf-check" viewBox="0 0 24 24"><path d="M6 12.5l4 4 8-9" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>'+esc(L('Refreshed','تم التحديث'))+'</span><i class="wdp-rf-spark s1"></i><i class="wdp-rf-spark s2"></i><i class="wdp-rf-spark s3"></i>';
+  document.body.appendChild(el);
+  requestAnimationFrame(()=>requestAnimationFrame(()=>el.classList.add('show')));
+  setTimeout(()=>{ el.classList.remove('show'); setTimeout(()=>{ if(el.parentNode) el.remove(); },380); },1700);
+  try{ playNotificationSound(); }catch(e){}
+}
 // ── Native pull-to-refresh (all pages) ────────────────────────────────────────
 (function(){
-  let startY=0, lastY=0, pulling=false, triggered=false;
+  let startY=0, lastY=0, pulling=false, triggered=false, busy=false;
   const THRESHOLD=70, MAX_PULL=120;
 
   function indicatorEl(){
@@ -44338,7 +45324,7 @@ function wdpAutoHideEmptySections(){
       el=document.createElement('div');
       el.id='wdpPtrIndicator';
       el.className='wdp-ptr-indicator';
-      el.innerHTML='<div class="wdp-ptr-spinner"></div>';
+      el.innerHTML='<div class="wdp-ptr-wallet">'+_wdpWalletSVG('ptr')+'</div>';
       document.body.appendChild(el);
     }
     return el;
@@ -44348,6 +45334,7 @@ function wdpAutoHideEmptySections(){
   function reset(el){
     el.style.transform='';
     el.style.opacity='';
+    el.style.removeProperty('--ptr-p');
     el.classList.remove('wdp-ptr-ready');
     setTimeout(function(){ el.classList.remove('wdp-ptr-spinning'); }, 200);
     const page=pageEl();
@@ -44359,7 +45346,7 @@ function wdpAutoHideEmptySections(){
   }
 
   function onStart(e){
-    if(window.scrollY>0) return;
+    if(busy||window.scrollY>0) return;
     const overlay=document.getElementById('modalOverlay');
     if(overlay && overlay.style.display==='flex') return;
     if(document.getElementById('fabPicker')) return;
@@ -44378,6 +45365,7 @@ function wdpAutoHideEmptySections(){
     const el=indicatorEl();
     el.style.transform='translate(-50%,'+(dist-56)+'px)';
     el.style.opacity=String(Math.min(1, dist/THRESHOLD));
+    el.style.setProperty('--ptr-p',String(Math.min(1,dist/THRESHOLD)));
     el.classList.toggle('wdp-ptr-ready', dist>=THRESHOLD*0.65);
     const page=pageEl();
     if(page){
@@ -44393,7 +45381,7 @@ function wdpAutoHideEmptySections(){
     if(!el) return;
     const dist=Math.min(MAX_PULL, Math.max(0,(lastY-startY)*0.5));
     if(dist>=THRESHOLD*0.65 && !triggered){
-      triggered=true;
+      triggered=true; busy=true;
       el.classList.add('wdp-ptr-spinning','wdp-ptr-ready');
       el.style.transform='translate(-50%,'+(THRESHOLD*0.7-56)+'px)';
       el.style.opacity='1';
@@ -44405,8 +45393,8 @@ function wdpAutoHideEmptySections(){
       if(navigator.vibrate) try{ navigator.vibrate(8); }catch(e){}
       setTimeout(function(){
         try{ renderView(); }catch(e){_logErr('pullToRefresh:renderView',e);}
-        try{ showToast(L('✓ Refreshed','✓ تم التحديث'),'success'); }catch(e){_logErr('pullToRefresh:showToast',e);}
-        reset(el);
+        try{ _wdpRefreshDone(); }catch(e){_logErr('pullToRefresh:done',e);}
+        reset(el); busy=false;
       }, 550);
     } else {
       reset(el);
