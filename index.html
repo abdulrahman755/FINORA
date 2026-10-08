@@ -7251,6 +7251,9 @@ html.wdash-sheet-lock,html.wdash-sheet-lock body{overflow:hidden}
   font-variant-numeric:tabular-nums;white-space:nowrap;text-shadow:0 1px 2px rgba(0,0,0,.25)
 }
 .banks-v2 .bnk-vc-acct-num svg{flex-shrink:0;opacity:.7}
+.banks-v2 .bnk-vc-iban{margin-top:8px}
+.banks-v2 .bnk-vc-iban .bnk-vc-acct-num{font-size:calc(11.5px*var(--app-text-scale,1));letter-spacing:.9px;gap:6px}
+.banks-v2 .bnk-vc-acct + .bnk-vc-iban{margin-top:8px}
 .banks-v2 .bnk-vc-acct:active .bnk-vc-acct-num{opacity:.7}
 .banks-v2 .bnk-vc-holder-lbl{font-size:calc(8.5px*var(--app-text-scale,1));font-weight:700;text-transform:none;letter-spacing:0.3px;opacity:.75;margin-bottom:2px}
 .banks-v2 .bnk-vc-holder-name{font-size:calc(12px*var(--app-text-scale,1));font-weight:800;letter-spacing:.6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px}
@@ -22532,13 +22535,47 @@ function _bankAcctFormat(v){
   const raw=_bankAcctRaw(v);
   return /^[A-Za-z0-9]+$/.test(raw) ? raw.toUpperCase().replace(/(.{4})/g,'$1 ').trim() : String(v||'');
 }
+// ── Bank / wallet IBANs (per bank key, shown under the account number) ──
+const BANK_IBAN_KEY='wdp_bank_ibans_v1';
+let bankIbans={};
+try{ const ri2=localStorage.getItem(BANK_IBAN_KEY); if(ri2) bankIbans=JSON.parse(ri2)||{}; }catch(e){_logErr('bankIbans:read',e);}
+function persistBankIbans(){ try{localStorage.setItem(BANK_IBAN_KEY,JSON.stringify(bankIbans));}catch(e){_logErr('persistBankIbans:setItem',e);} }
+// IBAN = letters/digits (spaces allowed while typing), max 34 chars per the IBAN standard.
+function _bankIbanSanitize(v){ return String(v||'').replace(/[^A-Za-z0-9 ]/g,'').toUpperCase().slice(0,42); }
+function _bankIbanRaw(v){ return String(v||'').replace(/\s/g,'').slice(0,34); }
+function _bankIbanFormat(v){ return _bankIbanRaw(v).replace(/(.{4})/g,'$1 ').trim(); }
 function _bnkAcctHTML(key, vis){
   const v=bankAccountNumbers[key];
-  if(!v) return '';
-  const shown = vis ? _bankAcctFormat(v) : ('\u2022\u2022\u2022\u2022 ' + _bankAcctRaw(v).slice(-4));
-  return '<div class="bnk-vc-acct" onclick="event.stopPropagation();bankAcctCopy(\''+key+'\')" title="'+L('Tap to copy','اضغط للنسخ')+'">'
-    + '<span class="bnk-vc-acct-lbl">'+L('Account No.','رقم الحساب')+'</span>'
-    + '<span class="bnk-vc-acct-num">'+esc(shown)+ic('copy',12)+'</span></div>';
+  const iban=bankIbans[key];
+  if(!v && !iban) return '';
+  let out='';
+  if(v){
+    const shown = vis ? _bankAcctFormat(v) : ('•••• ' + _bankAcctRaw(v).slice(-4));
+    out += '<div class="bnk-vc-acct" onclick="event.stopPropagation();bankAcctCopy(\''+key+'\')" title="'+L('Tap to copy','اضغط للنسخ')+'">'
+      + '<span class="bnk-vc-acct-lbl">'+L('Account No.','رقم الحساب')+'</span>'
+      + '<span class="bnk-vc-acct-num">'+esc(shown)+ic('copy',12)+'</span></div>';
+  }
+  if(iban){
+    const shownI = vis ? _bankIbanFormat(iban) : ('•••• ' + _bankIbanRaw(iban).slice(-4));
+    out += '<div class="bnk-vc-acct bnk-vc-iban" onclick="event.stopPropagation();bankIbanCopy(\''+key+'\')" title="'+L('Tap to copy','اضغط للنسخ')+'">'
+      + '<span class="bnk-vc-acct-lbl">IBAN</span>'
+      + '<span class="bnk-vc-acct-num">'+esc(shownI)+ic('copy',12)+'</span></div>';
+  }
+  return out;
+}
+function bankIbanCopy(key){
+  const t=_bankIbanRaw(bankIbans[key]);
+  if(!t) return;
+  const done=()=>showToast(L('IBAN copied ✓','تم نسخ الـ IBAN ✓'),'success');
+  const fb=()=>{
+    try{
+      const ta=document.createElement('textarea'); ta.value=t; ta.style.cssText='position:fixed;opacity:0;top:0;left:0';
+      document.body.appendChild(ta); ta.focus(); ta.select();
+      const ok=document.execCommand('copy'); ta.remove();
+      ok?done():showToast(L('Copy failed','تعذّر النسخ'),'warn');
+    }catch(e){ _logErr('bankIbanCopy:fallback',e); }
+  };
+  if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(done,fb); else fb();
 }
 function bankAcctCopy(key){
   const t=_bankAcctRaw(bankAccountNumbers[key]);
@@ -22558,25 +22595,33 @@ function openBankAcctNumModal(key){
   const b=getAllBanks().find(x=>x.key===key);
   if(!b) return;
   const cur=bankAccountNumbers[key]||'';
+  const curIban=bankIbans[key]||'';
   document.getElementById('modalContent').innerHTML=`
     <div class="modal-handle"></div>
     <div class="modal-hdr">
       <div class="modal-hdr-icon" style="background:linear-gradient(135deg,var(--green-dark),var(--green))">${ic('id',22)}</div>
       <div>
-        <div class="modal-hdr-title">${L('Account Number','رقم الحساب')}</div>
+        <div class="modal-hdr-title">${L('Account Number & IBAN','رقم الحساب و IBAN')}</div>
         <div class="modal-hdr-sub">${esc(bankDisplayName(b.name))}</div>
       </div>
     </div>
     <div class="field">
-      <label>${L('Account / IBAN / Wallet number','رقم الحساب / IBAN / رقم المحفظة')}</label>
+      <label>${L('Account / Wallet number','رقم الحساب / رقم المحفظة')}</label>
       <input type="text" id="bankAcctNumInput" dir="ltr" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="40"
         value="${esc(cur)}" placeholder="${L('e.g. 1234 5678 9012','مثال: 1234 5678 9012')}"
         oninput="var c=_bankAcctSanitize(this.value);if(c!==this.value)this.value=c"
         style="font-size:calc(18px*var(--app-text-scale,1));font-weight:800;letter-spacing:1px;font-variant-numeric:tabular-nums">
     </div>
+    <div class="field">
+      <label>IBAN <span class="f-opt">${L('(optional)','(اختياري)')}</span></label>
+      <input type="text" id="bankIbanInput" dir="ltr" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="42"
+        value="${esc(curIban)}" placeholder="${L('e.g. EG38 0019 0005 0000 0000 2631 8000 2','مثال: EG38 0019 0005 0000 0000 2631 8000 2')}"
+        oninput="var c=_bankIbanSanitize(this.value);if(c!==this.value)this.value=c"
+        style="font-size:calc(16px*var(--app-text-scale,1));font-weight:800;letter-spacing:1px;font-variant-numeric:tabular-nums">
+    </div>
     <div class="modal-btns">
       <button class="mbtn save" onclick="saveBankAcctNum('${key}')">${ic('check',15)} ${L('Save','حفظ')}</button>
-      ${cur?`<button class="mbtn danger" onclick="removeBankAcctNum('${key}')">${ic('trash',15)} ${L('Remove number','حذف الرقم')}</button>`:''}
+      ${(cur||curIban)?`<button class="mbtn danger" onclick="removeBankAcctNum('${key}')">${ic('trash',15)} ${L('Remove numbers','حذف الأرقام')}</button>`:''}
       <button class="mbtn cancel" onclick="closeModal()">${L('Cancel','إلغاء')}</button>
     </div>`;
   document.getElementById('modalOverlay').style.display='flex';
@@ -22584,18 +22629,21 @@ function openBankAcctNumModal(key){
 }
 function saveBankAcctNum(key){
   const v=_bankAcctSanitize((document.getElementById('bankAcctNumInput')||{}).value||'').trim();
+  const iv=_bankIbanRaw(_bankIbanSanitize((document.getElementById('bankIbanInput')||{}).value||''));
   if(v) bankAccountNumbers[key]=v; else delete bankAccountNumbers[key];
-  persistBankAcctNums();
+  if(iv) bankIbans[key]=iv; else delete bankIbans[key];
+  persistBankAcctNums(); persistBankIbans();
   closeModal();
   renderView();
-  showToast(v ? L('\u2713 Account number saved','\u2713 تم حفظ رقم الحساب') : L('Account number removed','تم حذف رقم الحساب'),'success');
+  showToast((v||iv) ? L('\u2713 Account details saved','\u2713 تم حفظ بيانات الحساب') : L('Account details removed','تم حذف بيانات الحساب'),'success');
 }
 function removeBankAcctNum(key){
   delete bankAccountNumbers[key];
-  persistBankAcctNums();
+  delete bankIbans[key];
+  persistBankAcctNums(); persistBankIbans();
   closeModal();
   renderView();
-  showToast(L('Account number removed','تم حذف رقم الحساب'),'success');
+  showToast(L('Account details removed','تم حذف بيانات الحساب'),'success');
 }
 // ── Egyptian bank default interest rates (savings accounts) ─────────────────
 // معدلات فائدة افتراضية للبنوك المصرية — مبنية على معدلات CBE 2025
@@ -23494,6 +23542,7 @@ function deleteBankConfirm(key){
       CUSTOM_BANKS=CUSTOM_BANKS.filter(bb=>bb.key!==key);
       persistBanks();
       if(bankAccountNumbers[key]){ delete bankAccountNumbers[key]; persistBankAcctNums(); }
+      if(bankIbans[key]){ delete bankIbans[key]; persistBankIbans(); }
     }
     if(banksOrder) banksOrder=banksOrder.filter(k=>k!==key);
     persistBanksOrder();
@@ -24451,7 +24500,7 @@ function renderBanks(m){
               <button type="button" class="bnk-menu-item" onclick="bnkCloseOverflow();toggleBal('${b.key}')">${eyeSVG(vis)} ${vis?L('Hide Balance','إخفاء الرصيد'):L('Show Balance','إظهار الرصيد')}</button>
               <button type="button" class="bnk-menu-item" onclick="bnkCloseOverflow();openBankColorPicker('${b.key}')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="8.5" cy="9" r="1.5" fill="currentColor" stroke="none"/><circle cx="15.5" cy="9" r="1.5" fill="currentColor" stroke="none"/><circle cx="12" cy="15" r="1.5" fill="currentColor" stroke="none"/></svg> ${L('Customize Card','تخصيص الكارت')}</button>
               <button type="button" class="bnk-menu-item" onclick="bnkCloseOverflow();openBankLogoChanger('${b.key}')">${ic('photo',15)} ${L('Change Logo','تغيير اللوجو')}</button>
-              <button type="button" class="bnk-menu-item" onclick="bnkCloseOverflow();openBankAcctNumModal('${b.key}')">${ic('id',15)} ${L('Account Number','رقم الحساب')}</button>
+              <button type="button" class="bnk-menu-item" onclick="bnkCloseOverflow();openBankAcctNumModal('${b.key}')">${ic('id',15)} ${L('Account Number & IBAN','رقم الحساب و IBAN')}</button>
               <button type="button" class="bnk-menu-item" onclick="bnkCloseOverflow();openBankInterestModal('${b.key}')" style="${monthInt>0?'color:var(--green)':''}"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg> ${L('Interest Rate','سعر الفائدة')}</button>
               <div class="bnk-menu-divider"></div>
               <button type="button" class="bnk-menu-item danger" onclick="bnkCloseOverflow();deleteBankConfirm('${b.key}')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6l-1 13a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v5m4-5v5"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg> ${L('Delete Account','حذف الحساب')}</button>`;
@@ -24837,6 +24886,13 @@ function openAddBank(){
         oninput="var c=_bankAcctSanitize(this.value);if(c!==this.value)this.value=c">
     </div>
 
+    <div class="field">
+      <label>IBAN <span class="f-opt">${L('(optional)','(اختياري)')}</span></label>
+      <input type="text" id="newBankIban" dir="ltr" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="42"
+        placeholder="${L('e.g. EG38 0019 0005 0000 0000 2631 8000 2','مثال: EG38 0019 0005 0000 0000 2631 8000 2')}"
+        oninput="var c=_bankIbanSanitize(this.value);if(c!==this.value)this.value=c">
+    </div>
+
     <div class="modal-btns"><button class="mbtn save" onclick="saveNewBank()">${ic('check',16)} ${L('Add Bank','إضافة بنك')}</button><button class="mbtn cancel" onclick="closeModal()">${ic('close',15)} ${L('Cancel','إلغاء')}</button></div>`;
   document.getElementById('modalOverlay').style.display='flex';
 }
@@ -25046,6 +25102,8 @@ function saveNewBank(){
   persistBanks();
   const _acctNum = _bankAcctSanitize((document.getElementById('newBankAcctNum')||{}).value||'').trim();
   if(_acctNum){ bankAccountNumbers[key]=_acctNum; persistBankAcctNums(); }
+  const _ibanVal = _bankIbanRaw(_bankIbanSanitize((document.getElementById('newBankIban')||{}).value||''));
+  if(_ibanVal){ bankIbans[key]=_ibanVal; persistBankIbans(); }
 
   // ── Auto-assign interest via InterestRateService ───────────────────────────
   const assignedRate = InterestRateService.autoAssignInterest(key, name, accountType);
@@ -26312,6 +26370,7 @@ function exportBackup() {
         // ── Added in v2.2: previously-omitted data families (see storage audit) ──
         bankInterestSettings: bankInterestSettings,
         bankAccountNumbers:   bankAccountNumbers,
+        bankIbans:            bankIbans,
         // ── Added with MIORA action layer ──
         bankFeeOverrides:     bankFeeOverrides,
         countryRateData:      countryRateData,
@@ -26525,6 +26584,7 @@ function _doRestore() {
       // its current in-memory value and is left untouched.
       bankInterestSettings = d.bankInterestSettings || bankInterestSettings;
       bankAccountNumbers   = d.bankAccountNumbers   || bankAccountNumbers;
+      bankIbans            = d.bankIbans            || bankIbans;
       bankFeeOverrides   = d.bankFeeOverrides    || bankFeeOverrides;
       countryRateData    = d.countryRateData     || countryRateData;
       SAVINGS            = d.savings             || SAVINGS;
@@ -26550,7 +26610,7 @@ function _doRestore() {
     }
     persistData(); persistCurrency(CURRENT_CURRENCY); persistBanks();
     persistHiddenBanks(); persistBankColors(); persistBanksOrder(); persistMonths();
-    persistBankInterest(); persistBankFeeOverrides(); persistCountryRates(); persistBankAcctNums();
+    persistBankInterest(); persistBankFeeOverrides(); persistCountryRates(); persistBankAcctNums(); persistBankIbans();
     saveSavings(); tlSave();
     saveReminders(); savePlanner();
     if(typeof SoundManager!=='undefined') SoundManager.play(SoundManager.SOUND.DATA.RESTORE);
