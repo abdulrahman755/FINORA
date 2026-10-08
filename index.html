@@ -40130,7 +40130,7 @@ const MLOC = (function(){
   const PLACES_KEY='wdp_myloc_places_v1', STATE_KEY='wdp_myloc_state_v1';
   const RADIUS_M=120, MAX_ACC_M=100, MAX_GAP_MS=3*3600*1000, MAX_PLACES=200, SAVE_EVERY_MS=30000;
   const OPTS=[5,10,15,30,45,60];
-  let hbId=null, tickId=null, _np;
+  let hbId=null, tickId=null, _np, formOpen=false;
   // Native (Capacitor) background watcher, if the app is wrapped; null on the web.
   function native(){
     if(_np!==undefined) return _np;
@@ -40158,7 +40158,7 @@ const MLOC = (function(){
   }
   function findPlace(lat,lng){
     let best=null,bd=RADIUS_M+1;
-    places.forEach(p=>{ const d=dist(p.lat,p.lng,lat,lng); if(d<bd){ bd=d; best=p; } });
+    places.forEach(p=>{ if(p.lat==null||p.lng==null) return; const d=dist(p.lat,p.lng,lat,lng); if(d<bd){ bd=d; best=p; } });
     return best;
   }
   function commit(c){
@@ -40239,7 +40239,10 @@ const MLOC = (function(){
   function rename(id){
     load(); const p=places.find(x=>x.id===id); if(!p) return;
     const v=prompt(L('Place name','اسم المكان'),p.name||'');
-    if(v===null) return; p.name=String(v).trim().slice(0,60); savePlaces(); refresh();
+    if(v===null) return; p.name=String(v).trim().slice(0,60);
+    const b=prompt(L('Branch / area (optional)','الفرع / المنطقة (اختياري)'),p.branch||'');
+    if(b!==null) p.branch=String(b).trim().slice(0,60);
+    savePlaces(); refresh();
   }
   function remove(id){
     load(); if(!confirm(L('Delete this place?','مسح المكان ده؟'))) return;
@@ -40255,6 +40258,78 @@ const MLOC = (function(){
     const loc=(typeof lang!=='undefined'&&lang==='ar')?'ar-EG':'en-GB';
     try{ return new Date(ts).toLocaleString(loc,{dateStyle:'medium',timeStyle:'short',timeZone:_globalTimeZone()}); }
     catch(e){ try{ return new Date(ts).toLocaleString(loc); }catch(e2){ return ''; } }
+  }
+  // ── Manual entry: add a place (optionally at the current position) or +1 visit ──
+  function dayStr(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+  function toggleForm(){ formOpen=!formOpen; refresh(); }
+  function addVisit(id){
+    load(); const p=places.find(x=>x.id===id); if(!p) return;
+    p.visits=(p.visits||0)+1; p.last=Date.now(); savePlaces(); refresh();
+  }
+  function manualFinish(name,branch,lat,lng,ts,cnt){
+    let p=(lat!=null)?findPlace(lat,lng):null;
+    if(!p && name){ const k=name.toLowerCase(), bk=(branch||'').toLowerCase(); p=places.find(x=>x.name && x.name.toLowerCase()===k && (x.branch||'').toLowerCase()===bk)||null; }
+    let msg;
+    if(p){
+      p.visits=(p.visits||0)+cnt; if(ts>p.last) p.last=ts; if(!p.name && name) p.name=name; if(!p.branch && branch) p.branch=branch;
+      if((p.lat==null||p.lng==null) && lat!=null){ p.lat=lat; p.lng=lng; }
+      msg=L('Place already saved, visits updated','المكان موجود، اتحدّثت الزيارات');
+    } else {
+      const n=places.reduce((m,x)=>Math.max(m,x.n||0),0)+1;
+      places.push({id:'ml'+Date.now().toString(36)+n,n:n,lat:lat,lng:lng,name:name,branch:branch,visits:cnt,first:ts,last:ts});
+      if(places.length>MAX_PLACES){ places.sort((a,b)=>b.last-a.last); places.length=MAX_PLACES; }
+      msg=L('Place added','تمت إضافة المكان');
+    }
+    savePlaces(); formOpen=false;
+    try{ showToast(msg); }catch(e){}
+    refresh();
+  }
+  function saveManual(){
+    load();
+    const g=(id)=>document.getElementById(id);
+    const name=String((g('mlName')||{}).value||'').trim().slice(0,60);
+    if(!name){ try{ showToast(L('Enter a place name','اكتب اسم المكان')); }catch(e){} return; }
+    const branch=String((g('mlBranch')||{}).value||'').trim().slice(0,60);
+    const cnt=Math.max(1,Math.min(999,parseInt((g('mlCnt')||{}).value,10)||1));
+    const dv=String((g('mlDate')||{}).value||''); const now=Date.now(); let ts=now;
+    const m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(dv);
+    if(m && dv!==dayStr(new Date())) ts=Math.min(now,new Date(+m[1],+m[2]-1,+m[3],12,0,0).getTime());
+    const useLoc=!!(g('mlUseLoc')&&g('mlUseLoc').checked);
+    if(!useLoc || !('geolocation' in navigator)){ manualFinish(name,branch,null,null,ts,cnt); return; }
+    try{ showToast(L('Getting your location…','بحدّد موقعك…')); }catch(e){}
+    navigator.geolocation.getCurrentPosition(
+      function(pos){ manualFinish(name,branch,pos.coords.latitude,pos.coords.longitude,ts,cnt); },
+      function(){ try{ showToast(L('Could not get location, saved by name only','تعذّر تحديد الموقع، اتحفظ بالاسم بس')); }catch(e){} manualFinish(name,branch,null,null,ts,cnt); },
+      {enableHighAccuracy:true,maximumAge:0,timeout:15000});
+  }
+  function manualHTML(){
+    const inp='width:100%;box-sizing:border-box;padding:9px 10px;border-radius:10px;border:1px solid rgba(128,128,128,.4);background:transparent;color:inherit;font:inherit';
+    const lab='display:block;color:var(--muted);font-size:calc(12px*var(--app-text-scale,1));margin:10px 0 4px';
+    const btn='<button onclick="MLOC.toggleForm()" style="width:100%;padding:11px;border-radius:12px;border:1px dashed var(--accent-finance);background:transparent;color:var(--accent-finance);font-weight:800;cursor:pointer;margin-bottom:12px">'+ic('plus',14)+' '+L('Add a place manually','إضافة مكان يدويًا')+'</button>';
+    if(!formOpen) return btn;
+    return btn+'<div class="sc-card" style="padding:14px;margin-bottom:12px">'
+      +'<label style="'+lab+';margin-top:0" for="mlName">'+L('Place name','اسم المكان')+'</label><input id="mlName" type="text" maxlength="60" style="'+inp+'">'
+      +'<label style="'+lab+'" for="mlBranch">'+L('Branch / area (optional)','الفرع / المنطقة (اختياري)')+'</label><input id="mlBranch" type="text" maxlength="60" style="'+inp+'">'
+      +'<div style="display:flex;gap:10px"><div style="flex:1"><label style="'+lab+'" for="mlDate">'+L('Visit date','تاريخ الزيارة')+'</label><input id="mlDate" type="date" max="'+dayStr(new Date())+'" value="'+dayStr(new Date())+'" style="'+inp+'"></div>'
+      +'<div style="width:90px"><label style="'+lab+'" for="mlCnt">'+L('Visits','الزيارات')+'</label><input id="mlCnt" type="number" min="1" max="999" value="1" style="'+inp+'"></div></div>'
+      +'<label style="display:flex;align-items:center;gap:8px;margin-top:12px;cursor:pointer"><input id="mlUseLoc" type="checkbox" checked> <span>'+L('Use my current location','استخدم موقعي الحالي')+'</span></label>'
+      +'<div style="display:flex;gap:8px;margin-top:14px"><button onclick="MLOC.saveManual()" style="flex:1;padding:10px;border-radius:10px;border:0;font-weight:800;cursor:pointer;background:var(--accent-finance);color:#fff">'+L('Save','حفظ')+'</button>'
+      +'<button onclick="MLOC.toggleForm()" style="padding:10px 16px;border-radius:10px;border:1px solid rgba(128,128,128,.4);background:transparent;color:inherit;cursor:pointer">'+L('Cancel','إلغاء')+'</button></div>'
+      +'</div>';
+  }
+  function fmtDay(ts){
+    const loc=(typeof lang!=='undefined'&&lang==='ar')?'ar-EG':'en-GB';
+    const o={day:'numeric',month:'long',year:'numeric'};
+    try{ return new Date(ts).toLocaleDateString(loc,Object.assign({timeZone:_globalTimeZone()},o)); }
+    catch(e){ try{ return new Date(ts).toLocaleDateString(loc,o); }catch(e2){ return ''; } }
+  }
+  // "Name - Branch - Date - Location" (branch / link omitted when absent)
+  function titleLine(p){
+    const parts=[p.name?esc(p.name):(L('Place','مكان')+' '+(p.n||''))];
+    if(p.branch) parts.push(esc(p.branch));
+    parts.push(fmtDay(p.last));
+    if(p.lat!=null && p.lng!=null) parts.push('<a href="https://www.google.com/maps?q='+p.lat+','+p.lng+'" target="_blank" rel="noopener" style="color:var(--accent-finance);text-decoration:underline">'+ic('pin',13)+' '+L('Location','الموقع')+'</a>');
+    return parts.join(' - ');
   }
   function fmtDur(ms){ ms=Math.max(0,ms); const t=Math.floor(ms/1000), m=Math.floor(t/60), r=t%60; return m+':'+(r<10?'0':'')+r; }
   function progInner(){
@@ -40285,16 +40360,14 @@ const MLOC = (function(){
     const minLbl=(m)=>m===60?L('1 hr','ساعة'):m+' '+L('min','دقيقة');
     const minBtn=(m)=>`<button onclick="MLOC.setMinutes(${m})" style="padding:7px 12px;border-radius:10px;border:1px solid var(--accent-finance);font-weight:700;cursor:pointer;${st.minutes===m?'background:var(--accent-finance);color:#fff':'background:transparent;color:var(--accent-finance)'}">${minLbl(m)}</button>`;
     const rows=list.map(p=>{
-      const name=p.name?esc(p.name):(L('Place','مكان')+' '+(p.n||''));
       return `<div class="sc-card" style="padding:14px;margin-bottom:10px">
         <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
           <div style="min-width:0">
-            <div style="font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${ic('pin',14)} ${name}</div>
+            <div style="font-weight:800;line-height:1.7;word-break:break-word">${titleLine(p)}</div>
             <div style="color:var(--muted);font-size:calc(12px*var(--app-text-scale,1));margin-top:4px">${L('Visits','عدد الزيارات')}: <b>${p.visits||1}</b></div>
-            <div style="color:var(--muted);font-size:calc(12px*var(--app-text-scale,1))">${L('Last visit','آخر زيارة')}: ${fmt(p.last)}</div>
           </div>
           <div style="display:flex;gap:6px;flex-shrink:0">
-            <a href="https://www.google.com/maps?q=${p.lat},${p.lng}" target="_blank" rel="noopener" class="icon-btn" aria-label="${L('Open in maps','افتح في الخريطة')}" style="display:inline-flex;align-items:center;justify-content:center">${ic('pin',16)}</a>
+            <button class="icon-btn" onclick="MLOC.addVisit('${p.id}')" aria-label="${L('Add a visit','زيارة جديدة')}">${ic('plus',16)}</button>
             <button class="icon-btn" onclick="MLOC.rename('${p.id}')" aria-label="${L('Rename','تعديل الاسم')}">${ic('edit',16)}</button>
             <button class="icon-btn" onclick="MLOC.remove('${p.id}')" aria-label="${L('Delete','مسح')}">${ic('trash',16)}</button>
           </div>
@@ -40318,6 +40391,7 @@ const MLOC = (function(){
         </div>
         <div style="color:var(--muted);font-size:calc(12px*var(--app-text-scale,1));line-height:1.6">${native()?L('Runs in the background (a notification stays visible while tracking). Data stays on this device only.','بيشتغل في الخلفية (بيظهر إشعار ثابت طول ما التتبع شغّال). البيانات بتفضل على الجهاز ده بس.'):L('Works while the app is open on screen (browser limit). Data stays on this device only.','بيشتغل والتطبيق مفتوح على الشاشة (قيد من المتصفح). البيانات بتفضل على الجهاز ده بس.')}</div>
       </div>
+      ${manualHTML()}
       ${list.length?rows+`<div style="text-align:center;margin-top:6px"><button onclick="MLOC.clearAll()" style="background:transparent;border:0;color:var(--muted);text-decoration:underline;cursor:pointer">${L('Delete all places','مسح كل الأماكن')}</button></div>`
         :`<div class="sc-card"><div class="empty"><div class="ei">${ic('pin',32)}</div>${L('No places yet. Turn tracking on and keep the app open.','لسه مفيش أماكن. شغّل التتبع وسيب التطبيق مفتوح.')}</div></div>`}
     </div>`;
@@ -40331,7 +40405,7 @@ const MLOC = (function(){
       else { saveState(true); }
     });
   }
-  return {toggle,setMinutes,rename,remove,clearAll,render,boot};
+  return {toggle,setMinutes,rename,remove,clearAll,render,boot,toggleForm,saveManual,addVisit};
 })();
 function renderMyLocations(){ return MLOC.render(); }
 if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',function(){ MLOC.boot(); });
