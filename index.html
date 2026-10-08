@@ -2273,19 +2273,19 @@ tr.row-selected td{background:var(--green-tint)}
 [data-theme="dark"]{--tx-accent:var(--green-light)}
 
 /* date chip */
-.tx-date{
+.txm-date{
   display:flex;align-items:center;gap:10px;margin-bottom:14px;padding:0 16px;min-height:52px;
   border:1.5px solid var(--border);border-radius:16px;background:var(--surface2);cursor:pointer;
   color:var(--sub);-webkit-tap-highlight-color:transparent
 }
-.tx-date svg{color:var(--tx-accent);flex-shrink:0}
-.tx-date-lbl{font-size:calc(12px*var(--app-text-scale,1));font-weight:700;letter-spacing:.3px}
-.tx-date .date-wrap-auto{
+.txm-date svg{color:var(--tx-accent);flex-shrink:0}
+.txm-date-lbl{font-size:calc(12px*var(--app-text-scale,1));font-weight:700;letter-spacing:.3px}
+.txm-date .date-wrap-auto{
   flex:1;min-width:0;justify-content:flex-end;height:auto;padding:0;border:0;background:transparent;
   color:var(--text);font-size:calc(15px*var(--app-text-scale,1));font-weight:800
 }
-.tx-date .date-label-auto{text-align:end}
-.tx-date input[type="date"]{
+.txm-date .date-label-auto{text-align:end}
+.txm-date input[type="date"]{
   flex:1;min-width:0;width:auto;min-height:0;height:auto;padding:0;margin:0;border:0;border-radius:0;
   background:transparent;box-shadow:none;outline:none;-webkit-appearance:none;appearance:none;
   color:var(--text);-webkit-text-fill-color:var(--text);font-family:inherit;
@@ -9376,6 +9376,70 @@ body .screen-wrap .sc-header.sav-plain-header.sav-plain-header::after{display:no
   font-weight:700;letter-spacing:.3px;min-height:50px
 }
 .banks-v2 .sc-add-submit:active{transform:scale(.99);box-shadow:none;opacity:.92}
+
+/* ═══ BANKS — movement list + unified balance numerals ═══ */
+
+/* Balance numerals: one typeface, weight, size and treatment on every card
+   (per-card font/size/weight overrides are neutralised here; colour on the
+   expanded card face is still honoured for contrast against custom art). */
+.banks-v2 .bnk-card-front .bnk-card-balance,
+.banks-v2 .bnk-visacard-expanded{--bnk-num-font:var(--font-display);--bnk-num-weight:700;--bnk-num-scale:1}
+.banks-v2 .bnk-card-front .bnk-card-balance{font-size:calc(28px*var(--app-text-scale,1));line-height:1.1;letter-spacing:-.01em}
+.banks-v2 .bnk-card-front .bnk-card-balance .sig-amt{
+  font-family:var(--font-display)!important;font-weight:700!important;letter-spacing:-.01em;
+  font-variant-numeric:lining-nums tabular-nums
+}
+.banks-v2 .bnk-card-front .bnk-card-balance .sig-cur{font-size:.4em;letter-spacing:.14em;opacity:.65;margin-inline-start:.5em;top:-.2em}
+
+/* Movement list: a single sheet, grouped by day, hairline rows */
+.banks-v2 .tx-rows.bnk-mv-list{
+  margin-top:14px;padding:0;gap:0;background:var(--surface);border:1px solid var(--border);border-radius:18px
+}
+.banks-v2 .bnk-mv-list .list-empty{padding:22px 16px}
+.banks-v2 .bnk-mv-day{
+  display:flex;align-items:center;justify-content:space-between;gap:8px;
+  padding:16px 16px 6px;font-size:calc(10.5px*var(--app-text-scale,1));font-weight:700;letter-spacing:.8px;
+  text-transform:uppercase;color:var(--muted)
+}
+.banks-v2 .bnk-mv-day:first-child{padding-top:14px}
+.banks-v2 .bnk-mv-net{font-variant-numeric:tabular-nums;letter-spacing:.2px;direction:ltr}
+.banks-v2 .bnk-mv-net.dep{color:var(--green)}
+.banks-v2 .bnk-mv-net.with{color:var(--red)}
+.banks-v2 .tx-row.bnk-mv{
+  display:flex;align-items:center;gap:12px;margin:0;padding:12px 16px;
+  background:transparent;border:0;border-radius:0
+}
+.banks-v2 .tx-row.bnk-mv + .tx-row.bnk-mv{border-top:1px solid var(--border)}
+.banks-v2 .bnk-mv .tx-type{width:36px;height:36px;border-radius:50%}
+.banks-v2 .bnk-mv .tx-info .tx-label{
+  font-size:calc(14px*var(--app-text-scale,1));font-weight:600;line-height:1.3;color:var(--text);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;unicode-bidi:plaintext;text-align:start
+}
+.banks-v2 .bnk-mv-meta{
+  display:flex;align-items:center;gap:6px;margin-top:3px;
+  font-size:calc(11px*var(--app-text-scale,1));font-weight:500;color:var(--muted)
+}
+.banks-v2 .bnk-mv-tag{
+  font-size:calc(9px*var(--app-text-scale,1));font-weight:700;letter-spacing:.5px;text-transform:uppercase;
+  padding:2px 7px;border-radius:99px
+}
+.banks-v2 .bnk-mv-tag.is-fee{background:var(--primary-soft);color:var(--primary)}
+.banks-v2 .bnk-mv-tag.is-info{background:var(--info-tint);color:var(--info)}
+.banks-v2 .bnk-mv-tag.is-site{background:var(--purple-tint);color:var(--purple)}
+.banks-v2 .bnk-mv-side{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0}
+.banks-v2 .bnk-mv .tx-amount{
+  font-size:calc(14.5px*var(--app-text-scale,1));font-weight:700;letter-spacing:.1px;
+  font-variant-numeric:tabular-nums;direction:ltr
+}
+.banks-v2 .bnk-mv-actions{display:flex;align-items:center;gap:0;margin-inline-end:-6px}
+.banks-v2 .bnk-mv-actions .tx-edit-btn,
+.banks-v2 .bnk-mv-actions .tx-del{
+  width:30px;height:26px;padding:0;margin:0;display:flex;align-items:center;justify-content:center;
+  background:none;border:0;border-radius:8px;color:var(--muted);opacity:.7
+}
+.banks-v2 .bnk-mv-actions .tx-edit-btn:active,
+.banks-v2 .bnk-mv-actions .tx-del:active{opacity:1}
+.banks-v2 .bnk-mv-lock{display:flex;color:var(--muted);opacity:.6;padding-inline-end:6px}
 </style>
 <script>
 // Suppress cross-origin Script errors (in-app browsers like TikTok/Instagram)
@@ -24030,6 +24094,67 @@ function bnkResolveVisualStyle(b, accentColor){
   }
   return style;
 }
+// ── Banks: movement list (grouped by day, one clean sheet) ─────────────────
+function _bnkMoveDayLabel(dateStr){
+  if(!dateStr) return '\u2014';
+  const t = today();
+  if(dateStr === t) return L('Today','اليوم');
+  const y = new Date(); y.setDate(y.getDate()-1);
+  const ys = y.getFullYear()+'-'+String(y.getMonth()+1).padStart(2,'0')+'-'+String(y.getDate()).padStart(2,'0');
+  if(dateStr === ys) return L('Yesterday','أمس');
+  const d = new Date(dateStr+'T00:00:00');
+  if(isNaN(d)) return dateStr;
+  const sameYear = d.getFullYear() === new Date().getFullYear();
+  return d.toLocaleDateString(_dtLocale(), sameYear ? {day:'numeric',month:'short'} : {day:'numeric',month:'short',year:'numeric'});
+}
+function _bnkMoveRowHTML(mv, key){
+  const isDep = mv.dep > 0;
+  const amt = isDep ? '+'+fmt(mv.dep) : '-'+fmt(mv.with);
+  let feeTag = '';
+  if(mv.isInstapayFee){
+    const b2 = getAllBanks().find(bb=>bb.key===key);
+    const isW = !!(b2 && b2.isWallet);
+    feeTag = '<span class="bnk-mv-tag '+(isW?'is-info':'is-fee')+'">'+L('Fee','عمولة')+'</span>';
+  }
+  const siteTag = mv.fromExpense ? '<span class="bnk-mv-tag is-site">'+L('Site','موقع')+'</span>' : '';
+  const canEdit = mv.type==='mv' && !mv.fromExpense && !mv.isInstapayFee;
+  let actions = '';
+  if(canEdit){
+    actions = '<button class="tx-edit-btn" title="'+L('Edit','تعديل')+'" onclick="event.stopPropagation();editBankMove(\''+key+'\',\''+mv.id+'\')">'+ic('edit',14)+'</button>'
+            + '<button class="tx-del" title="'+L('Delete','حذف')+'" onclick="deleteBankMove(\''+key+'\',\''+mv.id+'\')">'+ic('trash',14)+'</button>';
+  } else if(mv.fromExpense){
+    actions = '<span class="bnk-mv-lock">'+ic('lock',12)+'</span>';
+  }
+  return '<div class="tx-row bnk-mv">'
+    + '<div class="tx-type '+(isDep?'dep':'with')+'">'+(isDep?ic('arrow_up',14):ic('arrow_down',14))+'</div>'
+    + '<div class="tx-info">'
+      + '<div class="tx-label">'+(esc(mv.note)||L('Bank Transaction','معاملة بنكية'))+'</div>'
+      + '<div class="bnk-mv-meta"><span>'+(isDep?L('Deposit','إيداع'):L('Withdrawal','سحب'))+'</span>'+feeTag+siteTag+'</div>'
+    + '</div>'
+    + '<div class="bnk-mv-side"><div class="tx-amount '+(isDep?'dep':'with')+'">'+amt+'</div>'
+      + (actions ? '<div class="bnk-mv-actions">'+actions+'</div>' : '')
+    + '</div>'
+  + '</div>';
+}
+function _bnkMovesListHTML(allMoves, key){
+  if(!allMoves.length) return '<div class="list-empty">'+L('No movements yet','لا توجد حركات بعد')+'</div>';
+  const rows = allMoves.slice().reverse();
+  const groups = [];
+  rows.forEach(mv=>{
+    const last = groups[groups.length-1];
+    if(last && last.date === mv.date){ last.rows.push(mv); }
+    else groups.push({date: mv.date, rows: [mv]});
+  });
+  return groups.map(g=>{
+    const net = g.rows.reduce((t,mv)=>t+(mv.dep||0)-(mv.with||0), 0);
+    const netHTML = g.rows.length > 1
+      ? '<span class="bnk-mv-net '+(net>=0?'dep':'with')+'">'+(net>=0?'+':'-')+fmt(Math.abs(net))+'</span>'
+      : '';
+    return '<div class="bnk-mv-day"><span>'+esc(_bnkMoveDayLabel(g.date))+'</span>'+netHTML+'</div>'
+      + g.rows.map(mv=>_bnkMoveRowHTML(mv, key)).join('');
+  }).join('');
+}
+
 function renderBanks(m){
   fxEnsureRates();
   const banks=getBanksOrdered();
@@ -24157,7 +24282,7 @@ function renderBanks(m){
           </div>
         </div>
         <div class="bnk-card-balance-lbl" style="${cardMutedFg?'color:'+cardMutedFg:''}">${L('Balance','الرصيد')}</div>
-        <div class="bnk-card-balance ${vis?'':'hidden'}" style="${cardNumFg?'color:'+cardNumFg:''}">${vis?sigNumHTML(bal,{flat:!!cardNumFg}):'● ● ● ●'}</div>
+        <div class="bnk-card-balance ${vis?'':'hidden'}" style="${cardAutoFg?'color:'+cardAutoFg:''}">${vis?sigNumHTML(bal,{flat:true}):'● ● ● ●'}</div>
         <div class="bnk-card-lasttx" style="${cardMutedFg?'color:'+cardMutedFg:''}">${ic('clock',11,'aria-hidden="true"')} ${lastMoveText}</div>
       </div>
 
@@ -24298,21 +24423,7 @@ function renderBanks(m){
           <div id="fee-preview-${b.key}" style="display:none;margin:0 0 6px;padding:7px 12px;border-radius:10px;background:var(--info-tint);border:1.5px solid color-mix(in srgb,var(--info) 30%,transparent);font-size:calc(11px*var(--app-text-scale,1));font-weight:700;color:var(--info);justify-content:space-between;align-items:center"></div>
 
           <!-- Movements list (this account only) -->
-          <div class="tx-rows">
-            ${allMoves.length===0?`<div class="list-empty">${L('No movements yet','لا توجد حركات بعد')}</div>`:''}
-            ${allMoves.slice().reverse().map((mv,i)=>`
-            <div class="tx-row">
-              <div class="tx-type ${mv.dep>0?'dep':'with'}">${mv.dep>0?ic('arrow_up',13):ic('arrow_down',13)}</div>
-              <div class="tx-info">
-                <div class="tx-label">${esc(mv.note)||L('Bank Transaction','معاملة بنكية')}</div>
-                <div class="tx-date">${mv.date||'—'}${mv.fromExpense?` <span style="font-size:calc(9px*var(--app-text-scale,1));color:var(--purple);font-weight:800;background:var(--purple-tint);padding:1px 5px;border-radius:99px">${ic('site',13)} ${L('Site','موقع')}</span>`:''}</div>
-              </div>
-              <div class="tx-amount ${mv.dep>0?'dep':'with'}">${mv.dep>0?'+'+fmt(mv.dep):'-'+fmt(mv.with)}</div>
-              ${mv.isInstapayFee?(()=>{const _b2=getAllBanks().find(bb=>bb.key===b.key);const _isW=_b2&&_b2.isWallet;return`<span style="font-size:calc(9px*var(--app-text-scale,1));color:${_isW?'var(--info)':'var(--primary)'};padding:4px 3px;font-weight:800;background:${_isW?'var(--info-tint)':'var(--primary-soft)'};border-radius:5px">${L('Fee','عمولة')}</span>`})():''}
-              ${mv.type==='mv'&&!mv.fromExpense&&!mv.isInstapayFee?`<button class="tx-edit-btn" title="${L('Edit','تعديل')}" onclick="event.stopPropagation();editBankMove('${b.key}','${mv.id}')">${ic('edit',13)}</button><button class="tx-del" onclick="deleteBankMove('${b.key}','${mv.id}')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6l-1 13a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v5m4-5v5"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></button>`:''}
-              ${mv.fromExpense?`<span style="font-size:calc(9px*var(--app-text-scale,1));color:var(--muted);padding:4px 2px">${ic("lock",12)}</span>`:''}
-            </div>`).join('')}
-          </div>
+          <div class="tx-rows bnk-mv-list">${_bnkMovesListHTML(allMoves,b.key)}</div>
 
         </div>
       </div>
@@ -35577,7 +35688,7 @@ function showTxModal(tx){
         <div class="modal-hdr-sub">${L('Daily spending log','سجل الإنفاق اليومي')}</div>
       </div>
     </div>
-    <label class="tx-date" for="mDate">${ic('calendar',18)}<span class="tx-date-lbl">${L('Date','التاريخ')}</span><input type="date" id="mDate" value="${tx?.date||today()}" onchange="_txCalcProvided()"></label>
+    <label class="txm-date" for="mDate">${ic('calendar',18)}<span class="txm-date-lbl">${L('Date','التاريخ')}</span><input type="date" id="mDate" value="${tx?.date||today()}" onchange="_txCalcProvided()"></label>
     <div id="txEntries">${_txEntryHTML('', tx)}</div>
     ${tx ? '' : `<button type="button" class="tx-add-btn" onclick="_txAddRow()">${ic('plus',18)} ${L('Add new','إضافة معاملة جديدة')}</button>`}
     <div class="tx-sum" id="txSum" data-state="">
