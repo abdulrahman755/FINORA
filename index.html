@@ -40163,14 +40163,14 @@ const MLOC = (function(){
   }
   function commit(c){
     const now=Date.now(), p=findPlace(c.lat,c.lng);
-    if(p){ p.visits=(p.visits||0)+1; p.last=now; }
+    if(p){ p.visits=(p.visits||0)+1; p.auto=(p.auto||0)+1; p.last=now; }
     else{
       const n=places.reduce((m,x)=>Math.max(m,x.n||0),0)+1;
-      places.push({id:'ml'+now.toString(36)+n,n:n,lat:c.lat,lng:c.lng,name:'',visits:1,first:now,last:now});
+      places.push({id:'ml'+now.toString(36)+n,n:n,lat:c.lat,lng:c.lng,name:'',visits:1,auto:1,first:now,last:now});
       if(places.length>MAX_PLACES){ places.sort((a,b)=>b.last-a.last); places.length=MAX_PLACES; }
     }
     savePlaces();
-    try{ showToast(L('Location saved','تم تسجيل المكان')); }catch(e){}
+    try{ showToast(p?(L('Visit counted: ','تم احتساب زيارة: ')+plainLabel(p)+' ('+p.visits+')'):L('Location saved','تم تسجيل المكان')); }catch(e){}
     if(typeof currentView!=='undefined' && currentView==='mylocations') try{ renderView(); }catch(e){}
   }
   function onFix(pos){
@@ -40264,7 +40264,20 @@ const MLOC = (function(){
   function toggleForm(){ formOpen=!formOpen; refresh(); }
   function addVisit(id){
     load(); const p=places.find(x=>x.id===id); if(!p) return;
-    p.visits=(p.visits||0)+1; p.last=Date.now(); savePlaces(); refresh();
+    p.visits=(p.visits||0)+1; p.last=Date.now();
+    if(p.lat!=null && st.cand && !st.cand.counted && dist(st.cand.lat,st.cand.lng,p.lat,p.lng)<=RADIUS_M){ st.cand.counted=true; saveState(true); }
+    savePlaces(); refresh();
+  }
+  function attachLoc(id){
+    load(); const p=places.find(x=>x.id===id); if(!p || !('geolocation' in navigator)) return;
+    try{ showToast(L('Getting your location…','بحدّد موقعك…')); }catch(e){}
+    navigator.geolocation.getCurrentPosition(function(pos){
+      const la=pos.coords.latitude, lo=pos.coords.longitude, o=findPlace(la,lo);
+      if(o && o.id!==p.id){ try{ showToast(L('A saved place is already here: ','فيه مكان محفوظ هنا: ')+plainLabel(o)); }catch(e){} return; }
+      p.lat=la; p.lng=lo; savePlaces();
+      try{ showToast(L('Location linked, visits will now be counted automatically','اتربط الموقع، والزيارات هتتعد تلقائيًا')); }catch(e){}
+      refresh();
+    },function(){ try{ showToast(L('Could not get location','تعذّر تحديد الموقع')); }catch(e){} },{enableHighAccuracy:true,maximumAge:0,timeout:15000});
   }
   function manualFinish(name,branch,lat,lng,ts,cnt){
     let p=(lat!=null)?findPlace(lat,lng):null;
@@ -40280,6 +40293,7 @@ const MLOC = (function(){
       if(places.length>MAX_PLACES){ places.sort((a,b)=>b.last-a.last); places.length=MAX_PLACES; }
       msg=L('Place added','تمت إضافة المكان');
     }
+    if(lat!=null && st.cand && !st.cand.counted && dist(st.cand.lat,st.cand.lng,lat,lng)<=RADIUS_M){ st.cand.counted=true; saveState(true); }
     savePlaces(); formOpen=false;
     try{ showToast(msg); }catch(e){}
     refresh();
@@ -40317,6 +40331,7 @@ const MLOC = (function(){
       +'<button onclick="MLOC.toggleForm()" style="padding:10px 16px;border-radius:10px;border:1px solid rgba(128,128,128,.4);background:transparent;color:inherit;cursor:pointer">'+L('Cancel','إلغاء')+'</button></div>'
       +'</div>';
   }
+  function plainLabel(p){ return (p.name||(L('Place','مكان')+' '+(p.n||'')))+(p.branch?' - '+p.branch:''); }
   function fmtDay(ts){
     const loc=(typeof lang!=='undefined'&&lang==='ar')?'ar-EG':'en-GB';
     const o={day:'numeric',month:'long',year:'numeric'};
@@ -40364,9 +40379,10 @@ const MLOC = (function(){
         <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
           <div style="min-width:0">
             <div style="font-weight:800;line-height:1.7;word-break:break-word">${titleLine(p)}</div>
-            <div style="color:var(--muted);font-size:calc(12px*var(--app-text-scale,1));margin-top:4px">${L('Visits','عدد الزيارات')}: <b>${p.visits||1}</b></div>
+            <div style="color:var(--muted);font-size:calc(12px*var(--app-text-scale,1));margin-top:4px">${L('Visits','عدد الزيارات')}: <b>${p.visits||1}</b>${p.auto?` · ${L('auto','تلقائي')}: ${p.auto}`:''}</div>
           </div>
           <div style="display:flex;gap:6px;flex-shrink:0">
+            ${p.lat==null?`<button class="icon-btn" onclick="MLOC.attachLoc('${p.id}')" aria-label="${L('Link my current location','اربط بموقعي الحالي')}">${ic('pin',16)}</button>`:''}
             <button class="icon-btn" onclick="MLOC.addVisit('${p.id}')" aria-label="${L('Add a visit','زيارة جديدة')}">${ic('plus',16)}</button>
             <button class="icon-btn" onclick="MLOC.rename('${p.id}')" aria-label="${L('Rename','تعديل الاسم')}">${ic('edit',16)}</button>
             <button class="icon-btn" onclick="MLOC.remove('${p.id}')" aria-label="${L('Delete','مسح')}">${ic('trash',16)}</button>
@@ -40405,7 +40421,7 @@ const MLOC = (function(){
       else { saveState(true); }
     });
   }
-  return {toggle,setMinutes,rename,remove,clearAll,render,boot,toggleForm,saveManual,addVisit};
+  return {toggle,setMinutes,rename,remove,clearAll,render,boot,toggleForm,saveManual,addVisit,attachLoc};
 })();
 function renderMyLocations(){ return MLOC.render(); }
 if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',function(){ MLOC.boot(); });
