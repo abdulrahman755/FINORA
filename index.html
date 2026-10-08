@@ -30798,10 +30798,13 @@ function _rqPersistCustomSugg(){ try{ localStorage.setItem(_RQ_CUSTOM_SUGG_KEY,J
 // just the lowercased type text, same as before.
 function _rqSuggKey(typeVal,irTypeVal){
   const k=String(typeVal||'').trim().toLowerCase();
+  if(!k) return '_general';
   if(k!=='ir') return k;
   const subKey=_rqIrSubtypeKeyFromLabel(irTypeVal);
   return 'ir:'+(subKey||'_generic');
 }
+function _rqNormCmt(s){ return String(s||'').replace(/^[•\-]\s*/,'').trim().replace(/[.\s]+$/,'').toLowerCase(); }
+function _rqCustomSet(){ const st=new Set(); Object.values(_rqCustomSugg).forEach(a=>(a||[]).forEach(v=>st.add(_rqNormCmt(v)))); return st; }
 function _rqCommentSuggestionsFor(typeVal,irTypeVal){
   const k=String(typeVal||'').trim().toLowerCase();
   if(!k) return [];
@@ -30814,12 +30817,13 @@ function _rqCommentSuggestionsFor(typeVal,irTypeVal){
   }
   const suggKey=_rqSuggKey(typeVal,irTypeVal);
   const custom=_rqCustomSugg[suggKey]||[];
-  const merged=[..._RQ_MOST_IMPORTANT_COMMENTS,...builtin,...custom];
+  const others=[]; Object.keys(_rqCustomSugg).forEach(kk=>{ if(kk!==suggKey) others.push(...(_rqCustomSugg[kk]||[])); });
+  const merged=[..._RQ_MOST_IMPORTANT_COMMENTS,...builtin,...custom,...others];
   const seen=new Set();
   const out=[];
   for(const v of merged){
-    const lk=v.toLowerCase();
-    if(seen.has(lk)) continue;
+    const lk=_rqNormCmt(v);
+    if(!lk||seen.has(lk)) continue;
     seen.add(lk); out.push(v);
   }
   return out;
@@ -30864,18 +30868,17 @@ function _rqLearnField(field,val){
   _rqPersistCustomFields();
 }
 function _rqLearnCommentSuggestions(typeVal,irTypeVal,notesVal){
-  const k=String(typeVal||'').trim().toLowerCase();
-  if(!k) return;
-  const lines=_rqExtractNotesLines(notesVal);
+  const lines=_rqExtractNotesLines(notesVal).filter(l=>!/[\u0600-\u06FF]/.test(l));
   if(!lines.length) return;
   const suggKey=_rqSuggKey(typeVal,irTypeVal);
-  const existing=_rqCommentSuggestionsFor(typeVal,irTypeVal).map(v=>v.toLowerCase());
-  const known=new Set(existing);
+  const known=new Set(_rqCommentSuggestionsFor(typeVal,irTypeVal).map(_rqNormCmt));
+  _RQ_MOST_IMPORTANT_COMMENTS.forEach(v=>known.add(_rqNormCmt(v)));
   let changed=false;
   for(const line of lines){
-    if(known.has(line.toLowerCase())) continue;
-    known.add(line.toLowerCase());
-    (_rqCustomSugg[suggKey]=_rqCustomSugg[suggKey]||[]).push(line);
+    const n=_rqNormCmt(line);
+    if(!n||known.has(n)) continue;
+    known.add(n);
+    (_rqCustomSugg[suggKey]=_rqCustomSugg[suggKey]||[]).push(line.charAt(0).toUpperCase()+line.slice(1));
     changed=true;
   }
   if(changed) _rqPersistCustomSugg();
@@ -31605,14 +31608,44 @@ function _rqRenderCommentSuggestions(){
   const sk=_rqIrSubtypeKeyFromLabel(irTypeVal);
   const hit=sk?_RQ_IR_SUBTYPE_QUICK.find(o=>o.key===sk):null;
   const ctx=hit?L(hit.en,hit.ar):typeVal;
-  const chips=list.map((c,i)=>`<button type="button" class="rq-sugg-chip rq-cmt-chip" data-i="${i}" onclick="_rqTapComment(this)">${esc(c)}</button>`).join('');
+  const cset=_rqCustomSet();
+  const bset=new Set([..._RQ_MOST_IMPORTANT_COMMENTS,...Object.values(_RQ_COMMENT_SUGGESTIONS).flat(),...Object.values(_RQ_IR_SUBTYPE_COMMENTS).flat()].map(_rqNormCmt));
+  const chips=list.map((c,i)=>{
+    const n=_rqNormCmt(c);
+    const del=(cset.has(n)&&!bset.has(n))?`<button type="button" class="rq-sugg-chip" style="padding:0 9px" title="${L('Remove from memory','حذف من الذاكرة')}" onclick="_rqDelLearned(${i})">×</button>`:'';
+    return `<span class="rq-cmt-wrap" data-i="${i}" style="display:inline-flex;align-items:center;gap:2px;max-width:100%"><button type="button" class="rq-sugg-chip rq-cmt-chip" data-i="${i}" onclick="_rqTapComment(this)">${esc(c)}</button>${del}</span>`;
+  }).join('');
+  const search=list.length>6?`<input type="text" dir="auto" autocomplete="off" oninput="_rqFilterComments(this.value)" placeholder="${L('Search comments (Arabic or English)…','ابحث في الكومنتات (عربي أو إنجليزي)…')}" style="width:100%;box-sizing:border-box;margin:6px 0;padding:8px 11px;border-radius:10px;border:1px solid var(--border);background:var(--surface);color:var(--text);font:inherit;font-size:12px">`:'';
   host.innerHTML=`<div class="rq-sugg-panel">
     <div class="rq-sugg-panel-hdr"><span>${ic('note',13)} ${L('Suggested comments','كومنتات مقترحة')}${ctx?` · <b>${esc(ctx)}</b>`:''}</span><em>${list.length}</em></div>
-    <div class="rq-sugg-panel-body">${chips}</div>
+    ${search}<div class="rq-sugg-panel-body">${chips}</div>
     <div class="rq-sugg-hint">${L('Tap to add · tap again to remove','اضغط للإضافة · اضغط تاني للإزالة')}</div>
   </div>`;
   host._list=list;
   _rqMarkAddedComments();
+}
+function _rqDelLearned(i){
+  const host=document.getElementById('rqCommentSugg');
+  const t=host&&host._list?host._list[i]:''; if(!t) return;
+  const n=_rqNormCmt(t);
+  Object.keys(_rqCustomSugg).forEach(k=>{ _rqCustomSugg[k]=(_rqCustomSugg[k]||[]).filter(v=>_rqNormCmt(v)!==n); });
+  _rqPersistCustomSugg(); _atTMForgetEn(n);
+  _rqRenderCommentSuggestions();
+}
+function _rqFilterComments(q){
+  const host=document.getElementById('rqCommentSugg');
+  if(!host||!host._list) return;
+  q=String(q||'').trim();
+  const en=q.toLowerCase(), hasAr=/[\u0600-\u06FF]/.test(q);
+  const arN=hasAr?_atNormAr(q):'';
+  const rev=hasAr?_atTMReverse():{};
+  const gw=hasAr?_atApplyGlossary(q).toLowerCase().split(/\s+/).filter(w=>w.length>2&&!/[\u0600-\u06FF]/.test(w)):[];
+  host.querySelectorAll('.rq-cmt-wrap').forEach(w=>{
+    const tl=_rqNormCmt(host._list[+w.dataset.i]);
+    let ok=!q||tl.includes(en);
+    if(!ok&&hasAr) ok=(rev[tl]||[]).some(k=>k.includes(arN))||gw.some(x=>tl.includes(x.slice(0,6)));
+    w.style.display=ok?'':'none';
+  });
 }
 function _rqTapComment(btn){
   const host=document.getElementById('rqCommentSugg');
@@ -31705,6 +31738,7 @@ function saveRequest(){
   }
   const rec={company,engineer:g('rqEngineer'),date:g('rqDate')||today(),type:g('rqType'),zone:g('rqZone'),plot:g('rqPlot'),model:g('rqModel'),floor:g('rqFloor'),level:g('rqLevel'),status:_rqStatusSel,notes:g('rqNotes')};
   if(_rqIsIrType(rec.type)) rec.irType=g('rqIrType'); else if(!_rqEditId) rec.irType='';
+  _atLearnEdits(document.getElementById('rqNotes'));
   _rqLearnCommentSuggestions(rec.type,rec.irType,rec.notes);
   _rqLearnField('company',rec.company);
   _rqLearnField('engineer',rec.engineer);
@@ -31779,7 +31813,7 @@ async function _atTranslateMyMemory(text,target){
 // small post-fix list corrects the known literal mistakes.
 // Add terms by appending [arabicPattern, 'English term'] rows below — letters
 // are matched leniently (أ/إ/آ=ا, ى=ي, ة=ه), `|` `(…)` `?` are regex, space = any gap.
-const _AT_GLOSS_VER=2; // bump when the glossary changes → cached card translations refresh
+const _AT_GLOSS_VER=3; // bump when the glossary changes → cached card translations refresh
 const _AT_GLOSS=[
   // — phrases (matched first, longest wins) —
   ['(يوجد|وجود) (اعشاش|تعشيش)','honeycombing observed'],
@@ -31814,6 +31848,31 @@ const _AT_GLOSS=[
   ['عدم (ال)?راسيه','out of plumb'],
   ['عدم (ال)?استقامه','misalignment'],
   ['قاع (ال)?حفر','formation level'],
+  ['(علي|على) (ال)?(مسئوليه|مسؤوليه|مسوليه) (ال)?مقاول','under Contractor’s responsibility'],
+  ['(مسئوليه|مسؤوليه|مسوليه) (ال)?مقاول','Contractor’s responsibility'],
+  ['مقاول (ال)?باطن','subcontractor'],
+  ['(مهندس|مكتب) (ال)?استشاري','consultant engineer'],
+  ['طلب (ال)?استلام','inspection request'],
+  ['حسب (ال)?(مخططات|رسومات|لوحات) (ال)?معتمده','as per approved drawings'],
+  ['حسب (ال)?(مخططات|رسومات|لوحات)','as per drawings'],
+  ['حسب (ال)?مواصفات','as per specifications'],
+  ['شوب (دروينج|درويج|دروينجز)','shop drawings'],
+  ['مراجعه (ال)?مناسيب','verify levels'],
+  ['مراجعه (ال)?ابعاد','verify dimensions'],
+  ['(نظافه|تنظيف) (ال)?(سقف|بلاطه)','slab cleaning'],
+  ['ازاله (ال)?(شوائب|مخلفات|فضلات)','remove debris'],
+  ['طول (ال)?تراكب','lap length'],
+  ['طول (ال)?(تثبيت|ارساء)','anchorage length'],
+  ['(مسافات|مسافه) (بينيه|بين (ال)?اسياخ)','bar spacing'],
+  ['(ربط|رباط) (ال)?(حديد|اسياخ)','tying of reinforcement'],
+  ['(قص|تشكيل|تقطيع) (ال)?حديد','bar cutting and bending'],
+  ['شبكه (ال)?تسليح','reinforcement mesh'],
+  ['ميول (ال)?(سقف|بلاطه|ارضيه)','slab slope'],
+  ['(طبقه|وجه) (ال)?اولي','first coat'],
+  ['(تدعيم|تكتيف) (ال)?شده','formwork bracing'],
+  ['قطر (ال)?(سيخ|اسياخ|حديد)','bar diameter'],
+  ['(اختبار|تجربه) (ال)?مكعبات','concrete cube test'],
+  ['(عينات|عينه) (ال)?خرسانه','concrete samples'],
   // — single terms —
   ['(اعشاش|عشاش|تعشيش|اعشاش خرسانيه)','honeycombing'],
   ['(سيخ|اسياخ) (بارز|بارزه|بارزة)','protruding rebar'],
@@ -31864,6 +31923,17 @@ const _AT_GLOSS=[
   ['(تشطيب|تشطيبات)','finishing works'],
   ['(مخالف)','non-compliant'],
   ['(اعاده)','rework'],
+  ['(مقاول)','Contractor'],['(استشاري)','Consultant'],['(مهندس)','engineer'],['(مواصفات)','specifications'],
+  ['(مخططات|رسومات|لوحات)','drawings'],['(معتمده|معتمد)','approved'],
+  ['(تدعيم|تقويه)','strengthening'],['(نظافه)','cleanliness'],['(تنظيف)','cleaning'],['(ازاله)','removal'],['(تكسير)','chipping'],
+  ['(اسمنت)','cement'],['(رمل)','sand'],['(زلط|حصى)','gravel'],
+  ['(راسيه)','verticality'],['(استقامه)','alignment'],['(افقي)','horizontal'],['(راسي)','vertical'],
+  ['(سمك)','thickness'],['(ارتفاع)','height'],['(عرض)','width'],['(ابعاد)','dimensions'],['(قطر)','diameter'],
+  ['(مسافات|تباعد)','spacing'],['(ربط)','tying'],['(شبكه)','mesh'],['(ميول)','slope'],
+  ['(طوب)','bricks'],['(مباني)','masonry'],['(طرطشه)','splatter dash (first coat)'],['(ممبرين)','waterproofing membrane'],
+  ['(ملاحظات|ملاحظه)','comments'],['(اعتماد)','approval'],['(فحص)','inspection'],['(جوده)','quality'],
+  ['(تعديل)','adjustment'],['(تصحيح)','rectification'],['(استكمال)','completion'],['(نقص|ناقص)','missing'],
+  ['(مساحيه|مساحي|مساحه)','survey'],
 ];
 const _AR_CHAR_CLASS={'ا':'[اأإآ]','أ':'[اأإآ]','إ':'[اأإآ]','آ':'[اأإآ]','ي':'[يى]','ى':'[يى]','ه':'[هة]','ة':'[هة]'};
 const _AT_GLOSS_RE=_AT_GLOSS.map(([ar,en])=>{
@@ -31886,6 +31956,10 @@ const _AT_POSTFIX=[
   [/\bshuttering\b/gi,'formwork'],
   [/\biron bars?\b/gi,'rebar'],
   [/\bcement concrete\b/gi,'concrete'],
+  [/\birons?\b/gi,'rebar'],
+  [/\bcarpentry\b/gi,'formwork'],
+  [/\bwooden molds?\b/gi,'formwork'],
+  [/\bsteel reinforcement bars?\b/gi,'reinforcement bars'],
 ];
 function _atPostFixEn(s){
   let o=String(s||'');
@@ -31893,14 +31967,47 @@ function _atPostFixEn(s){
   o=o.replace(/\s{2,}/g,' ').trim();
   return o.charAt(0).toUpperCase()+o.slice(1);
 }
+// ── Translation memory: every Arabic line translated once is remembered ────
+// (and corrected if the person edits the English before saving), so the same
+// phrase always comes back as the same engineering wording, even offline.
+const _AT_TM_KEY='wdp_at_tm_v1', _AT_TM_MAX=600;
+let _atTM={};
+try{ const _t=localStorage.getItem(_AT_TM_KEY); if(_t) _atTM=JSON.parse(_t)||{}; }catch(e){_logErr('_atTM:read',e);}
+function _atNormAr(s){ return String(s||'').replace(/[\u064B-\u065F\u0640]/g,'').replace(/[أإآ]/g,'ا').replace(/ى/g,'ي').replace(/ة/g,'ه').replace(/[.!؟?،,;:•\-\s]+/g,' ').trim(); }
+function _atTMSave(){ try{ localStorage.setItem(_AT_TM_KEY,JSON.stringify(_atTM)); }catch(e){ _logErr('_atTMSave',e); } }
+function _atTMGet(src){ const e=_atTM[_atNormAr(src)]; return (e&&e.en&&e.v===_AT_GLOSS_VER)?e.en:null; }
+function _atTMPut(src,en){
+  const k=_atNormAr(src); en=String(en||'').trim();
+  if(!k||!en||k.length>240) return;
+  _atTM[k]={en,v:_AT_GLOSS_VER,t:Date.now()};
+  const ks=Object.keys(_atTM);
+  if(ks.length>_AT_TM_MAX) ks.sort((a,b)=>_atTM[a].t-_atTM[b].t).slice(0,ks.length-_AT_TM_MAX).forEach(x=>delete _atTM[x]);
+  _atTMSave();
+}
+function _atTMReverse(){ const r={}; Object.keys(_atTM).forEach(k=>{ const n=_rqNormCmt(_atTM[k].en); (r[n]=r[n]||[]).push(k); }); return r; }
+function _atTMForgetEn(n){ let ch=false; Object.keys(_atTM).forEach(k=>{ if(_rqNormCmt(_atTM[k].en)===n){ delete _atTM[k]; ch=true; } }); if(ch) _atTMSave(); }
+// On save: a translated line the person then corrected by hand teaches the memory.
+function _atLearnEdits(el){
+  const t=el&&el._atTrack; if(!t) return;
+  const cur=String(el.value||'').split('\n');
+  if(cur.length!==t.n) return;
+  t.src.forEach((sv,i)=>{
+    if(t.out[i]===sv) return;
+    const body=sv.replace(/^[•\-]\s*/,'').trim();
+    if(!/[\u0600-\u06FF]/.test(body)) return;
+    const now=cur[i].replace(/^[•\-]\s*/,'').trim().replace(/[.]$/,'').trim();
+    if(now&&!/[\u0600-\u06FF]/.test(now)) _atTMPut(body,now);
+  });
+}
 async function _atTranslate(text,target){
   if(target==='en' && /[\u0600-\u06FF]/.test(text)){
+    const known=_atTMGet(text); if(known) return known;
     const pre=_atApplyGlossary(text);
-    if(!/[\u0600-\u06FF]/.test(pre)) return _atPostFixEn(pre); // fully covered — no network call
+    if(!/[\u0600-\u06FF]/.test(pre)){ const r0=_atPostFixEn(pre); _atTMPut(text,r0); return r0; } // fully covered — no network call
     let out;
     try{ out=await _atTranslateGoogle(pre,target); }
     catch(e1){ out=await _atTranslateMyMemory(pre,target); }
-    return _atPostFixEn(out);
+    const r1=_atPostFixEn(out); _atTMPut(text,r1); return r1;
   }
   try{ return await _atTranslateGoogle(text,target); }
   catch(e1){ return await _atTranslateMyMemory(text,target); }
@@ -31958,7 +32065,9 @@ async function _atHandleFieldOut(el){
     el.dataset.atBusy='1';
     if(status){ status.textContent=L('Translating…','جارِ الترجمة…'); status.classList.add('busy'); status.classList.remove('err'); }
     try{
+      _atLearnEdits(el);
       const translatedLines=await _atTranslateLines(lines,target);
+      el._atTrack={n:lines.length,src:lines,out:translatedLines};
       if(document.contains(el) && el.value===raw){
         el.value=translatedLines.join('\n');
       }
