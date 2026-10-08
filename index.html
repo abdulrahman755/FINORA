@@ -2268,73 +2268,98 @@ tr.row-selected td{background:var(--green-tint)}
 }
 .chk-row:has(input:checked){border-color:var(--green);background:var(--green-tint)}
 
-/* ── New Transaction sheet — premium layout ── */
+/* ── New/Edit Transaction sheet — flat, quiet layout ──
+   One surface, hairline dividers, one hero number. No boxes inside boxes. */
 :root{--tx-accent:var(--green)}
 [data-theme="dark"]{--tx-accent:var(--green-light)}
 
-/* date chip */
+/* header: title + one muted line, no badge icon */
+.txm-hdr{margin-bottom:var(--sp3)}
+.txm-hdr .modal-hdr-title{font-size:calc(19px*var(--app-text-scale,1));font-weight:800;letter-spacing:-.3px}
+.txm-hdr .modal-hdr-sub{font-size:calc(12px*var(--app-text-scale,1));margin-top:3px}
+
+/* date: a plain list row */
 .txm-date{
-  display:flex;align-items:center;gap:10px;margin-bottom:14px;padding:0 16px;min-height:52px;
-  border:1.5px solid var(--border);border-radius:16px;background:var(--surface2);cursor:pointer;
-  color:var(--sub);-webkit-tap-highlight-color:transparent
+  display:flex;align-items:center;gap:10px;margin:0;padding:0;min-height:48px;
+  border:0;border-bottom:1px solid var(--border);border-radius:0;background:transparent;cursor:pointer;
+  color:var(--muted);-webkit-tap-highlight-color:transparent
 }
-.txm-date svg{color:var(--tx-accent);flex-shrink:0}
-.txm-date-lbl{font-size:calc(12px*var(--app-text-scale,1));font-weight:700;letter-spacing:.3px}
+.txm-date svg{color:var(--muted);flex-shrink:0}
+.txm-date-lbl{font-size:calc(13px*var(--app-text-scale,1));font-weight:600}
 .txm-date .date-wrap-auto{
   flex:1;min-width:0;justify-content:flex-end;height:auto;padding:0;border:0;background:transparent;
-  color:var(--text);font-size:calc(15px*var(--app-text-scale,1));font-weight:800
+  color:var(--text);font-size:calc(15px*var(--app-text-scale,1));font-weight:700
 }
 .txm-date .date-label-auto{text-align:end}
 .txm-date input[type="date"]{
   flex:1;min-width:0;width:auto;min-height:0;height:auto;padding:0;margin:0;border:0;border-radius:0;
   background:transparent;box-shadow:none;outline:none;-webkit-appearance:none;appearance:none;
   color:var(--text);-webkit-text-fill-color:var(--text);font-family:inherit;
-  font-size:calc(15px*var(--app-text-scale,1));font-weight:800;text-align:end
+  font-size:calc(15px*var(--app-text-scale,1));font-weight:700;text-align:end
 }
 
-/* entry cards */
-#txEntries{counter-reset:txe;display:flex;flex-direction:column;gap:12px;margin-bottom:12px}
-.tx-entry{
-  counter-increment:txe;position:relative;padding:16px;border-radius:20px;
-  background:var(--surface2);border:1.5px solid var(--border)
-}
-.tx-entry .field{margin-bottom:14px}
+/* entries: no card chrome; extra entries are separated by a hairline */
+#txEntries{counter-reset:txe;display:flex;flex-direction:column;margin-bottom:4px}
+.tx-entry{counter-increment:txe;position:relative;padding:20px 0 4px}
+#txEntries.multi .tx-entry + .tx-entry{border-top:1px solid var(--border);margin-top:16px}
+.tx-entry .field{margin-bottom:16px}
 .tx-entry .field:last-child{margin-bottom:0}
+.tx-entry .field label{font-size:calc(12px*var(--app-text-scale,1));font-weight:600;color:var(--muted);letter-spacing:0}
 .tx-entry-hdr{display:none;align-items:center;justify-content:space-between;margin-bottom:12px}
 #txEntries.multi .tx-entry-hdr{display:flex}
-.tx-entry-num{display:flex;align-items:center;gap:8px;font-weight:800;font-size:calc(12px*var(--app-text-scale,1));color:var(--sub);letter-spacing:.3px}
+.tx-entry-num{display:flex;align-items:center;gap:8px;font-weight:700;font-size:calc(13px*var(--app-text-scale,1));color:var(--sub)}
 .tx-entry-num::before{
   content:counter(txe);display:inline-flex;align-items:center;justify-content:center;
-  width:24px;height:24px;border-radius:50%;background:var(--green-tint);color:var(--tx-accent);
-  font-size:calc(12px*var(--app-text-scale,1));font-weight:900
+  width:22px;height:22px;border-radius:50%;background:var(--surface3);color:var(--text2);
+  font-size:calc(11px*var(--app-text-scale,1));font-weight:800
 }
 .tx-entry-del{
   display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;
-  border:none;border-radius:50%;background:var(--red-tint);color:var(--red);cursor:pointer;
-  -webkit-tap-highlight-color:transparent;transition:transform .1s
+  border:none;border-radius:50%;background:transparent;color:var(--muted);cursor:pointer;
+  -webkit-tap-highlight-color:transparent;transition:transform .1s,color .15s
 }
-.tx-entry-del:active{transform:scale(.9)}
+.tx-entry-del:active{transform:scale(.9);color:var(--red)}
 .tx-entry.tx-entry-in{animation:txEntryIn .28s ease both}
 @keyframes txEntryIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
 
-/* amount = hero input */
+/* amount = the one hero: large number on an underline, no box */
 .tx-entry .tx-amt label{justify-content:flex-start}
-.tx-hint{margin-inline-start:auto;font-size:calc(10px*var(--app-text-scale,1));font-weight:600;color:var(--muted);letter-spacing:0}
+.tx-hint{margin-inline-start:auto;font-size:calc(10px*var(--app-text-scale,1));font-weight:500;color:var(--muted);letter-spacing:0}
 .tx-entry .tx-amt input{
-  min-height:64px;padding:12px 16px;border-radius:16px;
-  font-size:calc(28px*var(--app-text-scale,1));font-weight:800;letter-spacing:.2px;
-  font-variant-numeric:tabular-nums;
-  background:var(--surface);border-color:var(--border-strong)
+  min-height:60px;padding:4px 0 8px;border:0;border-bottom:2px solid var(--border);border-radius:0;
+  background:transparent;box-shadow:none;
+  font-size:calc(38px*var(--app-text-scale,1));font-weight:800;letter-spacing:-.5px;
+  font-variant-numeric:tabular-nums
 }
-.tx-entry .tx-amt input::placeholder{font-weight:600;color:var(--muted);opacity:.7}
-.tx-entry .tx-amt input:focus{border-color:var(--tx-accent);box-shadow:0 0 0 3px var(--green-tint)}
-.tx-entry .tx-notes input{min-height:50px;border-radius:14px}
+.tx-entry .tx-amt input::placeholder{font-weight:600;color:var(--muted);opacity:.5;font-size:inherit}
+.tx-entry .tx-amt input:focus{border-color:var(--tx-accent);box-shadow:none;background:transparent}
 
-/* product purchase → compact switch row */
-.tx-entry .tx-prod{padding-top:12px;border-top:1px solid var(--border)}
+/* notes: soft filled field */
+.tx-entry .tx-notes input{
+  min-height:48px;padding:12px 14px;border-radius:12px;
+  border:1.5px solid transparent;background:var(--surface2);font-weight:500
+}
+.tx-entry .tx-notes input:focus{border-color:var(--tx-accent);background:var(--surface);box-shadow:none}
+
+/* smart suggestion: one quiet strip (category + amount, then 3 text actions).
+   The duplicated "AI" header, confidence chip and keyword chips are hidden
+   here because the classification line below already shows confidence and
+   "Detected because …" with the same keyword. */
+.tx-entry .aip-card{margin-top:10px;padding:0;background:transparent;border-radius:0;gap:4px;max-height:80px}
+.tx-entry .aip-card.aip-has-kw{max-height:80px}
+.tx-entry .aip-head,.tx-entry .aip-kw-wrap{display:none}
+.tx-entry .aip-caption{font-size:calc(12px*var(--app-text-scale,1));color:var(--text2)}
+.tx-entry .aip-actions{gap:18px;margin-top:0}
+.tx-entry .aip-btn{font-size:calc(12px*var(--app-text-scale,1));font-weight:700;min-height:32px;padding:4px 0}
+.tx-entry .aip-btn.aip-accept{color:var(--tx-accent)}
+.tx-entry .sde-box{margin-top:6px}
+.tx-entry .sde-box:empty{display:none}
+
+/* product purchase → plain switch row under a hairline */
+.tx-entry .tx-prod{padding-top:14px;border-top:1px solid var(--border)}
 .tx-entry .tx-prod .chk-row{
   padding:0;border:0;background:transparent;gap:10px;min-height:32px;
-  font-size:calc(13px*var(--app-text-scale,1));font-weight:700;color:var(--text2);letter-spacing:0
+  font-size:calc(14px*var(--app-text-scale,1));font-weight:600;color:var(--text2);letter-spacing:0
 }
 .tx-entry .tx-prod .chk-row:has(input:checked){border:0;background:transparent;color:var(--tx-accent)}
 .tx-entry .tx-prod .chk-row > span{order:1;min-width:0}
@@ -2355,46 +2380,42 @@ tr.row-selected td{background:var(--green-tint)}
   left:auto;top:3px;inset-inline-start:21px;width:22px;height:22px;border:0;transform:none
 }
 
-/* add new */
+/* add another: text action, not a dashed box */
 .tx-add-btn{
-  display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:52px;
-  padding:12px 14px;margin-bottom:16px;border:1.5px dashed var(--tx-accent);border-radius:16px;
-  background:transparent;color:var(--tx-accent);font-weight:800;letter-spacing:.2px;
-  font-size:calc(14px*var(--app-text-scale,1));font-family:inherit;cursor:pointer;
-  -webkit-tap-highlight-color:transparent;transition:transform .1s,background .15s
+  display:flex;align-items:center;justify-content:flex-start;gap:8px;width:100%;min-height:44px;
+  padding:0;margin:8px 0 8px;border:0;border-radius:0;background:transparent;
+  color:var(--tx-accent);font-weight:700;font-size:calc(14px*var(--app-text-scale,1));
+  font-family:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:opacity .15s
 }
-.tx-add-btn:active{transform:scale(.98);background:var(--green-tint)}
+.tx-add-btn:active{opacity:.6}
 
-/* shared Provided summary */
+/* shared Provided summary: one soft panel, colour only on the number + bar */
 .tx-sum{
-  --st:var(--muted);--st-bg:transparent;
-  position:relative;margin-bottom:12px;padding:16px;border-radius:20px;
-  border:1.5px solid var(--border);border-inline-start:4px solid var(--st);
-  background:linear-gradient(135deg,var(--st-bg),transparent 75%),var(--surface2);
-  transition:border-color .25s,background .25s
+  --st:var(--muted);
+  position:relative;margin:12px 0;padding:16px;border-radius:16px;border:0;background:var(--surface2)
 }
-.tx-sum[data-state="surplus"]{--st:var(--tx-accent);--st-bg:var(--green-tint)}
-.tx-sum[data-state="deficit"]{--st:var(--red);--st-bg:var(--red-tint)}
-.tx-sum[data-state="balanced"]{--st:var(--blue);--st-bg:var(--blue-tint)}
+.tx-sum[data-state="surplus"]{--st:var(--tx-accent)}
+.tx-sum[data-state="deficit"]{--st:var(--red)}
+.tx-sum[data-state="balanced"]{--st:var(--blue)}
 .tx-sum-top{display:flex;align-items:center;justify-content:space-between;gap:8px}
-.tx-sum-label{font-size:calc(12px*var(--app-text-scale,1));font-weight:800;color:var(--sub);letter-spacing:.3px}
+.tx-sum-label{font-size:calc(12px*var(--app-text-scale,1));font-weight:600;color:var(--muted)}
 .tx-sum-badge{
-  display:none;font-size:calc(11px*var(--app-text-scale,1));font-weight:800;padding:4px 11px;border-radius:99px;
+  display:none;font-size:calc(11px*var(--app-text-scale,1));font-weight:700;padding:3px 10px;border-radius:99px;
   background:var(--surface3);color:var(--sub)
 }
 .tx-sum input.tx-sum-val{
-  display:block;width:100%;min-height:0;height:auto;margin:6px 0 10px;padding:0;border:0;border-radius:0;
+  display:block;width:100%;min-height:0;height:auto;margin:6px 0 12px;padding:0;border:0;border-radius:0;
   background:transparent;box-shadow:none;outline:none;pointer-events:none;
   -webkit-appearance:none;appearance:none;font-family:inherit;
-  font-size:calc(34px*var(--app-text-scale,1));font-weight:900;line-height:1.15;letter-spacing:.2px;
+  font-size:calc(30px*var(--app-text-scale,1));font-weight:800;line-height:1.15;letter-spacing:-.3px;
   font-variant-numeric:tabular-nums;color:var(--st);-webkit-text-fill-color:var(--st)
 }
-.tx-sum-bar{height:6px;border-radius:99px;background:var(--surface3);overflow:hidden;margin-bottom:12px}
+.tx-sum-bar{height:4px;border-radius:99px;background:var(--surface3);overflow:hidden;margin-bottom:14px}
 .tx-sum-bar i{display:block;height:100%;width:0;border-radius:99px;background:var(--st);transition:width .3s ease,background .25s}
 .tx-sum-stats{display:flex;gap:8px}
 .tx-sum-stats > div{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
-.tx-sum-stats span{font-size:calc(10px*var(--app-text-scale,1));font-weight:700;color:var(--muted);letter-spacing:.2px}
-.tx-sum-stats b{font-size:calc(13px*var(--app-text-scale,1));font-weight:800;color:var(--text);font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tx-sum-stats span{font-size:calc(11px*var(--app-text-scale,1));font-weight:500;color:var(--muted)}
+.tx-sum-stats b{font-size:calc(13px*var(--app-text-scale,1));font-weight:700;color:var(--text);font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .tx-sum-hint{font-size:calc(11px*var(--app-text-scale,1));color:var(--muted);margin-top:10px}
 .tx-sum-hint:empty{display:none}
 
@@ -7112,7 +7133,13 @@ html.wdash-sheet-lock,html.wdash-sheet-lock body{overflow:hidden}
 .banks-v2 .bnk-drag{cursor:grab;padding:6px;color:var(--muted);display:flex;align-items:center;border-radius:var(--radius-xs)}
 .banks-v2 .bnk-drag:active{background:var(--surface3);cursor:grabbing}
 .banks-v2 .bnk-drag{position:relative;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
-.banks-v2 .bnk-drag::after{content:'';position:absolute;inset:-6px}
+/* Reorder grip: lives on the card's far inline-start edge (away from the
+   scroll thumb, the 3-dots menu and the chevron). Same size as its icon (no
+   enlarged invisible hit area), and a drag only starts after a short press-
+   and-hold, so a scrolling finger that happens to cross it just scrolls. */
+.banks-v2 .bnk-card-front{padding-inline-start:calc(var(--bk8-2) + 10px)}
+.banks-v2 .bnk-card-front > .bnk-drag{position:absolute;inset-inline-start:1px;top:50%;transform:translateY(-50%);padding:8px 2px;z-index:2;touch-action:pan-y;background:transparent}
+.banks-v2 .bnk-card-front > .bnk-drag.bnk-drag-armed{background:var(--surface3);color:var(--text);transform:translateY(-50%) scale(1.15)}
 .banks-v2 .bnk-card.drag-dragging{opacity:.9;box-shadow:var(--shadow-xl);z-index:50;transition:none!important}
 .banks-v2 .bnk-overflow-btn{background:none;border:none;color:var(--muted);cursor:pointer;padding:var(--sp2);border-radius:9px;display:flex;align-items:center;justify-content:center}
 .banks-v2 .bnk-overflow-btn:active{background:var(--surface3)}
@@ -13061,25 +13088,48 @@ function fdRenderCashFlowChart(){
   const days=Object.keys(dayMap).sort();
   if(!days.length){ canvas.parentElement.innerHTML=`<div class="list-empty">${L('No cash flow data yet','لا توجد بيانات تدفق نقدي بعد')}</div>`; return; }
   const ctx=canvas.getContext('2d');
-  const dpr=window.devicePixelRatio||1, W=canvas.parentElement.clientWidth||280, H=110;
+  const dpr=window.devicePixelRatio||1, W=canvas.parentElement.clientWidth||280, H=130;
   canvas.width=W*dpr; canvas.height=H*dpr; canvas.style.width=W+'px'; canvas.style.height=H+'px'; ctx.scale(dpr,dpr);
-  const data=days.map(d=>dayMap[d]);
-  const maxAbs=Math.max(1,...data.map(v=>Math.abs(v)));
-  const pad={t:8,r:8,b:22,l:44}; const cW=W-pad.l-pad.r, cH=H-pad.t-pad.b;
+  // Stock-style: running net balance over the month as one line (not daily bars).
+  // Colour follows the overall direction — green if the month is up, red if down.
+  let run=0; const cum=days.map(d=>(run+=dayMap[d]));
+  const lo=Math.min(0,...cum), hi=Math.max(0,...cum), span=(hi-lo)||1;
+  const yMin=lo-span*0.12, yMax=hi+span*0.12;
+  const pad={t:10,r:12,b:22,l:44}; const cW=W-pad.l-pad.r, cH=H-pad.t-pad.b;
   const isDark=document.documentElement.getAttribute('data-theme')==='dark';
-  const gc=isDark?'rgba(255,255,255,0.06)':'rgba(0,0,0,0.06)', tc=isDark?'#8FA093':'#637D72';
-  const zeroY=pad.t+cH/2;
-  ctx.strokeStyle=gc; ctx.lineWidth=1;
-  ctx.beginPath(); ctx.moveTo(pad.l,zeroY); ctx.lineTo(pad.l+cW,zeroY); ctx.stroke();
-  ctx.fillStyle=tc; ctx.font='9px sans-serif'; ctx.textAlign='right';
-  ctx.fillText(mrFmtShort(maxAbs), pad.l-3, pad.t+8);
-  ctx.fillText(mrFmtShort(-maxAbs), pad.l-3, pad.t+cH-2);
-  const bW=Math.max(3,(cW/data.length)-2);
-  data.forEach((v,i)=>{
-    const x=pad.l+(i+.5)*(cW/data.length)-bW/2, h=(Math.abs(v)/maxAbs)*(cH/2), y=v>=0?zeroY-h:zeroY;
-    ctx.fillStyle=v>=0?'#0f7a55':'#dc4f4f'; ctx.globalAlpha=.85;
-    ctx.beginPath(); if(ctx.roundRect)ctx.roundRect(x,y,bW,h,2); else ctx.rect(x,y,bW,h); ctx.fill(); ctx.globalAlpha=1;
-    if(i%Math.ceil(data.length/8)===0){ ctx.fillStyle=tc; ctx.font='8px sans-serif'; ctx.textAlign='center'; ctx.fillText(days[i].slice(5), x+bW/2, H-pad.b+10); }
+  const gc=isDark?'rgba(255,255,255,0.08)':'rgba(0,0,0,0.07)', tc=isDark?'#8FA093':'#637D72';
+  const up=cum[cum.length-1]>=0;
+  const lc=up?(isDark?'#2fbf8a':'#0f7a55'):(isDark?'#DD766B':'#dc4f4f');
+  const yOf=v=>pad.t+cH*(1-(v-yMin)/(yMax-yMin));
+  const t0=new Date(days[0]+'T12:00:00').getTime(), t1=new Date(days[days.length-1]+'T12:00:00').getTime();
+  const xOf=(d,i)=> days.length>1 && t1>t0 ? pad.l+((new Date(d+'T12:00:00').getTime()-t0)/(t1-t0))*cW : pad.l+cW/2;
+  const pts=days.map((d,i)=>({x:xOf(d,i), y:yOf(cum[i])}));
+  // grid: top / zero / bottom (zero line dashed, like a stock's baseline)
+  ctx.lineWidth=1; ctx.font='9px sans-serif'; ctx.textAlign='right'; ctx.fillStyle=tc;
+  [[hi,false],[0,true],[lo,false]].forEach(([v,dash],k,arr)=>{
+    if(k===2 && lo===0) return; if(k===0 && hi===0) return;
+    const y=yOf(v); ctx.strokeStyle=gc; ctx.setLineDash(dash?[4,4]:[]);
+    ctx.beginPath(); ctx.moveTo(pad.l,y); ctx.lineTo(pad.l+cW,y); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillText(mrFmtShort(v), pad.l-4, y+3);
+  });
+  // area between the line and the zero baseline
+  const zy=yOf(0);
+  ctx.beginPath(); ctx.moveTo(pts[0].x,zy); pts.forEach(p=>ctx.lineTo(p.x,p.y)); ctx.lineTo(pts[pts.length-1].x,zy); ctx.closePath();
+  const g=ctx.createLinearGradient(0,pad.t,0,pad.t+cH);
+  g.addColorStop(0,lc+(up?'55':'10')); g.addColorStop(1,lc+(up?'10':'55')); ctx.fillStyle=g; ctx.fill();
+  // the line
+  ctx.strokeStyle=lc; ctx.lineWidth=2.2; ctx.lineJoin='round'; ctx.lineCap='round';
+  ctx.beginPath(); pts.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y)); ctx.stroke();
+  // last-price dot
+  const lp=pts[pts.length-1];
+  ctx.beginPath(); ctx.arc(lp.x,lp.y,4.5,0,Math.PI*2); ctx.fillStyle=isDark?'#1b2420':'#fff'; ctx.fill();
+  ctx.strokeStyle=lc; ctx.lineWidth=2.4; ctx.stroke();
+  // x labels (edges anchored inward so they never clip)
+  const nth=Math.max(1,Math.ceil(days.length/5)); ctx.font='8px sans-serif'; ctx.fillStyle=tc;
+  days.forEach((d,i)=>{
+    if(i%nth!==0 && i!==days.length-1) return;
+    ctx.textAlign = i===0 ? 'left' : (i===days.length-1 ? 'right' : 'center');
+    ctx.fillText(d.slice(5), pts[i].x, H-pad.b+12);
   });
 }
 
@@ -14927,7 +14977,8 @@ const WDASH_CARD_META = {
   comparison: {icon:'chart',   en:'Comparison',            ar:'مقارنة'},
   trends:     {icon:'chart',   en:'Trends',                ar:'الاتجاهات'},
   summary:    {icon:'clipboard', en:'Summary',              ar:'الملخص'},
-  toplists:   {icon:'bank',    en:'Top Categories',        ar:'أعلى الفئات'}
+  toplists:   {icon:'bank',    en:'Top Categories',        ar:'أعلى الفئات'},
+  purchases:  {icon:'shopping_bag', en:'My Purchases',     ar:'مشترياتي'}
 };
 const WDASH_COLOR_SWATCHES = ['#0f7a55','#6d28d9','#c2410c','#4338ca','#0f766e','#be123c','#0369a1','#a16207','#4b5563'];
 // Chat request: the Manage Cards sheet showed most cards with a plain gray
@@ -14944,7 +14995,7 @@ const WDASH_COLOR_SWATCHES = ['#0f7a55','#6d28d9','#c2410c','#4338ca','#0f766e',
 const WDASH_CARD_DEFAULT_COLORS = {
   cash:'#0f7a55', site:'#be123c', sysintel:'#0369a1', activity:'#a16207',
   banks:'#4338ca', comparison:'#0f766e', trends:'#c2410c', summary:'#4b5563',
-  toplists:'#6d28d9'
+  toplists:'#6d28d9', purchases:'#b45309'
 };
 function _wdashPrefs(){
   try{
@@ -14959,6 +15010,47 @@ function _wdashSavePrefs(p){
 function _wdashCardColor(id){
   const p = _wdashPrefs();
   return (p.colors && p.colors[id]) || null;
+}
+// ── My Purchases dashboard card ──────────────────────────────────────────────
+// Every transaction marked "Product purchase" (t.isProduct) across ALL months
+// on record, grouped by month (newest first). Computed from DATA at render
+// time, so a newly created month — or a newly ticked product — shows up the
+// next time the dashboard renders, with no separate store to keep in sync.
+function _dashPurchasesCollect(){
+  const groups=[]; let total=0, count=0;
+  (MONTHS_ORDER||[]).slice().reverse().forEach(mk=>{
+    const tx=(DATA[mk]&&DATA[mk].transactions)||[];
+    const items=[];
+    tx.forEach(t=>{ if(t && t.isProduct) items.push(t); });
+    if(!items.length) return;
+    items.sort((a,b)=>String(b.date||'').localeCompare(String(a.date||'')));
+    const sum=items.reduce((a,t)=>a+(t.payment||0),0);
+    total+=sum; count+=items.length;
+    groups.push({mk, items, sum});
+  });
+  return {groups, total, count};
+}
+function renderPurchasesDashCard(){
+  const {groups,total,count}=_dashPurchasesCollect();
+  const title=`<div class="dfp-card-head"><div class="dfp-card-title">${ic('shopping_bag',13,'aria-hidden="true"')} ${L('My Purchases','مشترياتي')}</div></div>`;
+  if(!count) return `<div class="sc-card">${title}<div class="dfp-toplist-empty">${L('No purchases yet. Tick "Product purchase" when adding a transaction.','لا توجد مشتريات بعد. فعّل "منتج" عند إضافة معاملة.')}</div></div>`;
+  const CAP=300; let shown=0;
+  const body=groups.map(g=>{
+    if(shown>=CAP) return '';
+    const rows=g.items.slice(0,Math.max(0,CAP-shown)).map(t=>{
+      shown++;
+      const nm=_txlgItemName(t.notes)||String(t.notes||'').trim()||L('Untitled item','عنصر بدون اسم');
+      const d=String(t.date||'').slice(5);
+      return `<div class="dfp-toplist-row"><div class="dfp-toplist-name" dir="auto">${esc(nm)}<span style="color:var(--muted);font-size:calc(10px*var(--app-text-scale,1));margin-inline-start:8px">${esc(d)}</span></div><div class="dfp-toplist-amt">${fmtEGP(t.payment||0)}</div></div>`;
+    }).join('');
+    const mName=(typeof MONTH_NAMES!=='undefined' && MONTH_NAMES[g.mk]) || g.mk;
+    return `<div style="display:flex;justify-content:space-between;align-items:baseline;margin:14px 0 4px;padding-bottom:6px;border-bottom:1px solid var(--border)"><b style="font-size:calc(12px*var(--app-text-scale,1))">${esc(mName)}</b><span style="font-size:calc(11px*var(--app-text-scale,1));color:var(--muted)">${g.items.length} · ${fmtEGP(g.sum)}</span></div>${rows}`;
+  }).join('');
+  const more=count>CAP?`<div class="dfp-toplist-empty">${L('Showing latest','يعرض الأحدث')} ${CAP} ${L('of','من')} ${count}</div>`:'';
+  return `<div class="sc-card">${title}
+    <div style="display:flex;gap:16px;padding:4px 0 2px"><div><div style="font-size:calc(11px*var(--app-text-scale,1));color:var(--muted)">${L('Items','العناصر')}</div><b style="font-size:calc(18px*var(--app-text-scale,1))">${count}</b></div>
+    <div><div style="font-size:calc(11px*var(--app-text-scale,1));color:var(--muted)">${L('Total spent','إجمالي المصروف')}</div><b style="font-size:calc(18px*var(--app-text-scale,1))">${fmtEGP(total)}</b></div></div>
+    ${body}${more}</div>`;
 }
 function renderWorkspaceDashboard(m){
   const canFinance = WorkspaceEngine.canShow('finance');
@@ -15003,6 +15095,7 @@ function renderWorkspaceDashboard(m){
   if(canFinance) candidates.push({id:'cash', icon:'cash', label:L('Cash Flow','التدفق النقدي'), body:renderDashboardCashFlowV3(s), foldable:true, summary:`${s.netCashFlow>=0?'+':'-'}${fmtEGP(Math.abs(s.netCashFlow))}`});
   if(WorkspaceEngine.canShow('banks')) candidates.push({id:'banks', icon:'bank', label:L('Top Banks','أعلى البنوك'), body:renderBankSummaryCompactV3(m), foldable:true, summary:`${getBanksOrdered().length} ${L('accounts','حساب')}`});
   if(canFinance) candidates.push({id:'activity', icon:'clock', label:L('Recent Activity','آخر الأنشطة'), body:dfpSafeCard(()=>renderRecentActivityDashCard(m)), foldable:true});
+  if(canFinance){ const _pc=_dashPurchasesCollect().count; candidates.push({id:'purchases', icon:'shopping_bag', label:L('My Purchases','مشترياتي'), body:dfpSafeCard(()=>renderPurchasesDashCard()), foldable:true, summary:_pc?`${_pc} ${L('items','عنصر')}`:''}); }
   if(canFinance) candidates.push({id:'sysintel', icon:'sparkle', label:L('AI Insights','رؤى ذكية'), body:renderSystemIntelligenceV3(m, sig), foldable:true});
   if(canFinance) candidates.push({id:'site', icon:'lock', label:L('Site Custody','عهدة الموقع'), body:renderCustodyDashboardCard(m), foldable:true, summary:`${L('Remaining','المتبقي')}: ${sig.custodyRemaining<0?'-':''}${fmtEGP(Math.abs(sig.custodyRemaining))}`});
   if(canFinance) candidates.push({id:'comparison', icon:'chart', label:L('Monthly Comparison','مقارنة شهرية'), body:DashboardLazy.placeholder('monthlyComparison', ()=>dfpSafeCard(
@@ -19437,7 +19530,7 @@ function renderOverview(m){
   // ── Expense breakdown by note-group ───────────────────────────────────────
   const expGroups = {};
   exps.forEach(e=>{
-    const k = (e.notes||'').trim() || L('Uncategorized','غير مصنف');
+    const k = (e.notes||'').trim() || L('Other','أخرى');
     expGroups[k] = (expGroups[k]||0) + (e.amount||0);
   });
   const expGroupsSorted = Object.entries(expGroups).sort((a,b)=>b[1]-a[1]);
@@ -19446,7 +19539,7 @@ function renderOverview(m){
   // ── Category breakdown (daily transactions) ────────────────────────────────
   const catGroups = {};
   txns.forEach(t=>{
-    const k = (t.category||'').trim() || L('Uncategorized','غير مصنف');
+    const k = _catNameOf(t);
     catGroups[k] = (catGroups[k]||0) + (t.payment||0);
   });
   const catSorted = Object.entries(catGroups).sort((a,b)=>b[1]-a[1]);
@@ -22041,10 +22134,31 @@ function initBankDrag(){
   const content=document.getElementById('mainContent');
   if(!content) return;
   content.querySelectorAll('.drag-handle').forEach(handle=>{
-    handle.style.touchAction='none';
-    handle.addEventListener('pointerdown', _dragStart, {passive:false});
+    handle.style.touchAction='pan-y'; // plain swipes over the grip still scroll the page
+    handle.addEventListener('pointerdown', _bankDragStart, {passive:false});
+    handle.addEventListener('touchmove', ev=>{ if(_bkArmed && ev.cancelable) ev.preventDefault(); }, {passive:false});
     handle.addEventListener('contextmenu', ev=>ev.preventDefault());
   });
+}
+// Touch: the drag only begins after a ~260ms press-and-hold on the grip; if the
+// finger moves (>8px) or lifts first, it's treated as a scroll/tap and nothing
+// is dragged. Mouse keeps the immediate drag.
+let _bkArmed=false;
+function _bankDragStart(e){
+  if(e.pointerType==='mouse'){ _vdBegin(e,_BANK_VD); return; }
+  const h=e.currentTarget, pid=e.pointerId, sx=e.clientX, sy=e.clientY;
+  let ly=sy, t=0;
+  const move=ev=>{ if(ev.pointerId!==pid) return; ly=ev.clientY; if(Math.abs(ev.clientX-sx)>8||Math.abs(ev.clientY-sy)>8) cancel(); };
+  const cancel=()=>{ clearTimeout(t); h.removeEventListener('pointermove',move); h.removeEventListener('pointerup',cancel); h.removeEventListener('pointercancel',cancel); };
+  h.addEventListener('pointermove',move); h.addEventListener('pointerup',cancel); h.addEventListener('pointercancel',cancel);
+  t=setTimeout(()=>{
+    cancel();
+    _bkArmed=true; h.classList.add('bnk-drag-armed');
+    try{ navigator.vibrate && navigator.vibrate(12); }catch(_){}
+    const done=()=>{ _bkArmed=false; h.classList.remove('bnk-drag-armed'); h.removeEventListener('pointerup',done); h.removeEventListener('pointercancel',done); h.removeEventListener('lostpointercapture',done); };
+    h.addEventListener('pointerup',done); h.addEventListener('pointercancel',done); h.addEventListener('lostpointercapture',done);
+    _vdBegin({pointerType:'touch',button:0,currentTarget:h,pointerId:pid,clientY:ly,preventDefault(){}},_BANK_VD);
+  },260);
 }
 function _dragStart(e){ _vdBegin(e,_BANK_VD); }
 // ── Bank Color & Text Customizer ─────────────────────────────────────────────
@@ -22067,7 +22181,18 @@ const BNK_NUM_FONTS = {
   default: {label:{en:'Default',ar:'افتراضي'},    css:''},
   mono:    {label:{en:'Monospace',ar:'أحادي المسافة'}, css:"'Courier New',monospace"},
   serif:   {label:{en:'Serif',ar:'سيريف'},         css:"Georgia,'Times New Roman',serif"},
-  display: {label:{en:'Bold Display',ar:'عريض بارز'}, css:"'Arial Black','Helvetica Neue',sans-serif"}
+  display: {label:{en:'Bold Display',ar:'عريض بارز'}, css:"'Arial Black','Helvetica Neue',sans-serif"},
+  // Added set — all fall back gracefully (system stacks), so an unavailable
+  // face on a given device just shows the next one in its list.
+  manrope: {label:{en:'Clean Sans',ar:'نظيف'},            css:"'Manrope',system-ui,-apple-system,sans-serif"},
+  rounded: {label:{en:'Rounded',ar:'دائري ناعم'},          css:"ui-rounded,'SF Pro Rounded','Arial Rounded MT Bold','Nunito',system-ui,sans-serif"},
+  avenir:  {label:{en:'Avenir',ar:'أفينير'},               css:"'Avenir Next','Avenir','Helvetica Neue',sans-serif"},
+  futura:  {label:{en:'Geometric',ar:'هندسي'},             css:"'Futura','Century Gothic','Trebuchet MS',sans-serif"},
+  condensed:{label:{en:'Condensed',ar:'ضيق'},              css:"'DIN Condensed','Arial Narrow','Roboto Condensed',sans-serif-condensed,sans-serif"},
+  fraunces:{label:{en:'Elegant',ar:'أنيق'},                css:"'Fraunces',Georgia,'Times New Roman',serif"},
+  didot:   {label:{en:'Didot',ar:'ديدو كلاسيك'},           css:"'Didot','Bodoni 72','Bodoni MT',Georgia,serif"},
+  typewriter:{label:{en:'Typewriter',ar:'آلة كاتبة'},      css:"'American Typewriter','Rockwell','Courier New',serif"},
+  menlo:   {label:{en:'Tech Mono',ar:'تقني'},              css:"'SF Mono','Menlo','Consolas',monospace"}
 };
 const BNK_NUM_WEIGHTS = {
   default: {label:{en:'Default',ar:'افتراضي'}, css:''},
@@ -24266,6 +24391,7 @@ function renderBanks(m){
       <!-- Front face — compact summary only (name + total balance); tap to
            expand and reveal the full visa-card visual + details below. -->
       <div class="bnk-card-front" onclick="bnkToggleCard('${b.key}')">
+        <div class="bnk-drag drag-handle" data-key="${b.key}" touch-action="none" style="touch-action:pan-y;-webkit-user-select:none;user-select:none" onclick="event.stopPropagation()"><svg width="14" height="18" viewBox="0 0 16 20" fill="none"><circle cx="5" cy="4" r="1.6" fill="currentColor"/><circle cx="11" cy="4" r="1.6" fill="currentColor"/><circle cx="5" cy="10" r="1.6" fill="currentColor"/><circle cx="11" cy="10" r="1.6" fill="currentColor"/><circle cx="5" cy="16" r="1.6" fill="currentColor"/><circle cx="11" cy="16" r="1.6" fill="currentColor"/></svg></div>
         <div class="bnk-card-top">
           ${logoHTML}
           <div style="min-width:0;flex:1">
@@ -24274,8 +24400,7 @@ function renderBanks(m){
             ${monthInt>0?`<span class="bnk-card-badge" style="${_bdgStyle2}">${L('Interest','فائدة')}</span>`:''}
           </div>
           <div class="bnk-card-controls">
-            <div class="bnk-drag drag-handle" data-key="${b.key}" touch-action="none" style="touch-action:none;-webkit-user-select:none;user-select:none" onclick="event.stopPropagation()"><svg width="14" height="18" viewBox="0 0 16 20" fill="none"><circle cx="5" cy="4" r="1.6" fill="currentColor"/><circle cx="11" cy="4" r="1.6" fill="currentColor"/><circle cx="5" cy="10" r="1.6" fill="currentColor"/><circle cx="11" cy="10" r="1.6" fill="currentColor"/><circle cx="5" cy="16" r="1.6" fill="currentColor"/><circle cx="11" cy="16" r="1.6" fill="currentColor"/></svg></div>
-            <button type="button" class="bnk-overflow-btn" onclick="bnkToggleOverflow(event,'${b.key}')"><svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="19" r="1.8"/></svg></button>
+                        <button type="button" class="bnk-overflow-btn" onclick="bnkToggleOverflow(event,'${b.key}')"><svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="19" r="1.8"/></svg></button>
             <svg class="bnk-chevron" id="bnk-chev-${b.key}" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="${_isOpen?'transform:rotate(180deg)':''}"><path d="M6 9l6 6 6-6"/></svg>
             <div class="bnk-menu" id="bnk-menu-${b.key}" onclick="event.stopPropagation()">${menuItemsHTML}
             </div>
@@ -28507,11 +28632,26 @@ function computeSmartAI(activeMonthKey){
 }
 
 // ── § FINANCIAL INSIGHTS ENGINE ──────────────────────────────────────────────
+// Single source for a transaction's category name: the stored one if real,
+// else the smart classifier's result from its notes, else "Other" (أخرى).
+// Nothing in the app is ever labelled "Uncategorized".
+function _catNameOf(t){
+  const c = ((t && t.category) || '').trim();
+  if(c && c.toLowerCase()!=='uncategorized' && c!=='غير مصنف') return c;
+  try{
+    if(typeof _aiaClassify==='function'){
+      const r = _aiaClassify(t) || {};
+      const n = String(r.subcategory || r.category || '').trim();
+      if(n && !_aiaIsFallbackCategory(n)) return n;
+    }
+  }catch(e){}
+  return 'Other';
+}
 function _insGetCatTotals(monthKey){
   const txns = DATA[monthKey]?.transactions || [];
   const cats = {};
   for(const t of txns){
-    const k = (t.category||'').trim() || 'Uncategorized';
+    const k = _catNameOf(t);
     cats[k] = (cats[k]||0) + (t.payment||0);
   }
   return cats; // {catName: total}
@@ -28683,7 +28823,7 @@ function generateInsights(activeMonthKey){
   // ── 7. New category this month ────────────────────────────────────────────
   if(prevKey){
     for(const [cat] of Object.entries(curCats)){
-      if(!prevCats[cat] && cat !== 'Uncategorized' && cat !== 'غير مصنف'){
+      if(!prevCats[cat] && cat !== 'Uncategorized' && cat !== 'غير مصنف' && cat !== 'Other'){
         insights.push({
           icon:'sparkle', col:'#A97C1F', priority: 40,
           text: L(
@@ -31974,10 +32114,10 @@ function _txlgPrecompute(all){
     }
     const meta = hasCachedMeta ? _aiaClassify(t) : (live ? {
       type: live.type || 'expense',
-      category: (live.category && live.category.en) || 'Uncategorized',
+      category: (live.category && live.category.en) || 'Other',
       subcategory: (live.subcategory && live.subcategory.en) || '',
       tags: live.tags || [], confidence: live.confidence || 0, source: 'live'
-    } : { type:'expense', category:'Uncategorized', subcategory:'', tags:[], confidence:0, source:'none' });
+    } : { type:'expense', category:'Other', subcategory:'', tags:[], confidence:0, source:'none' });
     const merchant = hasCachedMerchant ? t.smartEntities.merchant : ((live && live.entities && live.entities.merchant) || null);
     const mixed = hasCachedMixed ? t.mixedPurchase : !!(live && live.mixedPurchase);
     return { meta, merchant, mixed };
@@ -35630,7 +35770,7 @@ function _txEntryHTML(sfx, d){
         <input type="text" id="mNotes${sfx}" list="sdeList-${ctx}" placeholder="${L('e.g. Materials, Labor, Equipment…','مثال: خامات، عمالة، معدات…')}" value="${esc(d.notes||'')}" oninput="_sdeOnInput('mNotes${sfx}','sdeBox-${ctx}','${ctx}');_aipOnInput('mNotes${sfx}','${ctx}')">
         <datalist id="sdeList-${ctx}"></datalist>
         <div id="aipCard-${ctx}" class="aip-card" data-ctx="${ctx}"></div>
-        <div id="sdeBox-${ctx}" class="sde-box" data-field="mNotes${sfx}" data-ctx="${ctx}" style="margin-top:6px"></div>
+        <div id="sdeBox-${ctx}" class="sde-box" data-field="mNotes${sfx}" data-ctx="${ctx}"></div>
       </div>
       <div class="field tx-prod">
         <label class="chk-row" for="mIsProduct${sfx}">
@@ -35681,8 +35821,7 @@ function showTxModal(tx){
   // the first entry's suffix is '' ; extras get sfx '2','3',… (see _txAddRow)
   document.getElementById('modalContent').innerHTML=`
     <div class="modal-handle"></div>
-    <div class="modal-hdr">
-      <div class="modal-hdr-icon" style="background:linear-gradient(135deg,var(--green-dark),var(--gold-dark))">${ic('money',22)}</div>
+    <div class="modal-hdr txm-hdr">
       <div>
         <div class="modal-hdr-title">${tx?L('Edit Transaction','تعديل معاملة'):L('New Transaction','معاملة جديدة')}</div>
         <div class="modal-hdr-sub">${L('Daily spending log','سجل الإنفاق اليومي')}</div>
@@ -35705,7 +35844,7 @@ function showTxModal(tx){
       </div>
       <div id="mProvidedHint" class="tx-sum-hint"></div>
     </div>
-    <div id="txStatusCard" style="display:none;border-radius:var(--radius-sm);padding:11px 14px;margin-bottom:4px;font-size:calc(12px*var(--app-text-scale,1));line-height:1.6"></div>
+    <div id="txStatusCard" style="display:none;padding:12px 2px 0;margin-bottom:4px;font-size:calc(12px*var(--app-text-scale,1));line-height:1.6"></div>
     <div class="modal-btns"><button class="mbtn save" onclick="saveTx()">${L('Save','حفظ')}</button><button class="mbtn cancel" onclick="closeModal()">${L('Cancel','إلغاء')}</button></div>`;
   document.getElementById('modalOverlay').style.display='flex';
   setTimeout(attachCalcKb,60);
@@ -35828,8 +35967,9 @@ function _txUpdateStatusCard(pay, tgt){
   }
 
   card.style.display = 'block';
-  card.style.background = statusBg;
-  card.style.border = `1.5px solid ${statusColor}`;
+  card.style.background = 'transparent';
+  card.style.border = '0';
+  card.style.borderTop = '1px solid var(--border)';
   card.innerHTML = `
     <div style="display:flex;align-items:center;gap:var(--sp2);margin-bottom:8px;font-weight:900;font-size:calc(13px*var(--app-text-scale,1));color:${statusColor}">
       <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${statusColor}"></span> ${status}
@@ -43327,7 +43467,7 @@ function _aiaClassify(tx){
       if(r){
         return {
           type: r.type || 'expense',
-          category: (r.category && r.category.en) || 'Uncategorized',
+          category: (r.category && r.category.en) || 'Other',
           subcategory: (r.subcategory && r.subcategory.en) || '',
           tags: r.tags || [],
           confidence: r.confidence || 0,
@@ -43336,7 +43476,7 @@ function _aiaClassify(tx){
       }
     }
   }catch(e){ /* offline-safe: never let classification errors break analysis */ }
-  return { type:'expense', category:'Uncategorized', subcategory:'', tags:[], confidence:0, source:'none' };
+  return { type:'expense', category:'Other', subcategory:'', tags:[], confidence:0, source:'none' };
 }
 
 // Per-transaction average amount for `category` over the 30 days strictly
@@ -43352,7 +43492,7 @@ function _aiaCategory30dAverage(dateStr){
     if(!t.date || t.date>=dateStr || t.date<startStr) continue;
     const meta = _aiaClassify(t);
     if(meta.type==='transfer') continue;
-    const k = meta.category || 'Uncategorized';
+    const k = meta.category || 'Other';
     sums[k]   = (sums[k]||0) + (t.payment||0);
     counts[k] = (counts[k]||0) + 1;
   }
@@ -43376,7 +43516,7 @@ function _aiaCategoryWindowTotal(category, dateStr, windowDays, offsetDays){
     if(!t.date || t.date<startStr || t.date>=endStr) continue;
     const meta = _aiaClassify(t);
     if(meta.type==='transfer') continue;
-    if((meta.category||'Uncategorized')!==category) continue;
+    if((meta.category||'Other')!==category) continue;
     sum += (t.payment||0);
   }
   return sum;
@@ -43398,7 +43538,7 @@ function _aiaTopCategoriesOverall(monthKey, limit){
   for(const t of txns){
     const meta = _aiaClassify(t);
     if(meta.type==='transfer') continue;
-    const k = meta.category || 'Uncategorized';
+    const k = meta.category || 'Other';
     sums[k] = (sums[k]||0) + (t.payment||0);
   }
   return Object.entries(sums).sort((a,b)=>b[1]-a[1]).slice(0,limit||5).map(e=>e[0]);
@@ -43449,7 +43589,7 @@ const FinancialAnalyzer = (function(){
       else if(meta.type==='transfer') transfer += amt;
       else expense += amt;
       if(meta.type!=='transfer'){
-        const k = meta.category || 'Uncategorized';
+        const k = meta.category || 'Other';
         catTotals[k] = (catTotals[k]||0) + amt;
       }
       return { tx:t, meta, amt };
@@ -43747,8 +43887,8 @@ const RecommendationEngine = (function(){
     }
     if(alerts.some(a=>a.type==='missing_desc' || a.type==='missing_category')){
       recs.push({ icon:'note', priority:35,
-        text: L('Add descriptions to uncategorized entries for more accurate insights.',
-                'أضف وصفاً للقيود غير المصنفة للحصول على رؤى أدق.') });
+        text: L('Add clearer descriptions to your entries for more accurate insights.',
+                'أضف وصفاً أوضح لقيودك للحصول على رؤى أدق.') });
     }
     if(alerts.some(a=>a.type==='negative_balance')){
       recs.push({ icon:'warning', priority:80,
