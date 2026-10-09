@@ -9623,6 +9623,228 @@ body .screen-wrap .sc-header.sav-plain-header.sav-plain-header::after{display:no
 .banks-v2 .bnk-mv-actions .tx-edit-btn:active,
 .banks-v2 .bnk-mv-actions .tx-del:active{opacity:1}
 .banks-v2 .bnk-mv-lock{display:flex;color:var(--muted);opacity:.6;padding-inline-end:6px}
+
+/* ══ FINORA Input System — Part 4 · Commit 1 (visual only · existing tokens) ══
+   Goal: what the user TYPES must read differently from labels and chrome.
+   Scope: the shared form system (.field …), .f-inp/.f-sel/.f-txta, .ds-* controls.
+   Not touched: the transaction-sheet hero amount (.tx-amt) and notes (.tx-notes),
+   which already have their own deliberate treatment; checkboxes/radios/ranges/files.
+   Pure CSS — no markup, JS, ids, names, types or handlers are changed.
+   States:  empty  → soft sand well, muted placeholder
+            hover  → border warms toward emerald
+            focus  → emerald border + 4px glow + emerald edge + label turns emerald
+            filled → white surface, bolder ink text, quiet emerald edge (start side)
+            invalid→ red border (only after the user has interacted: :user-invalid)
+            disabled→ flat, dimmed                                                  */
+:root{
+  --inp-bg:var(--surface2);
+  --inp-bg-filled:var(--surface);
+  --inp-bd:var(--border-strong);
+  --inp-bd-hover:color-mix(in srgb,var(--green) 38%,var(--border-strong));
+  --inp-bd-filled:color-mix(in srgb,var(--green) 50%,var(--border));
+  --inp-edge:inset 3px 0 0 var(--green);
+  --inp-edge-rtl:inset -3px 0 0 var(--green);
+  --inp-ring:0 0 0 4px var(--green-glow);
+  --inp-chev:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%230F7A55' stroke-width='2.8' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");
+}
+[data-theme="dark"]{
+  --inp-bd:var(--border-strong);
+  --inp-edge:inset 3px 0 0 var(--green-light);
+  --inp-edge-rtl:inset -3px 0 0 var(--green-light);
+  --inp-bd-hover:color-mix(in srgb,var(--green-light) 40%,var(--border-strong));
+  --inp-bd-filled:color-mix(in srgb,var(--green-light) 50%,var(--border));
+  --inp-chev:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%232BC48C' stroke-width='2.8' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");
+}
+
+/* ── Base: the well ── (16px floor also stops iOS from zooming the page on focus) */
+.field:not(.tx-amt):not(.tx-notes) :is(input,select,textarea):where(:not(.chk-box):not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]):not([type=color]):not([type=hidden])),
+.f-inp,.f-sel,.f-txta,
+.ds-input,.ds-select,.ds-textarea{
+  background-color:var(--inp-bg);
+  border:1.5px solid var(--inp-bd);
+  border-radius:12px;
+  color:var(--text);
+  font-size:calc(16px*var(--app-text-scale,1));
+  font-weight:600;
+  box-shadow:none;
+  transition:border-color .15s,box-shadow .15s,background-color .15s;
+}
+.field:not(.tx-amt):not(.tx-notes) :is(input,select,textarea)::placeholder,
+.f-inp::placeholder,.ds-input::placeholder,.ds-textarea::placeholder{
+  color:var(--muted);opacity:.6;font-weight:400;font-size:calc(15px*var(--app-text-scale,1));
+}
+
+/* ── Hover ── */
+.field:not(.tx-amt):not(.tx-notes) :is(input,select,textarea):not(:focus):not(:disabled):hover,
+.f-inp:not(:focus):not(:disabled):hover,.f-sel:not(:focus):not(:disabled):hover,.f-txta:not(:focus):not(:disabled):hover,
+.ds-input:not(:focus):not(:disabled):hover,.ds-select:not(:focus):not(:disabled):hover,.ds-textarea:not(:focus):not(:disabled):hover{
+  border-color:var(--inp-bd-hover);
+}
+
+/* ── Filled: a value is present ──
+   Inputs/textareas need a placeholder attribute for :placeholder-shown, so the
+   rule is gated on [placeholder] — a field without one is never mis-marked as filled.
+   Selects count as filled only when they offer an empty "choose…" option and it is NOT selected. */
+.field:not(.tx-amt):not(.tx-notes) :is(input,textarea)[placeholder]:not(:placeholder-shown):where(:not([type=date]):not([type=time]):not([type=month])):not(:focus),
+.f-inp[placeholder]:not(:placeholder-shown):not(:focus),.f-txta[placeholder]:not(:placeholder-shown):not(:focus),
+.ds-input[placeholder]:not(:placeholder-shown):not(:focus),.ds-textarea[placeholder]:not(:placeholder-shown):not(:focus),
+.field:not(.tx-amt):not(.tx-notes) select:has(option[value=""]):not(:has(option[value=""]:checked)):not(:focus),
+.f-sel:has(option[value=""]):not(:has(option[value=""]:checked)):not(:focus),
+.ds-select:has(option[value=""]):not(:has(option[value=""]:checked)):not(:focus){
+  background-color:var(--inp-bg-filled);
+  border-color:var(--inp-bd-filled);
+  color:var(--text);
+  font-weight:700;
+  box-shadow:var(--inp-edge);
+}
+[dir="rtl"] .field:not(.tx-amt):not(.tx-notes) :is(input,textarea)[placeholder]:not(:placeholder-shown):where(:not([type=date]):not([type=time]):not([type=month])):not(:focus),
+[dir="rtl"] .f-inp[placeholder]:not(:placeholder-shown):not(:focus),[dir="rtl"] .f-txta[placeholder]:not(:placeholder-shown):not(:focus),
+[dir="rtl"] .ds-input[placeholder]:not(:placeholder-shown):not(:focus),[dir="rtl"] .ds-textarea[placeholder]:not(:placeholder-shown):not(:focus),
+[dir="rtl"] .field:not(.tx-amt):not(.tx-notes) select:has(option[value=""]):not(:has(option[value=""]:checked)):not(:focus),
+[dir="rtl"] .f-sel:has(option[value=""]):not(:has(option[value=""]:checked)):not(:focus),
+[dir="rtl"] .ds-select:has(option[value=""]):not(:has(option[value=""]:checked)):not(:focus){
+  box-shadow:var(--inp-edge-rtl);
+}
+
+/* ── Focus: unmistakable "you are here" ── */
+.field:not(.tx-amt):not(.tx-notes) :is(input,select,textarea):where(:not(.chk-box):not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]):not([type=color])):focus,
+.f-inp:focus,.f-sel:focus,.f-txta:focus,
+.ds-input:focus,.ds-select:focus,.ds-textarea:focus{
+  background-color:var(--inp-bg-filled);
+  border-color:var(--green);
+  box-shadow:var(--inp-edge),var(--inp-ring);
+  outline:none;
+}
+[data-theme="dark"] .field:not(.tx-amt):not(.tx-notes) :is(input,select,textarea):where(:not(.chk-box):not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]):not([type=color])):focus,
+[data-theme="dark"] .f-inp:focus,[data-theme="dark"] .f-sel:focus,[data-theme="dark"] .f-txta:focus,
+[data-theme="dark"] .ds-input:focus,[data-theme="dark"] .ds-select:focus,[data-theme="dark"] .ds-textarea:focus{
+  border-color:var(--green-light);
+}
+[dir="rtl"] .field:not(.tx-amt):not(.tx-notes) :is(input,select,textarea):where(:not(.chk-box):not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]):not([type=color])):focus,
+[dir="rtl"] .f-inp:focus,[dir="rtl"] .f-sel:focus,[dir="rtl"] .f-txta:focus,
+[dir="rtl"] .ds-input:focus,[dir="rtl"] .ds-select:focus,[dir="rtl"] .ds-textarea:focus{
+  box-shadow:var(--inp-edge-rtl),var(--inp-ring);
+}
+/* the label of the focused field picks up the brand colour */
+.field:not(.tx-amt):not(.tx-notes):focus-within>label,
+.field:not(.tx-amt):not(.tx-notes):focus-within>.f-label{color:var(--green)}
+[data-theme="dark"] .field:not(.tx-amt):not(.tx-notes):focus-within>label,
+[data-theme="dark"] .field:not(.tx-amt):not(.tx-notes):focus-within>.f-label{color:var(--green-light)}
+
+/* ── Numbers the user types: steady, bolder digits ── */
+.field:not(.tx-amt) input:is([type=number],[inputmode=decimal],[inputmode=numeric],[inputmode=tel]),
+.f-inp:is([type=number],[inputmode=decimal],[inputmode=numeric]),
+.ds-input:is([type=number],[inputmode=decimal],[inputmode=numeric]){
+  font-variant-numeric:tabular-nums;font-weight:700;letter-spacing:.2px;
+}
+
+/* ── Select: a visible chevron (the native arrow is removed by appearance:none) ──
+   Skipped for the receipt-modal selects (.rq-typesel), which draw their own. */
+.field:not(.tx-amt):not(.tx-notes) select:not(.rq-typesel):not([multiple]),
+.f-sel,.ds-select{
+  background-image:var(--inp-chev);
+  background-repeat:no-repeat;
+  background-size:16px 16px;
+  background-position:right 14px center;
+  padding-inline-end:42px;
+  cursor:pointer;
+}
+[dir="rtl"] .field:not(.tx-amt):not(.tx-notes) select:not(.rq-typesel):not([multiple]),
+[dir="rtl"] .f-sel,[dir="rtl"] .ds-select{background-position:left 14px center}
+
+/* ── Invalid: only after the user has touched the field (never on first paint) ── */
+.field:not(.tx-amt):not(.tx-notes) :is(input,select,textarea):user-invalid,
+.ds-input:user-invalid,.ds-select:user-invalid,.ds-textarea:user-invalid{
+  border-color:var(--red);
+  box-shadow:none;
+}
+.field:not(.tx-amt):not(.tx-notes) :is(input,select,textarea):user-invalid:focus{
+  border-color:var(--red);box-shadow:0 0 0 4px var(--red-tint);
+}
+
+/* ── Disabled: flat and clearly inactive ── */
+.field:not(.tx-amt):not(.tx-notes) :is(input,select,textarea):disabled,
+.f-inp:disabled,.f-sel:disabled,.f-txta:disabled{
+  background-color:var(--surface3);border-color:var(--border);box-shadow:none;
+  color:var(--muted);opacity:.7;cursor:not-allowed;
+}
+
+/* ── Required marker: slightly stronger so mandatory inputs are spotted at a glance ── */
+.field label .f-req{font-weight:800}
+
+/* ══ FINORA Input System — Part 4 · Commit 2 (visual only · existing tokens) ══
+   Brings the module-specific entry fields onto the Commit 1 state language
+   (empty well → hover → focus → filled). Sizes, radii, paddings and layouts of
+   each system are left as they were; only colour/shadow/weight per state change.
+   Covered: .sc-add-row, .cx-in, .wm-inp, .mlx-input, .pln-quick, .add-tx-row,
+   .f-inp-sm/.f-sel-sm, and the hero amount + notes on the transaction sheet.
+   Not covered on purpose: search boxes, the PIN field (.stt-field), checkboxes. */
+:is(.sc-add-row,.pln-quick,.add-tx-row) :is(input,select),
+.cx-in,.wm-inp,.mlx-input,.f-inp-sm,.f-sel-sm{
+  background-color:var(--inp-bg);
+  border-color:var(--inp-bd);
+  transition:border-color .15s,box-shadow .15s,background-color .15s;
+}
+:is(.sc-add-row,.pln-quick,.add-tx-row) :is(input,select)::placeholder,
+.cx-in::placeholder,.wm-inp::placeholder,.mlx-input::placeholder,.f-inp-sm::placeholder{
+  color:var(--muted);opacity:.6;font-weight:400;
+}
+/* hover */
+:is(.sc-add-row,.pln-quick,.add-tx-row) :is(input,select):not(:focus):not(:disabled):hover,
+.cx-in:not(:focus):not(:disabled):hover,.wm-inp:not(:focus):not(:disabled):hover,
+.mlx-input:not(:focus):not(:disabled):hover,.f-inp-sm:not(:focus):not(:disabled):hover,.f-sel-sm:not(:focus):not(:disabled):hover{
+  border-color:var(--inp-bd-hover);
+}
+/* filled */
+:is(.sc-add-row,.pln-quick,.add-tx-row) input[placeholder]:not(:placeholder-shown):not(:focus),
+.cx-in[placeholder]:not(:placeholder-shown):not(:focus),.wm-inp[placeholder]:not(:placeholder-shown):not(:focus),
+.mlx-input[placeholder]:not(:placeholder-shown):not(:focus),.f-inp-sm[placeholder]:not(:placeholder-shown):not(:focus),
+:is(.sc-add-row,.pln-quick) select:has(option[value=""]):not(:has(option[value=""]:checked)):not(:focus),
+.f-sel-sm:has(option[value=""]):not(:has(option[value=""]:checked)):not(:focus){
+  background-color:var(--inp-bg-filled);
+  border-color:var(--inp-bd-filled);
+  color:var(--text);
+  font-weight:700;
+  box-shadow:var(--inp-edge);
+}
+[dir="rtl"] :is(.sc-add-row,.pln-quick,.add-tx-row) input[placeholder]:not(:placeholder-shown):not(:focus),
+[dir="rtl"] .cx-in[placeholder]:not(:placeholder-shown):not(:focus),[dir="rtl"] .wm-inp[placeholder]:not(:placeholder-shown):not(:focus),
+[dir="rtl"] .mlx-input[placeholder]:not(:placeholder-shown):not(:focus),[dir="rtl"] .f-inp-sm[placeholder]:not(:placeholder-shown):not(:focus),
+[dir="rtl"] :is(.sc-add-row,.pln-quick) select:has(option[value=""]):not(:has(option[value=""]:checked)):not(:focus),
+[dir="rtl"] .f-sel-sm:has(option[value=""]):not(:has(option[value=""]:checked)):not(:focus){
+  box-shadow:var(--inp-edge-rtl);
+}
+/* focus */
+:is(.sc-add-row,.pln-quick,.add-tx-row) :is(input,select):focus,
+.cx-in:focus,.wm-inp:focus,.mlx-input:focus,.f-inp-sm:focus,.f-sel-sm:focus{
+  background-color:var(--inp-bg-filled);
+  border-color:var(--green);
+  box-shadow:var(--inp-edge),var(--inp-ring);
+  outline:none;
+}
+[data-theme="dark"] :is(.sc-add-row,.pln-quick,.add-tx-row) :is(input,select):focus,
+[data-theme="dark"] .cx-in:focus,[data-theme="dark"] .wm-inp:focus,[data-theme="dark"] .mlx-input:focus,
+[data-theme="dark"] .f-inp-sm:focus,[data-theme="dark"] .f-sel-sm:focus{border-color:var(--green-light)}
+[dir="rtl"] :is(.sc-add-row,.pln-quick,.add-tx-row) :is(input,select):focus,
+[dir="rtl"] .cx-in:focus,[dir="rtl"] .wm-inp:focus,[dir="rtl"] .mlx-input:focus,
+[dir="rtl"] .f-inp-sm:focus,[dir="rtl"] .f-sel-sm:focus{box-shadow:var(--inp-edge-rtl),var(--inp-ring)}
+/* numbers */
+:is(.sc-add-row,.pln-quick,.add-tx-row) input:is([type=number],[inputmode=decimal],[inputmode=numeric]),
+.cx-in:is([type=number],[inputmode=decimal],[inputmode=numeric]),.wm-inp:is([type=number],[inputmode=decimal],[inputmode=numeric]),
+.f-inp-sm:is([type=number],[inputmode=decimal],[inputmode=numeric]){
+  font-variant-numeric:tabular-nums;font-weight:700;
+}
+/* selects in these systems: visible chevron (same asset as Commit 1) */
+.sc-add-row select,.pln-quick select,.f-sel-sm{
+  background-image:var(--inp-chev);background-repeat:no-repeat;background-size:16px 16px;
+  background-position:right 12px center;padding-inline-end:38px;
+}
+[dir="rtl"] .sc-add-row select,[dir="rtl"] .pln-quick select,[dir="rtl"] .f-sel-sm{background-position:left 12px center}
+
+/* ── Transaction sheet: hero amount + notes ── */
+.tx-entry .tx-amt input[placeholder]:not(:placeholder-shown):not(:focus){border-bottom-color:var(--inp-bd-filled)}
+.tx-entry :is(.tx-amt,.tx-notes):focus-within>label{color:var(--tx-accent)}
+.tx-entry .tx-notes input[placeholder]:not(:placeholder-shown):not(:focus){background:var(--surface);border-color:var(--inp-bd-filled);font-weight:600}
 </style>
 <script>
 // Suppress cross-origin Script errors (in-app browsers like TikTok/Instagram)
@@ -10298,6 +10520,7 @@ function fpInitSmartHeader(){
 /* ── Unified page header (identity pass): header sits flush in each screen's own wrap ── */
 .banks-v2>.sc-header,.txlg-wrap>.sc-header,.cx-wrap>.sc-header{margin:0}
 .cx-wrap>.sc-header{margin-inline:4px}
+.txlg-wrap>.sc-header,.banks-v2>.sc-header,.cx-wrap>.sc-header{order:-1}
     </style>
     <div style="position:absolute;bottom:0;left:0;right:0;background:var(--surface);border-radius:22px 22px 0 0;padding:0 16px 20px;max-height:75vh;overflow-y:auto;box-shadow:0 -10px 30px rgba(0,0,0,.25);animation:reportsSheetIn .25s cubic-bezier(.16,1,.3,1)">
       <div style="width:38px;height:5px;background:var(--border);border-radius:99px;margin:12px auto 16px"></div>
