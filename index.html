@@ -4152,7 +4152,7 @@ body[data-workspace="company_owner"] .sc-card-label{color:#D9C9A0}
    height), flat subtle icon tint (no gradient/glow), tight spacing, thin
    border instead of shadow-md. Same markup/props (emptyHero()) — CSS only,
    still used by Banks/Transactions (standalone full-list empty) as well as
-   the four My Savings sections; the .tx-rows override further below handles
+   the four My Finances sections; the .tx-rows override further below handles
    the nested-in-section case specifically. */
 .empty-hero{
   background:var(--surface);
@@ -7173,7 +7173,7 @@ html.wdash-sheet-lock,html.wdash-sheet-lock body{overflow:hidden}
    blobs + diagonal sheen + hardcoded white text) in both themes — the
    exact "glassmorphism everywhere / excessive blur / glowing border"
    pattern the unified Card System explicitly avoids. Converted to the
-   same calm hero language as My Savings' Net Worth card and the Dashboard
+   same calm hero language as My Finances' Net Worth card and the Dashboard
    hero: neutral theme-aware surface, thin subtle accent border, soft
    shadow, no blur/glow/sheen decoration. Same markup, same data, same
    onclick targets — CSS only. Text now uses var(--text)/var(--muted)
@@ -8943,7 +8943,7 @@ button.cx-sh-tap{width:100%;background:none;border:0;font-family:inherit;color:i
 :root{--radius:16px;--radius-sm:12px}
 
 /* -- Header B1: single row. Search is an icon (opens the same global search),
-   Aiora + contextual actions sit in the rail, theme/language live in the more menu. -- */
+   MIORA + contextual actions sit in the rail, theme/language live in the more menu. -- */
 .hdr-more-sep{height:1px;background:var(--border);margin:4px 8px}
 .hdr-more-ico{display:inline-flex;align-items:center;justify-content:center;width:15px;min-width:15px;height:15px;flex-shrink:0;color:var(--muted)}
 .hdr-more-ico svg{width:15px;height:15px}
@@ -10186,7 +10186,7 @@ function fpInitSmartHeader(){
        showToast) — no new business logic was introduced. -->
   <div class="app-header">
     <div class="header-toprow">
-      <button class="icon-btn" id="navBtn-SettingsHeader" onclick="openSettings()" title="Menu" data-i18n-attr="title" data-i18n-title-en="Menu" data-i18n-title-ar="القائمة">
+      <button class="icon-btn" id="navBtn-SettingsHeader" onclick="openSettings()" title="Settings" data-i18n-attr="title" data-i18n-title-en="Settings" data-i18n-title-ar="الإعدادات">
         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
       </button>
       <div class="app-brand">
@@ -10212,11 +10212,11 @@ function fpInitSmartHeader(){
           <div class="hdr-more-menu" id="hdrMoreMenu" style="display:none">
             <button class="hdr-more-item" onclick="hdrCloseMoreMenu();setView('planner')">
               <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/></svg>
-              <span data-i18n-en="Planner" data-i18n-ar="المخطط">Planner</span>
+              <span data-i18n-en="Spending Planner" data-i18n-ar="مخطط المصروفات">Spending Planner</span>
             </button>
             <button class="hdr-more-item" onclick="hdrCloseMoreMenu();window.print()">
               <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2M6 14h12v8H6z"/></svg>
-              <span data-i18n-en="Print" data-i18n-ar="طباعة">Print</span>
+              <span data-i18n-en="Print Page" data-i18n-ar="طباعة الصفحة">Print Page</span>
             </button>
             <button class="hdr-more-item" onclick="hdrCloseMoreMenu();exportBackup()">
               <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
@@ -10228,12 +10228,12 @@ function fpInitSmartHeader(){
             </button>
             <button class="hdr-more-item" onclick="hdrCloseMoreMenu();setView('mylocations')">
               <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0zM12 13a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/></svg>
-              <span data-i18n-en="My Locations" data-i18n-ar="أماكني">My Locations</span>
+              <span data-i18n-en="Place History" data-i18n-ar="سجل الأماكن">Place History</span>
             </button>
             <div class="hdr-more-sep" role="separator"></div>
             <button class="hdr-more-item" onclick="hdrCloseMoreMenu();toggleTheme()">
               <span class="hdr-more-ico" id="themeToggleBtnHdr"></span>
-              <span data-i18n-en="Theme" data-i18n-ar="المظهر">Theme</span>
+              <span data-i18n-en="Light / Dark Mode" data-i18n-ar="الوضع الفاتح / الداكن">Light / Dark Mode</span>
             </button>
             <button class="hdr-more-item" onclick="hdrCloseMoreMenu();toggleLang()">
               <span class="hdr-more-ico"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg></span>
@@ -10295,6 +10295,9 @@ function fpInitSmartHeader(){
       .rpt-title{font-size:calc(14px*var(--app-text-scale,1));font-weight:900;color:var(--text);line-height:1.2}
       .rpt-sub{font-size:calc(11px*var(--app-text-scale,1));color:var(--muted);font-weight:600;margin-top:2px}
       .rpt-chevron{flex-shrink:0;color:var(--muted)}
+/* ── Unified page header (identity pass): header sits flush in each screen's own wrap ── */
+.banks-v2>.sc-header,.txlg-wrap>.sc-header,.cx-wrap>.sc-header{margin:0}
+.cx-wrap>.sc-header{margin-inline:4px}
     </style>
     <div style="position:absolute;bottom:0;left:0;right:0;background:var(--surface);border-radius:22px 22px 0 0;padding:0 16px 20px;max-height:75vh;overflow-y:auto;box-shadow:0 -10px 30px rgba(0,0,0,.25);animation:reportsSheetIn .25s cubic-bezier(.16,1,.3,1)">
       <div style="width:38px;height:5px;background:var(--border);border-radius:99px;margin:12px auto 16px"></div>
@@ -10331,12 +10334,12 @@ function fpInitSmartHeader(){
          Settings sheet (General → Reports) and Settings is back in the
          header (top-left) — keeping this row to a clean, symmetric 5. -->
 
-    <button class="nav-btn" id="navBtn-Daily" onclick="setView('transactions');navCloseAll()" title="Daily">
+    <button class="nav-btn" id="navBtn-Daily" onclick="setView('transactions');navCloseAll()" title="Daily Spend">
       <svg class="nav-icon" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="16" rx="3"/><path d="M3 9.5h18"/><path d="M8 2.5v4"/><path d="M16 2.5v4"/><circle cx="12" cy="15" r="1.6" fill="currentColor" stroke="none"/></svg>
       <span id="navBtn-Daily-label"></span>
     </button>
 
-    <button class="nav-btn" id="navBtn-Banks" onclick="setView('banks');navCloseAll()" title="Banks">
+    <button class="nav-btn" id="navBtn-Banks" onclick="setView('banks');navCloseAll()" title="Accounts">
       <svg class="nav-icon" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10h18"/><path d="M4 10 12 4l8 6"/><path d="M5 10v9"/><path d="M9.5 10v9"/><path d="M14.5 10v9"/><path d="M19 10v9"/><path d="M3 21h18"/></svg>
       <span id="navBtn-Banks-label"></span>
     </button>
@@ -10357,12 +10360,12 @@ function fpInitSmartHeader(){
       <span id="navBtn-Dashboard-label"></span>
     </button>
 
-    <button class="nav-btn" id="navBtn-SiteCustody" onclick="window._cxLand='requests';setView('expenses');navCloseAll()" title="My Job">
+    <button class="nav-btn" id="navBtn-SiteCustody" onclick="window._cxLand='requests';setView('expenses');navCloseAll()" title="Site Custody">
       <svg class="nav-icon" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v6c0 5-3 8.5-7 9-4-.5-7-4-7-9V6l7-3z"/><path d="M9 12l2 2 4-4"/></svg>
       <span id="navBtn-SiteCustody-label"></span>
     </button>
 
-    <button class="nav-btn" id="navBtn-MySavings" onclick="setView('savings');navCloseAll()" title="My Savings">
+    <button class="nav-btn" id="navBtn-MySavings" onclick="setView('savings');navCloseAll()" title="My Finances">
       <svg class="nav-icon" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="12" cy="12" r="4.3"/><circle cx="12" cy="12" r="1" fill="currentColor" stroke="none"/><path d="M12 7.7v.9"/><path d="M16.3 12h-.9"/></svg>
       <span id="navBtn-MySavings-label"></span>
     </button>
@@ -12271,11 +12274,11 @@ function updateNavLabels(){
   // the label <span> and the title (hover/accessibility) attribute are kept
   // in sync here.
   const iconBtnTitles=[
-    ['navBtn-Dashboard',   'Dashboard',    'لوحة التحكم'],
-    ['navBtn-Banks',       'Banks',        'البنوك'],
-    ['navBtn-Daily',       'Daily',        'يومي'],
-    ['navBtn-SiteCustody', 'My Job',      'شغلي'],
-    ['navBtn-MySavings',   'My Savings',   'مدخراتي'],
+    ['navBtn-Dashboard',   'Dashboard',    'لوحة المؤشرات'],
+    ['navBtn-Banks',       'Accounts',     'الحسابات'],
+    ['navBtn-Daily',       'Daily Spend',  'الإنفاق اليومي'],
+    ['navBtn-SiteCustody', 'Site Custody', 'عهدة الموقع'],
+    ['navBtn-MySavings',   'My Finances',  'أموالي'],
   ];
   iconBtnTitles.forEach(([id,tEN,tAR])=>{
     const el=document.getElementById(id);
@@ -12986,7 +12989,7 @@ const QA_CARD_REGISTRY = [
   { action:'expense',     card:()=>qaCard(ic('cash',19), '#B2534A22', '#B2534A', L('Add Expense','إضافة مصروف'), L('Log a site expense','تسجيل مصروف موقع'), 'expense') },
   { action:'income',      card:()=>qaCard(ic('addition',19), '#0f7a5522', '#0f7a55', L('Add Income','إضافة دخل'), L('Log an income category','تسجيل فئة دخل'), 'income') },
   { action:'stage',       card:()=>qaCard(ic('calendar',19), '#0f7a5522', '#0f7a55', L('Add Timeline Stage','إضافة مرحلة'), L('New project stage','مرحلة جديدة للمشروع'), 'stage') },
-  { action:'ai',          card:()=>qaCard(aioraFace(19,'#A97C1F'), 'linear-gradient(135deg,#06b6d422,#A97C1F22)', '#A97C1F', L('Quick Entry with Aiora','إدخال سريع مع أيورا'), L('Paste — Aiora extracts entries','الصق — أيورا تستخرج البنود'), 'ai') },
+  { action:'ai',          card:()=>qaCard(aioraFace(19,'#A97C1F'), 'linear-gradient(135deg,#06b6d422,#A97C1F22)', '#A97C1F', L('Quick Entry with MIORA','إدخال سريع مع MIORA'), L('Paste — MIORA extracts entries','الصق — MIORA تستخرج البنود'), 'ai') },
 ];
 // Compact inline strip of Quick Action buttons for embedding directly on a
 // role's own dashboard (Sprint W3 "Quick Site Actions" etc.) — reuses
@@ -14742,7 +14745,7 @@ function _dashSmoothLineSVG(vals, labels, color){
 const _DASH_CHART_INFO = {
   get dailyIncExp(){ return L('Every day this month: how much you logged as daily payments — the exact same `payment` entries and total as the Daily page itself.','كل يوم في الشهر ده: قد إيه سجّلت كمصروف يومي — بالظبط نفس قيم ونفس إجمالي صفحة Daily.'); },
   get runningBalance(){ return L('Running total of your daily payments this month, day by day — same figures as the bar chart above, just accumulating.','إجمالي المصروف اليومي وهو بيتجمّع يوم بعد يوم خلال الشهر — نفس أرقام الرسم اللي فوق، بس تراكمي.'); },
-  get monthlyProfitChart(){ return L('Each month\'s cumulative Income from My Savings (everything earned up to that month) minus that month\'s Spent from Daily — green for a profit month, red for a loss month.','دخل مدخراتي التراكمي (كل حاجة اتكسبت لحد الشهر ده) ناقص المصروف من اليومي لنفس الشهر — أخضر لشهر فيه ربح، وأحمر لشهر فيه خسارة.'); },
+  get monthlyProfitChart(){ return L('Each month\'s cumulative Income from My Finances (everything earned up to that month) minus that month\'s Spent from Daily — green for a profit month, red for a loss month.','دخل أموالي التراكمي (كل حاجة اتكسبت لحد الشهر ده) ناقص المصروف من اليومي لنفس الشهر — أخضر لشهر فيه ربح، وأحمر لشهر فيه خسارة.'); },
   get incExpMonth(){ return L('Each month\'s total daily-payment spend, side by side — same `payment` total the Daily page shows for that month.','إجمالي المصروف اليومي لكل شهر، جنب بعضه — نفس الإجمالي اللي بتشوفه في صفحة Daily لما تفتح الشهر ده.'); }
 };
 function _dashChartInfoBtn(key){
@@ -15404,7 +15407,7 @@ function renderWorkspaceDashboard(m){
 
   const hiddenCount = candidates.length - visible.length;
   const manageBar = candidates.length
-    ? `<div class="wdash-manage-bar"><button type="button" class="wdash-manage-btn" onclick="wdashOpenManageSheet()">${ic('settings',15,'aria-hidden="true"')} ${L('Customize Dashboard','تخصيص لوحة التحكم')}${hiddenCount?` <span class="wdash-manage-badge">${hiddenCount}</span>`:''}</button></div>`
+    ? `<div class="wdash-manage-bar"><button type="button" class="wdash-manage-btn" onclick="wdashOpenManageSheet()">${ic('settings',15,'aria-hidden="true"')} ${L('Customize Dashboard','تخصيص لوحة المؤشرات')}${hiddenCount?` <span class="wdash-manage-badge">${hiddenCount}</span>`:''}</button></div>`
     : '';
 
   const quickActionsHtml = canFinance ? fpRenderQuickActionsStrip() : '';
@@ -15598,7 +15601,7 @@ function wdashOpenManageSheet(){
       <div class="ds-row-12">
         <div style="width:36px;height:36px;border-radius:10px;background:var(--surface2);display:flex;align-items:center;justify-content:center;flex-shrink:0">${ic('settings',17)}</div>
         <div>
-          <div class="ds-title-sm">${L('Customize Dashboard','تخصيص لوحة التحكم')}</div>
+          <div class="ds-title-sm">${L('Customize Dashboard','تخصيص لوحة المؤشرات')}</div>
           <div style="font-size:calc(11px*var(--app-text-scale,1));color:var(--muted);margin-top:1px">${L('Show or hide a dashboard icon here. Change its color from inside the dashboard.','اظهر أو اخفِ أيقونة الداشبورد من هنا. غيّر لونها من جوه الداشبورد نفسه.')}</div>
         </div>
         <button class="sheet-close-btn sq" onclick="closeModal()" aria-label="${L('Close','إغلاق')}">${ic('close',16)}</button>
@@ -18677,10 +18680,10 @@ function _savHeroTrend(delta){
 // Built on demand (was a load-time const, so L() froze the language chosen at startup and
 // the empty states stayed in the old language after a language switch).
 function _savEmptyCfg(){ return {
-  income:  {accent:'income',  icon:'cash',       eyebrow:L('My Savings','مدخراتي'), title:L('No Income Yet','لا يوجد دخل بعد'),        sub:L('Track salary, freelance work, bonuses and more.','تتبع الراتب والعمل الحر والمكافآت وغيرها.'),           label:L('Add Income','إضافة دخل'),  fn:'savAddIncome()'},
-  outcome: {accent:'outcome', icon:'trend_down', eyebrow:L('My Savings','مدخراتي'), title:L('No Outcome Yet','لا توجد مصروفات بعد'),   sub:L('Track personal spending and expenses.','تتبع مصروفاتك الشخصية.'),                                        label:L('Add Outcome','إضافة مصروف'), fn:'savAddOutcome()'},
-  assets:  {accent:'assets',  icon:'gem',        eyebrow:L('My Savings','مدخراتي'), title:L('No Assets Yet','لا توجد أصول بعد'),       sub:L('Add gold, real estate, cars, stocks and more.','أضف ذهباً وعقارات وسيارات وأسهماً وغيرها.'),               label:L('Add Asset','إضافة أصل'),   fn:'savAddAsset()'},
-  debts:   {accent:'debts',   icon:'scale',      eyebrow:L('My Savings','مدخراتي'), title:L('No Debts Yet','لا توجد مديونيات بعد'),    sub:L('Track money owed to you or money you owe others.','تتبع الفلوس اللي ليك عند التانيين أو عليك لهم.'),        label:L('Add Debt','إضافة مديونية'), fn:'savAddDebt()'},
+  income:  {accent:'income',  icon:'cash',       eyebrow:L('My Finances','أموالي'), title:L('No Income Yet','لا يوجد دخل بعد'),        sub:L('Track salary, freelance work, bonuses and more.','تتبع الراتب والعمل الحر والمكافآت وغيرها.'),           label:L('Add Income','إضافة دخل'),  fn:'savAddIncome()'},
+  outcome: {accent:'outcome', icon:'trend_down', eyebrow:L('My Finances','أموالي'), title:L('No Expenses Yet','لا توجد مصروفات بعد'),   sub:L('Track personal spending and expenses.','تتبع مصروفاتك الشخصية.'),                                        label:L('Add Expense','إضافة مصروف'), fn:'savAddOutcome()'},
+  assets:  {accent:'assets',  icon:'gem',        eyebrow:L('My Finances','أموالي'), title:L('No Assets Yet','لا توجد أصول بعد'),       sub:L('Add gold, real estate, cars, stocks and more.','أضف ذهباً وعقارات وسيارات وأسهماً وغيرها.'),               label:L('Add Asset','إضافة أصل'),   fn:'savAddAsset()'},
+  debts:   {accent:'debts',   icon:'scale',      eyebrow:L('My Finances','أموالي'), title:L('No Debts Yet','لا توجد مديونيات بعد'),    sub:L('Track money owed to you or money you owe others.','تتبع الفلوس اللي ليك عند التانيين أو عليك لهم.'),        label:L('Add Debt','إضافة مديونية'), fn:'savAddDebt()'},
 }; }
 // Part 4 (consistency pass): was its own third copy of the empty-hero
 // markup with a local-only color set and no eyebrow line, diverging from
@@ -18776,7 +18779,7 @@ function renderSavings(){
       <div class="sav-row-main" onclick="savEditOutcome(${idx})">
         <div class="sav-row-icon" style="background:${_outDisplay.color}1a;color:${_outDisplay.color}">${_outDisplay.html}</div>
         <div class="sav-row-text">
-          <div class="sav-row-title" dir="auto">${esc(x.source||L('Outcome','مصروف'))}</div>
+          <div class="sav-row-title" dir="auto">${esc(x.source||L('Expense','مصروف'))}</div>
           <div class="sav-row-meta">${esc(x.date||'—')}${x.note?' · '+esc(x.note):''}</div>
         </div>
         <div class="sav-row-amount" style="color:var(--fin-outcome)">${fmtEGP(x.amount)}</div>
@@ -18877,9 +18880,9 @@ function renderSavings(){
   return `<div class="screen-wrap">
     <div class="sc-header sav-plain-header">
       <div class="sc-header-eyebrow">${L('Finance','المالية')}</div>
-      <div class="sc-header-title">${L('My Savings','مدخراتي')}</div>
-      <div class="sc-header-sub">${L('Track your income, outcome, assets and net worth','تتبع دخلك ومصروفاتك وأصولك وصافي ثروتك')}</div>
-      <button type="button" class="sav-search-toggle" id="savSearchToggle" onclick="savToggleSearch()" aria-label="${L('Search savings','بحث في المدخرات')}" aria-expanded="${(_savSearchOpen||searchQ)?'true':'false'}"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg></button>
+      <div class="sc-header-title">${L('My Finances','أموالي')}</div>
+      <div class="sc-header-sub">${L('Track your income, expenses, assets and net worth','تتبع دخلك ومصروفاتك وأصولك وصافي ثروتك')}</div>
+      <button type="button" class="sav-search-toggle" id="savSearchToggle" onclick="savToggleSearch()" aria-label="${L('Search finances','بحث في أموالي')}" aria-expanded="${(_savSearchOpen||searchQ)?'true':'false'}"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg></button>
     </div>
 
     <!-- Finance Summary — Hero KPI (Net Worth) + compact secondary strip
@@ -18891,7 +18894,7 @@ function renderSavings(){
           <div class="fin-hero-label">${L('Net Worth','صافي الثروة')}</div>
         </div>
         <div class="fin-hero-amount">${sigNumHTML(netTotal)}</div>
-        <div class="fin-hero-formula">${L('Income + Assets − Outcome','الدخل + الأصول − المصروفات')}</div>
+        <div class="fin-hero-formula">${L('Income + Assets − Expenses','الدخل + الأصول − المصروفات')}</div>
         ${_savHeroTrend(_savNetWorthDelta(visIncomes.map(p=>p.x), visOutcomes.map(p=>p.x), visAssets.map(p=>p.x)))}
       </div>
 
@@ -18911,7 +18914,7 @@ function renderSavings(){
             ${_savChangeBadge(outcomeDelta)}
           </div>
           <div class="fin-card-amount">${fmtEGP(totalOutcome)}</div>
-          <div class="fin-card-title">${L('Outcome','المصروفات')}</div>
+          <div class="fin-card-title">${L('Expenses','المصروفات')}</div>
           <div class="fin-card-sub">${_cnt(visOutcomes.length,'entry','entries','سجل','سجلان','سجلات','سجلاً')}</div>
         </div>
         <div class="fin-card" style="--fc:var(--fin-assets);--fc-tint:var(--fin-assets-tint)">
@@ -18929,7 +18932,7 @@ function renderSavings(){
     <!-- Quick Actions -->
     <div class="fin-qa-row sav-qa-scroll">
       <button type="button" class="fin-qa-chip fin-qa-chip-primary" style="--qc:var(--fin-income);--qc-tint:var(--fin-income-tint)" onclick="savAddIncome()">${ic('plus',12)} ${L('Income','دخل')}</button>
-      <button type="button" class="fin-qa-chip fin-qa-chip-primary" style="--qc:var(--fin-outcome);--qc-tint:var(--fin-outcome-tint)" onclick="savAddOutcome()">${ic('plus',12)} ${L('Outcome','مصروف')}</button>
+      <button type="button" class="fin-qa-chip fin-qa-chip-primary" style="--qc:var(--fin-outcome);--qc-tint:var(--fin-outcome-tint)" onclick="savAddOutcome()">${ic('plus',12)} ${L('Expense','مصروف')}</button>
       <button type="button" class="fin-qa-chip fin-qa-chip-primary" style="--qc:var(--fin-networth);--qc-tint:var(--fin-networth-tint)" onclick="savTransfer()">${ic('refresh',12)} ${L('Transfer','تحويل')}</button>
       <button type="button" class="fin-qa-chip" style="--qc:var(--fin-assets);--qc-tint:var(--fin-assets-tint)" onclick="savAddAsset()">${ic('plus',12)} ${L('Asset','أصل')}</button>
       <button type="button" class="fin-qa-chip" style="--qc:#c17d0a;--qc-tint:#c17d0a1a" onclick="savScanReceipt()">${ic('photo',12)} ${L('Scan Receipt','مسح إيصال')}</button>
@@ -18938,7 +18941,7 @@ function renderSavings(){
 
     <div class="sc-search cx-search sav-search${(_savSearchOpen||searchQ)?' open':''}" id="savSearchBar"><span class="cx-sbox">
       <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
-      <input placeholder="${L('Search savings...','ابحث في المدخرات...')}" value="${esc(searchQ)}" oninput="doSearch(this.value)"/>
+      <input placeholder="${L('Search finances...','ابحث في أموالي...')}" value="${esc(searchQ)}" oninput="doSearch(this.value)"/>
     </span></div>
 
     <div class="sc-card">
@@ -18951,7 +18954,7 @@ function renderSavings(){
 
     <div class="sc-card">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px">
-        <div class="sc-card-label" style="padding:0">${ic('trend_down',15)} ${L('Outcome','المصروفات')}</div>
+        <div class="sc-card-label" style="padding:0">${ic('trend_down',15)} ${L('Expenses','المصروفات')}</div>
         <button onclick="savAddOutcome()" class="card-add-btn green">+ ${L('Add','إضافة')}</button>
       </div>
       <div class="tx-rows">${outcomeRows}</div>
@@ -19178,7 +19181,7 @@ function _savOutcomeModal(editIdx){
   const initialOutDisplay = savResolveIconDisplay('out', x.source||'');
   document.getElementById('modalContent').innerHTML = `
     <div class="modal-handle"></div>
-    <div class="modal-title">${ic('trend_down',15)} ${editIdx!=null?L('Edit Outcome','تعديل المصروف'):L('New Outcome','مصروف جديد')}</div>
+    <div class="modal-title">${ic('trend_down',15)} ${editIdx!=null?L('Edit Expense','تعديل المصروف'):L('New Expense','مصروف جديد')}</div>
     <div class="field">
       <label>${L('Source','المصدر')} *</label>
       <div style="position:relative;display:flex;align-items:center;gap:var(--sp3)">
@@ -19215,12 +19218,12 @@ function savSaveOutcome(editIdx){
   saveSavings();
   closeModal();
   renderView();
-  showToast(L('Outcome saved ✓','تم حفظ المصروف ✓'),'success',undefined,'with');
+  showToast(L('Expense saved ✓','تم حفظ المصروف ✓'),'success',undefined,'with');
 }
 function savDeleteOutcome(idx){
   const x=SAVINGS.outcomes[idx];
   if(!x) return;
-  showConfirm(L('Delete this outcome entry? This cannot be undone.','حذف سجل المصروف هذا؟ لا يمكن التراجع.'), ()=>{
+  showConfirm(L('Delete this expense entry? This cannot be undone.','حذف سجل المصروف هذا؟ لا يمكن التراجع.'), ()=>{
     SAVINGS.outcomes.splice(idx,1);
     saveSavings();
     closeModal();
@@ -19481,7 +19484,7 @@ function savSetTransferDir(dir){ _savTransferDir=dir; _savTransferModal(); }
 function savTransferBodyHtml(){
   if(_savTransferDir==='toAsset'){
     return `
-    <div style="font-size:calc(11px*var(--app-text-scale,1));color:var(--muted);background:var(--surface2);border-radius:10px;padding:8px 10px;margin-bottom:10px;line-height:1.5">${L('Logs the amount as an Outcome (cash used) and adds a new Asset with that value — your Net Worth stays the same.','يسجل المبلغ كمصروف (نقدية مستخدمة) ويضيف أصلاً جديداً بنفس القيمة — صافي ثروتك يبقى كما هو.')}</div>
+    <div style="font-size:calc(11px*var(--app-text-scale,1));color:var(--muted);background:var(--surface2);border-radius:10px;padding:8px 10px;margin-bottom:10px;line-height:1.5">${L('Logs the amount as an Expense (cash used) and adds a new Asset with that value — your Net Worth stays the same.','يسجل المبلغ كمصروف (نقدية مستخدمة) ويضيف أصلاً جديداً بنفس القيمة — صافي ثروتك يبقى كما هو.')}</div>
     <div class="field"><label>${L('Amount','المبلغ')} *</label><input id="savTrAmount" type="text" inputmode="decimal" placeholder="0"></div>
     <div class="field"><label>${L('Asset Name','اسم الأصل')} *</label><input id="savTrAssetName" placeholder="${L('e.g. 21K gold bracelet…','مثال: أسورة ذهب عيار 21…')}" dir="auto"></div>
     <div class="field"><label>${L('Asset Type','نوع الأصل')}</label><select id="savTrAssetType">${Object.keys(SAV_ASSET_TYPES).map(k=>`<option value="${k}">${L(SAV_ASSET_TYPES[k].en,SAV_ASSET_TYPES[k].ar)}</option>`).join('')}</select></div>
@@ -20099,7 +20102,7 @@ function renderPlanner(){
   return `<div class="screen-wrap">
     <div class="sc-header">
       <div class="sc-header-eyebrow">${L('Finance','المالية')}</div>
-      <div class="sc-header-title">${L('Planner','المخطط')}</div>
+      <div class="sc-header-title">${L('Spending Planner','مخطط المصروفات')}</div>
       <div class="sc-header-sub">${L('Plan your upcoming spending day by day','خطط لمصروفاتك القادمة يومًا بيوم')}</div>
     </div>
 
@@ -21648,7 +21651,7 @@ function openEditIO(idx){
       <div class="modal-hdr-icon" style="background:#2563eb">${idx>=0?`${ic('edit',22)}`:`${ic('plus',22)}`}</div>
       <div>
         <div class="modal-hdr-title">${idx>=0?L('Edit Category','تعديل فئة'):L('Add Category','إضافة فئة')}</div>
-        <div class="modal-hdr-sub">${L('Income / Outcome entry','قيد إيرادات / مصروفات')}</div>
+        <div class="modal-hdr-sub">${L('Income / Expense entry','قيد إيرادات / مصروفات')}</div>
       </div>
     </div>
     <div class="field"><label>${L('Category Name','اسم الفئة')} <span class="f-req">*</span></label><input type="text" id="ioCategory" placeholder="${L('e.g. Salary, Materials, Rent…','مثال: مرتب، خامات، إيجار…')}" value="${esc(row?.category||'')}"></div>
@@ -24587,6 +24590,8 @@ function _bnkMovesListHTML(allMoves, key){
   }).join('');
 }
 
+// Shared page header (identity pass) — same markup/classes as My Finances, Reports, Planner.
+function _pgHdr(eEn,eAr,tEn,tAr,sEn,sAr){return `<div class="sc-header"><div class="sc-header-eyebrow">${L(eEn,eAr)}</div><div class="sc-header-title">${L(tEn,tAr)}</div><div class="sc-header-sub">${L(sEn,sAr)}</div></div>`;}
 function renderBanks(m){
   fxEnsureRates();
   const banks=getBanksOrdered();
@@ -24871,6 +24876,7 @@ function renderBanks(m){
   const _withPct = _flowTotal>0 ? 100-_depPct : 0;
 
   return `<div class="screen-wrap banks-v2">
+${_pgHdr('Finance','المالية','Accounts','الحسابات','Banks and e-wallets: balances and movements','البنوك والمحافظ: الأرصدة والحركة')}
 
   <!-- 1. HERO ─────────────────────────────────────────────────── -->
   <div class="bnk-hero">
@@ -29499,7 +29505,7 @@ const _DTP_TITLES=[
   ['✨ A fresh day — pick your target','✨ يوم جديد — اختار تارجتك'],
   ['🧠 Quick one: what\'s today\'s budget?','🧠 سؤال سريع: ميزانية النهارده كام؟'],
   ['🚀 Start the day with a plan','🚀 ابدأ يومك بخطة'],
-  ['🐷 Keep it under control — set your target','🐷 خلّي مصروفك تحت السيطرة — حدّد التارجت'],
+  ['🐷 Keep it under control — set your target','🐷 خلّي مصروفك تحت السيطرة — حدّد المستهدف'],
   ['⏰ Your daily target is waiting','⏰ تارجت اليوم مستنيك'],
   ['💪 Small target, big savings','💪 تارجت صغير، توفير كبير'],
   ['📝 Today\'s target — takes 5 seconds','📝 تارجت النهارده — ياخد ٥ ثواني']
@@ -29523,7 +29529,7 @@ function openDailyTargetModal(auto){
     </div>
     ${auto===true?`<div class="dtp-note">${ic('bell',15)}<span>${L("New day — set today's budget so you don't forget.",'يوم جديد — حدّد ميزانية اليوم عشان ما تنساش.')}</span></div>`:''}
     <div class="field">
-      <label>${L('Target Amount','مبلغ التارجت')} <span class="f-badge">${curLabel()}</span></label>
+      <label>${L('Target Amount','مبلغ المستهدف')} <span class="f-badge">${curLabel()}</span></label>
       <input type="text" inputmode="decimal" data-calc id="dailyTargetInput"
         value="${existing || ''}"
         placeholder="0.00"
@@ -29547,7 +29553,7 @@ function saveDailyTargetModal(){
   if(!canMutateMonth(activeMonth)) return;
   setDailyTarget(activeMonth, today(), amount);
   closeModal();
-  showToast(L('✓ Target saved','✓ تم حفظ التارجت'), 'success');
+  showToast(L('✓ Target saved','✓ تم حفظ المستهدف'), 'success');
   renderView();
 }
 
@@ -30134,7 +30140,7 @@ function renderTransactions(m){
   `).join('');
 
   const emptyAllState = emptyHero(EMPTY_ACCENTS.transactions, 'money',
-    L('Daily Transactions','المعاملات اليومية'),
+    L('Daily Spending','الإنفاق اليومي'),
     L('No entries yet','لا توجد قيود بعد'),
     L('Every payment you log here shows up in this ledger, grouped by day.','كل دفعة تسجلها هنا تظهر في هذا السجل، مجمّعة حسب اليوم.'),
     null, {label:L('Add your first transaction','أضف أول معاملة'), onClick:'openAddTx()'});
@@ -30173,6 +30179,7 @@ function renderTransactions(m){
   </div>`;
 
   return `<div class="screen-wrap txlg-wrap" style="padding-bottom:160px">
+${_pgHdr('Finance','المالية','Daily Spend','الإنفاق اليومي','Log what you spend each day against your target','سجّل مصروفك كل يوم مقابل المستهدف')}
 
   ${todaysTargetCardHTML}
 
@@ -30190,7 +30197,7 @@ function renderTransactions(m){
       <div class="kpi3-primary-val" style="color:var(--orange)">${kpi3ValHTML(fmtEGP(totalAll), totalAll>0 && _todayTarget>0 && totalAll>_todayTarget ? 'neg' : 'orange', totalAll)}</div>
       ${_todayTarget>0?(()=>{
         const _dp=Math.round((totalAll/_todayTarget)*100), _dover=totalAll>_todayTarget;
-        const _dmsg=_dover?L('Over by '+fmtEGP(totalAll-_todayTarget),'عدّيت التارجت بـ '+fmtEGP(totalAll-_todayTarget)):L(fmtEGP(_todayTarget-totalAll)+' left','فاضل '+fmtEGP(_todayTarget-totalAll));
+        const _dmsg=_dover?L('Over by '+fmtEGP(totalAll-_todayTarget),'عدّيت المستهدف بـ '+fmtEGP(totalAll-_todayTarget)):L(fmtEGP(_todayTarget-totalAll)+' left','فاضل '+fmtEGP(_todayTarget-totalAll));
         return `<div class="kpi3-prog${_dover?' is-over':''}"><div class="kpi3-prog-track"><i style="width:${Math.min(100,Math.max(0,_dp))}%"></i></div><div class="kpi3-prog-meta"><span class="kpi3-prog-pct">${_dp}%</span><span>${_dmsg}</span></div></div>`;
       })():''}
     </div>
@@ -30233,8 +30240,8 @@ function renderTransactions(m){
       <div class="txlg-filter-row">
         <div class="txlg-seg">
           <button class="${txFilterVariance==='all'?'active':''}" onclick="txSetVarianceFilter('all')">${L('All','الكل')}</button>
-          <button class="${txFilterVariance==='under'?'active':''}" onclick="txSetVarianceFilter('under')">${L('Under Target','أقل من التارجت')}</button>
-          <button class="${txFilterVariance==='over'?'active':''}" onclick="txSetVarianceFilter('over')">${L('Over Target','عدّى التارجت')}</button>
+          <button class="${txFilterVariance==='under'?'active':''}" onclick="txSetVarianceFilter('under')">${L('Under Target','أقل من المستهدف')}</button>
+          <button class="${txFilterVariance==='over'?'active':''}" onclick="txSetVarianceFilter('over')">${L('Over Target','عدّى المستهدف')}</button>
         </div>
       </div>
     </div>
@@ -30242,7 +30249,7 @@ function renderTransactions(m){
     <div class="txlg-chips">
       ${searchQ?`<span class="txlg-chip">${ic('search',10)} "${esc(searchQ)}" <button onclick="txClearSearch()">${ic('close',10)}</button></span>`:''}
       ${txFilterPeriod?`<span class="txlg-chip">${ic('calendar',10)} ${_txlgPeriodLabel(txFilterPeriod)} <button onclick="txClearPeriodFilter()">${ic('close',10)}</button></span>`:''}
-      ${txFilterVariance!=='all'?`<span class="txlg-chip">${txFilterVariance==='under'?L('Under Target','أقل من التارجت'):L('Over Target','عدّى التارجت')} <button onclick="txSetVarianceFilter('all')">${ic('close',10)}</button></span>`:''}
+      ${txFilterVariance!=='all'?`<span class="txlg-chip">${txFilterVariance==='under'?L('Under Target','أقل من المستهدف'):L('Over Target','عدّى المستهدف')} <button onclick="txSetVarianceFilter('all')">${ic('close',10)}</button></span>`:''}
       <button class="txlg-clear-all" onclick="txClearAllFilters()">${L('Clear all','مسح الكل')}</button>
     </div>`:''}
   </div>
@@ -30585,6 +30592,7 @@ function renderExpenses(m){
   </section>` : '';
 
   return `<div class="screen-wrap cx-wrap">
+  ${_pgHdr('Site','الموقع','Site Custody','عهدة الموقع','Receipts log and custody money','سجل الاستلامات وفلوس العهدة')}
   ${_cxTabsHTML()}
   ${heroHTML}
   ${expensesHTML}
@@ -31149,7 +31157,7 @@ async function _rqRunTranslate(id,targetLang){
 
 function _cxTabsHTML(){
   const t=(k,lbl)=>`<button type="button" role="tab" class="cx-seg-btn${_cxTab===k?' on':''}" aria-selected="${_cxTab===k?'true':'false'}" onclick="_cxSetTab('${k}')">${lbl}</button>`;
-  return `<div class="cx-seg cx-tabs" role="tablist">${t('requests',L('My Requests','استلاماتي'))}${t('custody',L('Custody','العهدة'))}</div>`;
+  return `<div class="cx-seg cx-tabs" role="tablist">${t('requests',L('My Receipts','استلاماتي'))}${t('custody',L('Custody','العهدة'))}</div>`;
 }
 function _cxSetTab(k){
   const nk=(k==='requests')?'requests':'custody';
@@ -31490,10 +31498,11 @@ function renderMyRequests(){
 
   const shown=(q||_rqFilter!=='all'||typeFilter)?`${list.length} / ${all.length}`:String(all.length);
   return `<div class="screen-wrap cx-wrap">
+  ${_pgHdr('Site','الموقع','Site Custody','عهدة الموقع','Receipts log and custody money','سجل الاستلامات وفلوس العهدة')}
   ${_cxTabsHTML()}
   <section class="cx-sec">
     <div class="cx-sh">
-      <span class="cx-sh-l"><span class="cx-sh-t">${L('My Requests','استلاماتي')}</span><span class="cx-sh-s">${shown} ${L('receipts','استلامة')}</span></span>
+      <span class="cx-sh-l"><span class="cx-sh-t">${L('My Receipts','استلاماتي')}</span><span class="cx-sh-s">${shown} ${L('receipts','استلامة')}</span></span>
     </div>
     ${statsHTML}
     ${rqReportBarHTML()}
@@ -31522,7 +31531,7 @@ function openRequestModal(id){
       <div class="modal-hdr-icon" style="background:linear-gradient(135deg,#0f7a55,#0a5c40)">${ic('clipboard',22)}</div>
       <div>
         <div class="modal-hdr-title">${r?L('Edit Receipt','تعديل استلامة'):L('New Receipt','استلامة جديدة')}</div>
-        <div class="modal-hdr-sub">${L('My Requests','استلاماتي')}</div>
+        <div class="modal-hdr-sub">${L('My Receipts','استلاماتي')}</div>
       </div>
     </div>
 
@@ -34032,7 +34041,7 @@ function openExpPicker(e){
     </div>
     <div class="fab-choice" style="animation-delay:.1s" onclick="closeFabPicker();openAIQuickEntry()">
       <div class="fc-icon" style="background:linear-gradient(135deg,#06b6d4,#A97C1F);color:#fff;border-radius:50%">${aioraFace(16)}</div>
-      <div><div class="fc-label">${L('Quick Entry with Aiora','إدخال سريع مع أيورا')}</div><div class="fc-sub">${L('Paste or type — Aiora extracts the entries','الصق أو اكتب — أيورا تستخرج البنود')}</div></div>
+      <div><div class="fc-label">${L('Quick Entry with MIORA','إدخال سريع مع MIORA')}</div><div class="fc-sub">${L('Paste or type — MIORA extracts the entries','الصق أو اكتب — MIORA تستخرج البنود')}</div></div>
     </div>`;
   document.body.appendChild(picker);
   positionFabPicker(picker, document.getElementById('fabBtn'));
@@ -34055,7 +34064,7 @@ function openTxPicker(e){
     </div>
     <div class="fab-choice" style="animation-delay:.1s" onclick="closeFabPicker();openAIQuickEntry('tx')">
       <div class="fc-icon" style="background:linear-gradient(135deg,#06b6d4,#A97C1F);color:#fff;border-radius:50%">${aioraFace(16)}</div>
-      <div><div class="fc-label">${L('Quick Entry with Aiora','إدخال سريع مع أيورا')}</div><div class="fc-sub">${L('Paste or type — Aiora extracts the entries','الصق أو اكتب — أيورا تستخرج البنود')}</div></div>
+      <div><div class="fc-label">${L('Quick Entry with MIORA','إدخال سريع مع MIORA')}</div><div class="fc-sub">${L('Paste or type — MIORA extracts the entries','الصق أو اكتب — MIORA تستخرج البنود')}</div></div>
     </div>`;
   document.body.appendChild(picker);
   positionFabPicker(picker, document.getElementById('fabBtn'));
@@ -34114,14 +34123,14 @@ function openAIQuickEntry(mode){
   const exampleText = _aiqMode==='tx'
     ? 'جبت علبة زبادي ب 12 جنيه من السوبر ماركت بتاع بيم'
     : '01/07 Cement 25000\nSteel 12mm 85000\nSand 4200';
-  const subTitle = _aiqMode==='tx' ? L('Daily Transactions','المعاملات اليومية') : L('Site Expenses','مصروفات الموقع');
+  const subTitle = _aiqMode==='tx' ? L('Daily Spending','الإنفاق اليومي') : L('Site Expenses','مصروفات الموقع');
   document.getElementById('modalContent').innerHTML = `
     <div class="bs-chrome">
       <div class="ds-row-12">
         <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#06b6d4,#A97C1F);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:#fff">${aioraFace(17)}</div>
         <div>
-          <div class="ds-title-sm">${L('Quick Entry with Aiora','إدخال سريع مع أيورا')} <span style="font-size:calc(10px*var(--app-text-scale,1));font-weight:700;color:#A97C1F;background:#A97C1F18;padding:2px 8px;border-radius:99px;margin-${lang==='ar'?'right':'left'}:4px">${subTitle}</span></div>
-          <div style="font-size:calc(11px*var(--app-text-scale,1));color:var(--muted);margin-top:1px">${L('Paste or type — Aiora reads it for you','الصق أو اكتب — أيورا هتقرأها')}</div>
+          <div class="ds-title-sm">${L('Quick Entry with MIORA','إدخال سريع مع MIORA')} <span style="font-size:calc(10px*var(--app-text-scale,1));font-weight:700;color:#A97C1F;background:#A97C1F18;padding:2px 8px;border-radius:99px;margin-${lang==='ar'?'right':'left'}:4px">${subTitle}</span></div>
+          <div style="font-size:calc(11px*var(--app-text-scale,1));color:var(--muted);margin-top:1px">${L('Paste or type — MIORA reads it for you','الصق أو اكتب — MIORA هتقرأها')}</div>
         </div>
         <button class="sheet-close-btn sq" onclick="closeModal()" aria-label="${L('Close','إغلاق')}">${ic('close',16)}</button>
       </div>
@@ -37425,7 +37434,7 @@ function showTxModal(tx){
       <input type="text" id="mProvided" class="tx-sum-val" readonly tabindex="-1" placeholder="0.00" value="${tx?.provided||''}">
       <div class="tx-sum-bar"><i id="txSumBar"></i></div>
       <div class="tx-sum-stats">
-        <div><span>${L('Target','التارجت')}</span><b id="txSumTarget">—</b></div>
+        <div><span>${L('Target','المستهدف')}</span><b id="txSumTarget">—</b></div>
         <div><span>${L('Logged before','مسجل سابقًا')}</span><b id="txSumBefore">—</b></div>
         <div><span>${L('This sheet','هذه الشاشة')}</span><b id="txSumNow">—</b></div>
       </div>
@@ -38826,7 +38835,7 @@ function _notesRowItemHtml(n){
   const openAttr = sel ? `onclick="_notesToggleSelected('${n.id}')"` : `onclick="openNoteEditor('${n.id}')"`;
   return `
     <div class="qn-swipe" data-id="${n.id}">
-    ${sel ? '' : `<button type="button" class="qn-swipe-del" onclick="_notesSwipeDelete('${n.id}')" aria-label="${L('Delete','مسح')}">${ic('trash',18)}<span>${L('Delete','مسح')}</span></button>`}
+    ${sel ? '' : `<button type="button" class="qn-swipe-del" onclick="_notesSwipeDelete('${n.id}')" aria-label="${L('Delete','حذف')}">${ic('trash',18)}<span>${L('Delete','حذف')}</span></button>`}
     <div class="qn-row" ${openAttr} role="button" tabindex="0">
       ${sel ? `<span class="qn-sel-dot${checked?' checked':''}"></span>` : (n.pinned ? `<svg class="qn-pin-dot" width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2c-.6 0-1 .4-1 1v6.2L7.6 12.4c-.4.3-.6.8-.6 1.3v1.3c0 .5.4 1 1 1h3v6l1 2 1-2v-6h3c.6 0 1-.5 1-1v-1.3c0-.5-.2-1-.6-1.3L13 9.2V3c0-.6-.4-1-1-1z"/></svg>` : '')}
       <div style="flex:1;min-width:0">
@@ -38892,7 +38901,7 @@ function renderNotesList(){
 
   const selectBarHtml = sel ? `
     <div class="qn-select-bar">
-      <button type="button" class="qn-select-bar-btn qn-danger" ${_notesSelectedIds.size?'':'disabled'} onclick="_notesDeleteSelected()">${L('Delete','مسح')}</button>
+      <button type="button" class="qn-select-bar-btn qn-danger" ${_notesSelectedIds.size?'':'disabled'} onclick="_notesDeleteSelected()">${L('Delete','حذف')}</button>
       <span class="qn-select-count">${_notesSelectedIds.size} ${L('selected','محدد')}</span>
     </div>` : '';
 
@@ -41837,7 +41846,7 @@ function exportToPDF(){
     <tbody>${bankRows}</tbody></table>
   </div>
   <div class="section">
-    <div class="sec-head">Daily Transactions (${txns.length})</div>
+    <div class="sec-head">Daily Spending (${txns.length})</div>
     <table><thead><tr><th>Date</th><th>Notes</th><th>Category</th><th style="text-align:right">Amount</th></tr></thead>
     <tbody>${txRows}</tbody></table>
   </div>
@@ -42083,7 +42092,7 @@ const MLOC = (function(){
       if(watchId!==null) return;
       watchId=-1; // reserved while the plugin promise resolves
       try{
-        np.addWatcher({backgroundTitle:L('My Locations','أماكني'),backgroundMessage:L('Saving the places you stay in','بيسجّل الأماكن اللي بتقعد فيها'),requestPermissions:true,stale:false,distanceFilter:20},function(loc,err){
+        np.addWatcher({backgroundTitle:L('Place History','سجل الأماكن'),backgroundMessage:L('Saving the places you stay in','بيسجّل الأماكن اللي بتقعد فيها'),requestPermissions:true,stale:false,distanceFilter:20},function(loc,err){
           if(err){ if(err.code==='NOT_AUTHORIZED') onErr({code:1}); return; }
           if(loc) onFix({coords:{latitude:loc.latitude,longitude:loc.longitude,accuracy:loc.accuracy}});
         }).then(function(id){ if(watchId===-1) watchId=id; else { try{ np.removeWatcher({id:id}); }catch(e){} } }).catch(function(){ watchId=null; });
@@ -42127,12 +42136,12 @@ const MLOC = (function(){
     savePlaces(); refresh();
   }
   function remove(id){
-    load(); if(!confirm(L('Delete this place?','مسح المكان ده؟'))) return;
+    load(); if(!confirm(L('Delete this place?','حذف المكان ده؟'))) return;
     places=places.filter(x=>x.id!==id); phDropPlace(id); savePlaces(); refresh();
   }
   function clearAll(){
     load(); if(!places.length) return;
-    if(!confirm(L('Delete all saved places?','مسح كل الأماكن المسجّلة؟'))) return;
+    if(!confirm(L('Delete all saved places?','حذف كل الأماكن المسجّلة؟'))) return;
     places=[]; st.cand=null; phDropAll(); savePlaces(); saveState(true); refresh();
   }
   function esc(s){ return String(s).replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch])); }
@@ -42300,7 +42309,7 @@ const MLOC = (function(){
     const im=document.createElement('img'); im.src=rec.data; im.style.cssText='max-width:100%;max-height:75%;border-radius:12px;object-fit:contain';
     const row=document.createElement('div'); row.style.cssText='display:flex;gap:10px';
     const mk=function(txt,bg,fn){ const b=document.createElement('button'); b.textContent=txt; b.style.cssText='padding:10px 18px;border-radius:10px;border:0;font-weight:800;cursor:pointer;color:#fff;background:'+bg; b.addEventListener('click',fn); return b; };
-    row.appendChild(mk(L('Delete photo','مسح الصورة'),'#dc4f4f',function(){ if(confirm(L('Delete this photo?','مسح الصورة دي؟'))){ closePhoto(); deletePhoto(pid,id); } }));
+    row.appendChild(mk(L('Delete photo','حذف الصورة'),'#dc4f4f',function(){ if(confirm(L('Delete this photo?','حذف الصورة دي؟'))){ closePhoto(); deletePhoto(pid,id); } }));
     row.appendChild(mk(L('Close','إغلاق'),'rgba(128,128,128,.6)',closePhoto));
     ov.appendChild(im); ov.appendChild(row); document.body.appendChild(ov);
   }
@@ -42394,7 +42403,7 @@ const MLOC = (function(){
             ${p.lat==null?`<button class="icon-btn" onclick="MLOC.attachLoc('${p.id}')" aria-label="${L('Link my current location','اربط بموقعي الحالي')}">${ic('pin',16)}</button>`:''}
             <button class="icon-btn" onclick="MLOC.addVisit('${p.id}')" aria-label="${L('Add a visit','زيارة جديدة')}">${ic('plus',16)}</button>
             <button class="icon-btn" onclick="MLOC.rename('${p.id}')" aria-label="${L('Rename','تعديل الاسم')}">${ic('edit',16)}</button>
-            <button class="icon-btn" onclick="MLOC.remove('${p.id}')" aria-label="${L('Delete','مسح')}">${ic('trash',16)}</button>
+            <button class="icon-btn" onclick="MLOC.remove('${p.id}')" aria-label="${L('Delete','حذف')}">${ic('trash',16)}</button>
           </div>
         </div>
         <div class="mlx-stats"><span class="mlx-pill">${L('Visits','عدد الزيارات')} <b>${p.visits||1}</b></span>${p.auto?`<span class="mlx-pill">${L('auto','تلقائي')} <b>${p.auto}</b></span>`:''}</div>
@@ -42404,7 +42413,7 @@ const MLOC = (function(){
     return `<div class="screen-wrap mlx">
       <div class="sc-header">
         <div class="sc-header-eyebrow">${L('Places','الأماكن')}</div>
-        <div class="sc-header-title">${L('My Locations','أماكني')}</div>
+        <div class="sc-header-title">${L('Place History','سجل الأماكن')}</div>
         <div class="sc-header-sub">${L('Places where you stay are saved automatically','الأماكن اللي بتقعد فيها بتتسجل تلقائيًا')}</div>
       </div>
       <div class="sc-card mlx-panel">
@@ -42419,7 +42428,7 @@ const MLOC = (function(){
         <div class="mlx-note">${native()?L('Runs in the background (a notification stays visible while tracking). Data stays on this device only.','بيشتغل في الخلفية (بيظهر إشعار ثابت طول ما التتبع شغّال). البيانات بتفضل على الجهاز ده بس.'):L('Works while the app is open on screen (browser limit). Data stays on this device only.','بيشتغل والتطبيق مفتوح على الشاشة (قيد من المتصفح). البيانات بتفضل على الجهاز ده بس.')}</div>
       </div>
       ${manualHTML()}
-      ${list.length?rows+`<div class="mlx-clear"><button class="mlx-linkbtn" onclick="MLOC.clearAll()">${L('Delete all places','مسح كل الأماكن')}</button></div>`
+      ${list.length?rows+`<div class="mlx-clear"><button class="mlx-linkbtn" onclick="MLOC.clearAll()">${L('Delete all places','حذف كل الأماكن')}</button></div>`
         :`<div class="sc-card"><div class="empty"><div class="ei">${ic('pin',32)}</div>${L('No places yet. Turn tracking on and keep the app open.','لسه مفيش أماكن. شغّل التتبع وسيب التطبيق مفتوح.')}</div></div>`}
     </div>`;
   }
@@ -42913,28 +42922,28 @@ const TOUR_STEPS = [
   { // 4 — Banks
     view:'banks', target:'#navBtn-Banks',
     icon:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2.5"/><path d="M2 10h20"/><path d="M6 15h4"/></svg>',
-    titleEn:'Banks — Accounts', titleAr:'Banks — الحسابات البنكية',
-    descEn:'Add your bank accounts and track their balances and activity.',
-    descAr:'أضف حساباتك البنكية وتابع أرصدتها وحركتها بسهولة.'
+    titleEn:'Accounts — Banks & Wallets', titleAr:'Accounts — البنوك والمحافظ',
+    descEn:'Add your bank accounts and e-wallets and track their balances and activity.',
+    descAr:'أضف حساباتك البنكية ومحافظك الإلكترونية وتابع أرصدتها وحركتها بسهولة.'
   },
   { // 5 — Daily
     view:'transactions', target:'#navBtn-Daily',
     icon:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h12a1 1 0 0 1 1 1v18l-2.5-1.5L14 21l-2-1.5L10 21l-2.5-1.5L5 21V3a1 1 0 0 1 1-1z"/><path d="M8 7.5h8"/><path d="M8 11.5h8"/><path d="M8 15.5h5"/></svg>',
-    titleEn:'Daily — Daily Activity', titleAr:'Daily — الحركة اليومية',
-    descEn:'Review income, expenses and transfers, and log your daily activity.',
-    descAr:'راجع الدخل والمصروفات والتحويلات وسجل حركاتك اليومية.'
+    titleEn:'Daily Spend — Spending Log', titleAr:'Daily Spend — الإنفاق اليومي',
+    descEn:'Log your daily spending and track it against your daily target.',
+    descAr:'سجّل مصروفاتك اليومية وتابعها مقابل المستهدف اليومي.'
   },
   { // 6 — Site Custody
     view:'expenses', target:'#navBtn-SiteCustody',
     icon:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15a8 8 0 0 1 16 0"/><path d="M2 15h20"/><path d="M2 15v1.5a1.5 1.5 0 0 0 1.5 1.5h17a1.5 1.5 0 0 0 1.5-1.5V15"/><path d="M12 15V9"/></svg>',
-    titleEn:'Site Custody', titleAr:'Site Custody — العُهدة',
+    titleEn:'Site Custody', titleAr:'Site Custody — عهدة الموقع',
     descEn:'Track deposited, spent and remaining custody amounts.',
     descAr:'تابع المبالغ المودعة، المصروفات والمتبقي من العُهدة.'
   },
-  { // 7 — My Savings
+  { // 7 — My Finances
     view:'savings', target:'#navBtn-MySavings',
     icon:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="6" rx="8" ry="3"/><path d="M4 6v6c0 1.66 3.58 3 8 3s8-1.34 8-3V6"/><path d="M4 12v6c0 1.66 3.58 3 8 3s8-1.34 8-3v-6"/></svg>',
-    titleEn:'My Savings', titleAr:'My Savings — مدخراتي',
+    titleEn:'My Finances', titleAr:'My Finances — أموالي',
     descEn:'Track your income, assets, liabilities and net worth.',
     descAr:'تابع دخلك، أصولك، التزاماتك وصافي ثروتك.'
   },
@@ -47072,7 +47081,7 @@ const MIORA_PAGE_HELP = {
     ]
   },
   banks: {
-    titleEn:'Banks', titleAr:'Banks — الحسابات البنكية',
+    titleEn:'Accounts', titleAr:'Accounts — الحسابات',
     purposeEn:'Add your bank accounts and track balances, cards and transfers between them.',
     purposeAr:'ضيف حساباتك البنكية وتابع أرصدتها وكروتها والتحويلات بينها.',
     suggestions:[
@@ -47082,17 +47091,16 @@ const MIORA_PAGE_HELP = {
     ]
   },
   daily: {
-    titleEn:'Daily', titleAr:'Daily — الحركة اليومية',
-    purposeEn:'Log and review your day-to-day income, expenses and transfers.',
-    purposeAr:'سجّل وراجع دخلك ومصروفاتك وتحويلاتك اليومية.',
+    titleEn:'Daily Spend', titleAr:'Daily Spend — الإنفاق اليومي',
+    purposeEn:'Log and review your day-to-day spending against your daily target.',
+    purposeAr:'سجّل وراجع مصروفاتك اليومية مقابل المستهدف اليومي.',
     suggestions:[
-      {en:'How do I log income?', ar:'إزاي أسجل دخل؟', qa:'add_income'},
       {en:'How do I log an expense?', ar:'إزاي أسجل مصروف؟', qa:'add_expense'},
-      {en:'Expense vs Transfer?', ar:'إيه الفرق بين Expense و Transfer؟', qa:'expense_vs_transfer'}
+      {en:'How do I set my daily target?', ar:'إزاي أحدد المستهدف اليومي؟', qa:'daily_target'}
     ]
   },
   sitecustody: {
-    titleEn:'Site Custody', titleAr:'Site Custody — العُهدة',
+    titleEn:'Site Custody', titleAr:'Site Custody — عهدة الموقع',
     purposeEn:'Track money handed to you as custody: what was deposited, spent, and what remains.',
     purposeAr:'تابع فلوس العُهدة اللي معاك: اللي اتودع، اللي اتصرف، واللي متبقي.',
     suggestions:[
@@ -47102,7 +47110,7 @@ const MIORA_PAGE_HELP = {
     ]
   },
   savings: {
-    titleEn:'My Savings', titleAr:'My Savings — مدخراتي',
+    titleEn:'My Finances', titleAr:'My Finances — أموالي',
     purposeEn:'Track income, assets, debts and your overall net worth, plus transfers and receipt scanning.',
     purposeAr:'تابع دخلك، أصولك، ديونك وصافي ثروتك، مع التحويلات ومسح الإيصالات.',
     suggestions:[
@@ -47162,16 +47170,19 @@ const MIORA_QA = {
   dash_netbalance:{ scope:['dashboard'], kEn:['net balance','net worth','balance mean'], kAr:['نت بالانس','صافي الرصيد','معني الرصيد'],
     en:'Net Balance is your total money across banks and cash, after subtracting what you owe.',
     ar:'صافي الرصيد هو إجمالي فلوسك في البنوك والكاش، بعد ما نطرح اللي عليك.' },
-  income_vs_expense:{ scope:['dashboard','daily'], groups:[['difference','فرق'],['income','دخل'],['expense','outcome','مصروف','اوت كام']], kEn:[], kAr:[],
-    en:'Income is money that actually came in to you. Expense/Outcome is money that actually went out. Log each on its own — don\'t mix them.',
-    ar:'Income هي فلوس دخلت ليك فعلًا. Expense/Outcome هي فلوس خرجت منك فعلًا. سجّل كل واحدة لوحدها، ومتخلطهمش.' },
-  expense_vs_transfer:{ scope:['daily'], groups:[['difference','فرق'],['expense','outcome','مصروف'],['transfer','تحويل']], kEn:[], kAr:[],
+  income_vs_expense:{ scope:['dashboard','savings'], groups:[['difference','فرق'],['income','دخل'],['expense','outcome','مصروف','اوت كام']], kEn:[], kAr:[],
+    en:'Income is money that actually came in to you. Expense is money that actually went out. Log each on its own — don\'t mix them.',
+    ar:'Income هي فلوس دخلت ليك فعلًا. Expense هي فلوس خرجت منك فعلًا. سجّل كل واحدة لوحدها، ومتخلطهمش.' },
+  expense_vs_transfer:{ scope:['banks'], groups:[['difference','فرق'],['expense','outcome','مصروف'],['transfer','تحويل']], kEn:[], kAr:[],
     en:'Expense means the money left your accounts entirely. Transfer means it just moved between two of your own accounts — nothing was actually spent.',
     ar:'المصروف يعني الفلوس خرجت خالص. أما التحويل يبقى الفلوس اتنقلت بين حسابين بتوعك، من غير ما يتصرف حاجة فعليًا.' },
-  add_income:{ scope:['dashboard','daily'], kEn:['add','income','log','record'], kAr:['اضيف','دخل','اسجل'],
-    en:'To add income: open Daily (or the Dashboard Quick Actions), choose Income, enter the source, amount, date and the account it landed in.',
-    ar:'عشان تضيف دخل: افتح Daily (أو Quick Actions في الـDashboard)، اختار Income، واكتب مصدر الدخل، المبلغ، التاريخ، والحساب اللي الفلوس دخلت فيه.' },
-  add_expense:{ scope:['daily'], kEn:['add','expense','log','record'], kAr:['اضيف','مصروف','اسجل'],
+  add_income:{ scope:['dashboard','savings'], kEn:['add','income','log','record'], kAr:['اضيف','دخل','اسجل'],
+    en:'To add income: open My Finances, tap Income, enter the source, amount, date and the account it landed in.',
+    ar:'عشان تضيف دخل: افتح My Finances، دوس Income، واكتب مصدر الدخل، المبلغ، التاريخ، والحساب اللي الفلوس دخلت فيه.' },
+  daily_target:{ scope:['daily'], kEn:['target','daily','set','budget'], kAr:['مستهدف','هدف','ميزانية'],
+en:'Tap the Target card at the top of Daily to set your daily target. The screen then shows what you spent, what is left, and what you saved against it.',
+ar:'دوس على كارت المستهدف فوق في Daily وحدد مستهدفك اليومي. الشاشة بعدها بتوضحلك صرفت كام، فاضل كام، ووفّرت كام مقابله.' },
+add_expense:{ scope:['daily'], kEn:['add','expense','log','record'], kAr:['اضيف','مصروف','اسجل'],
     en:'To add an expense: open Daily, choose Expense, enter what it was for, the amount, date and the account it came out of.',
     ar:'عشان تضيف مصروف: افتح Daily، اختار Expense، واكتب هو مصروف علي ايه، المبلغ، التاريخ، والحساب اللي الفلوس خرجت منه.' },
   banks_add:{ scope:['banks'], kEn:['add','account','bank'], kAr:['اضيف','حساب','بنك'],
@@ -47180,7 +47191,7 @@ const MIORA_QA = {
   banks_fields:{ scope:['banks'], kEn:['fields','bank','info','write'], kAr:['اكتب','بيانات','بنك'],
     en:'For a bank account you\'ll usually need: the bank name, an account nickname, and the current balance. Card details are optional and just for display.',
     ar:'غالبًا محتاج تكتب: اسم البنك، اسم مختصر للحساب، والرصيد الحالي. بيانات الكارت اختيارية وللعرض بس.' },
-  transfer:{ scope:['banks','daily'], kEn:['transfer'], kAr:['تحويل','ترانسفير'],
+  transfer:{ scope:['banks'], kEn:['transfer'], kAr:['تحويل','ترانسفير'],
     en:'Transfer moves money between two of your own accounts (bank↔bank, bank↔cash). It doesn\'t change your net balance — only where the money sits.',
     ar:'الـTransfer بينقل الفلوس بين حسابين بتوعك (بنك↔بنك أو بنك↔كاش). ملهاش تأثير على صافي رصيدك — بس بيغير مكان الفلوس.' },
   custody_remaining:{ scope:['sitecustody'], kEn:['remaining','left'], kAr:['متبقي','باقي','ريمينينج'],
@@ -47196,11 +47207,11 @@ const MIORA_QA = {
     en:'Income is money you earned. An Asset is something you own that holds value (gold, property, a car) — it doesn\'t come from earning, it\'s already-owned value.',
     ar:'الـIncome فلوس كسبتها. أما الـAsset فهو حاجة انت مالكها وليها قيمة (دهب، عقار، عربية) — مش دخل، هي قيمة انت أصلًا مالكها.' },
   add_asset:{ scope:['savings'], kEn:['add','asset'], kAr:['اضيف','اصل'],
-    en:'In My Savings, tap Add Asset, choose the asset type, then enter its name and current estimated value.',
-    ar:'في My Savings، دوس Add Asset، اختار نوع الأصل، واكتب اسمه وقيمته التقديرية الحالية.' },
+    en:'In My Finances, tap Add Asset, choose the asset type, then enter its name and current estimated value.',
+    ar:'في My Finances، دوس Add Asset، اختار نوع الأصل، واكتب اسمه وقيمته التقديرية الحالية.' },
   add_debt:{ scope:['savings'], kEn:['add debt','log debt','record debt','debt','liability'], kAr:['اضيف دين','اسجل دين','دين','ديون'],
-    en:'In My Savings, tap Add Debt, enter who it\'s owed to (or from), the amount, and an optional due date.',
-    ar:'في My Savings، دوس Add Debt، واكتب الدين لمين (أو منين)، المبلغ، وتاريخ الاستحقاق لو حابب.' },
+    en:'In My Finances, tap Add Debt, enter who it\'s owed to (or from), the amount, and an optional due date.',
+    ar:'في My Finances، دوس Add Debt، واكتب الدين لمين (أو منين)، المبلغ، وتاريخ الاستحقاق لو حابب.' },
   networth:{ scope:['savings','dashboard'], kEn:['net worth'], kAr:['نت وورث','صافي الثروة','قيمة صافية'],
     en:'Net Worth = everything you own (cash, banks, assets) minus everything you owe (debts).',
     ar:'صافي الثروة = كل اللي انت مالكه (كاش، بنوك، أصول) ناقص كل اللي عليك (ديون).' },
@@ -47222,8 +47233,8 @@ const MIORA_QA = {
     en:'Amount fields take numbers only. Write the plain number, e.g. 15000 — not "15k" or "15 thousand".',
     ar:'خانة المبلغ بتاخد أرقام بس. اكتب الرقم عادي زي 15000 — مش "15 ألف".' },
   scanreceipt:{ scope:['savings'], kEn:['scan','receipt'], kAr:['سكان','ايصال','فاتورة'],
-    en:'Scan Receipt (in My Savings) lets you photograph a receipt so its details can be pulled into a new entry instead of typing it by hand.',
-    ar:'Scan Receipt (في My Savings) بتخليك تصور إيصال عشان بياناته تتسحب في عنصر جديد بدل ما تكتبها بإيدك.' }
+    en:'Scan Receipt (in My Finances) lets you photograph a receipt so its details can be pulled into a new entry instead of typing it by hand.',
+    ar:'Scan Receipt (في My Finances) بتخليك تصور إيصال عشان بياناته تتسحب في عنصر جديد بدل ما تكتبها بإيدك.' }
 };
 
 // ── Free-text matching (rule-based keyword scoring, no external calls) ────────
