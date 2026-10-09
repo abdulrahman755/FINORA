@@ -5578,6 +5578,26 @@ button,
 @keyframes wdpCoinIn{0%{transform:translateY(-18px);opacity:0}30%{opacity:1}75%{transform:translateY(8px);opacity:1}100%{transform:translateY(9px);opacity:0}}
 @keyframes wdpSpark{0%{transform:translate(0,0) scale(0);opacity:1}100%{transform:translate(var(--dx),var(--dy)) scale(1.3);opacity:0}}
 @media (prefers-reduced-motion:reduce){.wdp-rf-done,.wdp-rf-done *,.wdp-ptr-indicator *{animation:none!important;transition:none!important}.wdp-rf-check path{stroke-dashoffset:0}}
+/* ── Arabic (RTL) polish: every title/meta follows the reading side, English names included ── */
+[dir=rtl] .sav-row-title,[dir=rtl] .sav-row-meta,[dir=rtl] .sc-card [dir=auto],[dir=rtl] .rq-card [dir=auto]{text-align:right}
+[dir=rtl] .sav-row-main{flex-direction:row}
+.rq-notes-lines{flex:1;min-width:0}
+.rq-nl{display:flex;gap:8px;align-items:baseline;margin:2px 0}
+.rq-nl>span{flex:1;min-width:0;overflow-wrap:anywhere;white-space:pre-wrap}
+.rq-nb{width:5px;height:5px;border-radius:50%;background:currentColor;opacity:.5;flex:none;transform:translateY(-2px)}
+[dir=rtl] .rq-grid dd{text-align:right}
+[dir=rtl] .rq-head,[dir=rtl] .rq-co,[dir=rtl] .rq-type{text-align:right}
+[dir=rtl] .card-add-btn{direction:rtl}
+/* Amounts in Arabic: currency sits on the reading side of the number, sign stays beside the digits */
+[dir=rtl] .sig-num .sig-cur{order:-1}
+[dir=rtl] .hnum-row{justify-content:flex-end}
+[dir=rtl] .hnum-row .sig-num{display:contents}
+[dir=rtl] .hnum-row .hnum-sign{order:0}
+[dir=rtl] .hnum-row .hnum-amt{order:1}
+[dir=rtl] .hnum-row .sig-cur{order:-1;margin:0 8px 0 0}
+[dir=rtl] .dv3-hero .dash-hero-main,[dir=rtl] .dv3-hero .dash-hero-main-lbl,[dir=rtl] .dv3-hero .dash-hero-head{text-align:right}
+[dir=rtl] .dv3-hero .dash-hero-main-lbl{align-self:stretch}
+
 
 /* ── Layout-matched skeleton loaders ─────────────────────────────────────────── */
 .skel-bank-card{
@@ -11786,7 +11806,7 @@ function syncGlobalProfileFromCurrency(cur){
 function formatMoney(amount, currencyCode, localeOverride){
   const code = currencyCode || GLOBAL_PROFILE.currency || CURRENT_CURRENCY || 'EGP';
   const meta = getCurrencyMeta(code);
-  const locale = localeOverride || GLOBAL_PROFILE.locale || ((typeof lang!=='undefined' && lang==='ar') ? 'ar-EG' : 'en-GB');
+  const locale = _arLatn(localeOverride || GLOBAL_PROFILE.locale || ((typeof lang!=='undefined' && lang==='ar') ? 'ar-EG' : 'en-GB'));
   const n = Number(amount)||0;
   try{
     return new Intl.NumberFormat(locale, { minimumFractionDigits:meta.decimals, maximumFractionDigits:meta.decimals }).format(n) + ' ' + meta.symbol;
@@ -11808,7 +11828,9 @@ function formatMoney(amount, currencyCode, localeOverride){
 // device's own timezone, independent of country — adding an explicit
 // timeZone here would risk shifting which calendar day a stored date
 // displays as, which Phase 14 explicitly rules out.
-function _dtLocale(enFallback){
+function _arLatn(loc){ return (typeof lang!=='undefined'&&lang==='ar'&&loc&&!/-u-/.test(loc))?loc+'-u-nu-latn':loc; }
+function _dtLocale(enFallback){ return _arLatn(_dtLocaleRaw(enFallback)); }
+function _dtLocaleRaw(enFallback){
   enFallback = enFallback || 'en-GB';
   const country = GLOBAL_PROFILE && GLOBAL_PROFILE.country;
   if(country && country!=='EG'){
@@ -13177,7 +13199,7 @@ function renderFinanceDashboard(m){
       <div class="dash-hero">
         ${heroSparkSvg}
         <div class="dash-hero-head" style="position:relative;z-index:1">
-          <span class="dash-hero-eyebrow">${ic('calendar', 12, 'aria-hidden="true"')} ${MONTH_NAMES[activeMonth]||activeMonth}</span>
+          <span class="dash-hero-eyebrow">${ic('calendar', 12, 'aria-hidden="true"')} ${_monthDisplayLabel(activeMonth)}</span>
         </div>
         <div class="dash-hero-main" style="position:relative;z-index:1">
           <div class="dash-hero-main-lbl">${L('Operational Profit','الربح التشغيلي')}</div>
@@ -13450,7 +13472,7 @@ function renderBankDashboard(m){
     <div class="sc-card dash-hero-card" style="padding:0;overflow:hidden">
       <div class="dash-hero">
         <div class="dash-hero-head">
-          <span class="dash-hero-eyebrow">${ic('bank', 12, 'aria-hidden="true"')} ${banks.length} ${L('accounts tracked','حساب متابَع')}</span>
+          <span class="dash-hero-eyebrow">${ic('bank', 12, 'aria-hidden="true"')} ${_cnt(banks.length,'account tracked','accounts tracked','حساب متابَع','حسابان متابَعان','حسابات متابَعة','حساباً متابَعاً')}</span>
         </div>
         <div class="dash-hero-main">
           <div class="dash-hero-main-lbl">${L('Total Balance','إجمالي الرصيد')}</div>
@@ -13608,7 +13630,7 @@ function renderBankSummaryCompactV3(m){
   <div class="sc-card dash-hero-card" style="padding:0;overflow:hidden">
     <div class="dash-hero">
       <div class="dash-hero-head">
-        <span class="dash-hero-eyebrow">${ic('bank', 12, 'aria-hidden="true"')} ${banks.length} ${L('accounts tracked','حساب متابَع')}</span>
+        <span class="dash-hero-eyebrow">${ic('bank', 12, 'aria-hidden="true"')} ${_cnt(banks.length,'account tracked','accounts tracked','حساب متابَع','حسابان متابَعان','حسابات متابَعة','حساباً متابَعاً')}</span>
       </div>
       <div class="dash-hero-main">
         <div class="dash-hero-main-lbl">${L('Total Balance','إجمالي الرصيد')}</div>
@@ -13620,7 +13642,7 @@ function renderBankSummaryCompactV3(m){
     </div>
   </div>
   <div class="sc-card">
-    <div class="dfp-card-title" style="margin-bottom:8px">${ic('chart', 13, 'aria-hidden="true"')} ${L('Top Banks','أعلى البنوك')}</div>
+    <div class="dfp-card-title" style="margin-bottom:8px">${ic('chart', 13, 'aria-hidden="true"')} ${L('Top Banks','أكبر البنوك')}</div>
     <div class="dfp-donut-row">
       <div class="dfp-donut-canvas-wrap">
         <canvas id="bdDonutChart" width="150" height="150" style="width:150px;height:150px" role="img" aria-label="${L('Balance distribution across bank accounts','توزيع الأرصدة على الحسابات البنكية')}"></canvas>
@@ -13809,15 +13831,15 @@ function renderFinanceSummaryHeroV3(m){
       </button>
       <div class="dash-hero dv3-hero-inner">
         <div class="dash-hero-head" style="position:relative;z-index:1">
-          <span class="dash-hero-eyebrow">${ic('calendar', 12, 'aria-hidden="true"')} ${MONTH_NAMES[activeMonth]||activeMonth}</span>
+          <span class="dash-hero-eyebrow">${ic('calendar', 12, 'aria-hidden="true"')} ${_monthDisplayLabel(activeMonth)}</span>
         </div>
         <div class="dash-hero-main dv3-hero-main" style="position:relative;z-index:1">
-          <div class="dash-hero-main-lbl">${L('Total Net Balance','إجمالي صافي الرصيد')}</div>
+          <div class="dash-hero-main-lbl">${L('Total Net Balance','صافي رصيدك')}</div>
           <div class="dash-hero-main-val hnum-row"><span class="hnum-sign">${up?'+':'-'}</span>${heroAmountHTML(netBalance)}</div>
           <div class="dv3h-stat-row fp-hero-body" id="fpHeroBody">
-            ${dv3hStat(L('Real Balance','الرصيد الحقيقي'), netBanksOnlyNow, true)}
+            ${dv3hStat(L('Real Balance','الرصيد الفعلي'), netBanksOnlyNow, true)}
             <div class="dv3h-stat-sep"></div>
-            ${dv3hStat(L('Monthly Change','التغير الشهري'), netProfit, false)}
+            ${dv3hStat(L('Monthly Change','التغيّر الشهري'), netProfit, false)}
             <div class="dv3h-stat-sep"></div>
             ${dv3hStat(L('Last Month','الشهر السابق'), prevNetBalance, true)}
           </div>
@@ -14192,7 +14214,7 @@ function renderRecentActivityDashCard(m){
        onclick="navCloseAll();navDropGo('transactions','Finance')"
        onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}">
     <div class="dfp-card-head">
-      <div class="dfp-card-title">${ic('clock', 13, 'aria-hidden="true"')} ${L('Recent Activity','آخر الأنشطة')}</div>
+      <div class="dfp-card-title">${ic('clock', 13, 'aria-hidden="true"')} ${L('Recent Activity','آخر العمليات')}</div>
     </div>
     <div class="dfp-activity-list" id="dfpActivityList">${rows}</div>
   </div>`;
@@ -14327,7 +14349,7 @@ function renderAIInsightsCard(m, sig){
 
   return `<div class="sc-card" style="border-top:3px solid var(--green)">
     <div class="dfp-card-head">
-      <div class="dfp-card-title">${ic('sparkle', 13, 'aria-hidden="true"')} ${L('AI Insights','رؤى ذكية')}</div>
+      <div class="dfp-card-title">${ic('sparkle', 13, 'aria-hidden="true"')} ${L('AI Insights','تحليلات ذكية')}</div>
     </div>
     <div class="dfp-activity-list">${rows}</div>
   </div>`;
@@ -15190,9 +15212,9 @@ const WDASH_CARDS_STORAGE_KEY = 'wdp_dash_cards_v1';
 const WDASH_CARD_META = {
   cash:       {icon:'cash',    en:'Cash Flow',            ar:'التدفق النقدي'},
   site:       {icon:'lock',    en:'Site',                 ar:'الموقع'},
-  sysintel:   {icon:'sparkle', en:'AI Insights',  ar:'رؤى ذكية'},
+  sysintel:   {icon:'sparkle', en:'AI Insights',  ar:'تحليلات ذكية'},
   activity:   {icon:'clock',   en:'Activity',             ar:'النشاط'},
-  banks:      {icon:'bank',    en:'Top Banks',             ar:'أعلى البنوك'},
+  banks:      {icon:'bank',    en:'Top Banks',             ar:'أكبر البنوك'},
   comparison: {icon:'chart',   en:'Comparison',            ar:'مقارنة'},
   trends:     {icon:'chart',   en:'Trends',                ar:'الاتجاهات'},
   summary:    {icon:'clipboard', en:'Summary',              ar:'الملخص'},
@@ -15312,10 +15334,10 @@ function renderWorkspaceDashboard(m){
   // nothing here removes a card, only reorders the untouched defaults.
   const candidates = [];
   if(canFinance) candidates.push({id:'cash', icon:'cash', label:L('Cash Flow','التدفق النقدي'), body:renderDashboardCashFlowV3(s), foldable:true, summary:`${s.netCashFlow>=0?'+':'-'}${fmtEGP(Math.abs(s.netCashFlow))}`});
-  if(WorkspaceEngine.canShow('banks')) candidates.push({id:'banks', icon:'bank', label:L('Top Banks','أعلى البنوك'), body:renderBankSummaryCompactV3(m), foldable:true, summary:`${getBanksOrdered().length} ${L('accounts','حساب')}`});
-  if(canFinance) candidates.push({id:'activity', icon:'clock', label:L('Recent Activity','آخر الأنشطة'), body:dfpSafeCard(()=>renderRecentActivityDashCard(m)), foldable:true});
-  if(canFinance){ const _pc=_dashPurchasesCollect().count; candidates.push({id:'purchases', icon:'shopping_bag', label:L('My Purchases','مشترياتي'), body:dfpSafeCard(()=>renderPurchasesDashCard()), foldable:true, summary:_pc?`${_pc} ${L('items','عنصر')}`:''}); }
-  if(canFinance) candidates.push({id:'sysintel', icon:'sparkle', label:L('AI Insights','رؤى ذكية'), body:renderSystemIntelligenceV3(m, sig), foldable:true});
+  if(WorkspaceEngine.canShow('banks')) candidates.push({id:'banks', icon:'bank', label:L('Top Banks','أكبر البنوك'), body:renderBankSummaryCompactV3(m), foldable:true, summary:`${_cnt(getBanksOrdered().length,'account','accounts','حساب','حسابان','حسابات','حساباً')}`});
+  if(canFinance) candidates.push({id:'activity', icon:'clock', label:L('Recent Activity','آخر العمليات'), body:dfpSafeCard(()=>renderRecentActivityDashCard(m)), foldable:true});
+  if(canFinance){ const _pc=_dashPurchasesCollect().count; candidates.push({id:'purchases', icon:'shopping_bag', label:L('My Purchases','مشترياتي'), body:dfpSafeCard(()=>renderPurchasesDashCard()), foldable:true, summary:_pc?`${_cnt(_pc,'item','items','عنصر','عنصران','عناصر','عنصراً')}`:''}); }
+  if(canFinance) candidates.push({id:'sysintel', icon:'sparkle', label:L('AI Insights','تحليلات ذكية'), body:renderSystemIntelligenceV3(m, sig), foldable:true});
   if(canFinance) candidates.push({id:'site', icon:'lock', label:L('Site Custody','عهدة الموقع'), body:renderCustodyDashboardCard(m), foldable:true, summary:`${L('Remaining','المتبقي')}: ${sig.custodyRemaining<0?'-':''}${fmtEGP(Math.abs(sig.custodyRemaining))}`});
   if(canFinance) candidates.push({id:'comparison', icon:'chart', label:L('Monthly Comparison','مقارنة شهرية'), body:DashboardLazy.placeholder('monthlyComparison', ()=>dfpSafeCard(
     ()=>renderMonthlyComparisonCard(m, sig),
@@ -15382,7 +15404,7 @@ function renderWorkspaceDashboard(m){
   const _wdashToggleHtml = _wdashCollapsible
     ? `<button type="button" class="wdash-showall" id="wdashShowAllBtn" aria-expanded="${_wdashShowAll?'true':'false'}" onclick="wdashToggleAll()">${_wdashShowAll ? L('Show less','عرض أقل') : L('Show all','عرض الكل')+' ('+visible.length+')'}</button>`
     : '';
-  const appsHtml = tiles ? `<div class="wdash-apps-title">${L('Dashboards','اللوحات')}</div><div class="wdash-apps${_wdashCollapsible && !_wdashShowAll ? ' is-collapsed' : ''}" id="wdashApps" role="group" aria-label="${L('Dashboards','اللوحات')}">${tiles}</div>${_wdashToggleHtml}` : '';
+  const appsHtml = tiles ? `<div class="wdash-apps-title">${L('Dashboards','الأقسام')}</div><div class="wdash-apps${_wdashCollapsible && !_wdashShowAll ? ' is-collapsed' : ''}" id="wdashApps" role="group" aria-label="${L('Dashboards','الأقسام')}">${tiles}</div>${_wdashToggleHtml}` : '';
   return `<div class="wdash-wrap dv3-dark-v2">${manageBar}${heroHtml}${quickActionsHtml}${appsHtml}<div class="wdash-vault" aria-hidden="true" inert>${body}</div></div>`;
 }
 
@@ -15944,13 +15966,22 @@ if(window.__DASHBOARD_DEBUG__ === true){
 // zero visual change for current users, and zero caller-by-caller migration
 // needed. For a non-2-decimal currency (JPY/KWD/BHD/OMR) it now correctly
 // respects that currency's own decimal count instead of silently assuming 2.
+function _cnt(n,enOne,enMany,arOne,arTwo,arFew,arMany){
+  const k=Math.abs(Number(n)||0);
+  if(!(typeof lang!=='undefined'&&lang==='ar')) return k+' '+(k===1?enOne:enMany);
+  if(k===1) return arOne+' واحد';
+  if(k===2) return arTwo;
+  if(k>=3&&k<=10) return k+' '+arFew;
+  return k+' '+arMany;
+}
 const fmt=n=>{
   const v=n||0;
   const curCode=(typeof GLOBAL_PROFILE!=='undefined' && GLOBAL_PROFILE.currency) || (typeof CURRENT_CURRENCY!=='undefined' && CURRENT_CURRENCY) || 'EGP';
   const decimals=getCurrencyMeta(curCode).decimals;
   const scale=Math.pow(10,decimals);
   const hasFraction=decimals>0 && Math.round(Math.abs(v)*scale)%scale!==0;
-  return v.toLocaleString(_dtLocale('en-US'),hasFraction?{minimumFractionDigits:decimals,maximumFractionDigits:decimals}:{minimumFractionDigits:0,maximumFractionDigits:0});
+  const out=v.toLocaleString(_dtLocale('en-US'),hasFraction?{minimumFractionDigits:decimals,maximumFractionDigits:decimals}:{minimumFractionDigits:0,maximumFractionDigits:0});
+  return (typeof lang!=='undefined'&&lang==='ar')?out.replace(/^[\u061C\u200E\u200F]*[-\u2212]/,'\u200E-'):out;
 };
 // FIX (sign-masking bug): fmtEGP used to force Math.abs() on every value,
 // so a genuinely negative balance (e.g. an overdrawn bank) rendered as a
@@ -18861,7 +18892,7 @@ function renderSavings(){
           </div>
           <div class="fin-card-amount">${fmtEGP(totalIncome)}</div>
           <div class="fin-card-title">${L('Income','الدخل')}</div>
-          <div class="fin-card-sub">${visIncomes.length} ${L('entries','سجل')}</div>
+          <div class="fin-card-sub">${_cnt(visIncomes.length,'entry','entries','سجل','سجلان','سجلات','سجلاً')}</div>
         </div>
         <div class="fin-card" style="--fc:var(--fin-outcome);--fc-tint:var(--fin-outcome-tint)">
           <div class="fin-card-top">
@@ -18870,7 +18901,7 @@ function renderSavings(){
           </div>
           <div class="fin-card-amount">${fmtEGP(totalOutcome)}</div>
           <div class="fin-card-title">${L('Outcome','المصروفات')}</div>
-          <div class="fin-card-sub">${visOutcomes.length} ${L('entries','سجل')}</div>
+          <div class="fin-card-sub">${_cnt(visOutcomes.length,'entry','entries','سجل','سجلان','سجلات','سجلاً')}</div>
         </div>
         <div class="fin-card" style="--fc:var(--fin-assets);--fc-tint:var(--fin-assets-tint)">
           <div class="fin-card-top">
@@ -18879,7 +18910,7 @@ function renderSavings(){
           </div>
           <div class="fin-card-amount">${fmtEGP(totalAssets)}</div>
           <div class="fin-card-title">${L('Assets','الأصول')}</div>
-          <div class="fin-card-sub">${visAssets.length} ${L('items','عنصر')}</div>
+          <div class="fin-card-sub">${_cnt(visAssets.length,'item','items','عنصر','عنصران','عناصر','عنصراً')}</div>
         </div>
       </div>
     </div>
@@ -19901,7 +19932,7 @@ function renderOverview(m){
       `<div class="sc-summary-tile" style="--tc:var(--primary)">
         <div class="sc-summary-tile-label">${L('Banks Total','إجمالي البنوك')}</div>
         <div class="sc-summary-tile-val">${fmtEGP(totalBank)}</div>
-        <div class="sc-summary-tile-sub">${banks.length} ${L('accounts','حساب')}</div>
+        <div class="sc-summary-tile-sub">${_cnt(banks.length,'account','accounts','حساب','حسابان','حسابات','حساباً')}</div>
       </div>`}
     </div>
     <!-- Note: Banks Total and Net Flow are already shown in the header badges
@@ -21195,7 +21226,7 @@ function renderTimelineWidget(){
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:${recentEvents.length?'6px':'0'}">
         <div style="display:flex;align-items:center;gap:8px;font-size:calc(12.5px*var(--app-text-scale,1));font-weight:900;color:var(--text)">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
-          ${L('Recent Activity','آخر الأنشطة')}
+          ${L('Recent Activity','آخر العمليات')}
         </div>
         ${allEvents.length>recentEvents.length ? `<button onclick="tlShowAllActivity()" style="background:none;border:none;color:var(--green);font-size:calc(10.5px*var(--app-text-scale,1));font-weight:800;cursor:pointer">${L('View All','عرض الكل')}</button>` : ''}
       </div>
@@ -29090,7 +29121,7 @@ function generateInsights(activeMonthKey){
         priority: absTrend + 10,
         text: L(
           `Overall daily spending is ${absTrend}% ${trendPct>0?'higher':'lower'} than last month`,
-          `الإنفاق اليومي الإجمالي ${trendPct>0?'أعلى':'أقل'} بـ ${absTrend}% من الشهر الماضي`
+          `مصروفك اليومي ${trendPct>0?'زاد':'قلّ'} ${absTrend}% عن الشهر الماضي`
         )
       });
     }
@@ -29481,7 +29512,7 @@ function openDailyTargetModal(auto){
     </div>
     ${auto===true?`<div class="dtp-note">${ic('bell',15)}<span>${L("New day — set today's budget so you don't forget.",'يوم جديد — حدّد ميزانية اليوم عشان ما تنساش.')}</span></div>`:''}
     <div class="field">
-      <label>${L('Target Amount','المبلغ المستهدف')} <span class="f-badge">${curLabel()}</span></label>
+      <label>${L('Target Amount','مبلغ التارجت')} <span class="f-badge">${curLabel()}</span></label>
       <input type="text" inputmode="decimal" data-calc id="dailyTargetInput"
         value="${existing || ''}"
         placeholder="0.00"
@@ -30144,11 +30175,11 @@ function renderTransactions(m){
        looks for that class, keeps finding them unchanged. -->
   <div class="txlg-sticky kpi3-hero">
     <div class="kpi3-card kpi3-primary" role="button" tabindex="0" style="cursor:pointer" onclick="document.getElementById('txlgTimelineAnchor')?.scrollIntoView({behavior:'smooth',block:'start'})" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}" aria-label="${L('Spent','مصروف')} ${fmtEGP(totalAll)}">
-      <div class="kpi3-primary-label">${totalAll===0?L('No spending yet','لا يوجد إنفاق بعد'):L("Today's Spending",'إنفاق اليوم')}</div>
+      <div class="kpi3-primary-label">${totalAll===0?L('No spending yet','لسه مفيش مصروفات'):L("Today's Spending",'مصروف اليوم')}</div>
       <div class="kpi3-primary-val" style="color:var(--orange)">${kpi3ValHTML(fmtEGP(totalAll), totalAll>0 && _todayTarget>0 && totalAll>_todayTarget ? 'neg' : 'orange', totalAll)}</div>
       ${_todayTarget>0?(()=>{
         const _dp=Math.round((totalAll/_todayTarget)*100), _dover=totalAll>_todayTarget;
-        const _dmsg=_dover?L('Over by '+fmtEGP(totalAll-_todayTarget),'تجاوزت بـ '+fmtEGP(totalAll-_todayTarget)):L(fmtEGP(_todayTarget-totalAll)+' left','متبقي '+fmtEGP(_todayTarget-totalAll));
+        const _dmsg=_dover?L('Over by '+fmtEGP(totalAll-_todayTarget),'عدّيت التارجت بـ '+fmtEGP(totalAll-_todayTarget)):L(fmtEGP(_todayTarget-totalAll)+' left','فاضل '+fmtEGP(_todayTarget-totalAll));
         return `<div class="kpi3-prog${_dover?' is-over':''}"><div class="kpi3-prog-track"><i style="width:${Math.min(100,Math.max(0,_dp))}%"></i></div><div class="kpi3-prog-meta"><span class="kpi3-prog-pct">${_dp}%</span><span>${_dmsg}</span></div></div>`;
       })():''}
     </div>
@@ -30161,8 +30192,8 @@ function renderTransactions(m){
         <div class="kpi3-sec-label">${L('Remaining','متبقي')}</div>
         <div class="kpi3-sec-val${_kpiHasTarget?'':' is-empty'}" style="color:${_kpiHasTarget?_kpiZoneColor:'var(--muted)'}">${_kpiHasTarget?fmtEGP(_kpiRemaining):L('Tap to set','اضغط للتحديد')}</div>
       </div>
-      <div class="kpi3-sec" aria-label="${L('Saved','موفّر')} ${_kpiSavedHasData?(_kpiSaved>=0?'+':'-')+fmtEGP(Math.abs(_kpiSaved)):L('not available','غير متاح')}">
-        <div class="kpi3-sec-label">${L('Saved','موفّر')}</div>
+      <div class="kpi3-sec" aria-label="${L('Saved','التوفير')} ${_kpiSavedHasData?(_kpiSaved>=0?'+':'-')+fmtEGP(Math.abs(_kpiSaved)):L('not available','غير متاح')}">
+        <div class="kpi3-sec-label">${L('Saved','التوفير')}</div>
         <div class="kpi3-sec-val${_kpiSavedHasData?'':' is-empty'}" style="color:${_kpiSavedColor}">${_kpiSavedHasData?(_kpiSaved>=0?'+':'-')+fmtEGP(Math.abs(_kpiSaved)):'—'}</div>
         <button type="button" onclick="event.stopPropagation();kpiToggleSavedMode()" class="kpi3-saved-mode-btn" aria-label="${L('Switch Saved calculation method','تغيير طريقة حساب التوفير')}">${_kpiSavedMode==='income'?L('↺ Budget','↺ الميزانية'):L('↺ Income','↺ الدخل')}</button>
       </div>
@@ -30191,8 +30222,8 @@ function renderTransactions(m){
       <div class="txlg-filter-row">
         <div class="txlg-seg">
           <button class="${txFilterVariance==='all'?'active':''}" onclick="txSetVarianceFilter('all')">${L('All','الكل')}</button>
-          <button class="${txFilterVariance==='under'?'active':''}" onclick="txSetVarianceFilter('under')">${L('Under Target','أقل من المستهدف')}</button>
-          <button class="${txFilterVariance==='over'?'active':''}" onclick="txSetVarianceFilter('over')">${L('Over Target','تجاوز المستهدف')}</button>
+          <button class="${txFilterVariance==='under'?'active':''}" onclick="txSetVarianceFilter('under')">${L('Under Target','أقل من التارجت')}</button>
+          <button class="${txFilterVariance==='over'?'active':''}" onclick="txSetVarianceFilter('over')">${L('Over Target','عدّى التارجت')}</button>
         </div>
       </div>
     </div>
@@ -30200,7 +30231,7 @@ function renderTransactions(m){
     <div class="txlg-chips">
       ${searchQ?`<span class="txlg-chip">${ic('search',10)} "${esc(searchQ)}" <button onclick="txClearSearch()">${ic('close',10)}</button></span>`:''}
       ${txFilterPeriod?`<span class="txlg-chip">${ic('calendar',10)} ${_txlgPeriodLabel(txFilterPeriod)} <button onclick="txClearPeriodFilter()">${ic('close',10)}</button></span>`:''}
-      ${txFilterVariance!=='all'?`<span class="txlg-chip">${txFilterVariance==='under'?L('Under Target','أقل من المستهدف'):L('Over Target','تجاوز المستهدف')} <button onclick="txSetVarianceFilter('all')">${ic('close',10)}</button></span>`:''}
+      ${txFilterVariance!=='all'?`<span class="txlg-chip">${txFilterVariance==='under'?L('Under Target','أقل من التارجت'):L('Over Target','عدّى التارجت')} <button onclick="txSetVarianceFilter('all')">${ic('close',10)}</button></span>`:''}
       <button class="txlg-clear-all" onclick="txClearAllFilters()">${L('Clear all','مسح الكل')}</button>
     </div>`:''}
   </div>
@@ -30208,7 +30239,7 @@ function renderTransactions(m){
   <!-- 3. TIMELINE -->
   <div class="sc-card sc-main" id="txlgTimelineAnchor">
     <div class="sc-main-header" style="cursor:default">
-      <div class="sc-main-title">${ic('card',14)} ${L('Timeline','السجل الزمني')}${txns.length>0?` <span style="font-size:calc(9px*var(--app-text-scale,1));font-weight:700;color:var(--muted);background:var(--surface);border:1px solid var(--border);padding:1px 7px;border-radius:99px">${txns.length}</span>`:''}</div>
+      <div class="sc-main-title">${ic('card',14)} ${L('Timeline','سجل العمليات')}${txns.length>0?` <span style="font-size:calc(9px*var(--app-text-scale,1));font-weight:700;color:var(--muted);background:var(--surface);border:1px solid var(--border);padding:1px 7px;border-radius:99px">${txns.length}</span>`:''}</div>
     </div>
     <div class="txlg-timeline">
       ${txns.length===0 ? emptyFilteredState : timelineHTML}
@@ -30290,7 +30321,7 @@ function generateExpenseAIInsights(exps, groups){
   insights.push({
     icon:'chart', color:'#2563eb', bg:'#2563eb14',
     label: L('Average per item','متوسط المصروف'),
-    value: `${fE(avg)} · ${exps.length} ${L('items','بند')}`
+    value: `${fE(avg)} · ${_cnt(exps.length,'item','items','بند','بندان','بنود','بنداً')}`
   });
 
   return insights;
@@ -30511,7 +30542,7 @@ function renderExpenses(m){
   })());
   const insightsHTML = aiInsights.length ? `
   <section class="cx-sec">
-    <div class="cx-sh"><span class="cx-sh-l"><span class="cx-sh-t">${L('Insights','رؤى ذكية')}</span></span></div>
+    <div class="cx-sh"><span class="cx-sh-l"><span class="cx-sh-t">${L('Insights','تحليلات ذكية')}</span></span></div>
     <div class="cx-panel">
       ${aiInsights.map(ins=>`<div class="cx-ins"><span class="cx-ins-l">${ins.label}</span><span class="cx-ins-v"><bdi>${ins.value}</bdi></span></div>`).join('')}
     </div>
@@ -31201,6 +31232,15 @@ function _rqCardParts(r){
   const fl=String(_rqFloorLabel(r.floor)||'').trim();
   return [plot, model?(ar?'نموذج ':'Model ')+model:'', work, fl?(ar?'الدور ':'')+fl+(ar?'':' Floor'):''].filter(Boolean);
 }
+// One block per note line: the bullet is drawn (not typed) so it always sits on the reading side,
+// and each line takes its own direction so Arabic and English lines keep their punctuation in place.
+function _rqNotesLinesHTML(txt){
+  const ar=(lang==='ar');
+  return String(txt||'').split('\n').map(l=>l.trim()).filter(Boolean).map(l=>{
+    const bullet=/^[•\-]\s*/.test(l), body=l.replace(/^[•\-]\s*/,'');
+    return `<div class="rq-nl">${bullet?'<i class="rq-nb"></i>':''}<span dir="auto" style="text-align:${ar?'right':'left'}">${esc(body)}</span></div>`;
+  }).join('');
+}
 function _rqCardLine(r){
   const parts=_rqCardParts(r);
   return parts.length?`<div class="rq-line" dir="auto">${esc(parts.join(' - '))}</div>`:'';
@@ -31393,7 +31433,7 @@ function renderMyRequests(){
     ${stat('rejected','over',counts.rejected,_rqStatusLabel('rejected'))}
   </div>`:'')+(typeChips?`<div class="rq-types-wrap"><div class="rq-types-h">${L('By type','حسب النوع')}</div><div class="rq-types">${typeChips}</div></div>`:'');
 
-  const cell=(icon,lbl,val,ltr)=>val?`<div><dt>${icon}${lbl}</dt><dd${ltr?' dir="ltr" style="text-align:start"':''}>${esc(val)}</dd></div>`:'';
+  const cell=(icon,lbl,val,ltr)=>val?`<div><dt>${icon}${lbl}</dt><dd${ltr?` dir="ltr" style="text-align:${lang==='ar'?'end':'start'}"`:''}>${esc(val)}</dd></div>`:'';
   const cardsHTML=list.map(r=>{
     const st=_RQ_STATUS[r.status]||_RQ_STATUS.received;
     const dCompany=_rqDisplayValue(r,'company'), dType=_rqDisplayValue(r,'type'),
@@ -31420,7 +31460,7 @@ function renderMyRequests(){
         ${cell(ic('floor',12),L('Floor','الدور'),_rqFloorLabel(r.floor))}
         ${cell(ic('ruler',12),L('Level','المنسوب'),r.level,true)}
       </dl>
-      ${dNotes?`<div class="rq-notes">${ic('message',13)}<span>${esc(dNotes)}</span></div>`:''}
+      ${dNotes?`<div class="rq-notes">${ic('message',13)}<div class="rq-notes-lines">${_rqNotesLinesHTML(dNotes)}</div></div>`:''}
       <div class="rq-foot">
         <button type="button" class="cx-icbtn" onclick="openRequestModal('${r.id}')" aria-label="${L('Edit','تعديل')}">${ic('edit',17)}</button>
         <button type="button" class="cx-icbtn del" onclick="deleteRequest('${r.id}')" aria-label="${L('Delete','حذف')}">${ic('trash',17)}</button>
@@ -46134,7 +46174,7 @@ function renderDailyAIInsight(monthKey){
   if(!picked && d.topCategories && d.topCategories[0]){
     const cat = d.topCategories[0].category;
     picked = { emoji:'💡', text: L(`${cat} accounts for most of today's spending.`,
-                                    `تصنيف ${cat} يمثل أغلب إنفاق اليوم.`) };
+                                    `أغلب مصروف اليوم كان على «${cat}».`) };
   }
 
   if(!picked && p && p.hasBudget && p.budgetAmount>0){
