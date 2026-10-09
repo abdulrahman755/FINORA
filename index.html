@@ -16058,10 +16058,12 @@ function _vdBegin(e,cfg){
   el.classList.add(cfg.dragClass);
   el.style.transition='none';
   el.style.transform='translateY(0px)';
-  handle.addEventListener('pointermove',_vdMove,{passive:false});
-  handle.addEventListener('pointerup',_vdEnd);
-  handle.addEventListener('pointercancel',_vdEnd);
-  handle.addEventListener('lostpointercapture',_vdEnd);
+  // Window-level listeners, and no lostpointercapture: every reorder moves the card (and its handle)
+  // in the DOM, which drops pointer capture — listening on the handle (or ending on lostpointercapture)
+  // killed the drag after the first swap and left the card stuck mid-air.
+  window.addEventListener('pointermove',_vdMove,{passive:false});
+  window.addEventListener('pointerup',_vdEnd);
+  window.addEventListener('pointercancel',_vdEnd);
   s.raf=requestAnimationFrame(_vdTick);
 }
 function _vdMove(e){
@@ -16134,10 +16136,9 @@ function _vdFinish(){
   _VD.s=null;
   cancelAnimationFrame(s.raf);
   const h=s.handle;
-  h.removeEventListener('pointermove',_vdMove);
-  h.removeEventListener('pointerup',_vdEnd);
-  h.removeEventListener('pointercancel',_vdEnd);
-  h.removeEventListener('lostpointercapture',_vdEnd);
+  window.removeEventListener('pointermove',_vdMove);
+  window.removeEventListener('pointerup',_vdEnd);
+  window.removeEventListener('pointercancel',_vdEnd);
   try{ h.releasePointerCapture(s.pid); }catch(_){}
   const el=s.el, cards=_vdCards(s);
   cards.forEach(c=>{ clearTimeout(c._vdT); if(c!==el){ c.style.transition=''; c.style.transform=''; } });
@@ -19970,6 +19971,12 @@ function savInitDrag(){
 function _savDragStart(e){
   if(e.pointerType==='mouse' && e.button!==0) return;
   const handle=e.currentTarget;
+  // A previous drag that never got its pointerup (e.g. capture lost after a DOM move) must not linger.
+  if(_savDragEl){
+    _savDragEl.classList.remove('drag-dragging');
+    _savDragEl.style.transform=''; _savDragEl.style.transition='';
+    _cleanupSavDragListeners();
+  }
   _savDragType=handle.getAttribute('data-savtype');
   _savDragEl=handle.closest('.sav-row');
   if(!_savDragEl) return;
@@ -19983,9 +19990,11 @@ function _savDragStart(e){
   _savDragEl.classList.add('drag-dragging');
   _savDragEl.style.transition='none';
   _savDragEl.style.transform='translateY(0px)';
-  handle.addEventListener('pointermove', _savDragMove, {passive:false});
-  handle.addEventListener('pointerup', _savDragEnd);
-  handle.addEventListener('pointercancel', _savDragEnd);
+  // Listen on window, not the handle: reordering moves the row (and its handle) in the DOM, which
+  // drops pointer capture; handle-bound listeners would then never see pointerup and the row stayed stuck.
+  window.addEventListener('pointermove', _savDragMove, {passive:false});
+  window.addEventListener('pointerup', _savDragEnd);
+  window.addEventListener('pointercancel', _savDragEnd);
 }
 function _savDragMove(e){
   if(!_savDragEl || e.pointerId!==_savDragPointerId) return;
@@ -20039,18 +20048,15 @@ function _savDragMove(e){
     });
   }
 }
-function _savDragEnd(){
+function _savDragEnd(e){
+  if(e && e.pointerId!=null && _savDragPointerId!=null && e.pointerId!==_savDragPointerId) return;
   if(!_savDragEl){ _cleanupSavDragListeners(); return; }
 
-  if(_savDragHandle){
-    _savDragHandle.removeEventListener('pointermove', _savDragMove);
-    _savDragHandle.removeEventListener('pointerup', _savDragEnd);
-    _savDragHandle.removeEventListener('pointercancel', _savDragEnd);
-    if(_savDragPointerId!=null){ try{ _savDragHandle.releasePointerCapture(_savDragPointerId); }catch(err){} }
-  }
+  _cleanupSavDragListeners();
+  if(_savDragHandle && _savDragPointerId!=null){ try{ _savDragHandle.releasePointerCapture(_savDragPointerId); }catch(err){} }
 
   _savDragEl.classList.remove('drag-dragging');
-  _savDragEl.style.transform='';
+  _savDragEl.style.transform=''; _savDragEl.style.transition='';
   document.querySelectorAll('.sav-row.drag-over-top,.sav-row.drag-over-bottom').forEach(el=>{
     el.classList.remove('drag-over-top','drag-over-bottom');
   });
@@ -20068,11 +20074,9 @@ function _savDragEnd(){
   renderView();
 }
 function _cleanupSavDragListeners(){
-  if(_savDragHandle){
-    _savDragHandle.removeEventListener('pointermove', _savDragMove);
-    _savDragHandle.removeEventListener('pointerup', _savDragEnd);
-    _savDragHandle.removeEventListener('pointercancel', _savDragEnd);
-  }
+  window.removeEventListener('pointermove', _savDragMove);
+  window.removeEventListener('pointerup', _savDragEnd);
+  window.removeEventListener('pointercancel', _savDragEnd);
 }
 
 // ── § OVERVIEW / ANALYTICS DASHBOARD ─────────────────────────────────────────
@@ -22749,8 +22753,10 @@ function _bankDragStart(e){
     cancel();
     _bkArmed=true; h.classList.add('bnk-drag-armed');
     try{ navigator.vibrate && navigator.vibrate(12); }catch(_){}
-    const done=()=>{ _bkArmed=false; h.classList.remove('bnk-drag-armed'); h.removeEventListener('pointerup',done); h.removeEventListener('pointercancel',done); h.removeEventListener('lostpointercapture',done); };
-    h.addEventListener('pointerup',done); h.addEventListener('pointercancel',done); h.addEventListener('lostpointercapture',done);
+    // window-level + pointer-filtered, no lostpointercapture: the grip moves in the DOM on every swap,
+    // and clearing the armed flag then let the page start scrolling, which cancelled the drag.
+    const done=ev=>{ if(ev && ev.pointerId!=null && ev.pointerId!==pid) return; _bkArmed=false; h.classList.remove('bnk-drag-armed'); window.removeEventListener('pointerup',done); window.removeEventListener('pointercancel',done); };
+    window.addEventListener('pointerup',done); window.addEventListener('pointercancel',done);
     _vdBegin({pointerType:'touch',button:0,currentTarget:h,pointerId:pid,clientY:ly,preventDefault(){}},_BANK_VD);
   },260);
 }
