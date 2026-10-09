@@ -408,7 +408,7 @@ body{background-color:var(--bg);background-image:radial-gradient(1100px 780px at
 .edit-btn,.del-btn{
   background:none;border:none;cursor:pointer;
   min-width:34px;min-height:34px;
-  padding:6px;border-radius:9px;
+  padding:6px;border-radius:var(--radius-sm);
   display:inline-flex;align-items:center;justify-content:center;
   transition:all var(--dur-fast) var(--ease-standard);flex-shrink:0;line-height:1;
 }
@@ -450,7 +450,7 @@ button:disabled{opacity:.5;cursor:not-allowed;pointer-events:none}
 .card-add-btn{
   display:inline-flex;align-items:center;justify-content:center;gap:5px;
   padding:6px 13px;min-height:34px;
-  border-radius:9px;border:none;cursor:pointer;
+  border-radius:var(--radius-sm);border:none;cursor:pointer;
   font-size:calc(12px*var(--app-text-scale,1));font-weight:800;transition:all .14s;flex-shrink:0;
 }
 .card-add-btn.green{background:var(--green);color:#fff}
@@ -480,7 +480,7 @@ button:disabled{opacity:.5;cursor:not-allowed;pointer-events:none}
   background:none;border:none;cursor:pointer;color:var(--muted);
   min-width:34px;min-height:34px;padding:6px;
   display:flex;align-items:center;justify-content:center;
-  border-radius:9px;transition:all .15s;
+  border-radius:var(--radius-sm);transition:all .15s;
 }
 .eye-btn:hover{background:var(--surface2);color:var(--text)}
 .eye-btn:active{background:var(--green-tint);color:var(--green);transform:scale(.97)}
@@ -719,7 +719,7 @@ button:disabled{opacity:.5;cursor:not-allowed;pointer-events:none}
   color:var(--muted);letter-spacing:.2px;
   animation:fadeSlideUp .7s .18s both;
 }
-.lock-security-badge svg{width:11px;height:11px;flex-shrink:0;stroke:var(--green)}
+.lock-security-badge svg{width:12px;height:12px;flex-shrink:0;stroke:var(--green)}
 
 /* numpad disabled while a PIN is being verified/decrypted — dims and
    blocks input without altering CORRECT_PIN comparisons or timing of
@@ -1152,7 +1152,7 @@ button:disabled{opacity:.5;cursor:not-allowed;pointer-events:none}
 .month-active-btn{display:flex;align-items:center;gap:6px;padding:5px 12px;border-radius:var(--radius-pill);border:none;background:linear-gradient(135deg,var(--green-dark),var(--green) 70%);color:#fff;font-size:calc(11px*var(--app-text-scale,1));font-weight:800;letter-spacing:.3px;cursor:pointer;box-shadow:0 3px 10px var(--glow-brand-4,rgba(15,122,80,.28))}
 .month-active-btn .chevron{font-size:calc(10px*var(--app-text-scale,1));transition:transform .2s}
 .month-active-btn.open .chevron{transform:rotate(180deg)}
-.month-dropdown{position:absolute;top:calc(100% - 4px);right:0;background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow-xl);z-index:60;min-width:170px;max-height:280px;overflow-y:auto;padding:var(--sp2);display:flex;flex-direction:column;gap:2px}
+.month-dropdown{position:absolute;top:calc(100% - 4px);right:0;background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow-xl);z-index:60;min-width:170px;max-height:min(62vh,420px);overflow-y:auto;padding:var(--sp2);display:flex;flex-direction:column;gap:2px}
 .month-dd-item{text-align:right;padding:9px 12px;border-radius:9px;border:none;background:transparent;color:var(--text);font-size:calc(12px*var(--app-text-scale,1));font-weight:700;cursor:pointer;transition:background .15s}
 .month-dd-item:active{background:var(--surface2)}
 .month-dd-item.active{background:var(--green);color:#fff;border-radius:var(--radius-xs)}
@@ -1166,6 +1166,16 @@ button:disabled{opacity:.5;cursor:not-allowed;pointer-events:none}
   transition:background .15s,color .15s;
 }
 .month-dd-delete:hover,.month-dd-delete:active{background:var(--red-tint,#dc4f4f1a);color:#dc4f4f}
+/* Year groups (shown once the data spans 2+ years) + a dot on the real current month */
+.month-dd-year{display:flex;align-items:center;gap:8px;width:100%;padding:10px;margin-top:4px;border:none;border-radius:var(--radius-xs);background:transparent;color:var(--muted);font-size:calc(var(--fs-label)*var(--app-text-scale,1));font-weight:800;letter-spacing:.8px;cursor:pointer}
+.month-dd-year:first-child{margin-top:0}
+.month-dd-year:active{background:var(--surface2)}
+.month-dd-year .chev{transition:transform .2s;transform:rotate(-90deg)}
+.month-dd-year.open .chev{transform:none}
+[dir="rtl"] .month-dd-year:not(.open) .chev{transform:rotate(90deg)}
+.month-dd-year .cnt{margin-inline-start:auto;padding:1px 7px;border-radius:99px;background:var(--surface2);font-size:calc(var(--fs-label)*var(--app-text-scale,1));letter-spacing:0}
+.month-dd-item.cur::after{content:'';display:inline-block;width:6px;height:6px;margin-inline-start:6px;border-radius:50%;background:var(--green);vertical-align:middle}
+.month-dd-item.active.cur::after{background:#fff}
 
 /* Bottom Nav — FINORA redesign: floating "vault bar" treatment (deeper
    blur, gold-accented top hairline, squircle home anchor instead of a
@@ -1385,7 +1395,7 @@ button:disabled{opacity:.5;cursor:not-allowed;pointer-events:none}
 }
 [dir=rtl] .bal-fx-toggle{right:auto;left:var(--sp3)}
 .bal-fx-toggle:active{background:rgba(255,255,255,.28)}
-.bal-fx-toggle svg{width:11px;height:11px;flex-shrink:0}
+.bal-fx-toggle svg{width:12px;height:12px;flex-shrink:0}
 .bal-fx-row{
   display:flex;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;
   border-top:1px solid rgba(255,255,255,.18);padding-top:var(--sp3);margin-top:var(--sp3);
@@ -1399,7 +1409,7 @@ button:disabled{opacity:.5;cursor:not-allowed;pointer-events:none}
 .bal-fx-chip-code{font-size:calc(8px*var(--app-text-scale,1));color:rgba(255,255,255,.65);text-transform:uppercase;letter-spacing:.6px;font-weight:700}
 .bal-fx-chip-val{font-family:var(--bnk-num-font,inherit);font-size:calc(11.5px*var(--bnk-num-scale,1));color:var(--bnk-num-color,#fff);font-weight:var(--bnk-num-weight,800);letter-spacing:.2px;white-space:nowrap;text-shadow:0 1px 2px rgba(0,0,0,.5)}
 .bal-fx-note{font-size:calc(8px*var(--app-text-scale,1));color:rgba(255,255,255,.5);font-weight:600;margin-top:6px;display:flex;align-items:center;gap:4px}
-.bal-fx-note svg{width:9px;height:9px;flex-shrink:0}
+.bal-fx-note svg{width:12px;height:12px;flex-shrink:0}
 
 /* Transaction rows */
 .tx-rows{padding:var(--sp3) var(--sp4);display:flex;flex-direction:column;gap:var(--sp2)}
@@ -1420,7 +1430,7 @@ button:disabled{opacity:.5;cursor:not-allowed;pointer-events:none}
   background:none;border:none;color:var(--muted);cursor:pointer;
   min-width:32px;min-height:32px;padding:5px;
   flex-shrink:0;display:flex;align-items:center;justify-content:center;
-  border-radius:9px;transition:all .15s;
+  border-radius:var(--radius-sm);transition:all .15s;
 }
 @media (hover:hover) and (pointer:fine){
   .tx-edit-btn:hover{color:var(--blue);background:var(--blue-tint)}
@@ -1455,7 +1465,7 @@ button:disabled{opacity:.5;cursor:not-allowed;pointer-events:none}
 .tlx-kpi-chip{display:flex;align-items:center;gap:5px;flex-shrink:0;background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius-pill);padding:5px 9px 5px 5px;box-shadow:var(--shadow-xs);transition:transform .12s ease,box-shadow .12s ease}
 .tlx-kpi-chip:active{transform:scale(.94);box-shadow:none}
 .tlx-kpi-icon{width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.tlx-kpi-icon svg{width:10px;height:10px}
+.tlx-kpi-icon svg{width:12px;height:12px}
 .tlx-kpi-num{font-size:calc(12px*var(--app-text-scale,1));font-weight:900;letter-spacing:-.2px;line-height:1}
 .tlx-kpi-lbl{font-size:calc(8.5px*var(--app-text-scale,1));font-weight:700;color:var(--muted);white-space:nowrap;margin-inline-start:1px}
 
@@ -1491,7 +1501,7 @@ button:disabled{opacity:.5;cursor:not-allowed;pointer-events:none}
 .tlx-label{position:sticky;inset-inline-start:0;z-index:4;width:150px;flex-shrink:0;background:var(--surface);display:flex;align-items:center;gap:var(--sp3);padding:10px 12px;border-inline-end:1.5px solid var(--border);overflow:hidden;box-shadow:2px 0 6px -2px rgba(15,31,24,.06);transition:background .12s}
 .tlx-row:active .tlx-label{background:var(--surface2)}
 .tlx-label-icon{width:38px;height:38px;border-radius:var(--icon-r-3);display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:inset 0 0 0 1px rgba(15,31,24,.04)}
-.tlx-label-icon svg{width:18px;height:18px}
+.tlx-label-icon svg{width:20px;height:20px}
 .tlx-label-text{min-width:0;flex:1}
 .tlx-label-title{font-size:calc(var(--fs-body)*var(--app-text-scale,1));font-weight:850;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.28;letter-spacing:-.1px}
 .tlx-label-sub{display:flex;align-items:center;gap:5px;margin-top:4px;width:100%}
@@ -1560,7 +1570,7 @@ button:disabled{opacity:.5;cursor:not-allowed;pointer-events:none}
 
 /* ── Full-view toolbar (zoom + rotate) ── */
 .tlx-full-tools{display:flex;align-items:center;gap:6px;flex-shrink:0}
-.tlx-full-tool-btn{width:32px;height:32px;border-radius:9px;background:var(--surface2);border:1.5px solid var(--border);color:var(--text);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:all .15s;padding:0}
+.tlx-full-tool-btn{width:32px;height:32px;border-radius:var(--radius-sm);background:var(--surface2);border:1.5px solid var(--border);color:var(--text);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:all .15s;padding:0}
 .tlx-full-tool-btn:active{background:var(--border);transform:scale(.93)}
 .tlx-full-zoom-lbl{font-size:calc(10.5px*var(--app-text-scale,1));font-weight:800;color:var(--muted);min-width:32px;text-align:center;flex-shrink:0}
 
@@ -2959,7 +2969,7 @@ tr.row-selected td{background:var(--green-tint)}
 .stt-sub.open{transform:translateX(0)}
 .stt-sub-header{background:var(--surface);padding:16px 16px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;flex-shrink:0;position:sticky;top:0;z-index:2}
 [data-theme=dark] .stt-sub-header{background:var(--surface2);border-color:var(--border)}
-.stt-back-btn{width:34px;height:34px;border-radius:10px;border:1px solid var(--border);background:var(--surface2);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:all .15s}
+.stt-back-btn{width:34px;height:34px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface2);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:all .15s}
 [data-theme=dark] .stt-back-btn{background:var(--surface2);border-color:var(--border)}
 .stt-back-btn:active{transform:scale(.92);background:var(--green-tint)}
 .stt-sub-title{font-size:calc(16px*var(--app-text-scale,1));font-weight:800;color:var(--text);flex:1}
@@ -3014,16 +3024,16 @@ tr.row-selected td{background:var(--green-tint)}
 .stt-top-row{display:flex;align-items:flex-start;justify-content:space-between;padding-bottom:16px}
 .stt-title-group{display:flex;align-items:center;gap:12px}
 .stt-icon-wrap{width:44px;height:44px;border-radius:var(--icon-r-4);background:var(--accent-settings);display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.stt-icon-wrap svg{width:22px;height:22px;stroke:#fff;fill:none}
+.stt-icon-wrap svg{width:20px;height:20px;stroke:#fff;fill:none}
 .stt-title{font-size:calc(18px*var(--app-text-scale,1));font-weight:800;color:var(--text);letter-spacing:-.3px;line-height:1.2}
 [data-theme=dark] .stt-title{color:var(--text)}
 .stt-subtitle{font-size:calc(var(--fs-caption)*var(--app-text-scale,1));color:var(--muted);line-height:1.4;margin-top:2px;max-width:200px}
 [data-theme=dark] .stt-subtitle{color:var(--sub)}
-.stt-close-btn{width:36px;height:36px;border-radius:10px;border:1px solid var(--border);background:var(--surface);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--muted);flex-shrink:0;transition:all .15s}
+.stt-close-btn{width:36px;height:36px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--muted);flex-shrink:0;transition:all .15s}
 [data-theme=dark] .stt-close-btn{background:var(--surface2);border-color:var(--border);color:var(--sub)}
 .stt-close-btn:active{background:var(--surface2);transform:scale(.93)}
 [data-theme=dark] .stt-close-btn:active{background:var(--surface3)}
-.stt-close-btn svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round}
+.stt-close-btn svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.85;stroke-linecap:round}
 .stt-body{padding:16px;display:flex;flex-direction:column;gap:var(--sp5);padding-bottom:32px}
 
 /* Settings section cards */
@@ -3062,7 +3072,7 @@ tr.row-selected td{background:var(--green-tint)}
 .stt-trail-val{font-size:calc(13px*var(--app-text-scale,1));color:var(--muted);font-weight:600}
 [data-theme=dark] .stt-trail-val{color:var(--muted)}
 .stt-chevron{color:var(--border-strong);flex-shrink:0}
-.stt-chevron svg{width:15px;height:15px;stroke:var(--border-strong);fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+.stt-chevron svg{width:16px;height:16px;stroke:var(--border-strong);fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
 [data-theme=dark] .stt-chevron svg{stroke:var(--border)}
 
 /* Premium toggle — was hardcoded gray/teal; now reads off the Finora
@@ -3541,7 +3551,7 @@ tr.row-selected td{background:var(--green-tint)}
   background:var(--ws-accent,linear-gradient(135deg,#1AB374,#0d7a4d));
   box-shadow:0 5px 14px var(--ws-accent-shadow,rgba(26,179,116,.4)),inset 0 1px 0 rgba(255,255,255,.28);
 }
-.ws-card-icon svg{width:19px;height:19px}
+.ws-card-icon svg{width:20px;height:20px}
 .ws-card-text{flex:1;min-width:0}
 .ws-card-title-row{display:flex;align-items:center;gap:var(--sp2);flex-wrap:wrap;margin-bottom:2px}
 .ws-card-title{font-size:calc(14px*var(--app-text-scale,1));font-weight:800;color:#fff;line-height:1.2;letter-spacing:-.1px}
@@ -3549,7 +3559,7 @@ tr.row-selected td{background:var(--green-tint)}
 .ws-card-desc{font-size:calc(10.5px*var(--app-text-scale,1));color:rgba(255,255,255,.5);font-weight:500;line-height:1.35;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden}
 .ws-card-meta{display:flex;align-items:center;gap:6px;margin-top:6px;font-size:calc(9.5px*var(--app-text-scale,1));color:rgba(255,255,255,.55);font-weight:700}
 .ws-card-meta span{display:inline-flex;align-items:center;gap:var(--sp1);background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);padding:2px 7px 2px 6px;border-radius:var(--radius-xs)}
-.ws-card-meta span svg{width:10px;height:10px;opacity:.85}
+.ws-card-meta span svg{width:12px;height:12px;opacity:.85}
 .ws-card-meta-sep{display:none}
 .ws-card-chevron{
   flex-shrink:0;color:rgba(255,255,255,.4);transition:transform .18s ease,color .18s ease,background .18s ease;
@@ -3567,7 +3577,7 @@ tr.row-selected td{background:var(--green-tint)}
   display:flex;align-items:center;justify-content:center;backdrop-filter:blur(8px);
   transition:background .15s ease,transform .15s ease;
 }
-.ws-close-btn svg{width:13px;height:13px}
+.ws-close-btn svg{width:14px;height:14px}
 [dir=rtl] .ws-close-btn{left:auto;right:var(--sp4)}
 .ws-close-btn:active{background:rgba(255,255,255,.2);transform:scale(.9)}
 .ws-more-btn{
@@ -3804,7 +3814,7 @@ tr.row-selected td{background:var(--green-tint)}
 @media (prefers-reduced-motion:reduce){ .miora-header-btn.miora-attn{animation:none} }
 @media (max-width:480px){
   .miora-header-btn{width:30px;height:30px}
-  .miora-header-btn svg{width:13px;height:13px}
+  .miora-header-btn svg{width:14px;height:14px}
 }
 
 /* Small first-run welcome tooltip — appears once near the MIORA button
@@ -3869,7 +3879,7 @@ tr.row-selected td{background:var(--green-tint)}
   background:var(--green);color:#fff;
   display:flex;align-items:center;justify-content:center;
 }
-.miora-head-icon svg{width:18px;height:18px}
+.miora-head-icon svg{width:20px;height:20px}
 .miora-head-text{flex:1;min-width:0}
 .miora-title{font-size:calc(var(--fs-body)*var(--app-text-scale,1));font-weight:900;color:var(--text);display:flex;align-items:center;gap:6px}
 .miora-online-dot{width:7px;height:7px;border-radius:50%;background:var(--green-light,var(--green));display:inline-block;flex-shrink:0}
@@ -5154,7 +5164,7 @@ body[data-workspace] .wdash-wrap .rpt-card{--rpt-accent:var(--ws-primary);--rpt-
 .tap-card-row:hover{border-color:var(--green)}
 .tap-card-row:active{transform:scale(.98);border-color:var(--green)}
 /* Reusable header pill button (on gradient sc-header backgrounds) */
-.header-pill-btn{background:var(--green-tint);border:1px solid var(--green-glow);border-radius:10px;color:var(--green-dark);padding:5px 10px;font-size:calc(12px*var(--app-text-scale,1));font-weight:800;cursor:pointer;display:flex;align-items:center;gap:5px;flex-shrink:0;transition:transform .12s,background .12s}
+.header-pill-btn{background:var(--green-tint);border:1px solid var(--green-glow);border-radius:var(--radius-sm);color:var(--green-dark);padding:5px 10px;font-size:calc(12px*var(--app-text-scale,1));font-weight:800;cursor:pointer;display:flex;align-items:center;gap:5px;flex-shrink:0;transition:transform .12s,background .12s}
 .header-pill-btn:active{transform:scale(.97);background:var(--green-glow)}
 /* Report export action buttons (PDF/Excel/Print/Save grids) */
 .mr-export-btn{padding:13px;border-radius:var(--radius-sm);border:none;font-size:calc(13px*var(--app-text-scale,1));font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:transform .12s,box-shadow .12s}
@@ -5250,7 +5260,7 @@ body[data-workspace] .wdash-wrap .rpt-card{--rpt-accent:var(--ws-primary);--rpt-
 }
 .aiq-tool-btn:active{transform:scale(.95);background:var(--surface3)}
 .aiq-tool-btn .aiq-tool-ic{
-  width:34px;height:34px;border-radius:10px;
+  width:34px;height:34px;border-radius:var(--radius-sm);
   display:flex;align-items:center;justify-content:center;
   background:#A97C1F14;color:#A97C1F;
 }
@@ -5723,7 +5733,7 @@ button,
   font-size:var(--fs-overline);font-weight:800;margin-top:2px;
   padding:1px 6px;border-radius:var(--radius-pill);
 }
-.sc-kpi-trend svg{width:9px;height:9px}
+.sc-kpi-trend svg{width:12px;height:12px}
 .sc-kpi-trend.up{color:#0f7a55;background:#0f7a5514}
 .sc-kpi-trend.down{color:#dc4f4f;background:#dc4f4f14}
 
@@ -5877,7 +5887,7 @@ button:not(:disabled):active{transform:scale(.97)}
   touch-action:none;margin-inline-end:auto;
 }
 .sd-drag-handle:active{cursor:grabbing;background:var(--surface3,var(--border))}
-.sd-print-btn{background:none;border:none;color:var(--muted);cursor:pointer;min-width:32px;min-height:32px;padding:5px;flex-shrink:0;display:flex;align-items:center;justify-content:center;border-radius:9px;transition:all .15s}
+.sd-print-btn{background:none;border:none;color:var(--muted);cursor:pointer;min-width:32px;min-height:32px;padding:5px;flex-shrink:0;display:flex;align-items:center;justify-content:center;border-radius:var(--radius-sm);transition:all .15s}
 .sd-print-btn:hover{color:var(--green);background:var(--green-tint)}
 .sd-print-btn:active{color:var(--green);background:var(--green-tint);transform:scale(.9)}
 /* ── Site Diary photo lightbox (full-size viewer) ── */
@@ -5931,7 +5941,7 @@ button:not(:disabled):active{transform:scale(.97)}
   background:var(--surface2);color:var(--muted);font-size:calc(10.5px*var(--app-text-scale,1));font-weight:700;
   cursor:pointer;transition:all .15s ease;
 }
-.sd-weather-btn svg{width:18px;height:18px}
+.sd-weather-btn svg{width:20px;height:20px}
 .sd-weather-btn.active{background:var(--green-tint);border-color:var(--green);color:var(--green-dark);box-shadow:0 0 0 3px var(--green-glow)}
 .sav-dir-btn{
   flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:11px 8px;
@@ -6026,7 +6036,7 @@ button:not(:disabled):active{transform:scale(.97)}
 .wm-filter-btn.has-filters{color:var(--green);border-color:var(--green)}
 .wm-filter-dot{position:absolute;top:5px;right:5px;width:7px;height:7px;border-radius:50%;background:var(--green)}
 .wm-view-switch{display:flex;gap:4px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:var(--sp1);margin-bottom:12px;width:fit-content}
-.wm-view-btn{padding:7px 13px;border-radius:9px;font-size:calc(11.5px*var(--app-text-scale,1));font-weight:800;color:var(--muted);background:transparent;border:none;cursor:pointer;display:flex;align-items:center;gap:5px;transition:all .15s}
+.wm-view-btn{padding:7px 13px;border-radius:var(--radius-sm);font-size:calc(11.5px*var(--app-text-scale,1));font-weight:800;color:var(--muted);background:transparent;border:none;cursor:pointer;display:flex;align-items:center;gap:5px;transition:all .15s}
 .wm-view-btn.active{background:var(--surface);color:var(--green);box-shadow:var(--shadow-xs)}
 
 /* Kanban board */
@@ -6220,7 +6230,7 @@ button:not(:disabled):active{transform:scale(.97)}
 .wm-bulk-bar{position:sticky;bottom:12px;margin-top:14px;background:var(--surface);border:1.5px solid var(--green);border-radius:16px;padding:10px 12px;display:flex;flex-wrap:wrap;align-items:center;gap:8px;box-shadow:0 8px 24px rgba(0,0,0,.12);animation:wmFadeUp .25s both}
 .wm-bulk-count{font-size:calc(11.5px*var(--app-text-scale,1));font-weight:900;color:var(--green);white-space:nowrap;margin-inline-end:4px}
 .wm-bulk-bar select{padding:8px 10px;border-radius:9px;border:1.5px solid var(--border);background:var(--surface2);color:var(--text);font-size:calc(11.5px*var(--app-text-scale,1));font-family:inherit}
-.wm-bulk-bar button{padding:8px 12px;border-radius:9px;border:1.5px solid var(--border);background:var(--surface2);color:var(--text2);font-size:calc(11px*var(--app-text-scale,1));font-weight:800;cursor:pointer;display:flex;align-items:center;gap:5px}
+.wm-bulk-bar button{padding:8px 12px;border-radius:var(--radius-sm);border:1.5px solid var(--border);background:var(--surface2);color:var(--text2);font-size:calc(11px*var(--app-text-scale,1));font-weight:800;cursor:pointer;display:flex;align-items:center;gap:5px}
 .wm-bulk-bar button.wm-bulk-del{background:var(--red-tint);color:var(--red);border-color:transparent}
 .wm-bulk-bar button.wm-bulk-archive{background:var(--yellow-tint);color:var(--yellow);border-color:transparent}
 
@@ -6538,7 +6548,7 @@ button:not(:disabled):active{transform:scale(.97)}
 .wdash-sheet-hdr{display:flex;align-items:center;gap:10px;padding:8px 14px 12px;border-bottom:1px solid var(--border);flex-shrink:0}
 .wdash-sheet-ico{width:34px;height:34px;border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;color:var(--tc,var(--green));background:color-mix(in srgb,var(--tc,var(--green)) 12%,transparent);flex-shrink:0}
 .wdash-sheet-ico.gold{color:var(--tc,var(--gold-dark,var(--gold)))}
-.wdash-sheet-ico svg{width:18px;height:18px}
+.wdash-sheet-ico svg{width:20px;height:20px}
 .wdash-sheet-title{flex:1;min-width:0;font-size:calc(16px*var(--app-text-scale,1));font-weight:900;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .wdash-sheet-body.wdash-wrap{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:14px 12px calc(24px + env(safe-area-inset-bottom));max-width:none;margin:0;animation:none!important}
 .wdash-sheet-body .wdash-section{background:transparent!important;border:0!important;box-shadow:none!important;padding:0!important;margin:0!important}
@@ -6846,7 +6856,7 @@ html.wdash-sheet-lock,html.wdash-sheet-lock body{overflow:hidden}
 .wdash-wrap.dv3-dark-v2 .dfp-kpi3-card:hover{background:var(--surface-hover);transform:translateY(-2px);box-shadow:var(--shadow-md)}
 .wdash-wrap.dv3-dark-v2 .dfp-kpi3-card:active{transform:scale(.98)}
 .wdash-wrap.dv3-dark-v2 .dfp-kpi3-icon{width:32px;height:32px;border-radius:var(--radius-sm);flex-shrink:0}
-.wdash-wrap.dv3-dark-v2 .dfp-kpi3-icon svg{width:17px;height:17px}
+.wdash-wrap.dv3-dark-v2 .dfp-kpi3-icon svg{width:16px;height:16px}
 .wdash-wrap.dv3-dark-v2 .dv3-kpi-text{display:flex;flex-direction:column;gap:var(--sp1);min-width:0;text-align:left}
 .wdash-wrap.dv3-dark-v2 .dfp-kpi3-lbl{color:var(--text-muted);text-align:left}
 .wdash-wrap.dv3-dark-v2 .dfp-kpi3-val{text-align:left}
@@ -6909,7 +6919,7 @@ html.wdash-sheet-lock,html.wdash-sheet-lock body{overflow:hidden}
   box-shadow:none;
 }
 .wdash-wrap .wdash-section .sc-card:not(.dash-hero-card){background:#FFFFFF}
-.wdash-wrap .wdash-section .pxi-section-head svg{width:17px;height:17px} /* sole definition — see note above */
+.wdash-wrap .wdash-section .pxi-section-head svg{width:16px;height:16px} /* sole definition — see note above */
 .wdash-wrap .wdash-manage-btn,.wdash-card-act{transition:transform .19s ease,background .19s ease,color .19s ease}
 .wdash-wrap .wdash-manage-btn:hover,.wdash-card-act:hover{background:var(--surface-hover)}
 .wdash-wrap .wdash-section:focus-visible,.wdash-wrap .dfp-kpi3-card:focus-visible,.wdash-wrap .wdash-clickable:focus-visible{
@@ -7473,7 +7483,7 @@ html.wdash-sheet-lock,html.wdash-sheet-lock body{overflow:hidden}
 .banks-v2 .bnk-menu-item{display:flex;align-items:center;gap:var(--sp3);padding:9px 10px;border-radius:var(--radius-sm);cursor:pointer;font-size:calc(12px*var(--app-text-scale,1));font-weight:700;color:var(--text);background:none;border:none;width:100%;text-align:start}
 .banks-v2 .bnk-menu-item:active{background:var(--surface2)}
 .banks-v2 .bnk-menu-item.danger{color:var(--red)}
-.banks-v2 .bnk-menu-item svg{width:15px;height:15px;flex-shrink:0}
+.banks-v2 .bnk-menu-item svg{width:16px;height:16px;flex-shrink:0}
 .banks-v2 .bnk-menu-divider{height:1px;background:var(--border);margin:4px 2px}
 
 /* Expandable body — same existing balance/add-row/tx-rows markup inside,
@@ -7635,7 +7645,7 @@ html.wdash-sheet-lock,html.wdash-sheet-lock body{overflow:hidden}
 .kpi2-card:active{filter:brightness(.96)}
 @keyframes kpi2CardIn{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:scale(1)}}
 .kpi2-icon{width:20px;height:20px;border-radius:var(--icon-r-1);display:flex;align-items:center;justify-content:center;margin-bottom:1px;flex-shrink:0}
-.kpi2-icon svg{width:11px;height:11px}
+.kpi2-icon svg{width:12px;height:12px}
 .kpi2-val{font-size:calc(20px*var(--app-text-scale,1));font-weight:800;line-height:1.1;letter-spacing:-.3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 .kpi2-lbl{font-size:calc(var(--fs-caption)*var(--app-text-scale,1));font-weight:700;color:var(--muted);text-transform:none;letter-spacing:0.3px;margin-top:1px}
 .kpi2-status{font-size:calc(var(--fs-label)*var(--app-text-scale,1));font-weight:700;color:var(--muted);display:flex;align-items:center;gap:var(--sp1);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
@@ -8117,10 +8127,10 @@ html.wdash-sheet-lock,html.wdash-sheet-lock body{overflow:hidden}
 .sms-card-select{display:flex;align-items:center;flex-shrink:0}
 .sms-card-select input{width:16px;height:16px;accent-color:var(--green);cursor:pointer}
 .sms-queue-toolbar{display:flex;gap:8px;padding:0 var(--sp4) var(--sp2)}
-.sms-queue-toolbar button{flex:1;font-size:calc(11px*var(--app-text-scale,1));font-weight:700;padding:var(--sp2);border-radius:10px;border:1.5px solid var(--border);background:var(--surface2);color:var(--muted);cursor:pointer}
+.sms-queue-toolbar button{flex:1;font-size:calc(11px*var(--app-text-scale,1));font-weight:700;padding:var(--sp2);border-radius:var(--radius-sm);border:1.5px solid var(--border);background:var(--surface2);color:var(--muted);cursor:pointer}
 .sms-queue-bar{position:sticky;bottom:70px;display:none;align-items:center;justify-content:space-between;gap:var(--sp3);padding:10px 14px;margin:0 var(--sp4) var(--sp3);background:var(--surface);border:1.5px solid var(--green);border-radius:16px;box-shadow:0 6px 20px rgba(0,0,0,.14);z-index:5}
 .sms-queue-bar-count{font-size:calc(12px*var(--app-text-scale,1));font-weight:800;color:var(--text)}
-.sms-queue-bar button{border:none;border-radius:10px;padding:8px 14px;font-size:calc(11.5px*var(--app-text-scale,1));font-weight:800;background:var(--green);color:#fff;cursor:pointer}
+.sms-queue-bar button{border:none;border-radius:var(--radius-sm);padding:8px 14px;font-size:calc(11.5px*var(--app-text-scale,1));font-weight:800;background:var(--green);color:#fff;cursor:pointer}
 
 /* ── In-app browser fallback (Facebook/Instagram/Messenger/etc. WebViews) ──
    These WebViews have a known bug where backdrop-filter blur elements can
@@ -8297,7 +8307,7 @@ html.wdash-sheet-lock,html.wdash-sheet-lock body{overflow:hidden}
 .wdash-wrap.dv3-dark-v2 .dfp-kpi3-card:hover{transform:none;box-shadow:none}
 .wdash-wrap.dv3-dark-v2 .dfp-kpi3-card:active{transform:none}
 .wdash-wrap.dv3-dark-v2 .dfp-kpi3-icon{width:28px;height:28px;border-radius:var(--radius-xs)}
-.wdash-wrap.dv3-dark-v2 .dfp-kpi3-icon svg{width:15px;height:15px}
+.wdash-wrap.dv3-dark-v2 .dfp-kpi3-icon svg{width:16px;height:16px}
 .wdash-wrap.dv3-dark-v2 .dfp-kpi3-lbl{font-weight:600;letter-spacing:.4px}
 .wdash-wrap.dv3-dark-v2 .dfp-kpi3-val{font-weight:800}
 .wdash-wrap.dv3-dark-v2 .fp-qa-row{gap:var(--sp2);margin:0 0 var(--sp5)}
@@ -8345,7 +8355,7 @@ html.wdash-sheet-lock,html.wdash-sheet-lock body{overflow:hidden}
 .wdash-wrap.dv3-dark-v2 > .dv3-kpi-row .dfp-kpi3-card:nth-child(-n+2){border-bottom:1px solid var(--border)}
 .wdash-wrap.dv3-dark-v2 > .dv3-kpi-row .dfp-kpi3-card:hover{background:var(--surface2)!important}
 .wdash-wrap.dv3-dark-v2 .dfp-kpi3-icon{width:24px;height:24px}
-.wdash-wrap.dv3-dark-v2 .dfp-kpi3-icon svg{width:13px;height:13px}
+.wdash-wrap.dv3-dark-v2 .dfp-kpi3-icon svg{width:14px;height:14px}
 .wdash-wrap.dv3-dark-v2 .dv3-kpi-text{gap:2px}
 .wdash-wrap.dv3-dark-v2 .dfp-kpi3-lbl{font-size:calc(8.5px*var(--app-text-scale,1));font-weight:500;letter-spacing:.5px;opacity:.9}
 .wdash-wrap.dv3-dark-v2 .dfp-kpi3-val{font-size:calc(15px*var(--app-text-scale,1));font-weight:700;letter-spacing:-.2px}
@@ -8535,7 +8545,7 @@ html.wdash-sheet-lock,html.wdash-sheet-lock body{overflow:hidden}
 
 /* Calendar/Week/Month segmented control (spec §9) */
 .pln-seg{display:flex;gap:6px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);box-shadow:var(--shadow-xs);padding:4px;margin-bottom:12px}
-.pln-seg-btn{flex:1;padding:8px;border:none;background:none;border-radius:9px;font-size:calc(12px*var(--app-text-scale,1));font-weight:800;color:var(--text2);cursor:pointer;transition:all .15s}
+.pln-seg-btn{flex:1;padding:8px;border:none;background:none;border-radius:var(--radius-sm);font-size:calc(12px*var(--app-text-scale,1));font-weight:800;color:var(--text2);cursor:pointer;transition:all .15s}
 .pln-seg-btn.active{background:var(--surface);color:var(--green);box-shadow:var(--shadow-sm)}
 
 /* Week segment */
@@ -8655,7 +8665,7 @@ html.wdash-sheet-lock,html.wdash-sheet-lock body{overflow:hidden}
 .cx-entry.open .cx-entry-in{visibility:visible;transition:visibility 0s}
 .cx-form{display:flex;flex-direction:column;gap:12px;margin-top:16px;padding-top:16px;border-top:1px solid var(--border)}
 .cx-seg{display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:4px;background:var(--surface2);border-radius:12px}
-.cx-seg-btn{height:38px;border:0;border-radius:9px;background:transparent;color:var(--muted);font-family:inherit;font-size:calc(13.5px*var(--app-text-scale,1));font-weight:800;cursor:pointer;transition:background-color .15s,color .15s}
+.cx-seg-btn{height:38px;border:0;border-radius:var(--radius-sm);background:transparent;color:var(--muted);font-family:inherit;font-size:calc(13.5px*var(--app-text-scale,1));font-weight:800;cursor:pointer;transition:background-color .15s,color .15s}
 .cx-seg-btn.on{background:var(--surface);color:var(--text);box-shadow:var(--shadow-xs)}
 .cx-entry[data-type="dep"] .cx-seg-btn.on{color:var(--green)}
 .cx-entry[data-type="with"] .cx-seg-btn.on{color:var(--red)}
@@ -8723,7 +8733,7 @@ button.cx-sh-tap{width:100%;background:none;border:0;font-family:inherit;color:i
 .cx-wrap .note-group.ng-select-active .note-row{grid-template-columns:auto minmax(0,1fr) auto;grid-template-areas:"chk desc amt" "chk date date";column-gap:12px}
 .cx-bankchip{display:inline-flex;align-items:center;gap:4px;padding:1px 8px;border-radius:99px;font-size:calc(var(--fs-caption)*var(--app-text-scale,1));font-weight:700;color:var(--blue);background:var(--blue-tint)}
 .cx-imglink{display:inline-flex;align-items:center;color:var(--muted)}
-.cx-icbtn{display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;border:0;border-radius:10px;background:none;color:var(--muted);cursor:pointer;transition:background-color .15s,color .15s}
+.cx-icbtn{display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;border:0;border-radius:var(--radius-sm);background:none;color:var(--muted);cursor:pointer;transition:background-color .15s,color .15s}
 .cx-icbtn:active{background:var(--surface2);color:var(--text)}
 .cx-icbtn.del:active{background:var(--red-tint);color:var(--red)}
 .cx-wrap .ng-assign-bar{padding:10px 16px}
@@ -8731,7 +8741,7 @@ button.cx-sh-tap{width:100%;background:none;border:0;font-family:inherit;color:i
 .cx-gtools{display:flex;padding-block:8px 0;padding-inline:16px 10px}
 .cx-gfoot{display:flex;justify-content:flex-end;padding-block:0 4px;padding-inline:16px 10px}
 .cx-wrap .note-row:has(+ .cx-gfoot){border-bottom:0}
-.cx-gbtn{display:inline-flex;align-items:center;gap:6px;min-height:38px;padding:0 10px;border:0;border-radius:10px;background:none;color:var(--muted);font-family:inherit;font-size:calc(12.5px*var(--app-text-scale,1));font-weight:700;cursor:pointer}
+.cx-gbtn{display:inline-flex;align-items:center;gap:6px;min-height:38px;padding:0 10px;border:0;border-radius:var(--radius-sm);background:none;color:var(--muted);font-family:inherit;font-size:calc(12.5px*var(--app-text-scale,1));font-weight:700;cursor:pointer}
 .cx-gbtn.del:active{background:var(--red-tint);color:var(--red)}
 .cx-wrap .ng-select-btn.cx-gbtn.active{color:#fff;background:var(--green)}
 
@@ -8848,7 +8858,7 @@ button.cx-sh-tap{width:100%;background:none;border:0;font-family:inherit;color:i
 .rq-sec::before{content:"";position:absolute;inset-inline-start:0;top:14px;bottom:14px;width:3px;border-radius:0 3px 3px 0;background:linear-gradient(180deg,var(--green),var(--gold))}
 [dir="rtl"] .rq-sec::before{border-radius:3px 0 0 3px}
 .rq-sec-hdr{gap:10px;margin-bottom:14px;padding-bottom:12px;border-bottom:1px dashed var(--border)}
-.rq-sec-hdr svg{width:30px;height:30px;padding:7px;border-radius:10px;background:var(--green-tint);color:var(--green);box-sizing:border-box}
+.rq-sec-hdr svg{width:28px;height:28px;padding:7px;border-radius:10px;background:var(--green-tint);color:var(--green);box-sizing:border-box}
 .rq-sec-hdr span{font-size:calc(12.5px*var(--app-text-scale,1));letter-spacing:.5px;color:var(--text)}
 .rq-modal .field label{color:var(--sub);font-size:calc(10.5px*var(--app-text-scale,1))}
 .rq-modal .field input,.rq-modal .field textarea,.rq-modal .field select{background:var(--surface2);min-height:48px;box-shadow:none}
@@ -9005,7 +9015,7 @@ button.cx-sh-tap{width:100%;background:none;border:0;font-family:inherit;color:i
    MIORA + contextual actions sit in the rail, theme/language live in the more menu. -- */
 .hdr-more-sep{height:1px;background:var(--border);margin:4px 8px}
 .hdr-more-ico{display:inline-flex;align-items:center;justify-content:center;width:15px;min-width:15px;height:15px;flex-shrink:0;color:var(--muted)}
-.hdr-more-ico svg{width:15px;height:15px}
+.hdr-more-ico svg{width:16px;height:16px}
 .hdr-more-val{margin-inline-start:auto;padding-inline-start:16px;font-size:calc(11px*var(--app-text-scale,1));font-weight:700;color:var(--muted)}
 .header-icon-rail .miora-header-btn{width:30px;height:30px}
 /* Rail holds up to 5 controls (SMS import on Banks): keep them compact so the brand never truncates */
@@ -9382,7 +9392,7 @@ body .screen-wrap .sc-header.sav-plain-header.sav-plain-header::after{display:no
 .rq-sec{border-radius:16px;padding:14px;box-shadow:none;background:var(--surface)}
 .rq-sec::before{display:none}
 .rq-sec-hdr{margin-bottom:12px;padding-bottom:10px;gap:9px}
-.rq-sec-hdr svg{width:26px;height:26px;padding:6px;border-radius:8px}
+.rq-sec-hdr svg{width:28px;height:28px;padding:6px;border-radius:8px}
 .rq-sec-hdr span{font-size:calc(12px*var(--app-text-scale,1));font-weight:800;letter-spacing:.2px}
 .rq-modal .field{margin-bottom:12px}
 .rq-modal .field label{text-transform:uppercase;letter-spacing:.5px;font-weight:700;margin-bottom:5px}
@@ -9408,7 +9418,7 @@ body .screen-wrap .sc-header.sav-plain-header.sav-plain-header::after{display:no
 .rpt-item{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-top:10px;padding:8px 8px 8px 0;border-radius:12px}
 .rpt-item-tx{flex:1;min-width:0}
 .rpt-item-act{display:flex;gap:2px;flex:none;opacity:.8}
-.rpt-item-act button{width:34px;height:34px;border-radius:10px;border:0;background:transparent;color:var(--muted);display:flex;align-items:center;justify-content:center;cursor:pointer}
+.rpt-item-act button{width:34px;height:34px;border-radius:var(--radius-sm);border:0;background:transparent;color:var(--muted);display:flex;align-items:center;justify-content:center;cursor:pointer}
 .rpt-item-act button:active{background:var(--surface2)}
 .rpt-item-act button.del{color:var(--red)}
 .rpt-ta{width:100%;min-height:200px;box-sizing:border-box;border:0;outline:0;resize:vertical;background:transparent;color:var(--text);font:inherit;font-size:calc(14px*var(--app-text-scale,1));line-height:1.9}
@@ -9497,14 +9507,14 @@ body .screen-wrap .sc-header.sav-plain-header.sav-plain-header::after{display:no
 .rpt-ib{all:unset;box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;gap:3px;min-width:38px;height:38px;padding:0 9px;border-radius:12px;border:1px solid var(--border);background:var(--surface);color:var(--text2);cursor:pointer;-webkit-tap-highlight-color:transparent;transition:transform .12s,background-color .15s}
 .rpt-ib:active{transform:scale(.94);background:var(--surface2)}
 .rpt-ib:focus-visible{outline:2px solid var(--green);outline-offset:2px}
-.rpt-ib svg{width:15px;height:15px;color:var(--green)}
+.rpt-ib svg{width:16px;height:16px;color:var(--green)}
 .rpt-ib em{font-style:normal;font-size:calc(10.5px*var(--app-text-scale,1));font-weight:800;color:var(--muted)}
 .modal-btns.rpt-actions{flex-direction:row;align-items:stretch;gap:8px;margin-top:10px}
 .rpt-cta,.rpt-cta2{all:unset;box-sizing:border-box;flex:1;min-width:0;height:42px;display:flex;align-items:center;justify-content:center;gap:7px;padding:0 12px;border-radius:13px;font-family:inherit;font-size:calc(13.5px*var(--app-text-scale,1));font-weight:800;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:transform .12s,opacity .15s;white-space:nowrap}
 .rpt-cta{flex:1.25;background:linear-gradient(135deg,var(--green-dark),var(--green));color:#fff;box-shadow:0 3px 10px var(--green-glow)}
 .rpt-cta2{border:1px solid var(--border);background:var(--surface);color:var(--text2)}
 .rpt-cta:active,.rpt-cta2:active{transform:scale(.97)}
-.rpt-cta svg,.rpt-cta2 svg{width:15px;height:15px;flex:none}
+.rpt-cta svg,.rpt-cta2 svg{width:16px;height:16px;flex:none}
 .rpt-cta2 svg{color:var(--green)}
 .rpt-cta2 em{font-style:normal;min-width:20px;height:20px;padding:0 6px;border-radius:99px;display:inline-flex;align-items:center;justify-content:center;font-size:calc(10.5px*var(--app-text-scale,1));font-weight:800;background:var(--surface2);color:var(--muted)}
 .rpt-paper{max-height:50vh}
@@ -9602,7 +9612,7 @@ body .screen-wrap .sc-header.sav-plain-header.sav-plain-header::after{display:no
   padding:3px;gap:3px;border-radius:12px;border:0;background:var(--surface2);box-shadow:none
 }
 .banks-v2 .tx-type-toggle button,.banks-v2 .wm-toggle button{
-  border-radius:10px;font-weight:600;letter-spacing:.2px;min-height:42px;transform:none
+  border-radius:var(--radius-sm);font-weight:600;letter-spacing:.2px;min-height:42px;transform:none
 }
 .banks-v2 .tx-type-toggle button.active,.banks-v2 .wm-toggle button.active{
   background:var(--active-c,var(--green));color:#fff;font-weight:700;box-shadow:none;transform:none
@@ -10266,6 +10276,7 @@ const _ICONS = {
 // "an assistant character" at a glance rather than just two floating dots
 // and a curve — while staying simple enough to stay crisp at 16-17px.
 function aioraFace(size=17, color='#fff'){
+  if(_IC_SNAP) size=_icSnap(size);
   return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" aria-hidden="true">
     <line x1="12" y1="1.6" x2="12" y2="4.6" stroke="${color}" stroke-width="1.5" stroke-linecap="round"/>
     <circle cx="12" cy="1.6" r="1.05" fill="${color}"/>
@@ -10275,10 +10286,27 @@ function aioraFace(size=17, color='#fff'){
     <path d="M9.1 14.4c.95.95 1.9 1.35 2.9 1.35s1.95-.4 2.9-1.35" stroke="${color}" stroke-width="1.4" stroke-linecap="round" fill="none"/>
   </svg>`;
 }
+// Icon scale: every ic() size snaps to one of 5 steps so the same role looks the same on every screen.
+//   12 badges/chips · 14 beside text · 16 buttons & rows (default) · 20 tiles/headers/nav · 28 hero/empty states
+// Larger icons get a slightly lighter stroke so they don't look heavier than small ones.
+// Set _IC_SNAP=false to restore the raw requested sizes (all call sites are untouched).
+const _IC_SNAP = true;
+function _icSnap(s){
+  s = +s;
+  if(!(s>0)) return s;
+  if(s<=12) return 12;
+  if(s<=14) return 14;
+  if(s<=17) return 16;
+  if(s<=22) return 20;
+  return 28;
+}
+function _icStroke(s){ return s>=28 ? 1.6 : s>=20 ? 1.85 : 2; }
 function ic(name, size=16, extra=''){
   const d = _ICONS[name];
   if(!d) return '';
-  return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" ${extra}><path d="${d}"/></svg>`;
+  const sz = _IC_SNAP ? _icSnap(size) : size;
+  const sw = _IC_SNAP ? _icStroke(sz) : 2;
+  return `<svg width="${sz}" height="${sz}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${sw}" stroke-linecap="round" stroke-linejoin="round" ${extra}><path d="${d}"/></svg>`;
 }
 // Direction-aware chevron for Previous/Back and Next controls (Phase 17 Fix).
 // LTR: Previous/Back -> chevron_left, Next -> chevron_right.
@@ -10461,7 +10489,7 @@ function fpInitSmartHeader(){
         <div class="num-btn empty"></div>
         <button class="num-btn" onclick="addPin('0')">0</button>
         <button class="num-btn del" onclick="delPin()">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"/><line x1="18" y1="9" x2="13" y2="14"/><line x1="13" y1="9" x2="18" y2="14"/></svg>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round"><path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"/><line x1="18" y1="9" x2="13" y2="14"/><line x1="13" y1="9" x2="18" y2="14"/></svg>
         </button>
       </div>
     </div>
@@ -10486,10 +10514,10 @@ function fpInitSmartHeader(){
 <div id="gSearchOverlay" class="gsearch-overlay" style="display:none">
   <div class="gsearch-bar">
     <button class="gsearch-back" onclick="closeGlobalSearch()">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
     </button>
     <div class="gsearch-input-wrap">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
       <input id="gSearchBox" class="gsearch-input" oninput="gSearchOnInput(this.value)" autocomplete="off">
     </div>
   </div>
@@ -10532,7 +10560,7 @@ function fpInitSmartHeader(){
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
         </button>
         <button class="miora-header-btn" id="mioraBtn" onclick="toggleMiora()" aria-haspopup="dialog" aria-controls="mioraPanel" aria-expanded="false" aria-label="Open MIORA assistant" title="MIORA" data-i18n-attr="aria-label" data-i18n-aria-label-en="Open MIORA assistant" data-i18n-aria-label-ar="فتح مساعد MIORA">
-          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.8 5.4L19 10l-5.2 1.6L12 17l-1.8-5.4L5 10l5.2-1.6z"/></svg>
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.8 5.4L19 10l-5.2 1.6L12 17l-1.8-5.4L5 10l5.2-1.6z"/></svg>
         </button>
         <div style="position:relative">
           <button class="icon-btn" id="hdrMoreBtn" onclick="hdrToggleMoreMenu(event)" title="More" data-i18n-attr="title" data-i18n-title-en="More" data-i18n-title-ar="المزيد">
@@ -10540,23 +10568,23 @@ function fpInitSmartHeader(){
           </button>
           <div class="hdr-more-menu" id="hdrMoreMenu" style="display:none">
             <button class="hdr-more-item" onclick="hdrCloseMoreMenu();setView('planner')">
-              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/></svg>
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/></svg>
               <span data-i18n-en="Spending Planner" data-i18n-ar="مخطط المصروفات">Spending Planner</span>
             </button>
             <button class="hdr-more-item" onclick="hdrCloseMoreMenu();window.print()">
-              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2M6 14h12v8H6z"/></svg>
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2M6 14h12v8H6z"/></svg>
               <span data-i18n-en="Print Page" data-i18n-ar="طباعة الصفحة">Print Page</span>
             </button>
             <button class="hdr-more-item" onclick="hdrCloseMoreMenu();exportBackup()">
-              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
               <span data-i18n-en="Download Backup" data-i18n-ar="تحميل نسخة احتياطية">Download Backup</span>
             </button>
             <button class="hdr-more-item" onclick="hdrCloseMoreMenu();openRemindersPanel()">
-              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
               <span data-i18n-en="Reminders" data-i18n-ar="التذكيرات">Reminders</span>
             </button>
             <button class="hdr-more-item" onclick="hdrCloseMoreMenu();setView('mylocations')">
-              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0zM12 13a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/></svg>
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0zM12 13a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/></svg>
               <span data-i18n-en="Place History" data-i18n-ar="سجل الأماكن">Place History</span>
             </button>
             <div class="hdr-more-sep" role="separator"></div>
@@ -10565,7 +10593,7 @@ function fpInitSmartHeader(){
               <span data-i18n-en="Light / Dark Mode" data-i18n-ar="الوضع الفاتح / الداكن">Light / Dark Mode</span>
             </button>
             <button class="hdr-more-item" onclick="hdrCloseMoreMenu();toggleLang()">
-              <span class="hdr-more-ico"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg></span>
+              <span class="hdr-more-ico"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg></span>
               <span data-i18n-en="Language" data-i18n-ar="اللغة">Language</span>
               <span class="hdr-more-val" id="langToggleBtn">EN</span>
             </button>
@@ -10635,7 +10663,7 @@ function fpInitSmartHeader(){
       <!-- Header with gradient accent -->
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
         <div style="display:flex;align-items:center;gap:var(--sp3)">
-          <div style="width:38px;height:38px;border-radius:11px;background:#2563eb;display:flex;align-items:center;justify-content:center;font-size:calc(18px*var(--app-text-scale,1));box-shadow:0 4px 14px rgba(124,58,237,.35)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2h6a1 1 0 0 1 1 1v2H8V3a1 1 0 0 1 1-1zM8 4H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-2M9 12h6M9 16h6M9 8h6"/></svg></div>
+          <div style="width:38px;height:38px;border-radius:11px;background:#2563eb;display:flex;align-items:center;justify-content:center;font-size:calc(18px*var(--app-text-scale,1));box-shadow:0 4px 14px rgba(124,58,237,.35)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2h6a1 1 0 0 1 1 1v2H8V3a1 1 0 0 1 1-1zM8 4H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-2M9 12h6M9 16h6M9 8h6"/></svg></div>
           <div>
             <div style="font-size:calc(16px*var(--app-text-scale,1));font-weight:900;color:var(--text);line-height:1.1" id="rptSheetTitle">Reports</div>
             <div style="font-size:calc(11px*var(--app-text-scale,1));color:var(--muted);font-weight:600;margin-top:1px" id="rptSheetSub">Financial insights & analytics</div>
@@ -10665,12 +10693,12 @@ function fpInitSmartHeader(){
          header (top-left) — keeping this row to a clean, symmetric 5. -->
 
     <button class="nav-btn" id="navBtn-Daily" onclick="setView('transactions');navCloseAll()" title="Daily Spend">
-      <svg class="nav-icon" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="16" rx="3"/><path d="M3 9.5h18"/><path d="M8 2.5v4"/><path d="M16 2.5v4"/><circle cx="12" cy="15" r="1.6" fill="currentColor" stroke="none"/></svg>
+      <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="16" rx="3"/><path d="M3 9.5h18"/><path d="M8 2.5v4"/><path d="M16 2.5v4"/><circle cx="12" cy="15" r="1.6" fill="currentColor" stroke="none"/></svg>
       <span id="navBtn-Daily-label"></span>
     </button>
 
     <button class="nav-btn" id="navBtn-Banks" onclick="setView('banks');navCloseAll()" title="Accounts">
-      <svg class="nav-icon" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10h18"/><path d="M4 10 12 4l8 6"/><path d="M5 10v9"/><path d="M9.5 10v9"/><path d="M14.5 10v9"/><path d="M19 10v9"/><path d="M3 21h18"/></svg>
+      <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10h18"/><path d="M4 10 12 4l8 6"/><path d="M5 10v9"/><path d="M9.5 10v9"/><path d="M14.5 10v9"/><path d="M19 10v9"/><path d="M3 21h18"/></svg>
       <span id="navBtn-Banks-label"></span>
     </button>
 
@@ -10679,7 +10707,7 @@ function fpInitSmartHeader(){
          removed/reordered by rebuildNavigation. -->
     <button class="nav-btn active nav-btn-home" id="navBtn-Dashboard" onclick="setView('wsdash');navCloseAll()" title="Dashboard">
       <div class="nav-home-icon-wrap">
-        <svg class="nav-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round">
           <!-- Dashboard: layout-dashboard -->
           <rect x="3" y="3" width="7" height="9" rx="1.5"/>
           <rect x="14" y="3" width="7" height="5" rx="1.5"/>
@@ -10691,12 +10719,12 @@ function fpInitSmartHeader(){
     </button>
 
     <button class="nav-btn" id="navBtn-SiteCustody" onclick="window._cxLand='requests';setView('expenses');navCloseAll()" title="Site Custody">
-      <svg class="nav-icon" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v6c0 5-3 8.5-7 9-4-.5-7-4-7-9V6l7-3z"/><path d="M9 12l2 2 4-4"/></svg>
+      <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v6c0 5-3 8.5-7 9-4-.5-7-4-7-9V6l7-3z"/><path d="M9 12l2 2 4-4"/></svg>
       <span id="navBtn-SiteCustody-label"></span>
     </button>
 
     <button class="nav-btn" id="navBtn-MySavings" onclick="setView('savings');navCloseAll()" title="My Finances">
-      <svg class="nav-icon" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="12" cy="12" r="4.3"/><circle cx="12" cy="12" r="1" fill="currentColor" stroke="none"/><path d="M12 7.7v.9"/><path d="M16.3 12h-.9"/></svg>
+      <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="12" cy="12" r="4.3"/><circle cx="12" cy="12" r="1" fill="currentColor" stroke="none"/><path d="M12 7.7v.9"/><path d="M16.3 12h-.9"/></svg>
       <span id="navBtn-MySavings-label"></span>
     </button>
   </div>
@@ -12855,6 +12883,56 @@ function _monthDisplayLabel(key){
   if(idx<0 || !yearStr) return fallback;
   return MONTH_AR_NAMES[idx]+' '+yearStr;
 }
+// ── Month dropdown: grouped by year once the data spans 2+ years ─────────────
+// Single-year data keeps the flat list. With 2+ years each year becomes a collapsible group
+// (the active month's year starts open), the real current month gets a dot, and the "add"
+// button offers the very next month after the last one — so Dec → Jan of a new year is one tap.
+let _mddOpenYears=null;
+function _mddYear(k){ return parseInt(String(k).split('-')[1],10)||0; }
+const _MDD_ABBR=()=>['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC']; // local, so no dependency on consts defined later in the file
+function _mddShort(k){
+  const abbr=String(k).split('-')[0], i=_MDD_ABBR().indexOf(abbr);
+  return (lang==='ar' && i>=0) ? MONTH_AR_NAMES[i] : abbr;
+}
+function _mddNextKey(k){
+  const [a,y]=String(k).split('-'), i=_MDD_ABBR().indexOf(a), Y=parseInt(y,10);
+  if(i<0||isNaN(Y)) return null;
+  return i===11 ? 'JAN-'+(Y+1) : _MDD_ABBR()[i+1]+'-'+Y;
+}
+function _mddFull(k){ return _mddShort(k)+' '+_mddYear(k); }
+function _monthDDInner(){
+  const years=[...new Set(MONTHS_ORDER.map(_mddYear))].sort((a,b)=>a-b);
+  const grouped=years.length>1;
+  if(!_mddOpenYears) _mddOpenYears=new Set([_mddYear(activeMonth)]);
+  const curKey=_currentRealMonthKey();
+  const row=k=>`
+        <div class="month-dd-row">
+          <button class="month-dd-item ${k===activeMonth?'active':''} ${k===curKey?'cur':''}" onclick="selectMonth('${k}')">${grouped?_mddShort(k):_monthDisplayLabel(k)}</button>
+          ${MONTHS_ORDER.length>1?`<button class="month-dd-delete" onclick="confirmDeleteMonth(event,'${k}')" title="${L('Delete month','حذف الشهر')}">${ic('trash',14)}</button>`:''}
+        </div>`;
+  const list=grouped
+    ? years.map(y=>{
+        const ks=MONTHS_ORDER.filter(k=>_mddYear(k)===y), open=_mddOpenYears.has(y);
+        return `<button type="button" class="month-dd-year ${open?'open':''}" aria-expanded="${open}" onclick="toggleMonthYear(event,${y})"><span class="chev">▾</span><span>${y}</span><span class="cnt">${ks.length}</span></button>`+(open?ks.map(row).join(''):'');
+      }).join('')
+    : MONTHS_ORDER.map(row).join('');
+  const nextK=_mddNextKey(MONTHS_ORDER[MONTHS_ORDER.length-1]);
+  const addLbl=nextK
+    ? L('+ Add '+String(nextK).split('-')[0]+' '+_mddYear(nextK),'+ إضافة '+_mddFull(nextK))
+    : L('+ Add Month','+ إضافة شهر');
+  return list+`
+        <button class="month-dd-item add" onclick="openAddMonth(${nextK?`'${nextK}'`:''})">${addLbl}</button>
+`;
+}
+function toggleMonthYear(e,y){
+  if(e){ e.stopPropagation(); e.preventDefault(); }
+  if(!_mddOpenYears) _mddOpenYears=new Set([_mddYear(activeMonth)]);
+  if(_mddOpenYears.has(y)) _mddOpenYears.delete(y); else _mddOpenYears.add(y);
+  const dd=document.getElementById('monthDropdown'); if(!dd) return;
+  const top=dd.scrollTop;
+  dd.innerHTML=_monthDDInner();
+  dd.scrollTop=top;
+}
 function renderMonthTabs(){
   document.getElementById('monthTabs').innerHTML=`
     <div class="month-selector-wrap">
@@ -12862,13 +12940,7 @@ function renderMonthTabs(){
         <span class="chevron">▾</span><span>${_monthDisplayLabel(activeMonth)}</span>
       </button>
       <div class="month-dropdown" id="monthDropdown" style="display:none">
-        ${MONTHS_ORDER.map(k=>`
-        <div class="month-dd-row">
-          <button class="month-dd-item ${k===activeMonth?'active':''}" onclick="selectMonth('${k}')">${_monthDisplayLabel(k)}</button>
-          ${MONTHS_ORDER.length>1?`<button class="month-dd-delete" onclick="confirmDeleteMonth(event,'${k}')" title="${L('Delete month','حذف الشهر')}">${ic('trash',14)}</button>`:''}
-        </div>`).join('')}
-        <button class="month-dd-item add" onclick="openAddMonth()">+ Add Month</button>
-
+        ${_monthDDInner()}
       </div>
     </div>`;
 }
@@ -12882,6 +12954,8 @@ function toggleMonthDropdown(e){
     setTimeout(()=>{ dd.style.display='none'; dd.classList.remove('fp-menu-closing'); },130);
   } else {
     dd.style.display='flex';
+    const a=dd.querySelector('.month-dd-item.active');
+    if(a) dd.scrollTop=Math.max(0,a.offsetTop-(dd.clientHeight-a.offsetHeight)/2);
   }
   btn.classList.toggle('open',!isOpen);
 }
@@ -12897,7 +12971,7 @@ document.addEventListener('click',function(e){
     if(btn) btn.classList.remove('open');
   }
 });
-function selectMonth(k){activeMonth=k;searchQ='';txShowAll=false;renderMonthTabs();renderView();}
+function selectMonth(k){activeMonth=k;if(_mddOpenYears)_mddOpenYears.add(_mddYear(k));searchQ='';txShowAll=false;renderMonthTabs();renderView();}
 // PERF (Sprint P1): setView() used to loop over every nav id (19) plus every
 // group id (5) on every single navigation, doing a getElementById lookup for
 // each just to toggle one class on/off. We now remember which element was
@@ -13047,15 +13121,15 @@ function navCloseAll(){
 // never has the card built into the DOM in the first place.
 const WS_REPORT_SHEET_CARDS = [
   { view:'monthlyreport', accent:'#A97C1F', shadow:'rgba(169,124,31,.35)',
-    icon:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M8 3v6"/><path d="M16 3v6"/><path d="M7 15h3"/><path d="M14 15h3"/><path d="M7 19h5"/></svg>',
+    icon:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M8 3v6"/><path d="M16 3v6"/><path d="M7 15h3"/><path d="M14 15h3"/><path d="M7 19h5"/></svg>',
     titleEN:'Monthly Report', titleAR:'التقرير الشهري',
     subEN:'Income, expenses & top spending', subAR:'الدخل، المصروفات وأعلى الإنفاق' },
   { view:'bankreport', accent:'#0891b2', shadow:'rgba(8,145,178,.35)',
-    icon:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10L12 3l9 7"/><path d="M4 10v9a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-9"/><path d="M9 21v-6a3 3 0 0 1 6 0v6"/><path d="M12 8v4"/><path d="M10 10h4"/></svg>',
+    icon:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10L12 3l9 7"/><path d="M4 10v9a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-9"/><path d="M9 21v-6a3 3 0 0 1 6 0v6"/><path d="M12 8v4"/><path d="M10 10h4"/></svg>',
     titleEN:'Bank Report', titleAR:'تقرير البنوك',
     subEN:'Balances, interest & net worth', subAR:'الأرصدة، الفوائد وصافي الملكية' },
   { view:'yearlyanalytics', accent:'#dc2626', shadow:'rgba(220,38,38,.35)',
-    icon:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>',
+    icon:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>',
     titleEN:'Yearly Analytics', titleAR:'التحليلات السنوية',
     subEN:'Best & worst months, growth trends', subAR:'أفضل وأسوأ الشهور، اتجاهات النمو' },
 ];
@@ -13081,7 +13155,7 @@ function renderReportsSheetCards(){
         <div class="rpt-title">${L(c.titleEN,c.titleAR)}</div>
         <div class="rpt-sub">${L(c.subEN,c.subAR)}</div>
       </div>
-      <svg class="rpt-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
+      <svg class="rpt-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
     </button>`).join('') + (typeof _msrReportsCardHTML==='function' ? _msrReportsCardHTML() : '');
 }
 function openReportsSheet(){
@@ -15496,7 +15570,7 @@ function wdashSection(id, icon, label, bodyHtml, foldable, summary){
   // for bank cards (bnkToggleOverflow/.bnk-menu) — same wdashOpenColorPicker
   // / wdashHideCard calls underneath, nothing about those functions changed.
   const overflowMenu = `
-        <button type="button" class="wdash-card-act wdash-overflow-btn" onclick="wdashToggleOverflow(event,'${id}')" title="${L('More options','خيارات إضافية')}" aria-label="${L('More options','خيارات إضافية')}"><svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="19" r="1.8"/></svg></button>
+        <button type="button" class="wdash-card-act wdash-overflow-btn" onclick="wdashToggleOverflow(event,'${id}')" title="${L('More options','خيارات إضافية')}" aria-label="${L('More options','خيارات إضافية')}"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="19" r="1.8"/></svg></button>
         <div class="wdash-card-menu" id="wdash-menu-${id}" onclick="event.stopPropagation()">
           <button type="button" class="wdash-card-menu-item" onclick="wdashCloseOverflow();wdashOpenColorPicker('${id}')">${ic('droplet', 14, 'aria-hidden="true"')} ${L('Card color','لون الكارت')}</button>
           <button type="button" class="wdash-card-menu-item danger" onclick="wdashCloseOverflow();wdashHideCard('${id}')">${ic('trash', 14, 'aria-hidden="true"')} ${L('Hide card','إخفاء الكارت')}</button>
@@ -19213,7 +19287,7 @@ function renderSavings(){
       <div class="sc-header-eyebrow">${L('Finance','المالية')}</div>
       <div class="sc-header-title">${L('My Finances','أموالي')}</div>
       <div class="sc-header-sub">${L('Track your income, expenses, assets and net worth','تتبع دخلك ومصروفاتك وأصولك وصافي ثروتك')}</div>
-      <button type="button" class="sav-search-toggle" id="savSearchToggle" onclick="savToggleSearch()" aria-label="${L('Search finances','بحث في أموالي')}" aria-expanded="${(_savSearchOpen||searchQ)?'true':'false'}"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg></button>
+      <button type="button" class="sav-search-toggle" id="savSearchToggle" onclick="savToggleSearch()" aria-label="${L('Search finances','بحث في أموالي')}" aria-expanded="${(_savSearchOpen||searchQ)?'true':'false'}"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg></button>
     </div>
 
     <!-- Finance Summary — Hero KPI (Net Worth) + compact secondary strip
@@ -20988,7 +21062,8 @@ function tlParseDate(s){
 function tlDaysDiff(a,b){ return Math.round((b-a)/(1000*60*60*24)); }
 
 function tlHourglassIcon(size=14,color='currentColor'){
-  return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h12M6 22h12M7 2c0 5.5 3 7.5 5 9 2-1.5 5-3.5 5-9M7 22c0-5.5 3-7.5 5-9 2 1.5 5 3.5 5 9"/></svg>`;
+  if(_IC_SNAP) size=_icSnap(size);
+  return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="${_IC_SNAP?_icStroke(size):2}" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h12M6 22h12M7 2c0 5.5 3 7.5 5 9 2-1.5 5-3.5 5-9M7 22c0-5.5 3-7.5 5-9 2 1.5 5 3.5 5 9"/></svg>`;
 }
 
 // Construction-category icon lookup — purely a display affordance derived
@@ -21064,7 +21139,7 @@ function tlShowAllActivity(){
     <div class="modal-handle"></div>
     <div style="display:flex;align-items:center;gap:11px;margin-bottom:16px">
       <div style="width:40px;height:40px;border-radius:var(--radius-sm);background:var(--green-tint);color:var(--green);display:flex;align-items:center;justify-content:center;flex-shrink:0">
-        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
       </div>
       <div class="ds-title-sm">${L('All Activity','كل الأنشطة')}</div>
     </div>
@@ -21745,7 +21820,7 @@ function tlShowModal(idx){
     <!-- ── Group: Stage details ───────────────────────────────── -->
     <div class="f-sub-card">
       <div class="f-sub-card-title" style="color:var(--green)">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16M4 18h10"/></svg>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16M4 18h10"/></svg>
         ${L('Stage Details','تفاصيل المرحلة')}
       </div>
       <div class="field">
@@ -21775,7 +21850,7 @@ function tlShowModal(idx){
     <!-- ── Group: Schedule ─────────────────────────────────────── -->
     <div class="f-sub-card">
       <div class="f-sub-card-title" style="color:#2563eb">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
         ${L('Schedule','الجدول الزمني')}
       </div>
       <div class="ds-grid-2">
@@ -21793,7 +21868,7 @@ function tlShowModal(idx){
     <!-- ── Group: Appearance ───────────────────────────────────── -->
     <div class="f-sub-card">
       <div class="f-sub-card-title" style="color:#8b5cf6">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="6.5" r=".5"/><circle cx="17.5" cy="10.5" r=".5"/><circle cx="8.5" cy="7.5" r=".5"/><circle cx="6.5" cy="12.5" r=".5"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.9 0 1.5-.7 1.5-1.5 0-.4-.2-.8-.4-1.1-.2-.3-.4-.6-.4-1 0-.8.7-1.4 1.5-1.4H16c3.3 0 6-2.7 6-6 0-4.4-4-8-10-8z"/></svg>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="6.5" r=".5"/><circle cx="17.5" cy="10.5" r=".5"/><circle cx="8.5" cy="7.5" r=".5"/><circle cx="6.5" cy="12.5" r=".5"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.9 0 1.5-.7 1.5-1.5 0-.4-.2-.8-.4-1.1-.2-.3-.4-.6-.4-1 0-.8.7-1.4 1.5-1.4H16c3.3 0 6-2.7 6-6 0-4.4-4-8-10-8z"/></svg>
         ${L('Color Tag','لون المرحلة')}
       </div>
       <div style="display:flex;gap:var(--sp3);align-items:center;flex-wrap:wrap;padding-top:2px">
@@ -24123,7 +24198,7 @@ function renderBankMetaRow(bal, key, tot, vis){
     var intVal = vis ? (fmt(monthInt)+' '+cur) : '● ●';
     intItem = '<div class="bal-meta-item">'
       + '<div class="bal-meta-label" style="color:var(--vc-int-lbl,rgba(255,255,255,.92));display:flex;align-items:center;gap:var(--sp1)">'
-      + '<svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>'
+      + '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>'
       + (lang==='ar' ? 'فائدة شهرية' : 'Monthly Int.')
       + '</div>'
       + '<div class="bal-meta-value ' + hidCls + '" style="color:var(--vc-int-val,rgba(255,220,100,.95))">' + intVal + '</div>'
@@ -25025,12 +25100,12 @@ function renderBanks(m){
 
     const menuItemsHTML = `
               <button type="button" class="bnk-menu-item" onclick="bnkCloseOverflow();toggleBal('${b.key}')">${eyeSVG(vis)} ${vis?L('Hide Balance','إخفاء الرصيد'):L('Show Balance','إظهار الرصيد')}</button>
-              <button type="button" class="bnk-menu-item" onclick="bnkCloseOverflow();openBankColorPicker('${b.key}')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="8.5" cy="9" r="1.5" fill="currentColor" stroke="none"/><circle cx="15.5" cy="9" r="1.5" fill="currentColor" stroke="none"/><circle cx="12" cy="15" r="1.5" fill="currentColor" stroke="none"/></svg> ${L('Customize Card','تخصيص الكارت')}</button>
+              <button type="button" class="bnk-menu-item" onclick="bnkCloseOverflow();openBankColorPicker('${b.key}')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="8.5" cy="9" r="1.5" fill="currentColor" stroke="none"/><circle cx="15.5" cy="9" r="1.5" fill="currentColor" stroke="none"/><circle cx="12" cy="15" r="1.5" fill="currentColor" stroke="none"/></svg> ${L('Customize Card','تخصيص الكارت')}</button>
               <button type="button" class="bnk-menu-item" onclick="bnkCloseOverflow();openBankLogoChanger('${b.key}')">${ic('photo',15)} ${L('Change Logo','تغيير اللوجو')}</button>
               <button type="button" class="bnk-menu-item" onclick="bnkCloseOverflow();openBankAcctNumModal('${b.key}')">${ic('id',15)} ${L('Account Number & IBAN','رقم الحساب و IBAN')}</button>
-              <button type="button" class="bnk-menu-item" onclick="bnkCloseOverflow();openBankInterestModal('${b.key}')" style="${monthInt>0?'color:var(--green)':''}"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg> ${L('Interest Rate','سعر الفائدة')}</button>
+              <button type="button" class="bnk-menu-item" onclick="bnkCloseOverflow();openBankInterestModal('${b.key}')" style="${monthInt>0?'color:var(--green)':''}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg> ${L('Interest Rate','سعر الفائدة')}</button>
               <div class="bnk-menu-divider"></div>
-              <button type="button" class="bnk-menu-item danger" onclick="bnkCloseOverflow();deleteBankConfirm('${b.key}')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6l-1 13a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v5m4-5v5"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg> ${L('Delete Account','حذف الحساب')}</button>`;
+              <button type="button" class="bnk-menu-item danger" onclick="bnkCloseOverflow();deleteBankConfirm('${b.key}')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6l-1 13a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v5m4-5v5"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg> ${L('Delete Account','حذف الحساب')}</button>`;
 
     return `
     <!-- BANK CARD: ${esc(b.name)} ─── -->
@@ -25048,7 +25123,7 @@ function renderBanks(m){
             ${monthInt>0?`<span class="bnk-card-badge" style="${_bdgStyle2}">${L('Interest','فائدة')}</span>`:''}
           </div>
           <div class="bnk-card-controls">
-                        <button type="button" class="bnk-overflow-btn" onclick="bnkToggleOverflow(event,'${b.key}')"><svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="19" r="1.8"/></svg></button>
+                        <button type="button" class="bnk-overflow-btn" onclick="bnkToggleOverflow(event,'${b.key}')"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="19" r="1.8"/></svg></button>
             <svg class="bnk-chevron" id="bnk-chev-${b.key}" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="${_isOpen?'transform:rotate(180deg)':''}"><path d="M6 9l6 6 6-6"/></svg>
             <div class="bnk-menu" id="bnk-menu-${b.key}" onclick="event.stopPropagation()">${menuItemsHTML}
             </div>
@@ -25171,7 +25246,7 @@ function renderBanks(m){
                         <option value="other" ${withMethods[b.key]==='other'?'selected':''}>${L('Other Bank','بنك آخر')}</option>`;
                     })()}
                   </select>
-                  <svg class="sc-select-chevron" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+                  <svg class="sc-select-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
                 </div>
               </div>
             </div>
@@ -25954,8 +26029,9 @@ function persistCurrency(cur){
 // ── SVG icon helpers for settings ────────────────────────────────────────────
 function _sttIcon(path, opts={}){
   const col=opts.col||'var(--green)';
-  const size=opts.size||'20';
-  return `<svg viewBox="0 0 24 24" width="${size}" height="${size}" fill="none" stroke="${col}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${path}</svg>`;
+  let size=opts.size||'20';
+  if(_IC_SNAP) size=_icSnap(size);
+  return `<svg viewBox="0 0 24 24" width="${size}" height="${size}" fill="none" stroke="${col}" stroke-width="${_IC_SNAP?_icStroke(size):2}" stroke-linecap="round" stroke-linejoin="round">${path}</svg>`;
 }
 const STT_ICONS={
   home:      `<path d="M3 10L12 3l9 7"/><path d="M4 10v9a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-9"/><path d="M9 21v-6a3 3 0 0 1 6 0v6"/>`,
@@ -26041,9 +26117,9 @@ const ICONS = {
   wallet:      `<path d="M20 7H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/><path d="M16 3H8a2 2 0 0 0-2 2v2h12V5a2 2 0 0 0-2-2z"/><circle cx="17" cy="14" r="1.5" fill="currentColor" stroke="none"/>`,
 };
 function icon(key, opts={}){
-  const size  = opts.size  || 14;
+  const size  = _IC_SNAP ? _icSnap(opts.size || 14) : (opts.size || 14);
   const col   = opts.col   || 'currentColor';
-  const sw    = opts.sw    || 2;
+  const sw    = opts.sw    || (_IC_SNAP ? _icStroke(size) : 2);
   const style = opts.style || '';
   const path  = ICONS[key] || '';
   return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${col}" stroke-width="${sw}" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;${style}">${path}</svg>`;
@@ -39173,10 +39249,10 @@ function _notesRowItemHtml(n){
     <div class="qn-swipe" data-id="${n.id}">
     ${sel ? '' : `<button type="button" class="qn-swipe-del" onclick="_notesSwipeDelete('${n.id}')" aria-label="${L('Delete','حذف')}">${ic('trash',18)}<span>${L('Delete','حذف')}</span></button>`}
     <div class="qn-row" ${openAttr} role="button" tabindex="0">
-      ${sel ? `<span class="qn-sel-dot${checked?' checked':''}"></span>` : (n.pinned ? `<svg class="qn-pin-dot" width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2c-.6 0-1 .4-1 1v6.2L7.6 12.4c-.4.3-.6.8-.6 1.3v1.3c0 .5.4 1 1 1h3v6l1 2 1-2v-6h3c.6 0 1-.5 1-1v-1.3c0-.5-.2-1-.6-1.3L13 9.2V3c0-.6-.4-1-1-1z"/></svg>` : '')}
+      ${sel ? `<span class="qn-sel-dot${checked?' checked':''}"></span>` : (n.pinned ? `<svg class="qn-pin-dot" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2c-.6 0-1 .4-1 1v6.2L7.6 12.4c-.4.3-.6.8-.6 1.3v1.3c0 .5.4 1 1 1h3v6l1 2 1-2v-6h3c.6 0 1-.5 1-1v-1.3c0-.5-.2-1-.6-1.3L13 9.2V3c0-.6-.4-1-1-1z"/></svg>` : '')}
       <div style="flex:1;min-width:0">
         <div class="qn-row-title">${esc(title) || L('New Note','ملاحظة جديدة')}</div>
-        <div class="qn-row-preview">${n.locked ? `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align:-1px;margin-inline-end:3px"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>${L('Locked','مقفلة')}` : (esc(preview) || L('No additional text','لا يوجد نص إضافي'))}</div>
+        <div class="qn-row-preview">${n.locked ? `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align:-1px;margin-inline-end:3px"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>${L('Locked','مقفلة')}` : (esc(preview) || L('No additional text','لا يوجد نص إضافي'))}</div>
       </div>
       <div class="qn-row-date">${dateStr}</div>
     </div>
@@ -39193,7 +39269,7 @@ function _notesGridItemHtml(n){
   return `
     <div class="qn-swipe qn-grid-wrap" data-id="${n.id}">
       <div class="qn-grid-card${sel?' qn-sel-active':''}" ${openAttr} role="button" tabindex="0">
-        ${sel ? `<span class="qn-sel-dot${checked?' checked':''}"></span>` : (n.pinned ? `<svg class="qn-grid-pin" width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2c-.6 0-1 .4-1 1v6.2L7.6 12.4c-.4.3-.6.8-.6 1.3v1.3c0 .5.4 1 1 1h3v6l1 2 1-2v-6h3c.6 0 1-.5 1-1v-1.3c0-.5-.2-1-.6-1.3L13 9.2V3c0-.6-.4-1-1-1z"/></svg>` : '')}
+        ${sel ? `<span class="qn-sel-dot${checked?' checked':''}"></span>` : (n.pinned ? `<svg class="qn-grid-pin" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2c-.6 0-1 .4-1 1v6.2L7.6 12.4c-.4.3-.6.8-.6 1.3v1.3c0 .5.4 1 1 1h3v6l1 2 1-2v-6h3c.6 0 1-.5 1-1v-1.3c0-.5-.2-1-.6-1.3L13 9.2V3c0-.6-.4-1-1-1z"/></svg>` : '')}
         ${previewHtml}
         <div class="qn-grid-title">${esc(title) || L('New Note','ملاحظة جديدة')}</div>
         <div class="qn-grid-date">${n.locked ? `${L('Locked','مقفلة')} · ` : ''}${dateStr}</div>
@@ -39230,7 +39306,7 @@ function renderNotesList(){
         ${ic(_notesViewMode==='grid'?'list':'grid',17)}
       </button>
       <button type="button" class="icon-btn" onclick="_notesOpenListMenu()" aria-label="${L('More','المزيد')}">
-        <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>
       </button>
       <button type="button" class="icon-btn" onclick="createNewNote()" aria-label="${L('New note','ملاحظة جديدة')}">${ic('plus',18)}</button>
     </div>`;
@@ -39357,7 +39433,7 @@ function _renderNoteEditorUnlocked(n){
         <svg width="16" height="16" viewBox="0 0 24 24" fill="${n.pinned?'currentColor':'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2c-.6 0-1 .4-1 1v6.2L7.6 12.4c-.4.3-.6.8-.6 1.3v1.3c0 .5.4 1 1 1h3v6l1 2 1-2v-6h3c.6 0 1-.5 1-1v-1.3c0-.5-.2-1-.6-1.3L13 9.2V3c0-.6-.4-1-1-1z"/></svg>
       </button>
       <button type="button" class="icon-btn" id="qnMoreBtn" onclick="_notesOpenMoreMenu()" aria-label="${L('More','المزيد')}">
-        <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>
       </button>
     </div>
     <div id="qnBody" class="qn-body${n.bg==='lines'?' qn-bg-lines':n.bg==='grid'?' qn-bg-grid':''}" contenteditable="true" oninput="_notesAutosave()" dir="auto">${n.bodyHTML || ''}</div>
@@ -41403,7 +41479,7 @@ function rqReportOpen(d){
   const pill=(k,n,en,arr)=>n?`<span class="rpt-stat st-${k}"><i></i><b>${n}</b>${L(en,arr)}</span>`:'';
   const stats=pill('received',cc.received,'received','تم استلام')+pill('notes',cc.notes,'with notes','مع ملاحظات')+pill('rejected',cc.rejected,'not received','لم يتم');
   const on=rqReportEnabled();
-  const shareIc='<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 8 5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg>';
+  const shareIc='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 8 5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg>';
   document.getElementById('modalContent').innerHTML=`
     <div class="modal-handle"></div>
     <div class="modal-hdr">
@@ -41947,8 +42023,15 @@ setTimeout(function(){ try{ rqReportCheck(); }catch(e){ _logErr('rqReportCheck',
 
 // ── Add New Month ────────────────────────────────────────────────────────────
 const MONTH_OPTIONS=['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
-function openAddMonth(){
-  const nextYear=new Date().getFullYear();
+function openAddMonth(prefKey){
+  // Default = the month right after the last one (so Dec-2026 → JAN 2027), not "January of this year".
+  let _pk=prefKey;
+  if(!_pk || _monthKeyToOrdinal(_pk)===null){
+    const _lo=_monthKeyToOrdinal(MONTHS_ORDER[MONTHS_ORDER.length-1]);
+    _pk=(_lo===null)?_currentRealMonthKey():_ordinalToMonthKey(_lo+1);
+  }
+  const nextYear=parseInt(_pk.split('-')[1],10)||new Date().getFullYear();
+  const nextMo=_pk.split('-')[0];
   document.getElementById('modalContent').innerHTML=`
     <div class="modal-handle"></div>
     <div class="modal-hdr">
@@ -41960,7 +42043,7 @@ function openAddMonth(){
     </div>
     <div class="field"><label>${L('Month','الشهر')}</label>
       <select id="newMonthName">
-        ${MONTH_OPTIONS.map(mo=>`<option value="${mo}">${mo}</option>`).join('')}
+        ${MONTH_OPTIONS.map((mo,i)=>`<option value="${mo}" ${mo===nextMo?'selected':''}>${lang==='ar'?MONTH_AR_NAMES[i]:mo}</option>`).join('')}
       </select>
     </div>
     <div class="field"><label>${L('Year','السنة')}</label><input type="text" inputmode="decimal" data-calc id="newMonthYear" value="${nextYear}" placeholder="2026" style="font-size:calc(20px*var(--app-text-scale,1));font-weight:900;text-align:center"></div>
@@ -42350,9 +42433,11 @@ function exportToExcel(){
 // Opt-in, on-device place log. While the app is open and visible it watches
 // the position; a stay of >= N minutes (15/30) inside a small radius is
 // recorded as a visit. A place seen again only bumps `visits` and `last`.
+// Unnamed places get a suggested name (`geo`) from a one-off OpenStreetMap lookup of their
+// rounded coordinates; everything else stays on the device.
 // Web limitation: the browser gives no location access once the app is
 // closed/backgrounded, so continuity across a short gap (<= MAX_GAP_MS) is
-// inferred from the last fix. Data never leaves the device (localStorage).
+// inferred from the last fix. Places live in localStorage on the device.
 const MLOC = (function(){
   const PLACES_KEY='wdp_myloc_places_v1', STATE_KEY='wdp_myloc_state_v1';
   const RADIUS_M=120, MAX_ACC_M=100, MAX_GAP_MS=3*3600*1000, MAX_PLACES=200, SAVE_EVERY_MS=30000;
@@ -42397,6 +42482,7 @@ const MLOC = (function(){
       if(places.length>MAX_PLACES){ places.sort((a,b)=>b.last-a.last); places.length=MAX_PLACES; }
     }
     savePlaces();
+    if(!p) setTimeout(resolvePending,800);
     try{ showToast(p?(L('Visit counted: ','تم احتساب زيارة: ')+plainLabel(p)+' ('+p.visits+')'):L('Location saved','تم تسجيل المكان')); }catch(e){}
     if(typeof currentView!=='undefined' && currentView==='mylocations') try{ renderView(); }catch(e){}
   }
@@ -42455,6 +42541,41 @@ const MLOC = (function(){
   }
   function refresh(){ if(currentView==='mylocations') try{ renderView(); }catch(e){} }
 
+  // ── Suggested names: unnamed places get the real location name (OpenStreetMap / Nominatim) ──
+  // Stored in `geo`, separate from the user's own `name`, so renaming always wins and nothing is overwritten.
+  const GEO_RETRY_MS=15*60000; let geoBusy=false;
+  function geoLabel(j){
+    if(!j||j.error) return '';
+    const a=j.address||{};
+    let n=String(j.name||'').trim();
+    if(!n){
+      const road=a.road||a.pedestrian||a.footway||'';
+      const area=a.neighbourhood||a.suburb||a.quarter||a.village||a.city_district||a.town||a.city||'';
+      n=[road,area].filter(Boolean).join(' - ')||a.city||a.town||a.village||a.county||a.state||'';
+    }
+    return String(n).trim().slice(0,60);
+  }
+  function geoFetch(p){
+    const lg=(typeof lang!=='undefined'&&lang==='ar')?'ar':'en';
+    const url='https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=18&addressdetails=1&accept-language='+lg+'&lat='+p.lat.toFixed(4)+'&lon='+p.lng.toFixed(4);
+    const ctl=(typeof AbortController!=='undefined')?new AbortController():null;
+    const t=ctl?setTimeout(function(){ ctl.abort(); },8000):0;
+    return fetch(url,{headers:{'Accept':'application/json'},signal:ctl?ctl.signal:undefined})
+      .then(function(r){ clearTimeout(t); if(!r.ok) throw new Error('http '+r.status); return r.json(); });
+  }
+  function resolvePending(){
+    if(geoBusy) return;
+    if(typeof navigator!=='undefined' && navigator.onLine===false) return;
+    load();
+    const now=Date.now();
+    const p=places.find(function(x){ return !x.name && !x.geo && x.lat!=null && x.lng!=null && (!x.geoTry || now-x.geoTry>GEO_RETRY_MS); });
+    if(!p) return;
+    geoBusy=true;
+    geoFetch(p).then(function(j){ const n=geoLabel(j); if(n) p.geo=n; else p.geoTry=Date.now(); })
+      .catch(function(){ p.geoTry=Date.now(); })
+      .then(function(){ savePlaces(); geoBusy=false; if(p.geo) refresh(); setTimeout(resolvePending,1200); }); // ≥1 request/sec per Nominatim policy
+  }
+
   function toggle(){
     load();
     if(!native() && !('geolocation' in navigator)){ try{ showToast(L('Location is not supported on this device','الموقع غير مدعوم على الجهاز ده')); }catch(e){} return; }
@@ -42465,7 +42586,7 @@ const MLOC = (function(){
   function setMinutes(m){ load(); st.minutes=(OPTS.indexOf(m)>=0?m:15); saveState(true); refresh(); }
   function rename(id){
     load(); const p=places.find(x=>x.id===id); if(!p) return;
-    const v=prompt(L('Place name','اسم المكان'),p.name||'');
+    const v=prompt(L('Place name','اسم المكان'),p.name||p.geo||'');
     if(v===null) return; p.name=String(v).trim().slice(0,60);
     const b=prompt(L('Branch / area (optional)','الفرع / المنطقة (اختياري)'),p.branch||'');
     if(b!==null) p.branch=String(b).trim().slice(0,60);
@@ -42688,7 +42809,7 @@ const MLOC = (function(){
     phLoaded=true; phStarted=true;
     phTx('readwrite',function(s){ s.clear(); ok.forEach(function(r){ s.put(r); }); return null; }).catch(function(){});
   }
-  function plainLabel(p){ return (p.name||(L('Place','مكان')+' '+(p.n||'')))+(p.branch?' - '+p.branch:''); }
+  function plainLabel(p){ return (p.name||p.geo||(L('Place','مكان')+' '+(p.n||'')))+(p.branch?' - '+p.branch:''); }
   function fmtDay(ts){
     const loc=(typeof lang!=='undefined'&&lang==='ar')?'ar-EG':'en-GB';
     const o={day:'numeric',month:'long',year:'numeric'};
@@ -42697,7 +42818,7 @@ const MLOC = (function(){
   }
   // "Name - Branch - Date - Location" (branch / link omitted when absent)
   function titleLine(p){
-    const nm=[p.name?esc(p.name):(L('Place','مكان')+' '+(p.n||''))];
+    const nm=[(p.name||p.geo)?esc(p.name||p.geo):(L('Place','مكان')+' '+(p.n||''))];
     if(p.branch) nm.push(esc(p.branch));
     const meta=['<span>'+fmtDay(p.last)+'</span>'];
     if(p.lat!=null && p.lng!=null) meta.push('<a class="mlx-map" href="https://www.google.com/maps?q='+p.lat+','+p.lng+'" target="_blank" rel="noopener">'+ic('pin',13)+' '+L('Location','الموقع')+'</a>');
@@ -42724,6 +42845,7 @@ const MLOC = (function(){
   }
   function ensureTick(){ if(tickId===null) tickId=setInterval(tick,1000); }
   function render(){
+    try{ setTimeout(resolvePending,0); }catch(e){}
     load();
     ensureTick();
     phEnsure();
@@ -42761,7 +42883,7 @@ const MLOC = (function(){
         <div class="mlx-sep"></div>
         <div class="mlx-label-s">${L('Save a place after staying','سجّل المكان بعد قعاد')}</div>
         <div class="mlx-chips">${OPTS.map(minBtn).join('')}</div>
-        <div class="mlx-note">${native()?L('Runs in the background (a notification stays visible while tracking). Data stays on this device only.','بيشتغل في الخلفية (بيظهر إشعار ثابت طول ما التتبع شغّال). البيانات بتفضل على الجهاز ده بس.'):L('Works while the app is open on screen (browser limit). Data stays on this device only.','بيشتغل والتطبيق مفتوح على الشاشة (قيد من المتصفح). البيانات بتفضل على الجهاز ده بس.')}</div>
+        <div class="mlx-note">${native()?L('Runs in the background (a notification stays visible while tracking). Your places stay on this device; only a rounded position is sent to OpenStreetMap to suggest a name.','بيشتغل في الخلفية (بيظهر إشعار ثابت طول ما التتبع شغّال). أماكنك بتفضل على الجهاز ده؛ بس بيتبعت موقع تقريبي لـ OpenStreetMap عشان يقترح الاسم.'):L('Works while the app is open on screen (browser limit). Your places stay on this device; only a rounded position is sent to OpenStreetMap to suggest a name.','بيشتغل والتطبيق مفتوح على الشاشة (قيد من المتصفح). أماكنك بتفضل على الجهاز ده؛ بس بيتبعت موقع تقريبي لـ OpenStreetMap عشان يقترح الاسم.')}</div>
       </div>
       ${manualHTML()}
       ${list.length?rows+`<div class="mlx-clear"><button class="mlx-linkbtn" onclick="MLOC.clearAll()">${L('Delete all places','حذف كل الأماكن')}</button></div>`
@@ -42770,6 +42892,7 @@ const MLOC = (function(){
   }
   function boot(){
     load();
+    setTimeout(resolvePending,3000);
     if(st.enabled) start();
     document.addEventListener('visibilitychange',function(){
       if(!st.enabled || native()) return;
@@ -43236,70 +43359,70 @@ let _tourIdx = 0;
 const TOUR_STEPS = [
   { // 1 — Welcome
     view:null, target:null, welcome:true,
-    icon:'<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.4 7.2H22l-6 4.6L18.4 21 12 16.4 5.6 21 8 13.8l-6-4.6h7.6z"/></svg>',
+    icon:'<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.4 7.2H22l-6 4.6L18.4 21 12 16.4 5.6 21 8 13.8l-6-4.6h7.6z"/></svg>',
     titleEn:'Welcome to FINORA', titleAr:'Welcome to FINORA',
     descEn:'Your money. Your future.<br>Manage your accounts, expenses, and savings all in one place.',
     descAr:'أموالك. مستقبلك.<br>إدارة حساباتك، مصروفاتك ومدخراتك في مكان واحد.'
   },
   { // 2 — Dashboard
     view:'wsdash', target:'#navBtn-Dashboard',
-    icon:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>',
+    icon:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>',
     titleEn:'Dashboard — Home', titleAr:'Dashboard — الرئيسية',
     descEn:'Your quick overview of balance, income, expenses and top indicators.',
     descAr:'هنا هتلاقي نظرة سريعة على رصيدك، الدخل، المصروفات وأهم المؤشرات.'
   },
   { // 3 — Dashboard KPI hero
     view:'wsdash', target:'.wdash-wrap .dv3-hero',
-    icon:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l3 8 4-16 3 8h4"/></svg>',
+    icon:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l3 8 4-16 3 8h4"/></svg>',
     titleEn:'Total Net Balance', titleAr:'صافي الرصيد',
     descEn:'Track your net balance and monthly change from one place.',
     descAr:'تابع صافي رصيدك والتغير الشهري من مكان واحد.'
   },
   { // 4 — Banks
     view:'banks', target:'#navBtn-Banks',
-    icon:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2.5"/><path d="M2 10h20"/><path d="M6 15h4"/></svg>',
+    icon:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2.5"/><path d="M2 10h20"/><path d="M6 15h4"/></svg>',
     titleEn:'Accounts — Banks & Wallets', titleAr:'Accounts — البنوك والمحافظ',
     descEn:'Add your bank accounts and e-wallets and track their balances and activity.',
     descAr:'أضف حساباتك البنكية ومحافظك الإلكترونية وتابع أرصدتها وحركتها بسهولة.'
   },
   { // 5 — Daily
     view:'transactions', target:'#navBtn-Daily',
-    icon:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h12a1 1 0 0 1 1 1v18l-2.5-1.5L14 21l-2-1.5L10 21l-2.5-1.5L5 21V3a1 1 0 0 1 1-1z"/><path d="M8 7.5h8"/><path d="M8 11.5h8"/><path d="M8 15.5h5"/></svg>',
+    icon:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h12a1 1 0 0 1 1 1v18l-2.5-1.5L14 21l-2-1.5L10 21l-2.5-1.5L5 21V3a1 1 0 0 1 1-1z"/><path d="M8 7.5h8"/><path d="M8 11.5h8"/><path d="M8 15.5h5"/></svg>',
     titleEn:'Daily Spend — Spending Log', titleAr:'Daily Spend — الإنفاق اليومي',
     descEn:'Log your daily spending and track it against your daily target.',
     descAr:'سجّل مصروفاتك اليومية وتابعها مقابل المستهدف اليومي.'
   },
   { // 6 — Site Custody
     view:'expenses', target:'#navBtn-SiteCustody',
-    icon:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15a8 8 0 0 1 16 0"/><path d="M2 15h20"/><path d="M2 15v1.5a1.5 1.5 0 0 0 1.5 1.5h17a1.5 1.5 0 0 0 1.5-1.5V15"/><path d="M12 15V9"/></svg>',
+    icon:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15a8 8 0 0 1 16 0"/><path d="M2 15h20"/><path d="M2 15v1.5a1.5 1.5 0 0 0 1.5 1.5h17a1.5 1.5 0 0 0 1.5-1.5V15"/><path d="M12 15V9"/></svg>',
     titleEn:'Site Custody', titleAr:'Site Custody — عهدة الموقع',
     descEn:'Track deposited, spent and remaining custody amounts.',
     descAr:'تابع المبالغ المودعة، المصروفات والمتبقي من العُهدة.'
   },
   { // 7 — My Finances
     view:'savings', target:'#navBtn-MySavings',
-    icon:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="6" rx="8" ry="3"/><path d="M4 6v6c0 1.66 3.58 3 8 3s8-1.34 8-3V6"/><path d="M4 12v6c0 1.66 3.58 3 8 3s8-1.34 8-3v-6"/></svg>',
+    icon:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="6" rx="8" ry="3"/><path d="M4 6v6c0 1.66 3.58 3 8 3s8-1.34 8-3V6"/><path d="M4 12v6c0 1.66 3.58 3 8 3s8-1.34 8-3v-6"/></svg>',
     titleEn:'My Finances', titleAr:'My Finances — أموالي',
     descEn:'Track your income, assets, liabilities and net worth.',
     descAr:'تابع دخلك، أصولك، التزاماتك وصافي ثروتك.'
   },
   { // 8 — Quick Actions
     view:'wsdash', target:'.fp-qa-row',
-    icon:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg>',
+    icon:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg>',
     titleEn:'Quick Actions', titleAr:'Quick Actions — إجراءات سريعة',
     descEn:'Log your most common financial actions in a tap, right from the Dashboard.',
     descAr:'سجّل أهم العمليات المالية بسرعة من الاختصارات الموجودة في الداشبورد.'
   },
   { // 9 — Settings
     view:null, target:'#navBtn-SettingsHeader',
-    icon:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>',
+    icon:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>',
     titleEn:'Settings', titleAr:'Settings — الإعدادات',
     descEn:'Control language, appearance, currency, sound and security here.',
     descAr:'من هنا تقدر تتحكم في اللغة، المظهر، العملة، الصوت وإعدادات الأمان.'
   },
   { // 10 — Closing
     view:null, target:null, welcome:true, closing:true,
-    icon:'<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>',
+    icon:'<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>',
     titleEn:"You're all set", titleAr:'كل حاجة جاهزة 🎉',
     descEn:'You can start using FINORA now. Whenever you\'re stuck, tap the small MIORA button — I\'m here whenever you need help.',
     descAr:'دلوقتي تقدر تبدأ استخدام FINORA. لو احتجت مساعدة، دوس على زرار MIORA الصغير — أنا موجود هنا لو احتجت أي حاجة.'
@@ -47334,7 +47457,7 @@ function _msrReportsCardHTML(){
         <div class="rpt-title">${L('Month-End Spending','تقرير آخر الشهر')}</div>
         <div class="rpt-sub">${L('Spending by category & saving tips','المصروفات حسب الفئة واقتراحات التوفير')}</div>
       </div>
-      <svg class="rpt-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
+      <svg class="rpt-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
     </button>`;
 }
 // ── Month-end spending report → bell notification ───────────────────────────
