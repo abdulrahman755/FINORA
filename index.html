@@ -663,7 +663,7 @@ button:disabled{opacity:.5;cursor:not-allowed;pointer-events:none}
   border-color:var(--green);
   color:var(--green);
 }
-.num-btn.del{font-size:calc(15px*var(--app-text-scale,1));color:var(--muted);background:transparent;border-color:transparent;box-shadow:none;}
+.num-btn.del{font-size:calc(var(--fs-h3)*var(--app-text-scale,1));color:var(--muted);background:transparent;border-color:transparent;box-shadow:none;}
 .numpad .num-btn.del:active{background:var(--surface2);border-color:var(--border);color:var(--text);box-shadow:none;transform:scale(.95);}
 .num-btn.empty{background:transparent;border-color:transparent;cursor:default;box-shadow:none;pointer-events:none;}
 
@@ -1918,7 +1918,7 @@ tr.row-selected td{background:var(--green-tint)}
   border-bottom:1px solid var(--border);
 }
 .note-row:last-child{border-bottom:none}
-.note-row-date{grid-area:date;font-size:calc(10px*var(--app-text-scale,1));color:var(--muted);white-space:nowrap}
+.note-row-date{grid-area:date;font-size:calc(var(--fs-label)*var(--app-text-scale,1));color:var(--muted);white-space:nowrap}
 .note-row-desc{
   grid-area:desc;font-size:calc(12.5px*var(--app-text-scale,1));color:var(--desc-color);font-family:var(--desc-font);
   font-weight:var(--desc-weight);line-height:1.35;
@@ -1932,7 +1932,7 @@ tr.row-selected td{background:var(--green-tint)}
    Purely additive: new classes only, scoped to the __none__ group via the
    ng-select-active toggle class. No existing .note-row/.note-header markup
    or behavior is changed when this mode is off (the default). */
-.ng-select-btn{background:none;border:none;cursor:pointer;padding:4px 6px;border-radius:7px;color:var(--muted);flex-shrink:0;line-height:1;display:flex;align-items:center;gap:4px;font-size:calc(10px*var(--app-text-scale,1));font-weight:800}
+.ng-select-btn{background:none;border:none;cursor:pointer;padding:4px 6px;border-radius:7px;color:var(--muted);flex-shrink:0;line-height:1;display:flex;align-items:center;gap:4px;font-size:calc(var(--fs-label)*var(--app-text-scale,1));font-weight:800}
 .ng-select-btn:active{background:var(--surface2)}
 .ng-select-btn.active{color:#fff;background:var(--green)}
 .note-row-check{display:none;align-items:center;flex-shrink:0}
@@ -1941,11 +1941,11 @@ tr.row-selected td{background:var(--green-tint)}
 .note-row-check input{width:16px;height:16px;accent-color:var(--green);cursor:pointer}
 .ng-assign-bar{display:none;align-items:center;gap:var(--sp2);padding:9px 14px;background:var(--surface2);border-bottom:1px solid var(--border);flex-wrap:wrap}
 .note-group.ng-select-active .ng-assign-bar{display:flex}
-.ng-selectall{display:flex;align-items:center;gap:5px;font-size:calc(11px*var(--app-text-scale,1));font-weight:700;color:var(--text);cursor:pointer;flex-shrink:0}
+.ng-selectall{display:flex;align-items:center;gap:5px;font-size:calc(var(--fs-caption)*var(--app-text-scale,1));font-weight:700;color:var(--text);cursor:pointer;flex-shrink:0}
 .ng-selectall input{width:15px;height:15px;accent-color:var(--green);cursor:pointer}
 .ng-sel-count{font-size:calc(10.5px*var(--app-text-scale,1));color:var(--muted);font-weight:700;flex-shrink:0}
 .ng-cat-select{flex:1;min-width:110px;font-size:calc(12px*var(--app-text-scale,1));font-weight:700;padding:6px 8px;border-radius:var(--radius-xs);border:1px solid var(--border-strong);background:var(--surface);color:var(--text)}
-.ng-apply-btn{display:flex;align-items:center;gap:4px;background:var(--green);color:#fff;border:none;border-radius:var(--radius-xs);padding:7px 12px;font-size:calc(11px*var(--app-text-scale,1));font-weight:800;cursor:pointer;flex-shrink:0}
+.ng-apply-btn{display:flex;align-items:center;gap:4px;background:var(--green);color:#fff;border:none;border-radius:var(--radius-xs);padding:7px 12px;font-size:calc(var(--fs-caption)*var(--app-text-scale,1));font-weight:800;cursor:pointer;flex-shrink:0}
 .ng-apply-btn:disabled{opacity:.45;cursor:not-allowed}
 .ng-cat-custom-row{display:none;align-items:center;gap:6px;padding:0 14px 9px;background:var(--surface2)}
 .ng-cat-custom-row.show{display:flex}
@@ -4930,6 +4930,7 @@ body[data-workspace] .wdash-wrap .rpt-card{--rpt-accent:var(--ws-primary);--rpt-
   user-select:none;
 }
 .sc-main-title{font-size:calc(11px*var(--app-text-scale,1));font-weight:700;color:var(--green);text-transform:none;letter-spacing:0.3px;display:flex;align-items:center;gap:6px}
+.tx-count-badge{font-size:calc(var(--fs-overline)*var(--app-text-scale,1));font-weight:700;color:var(--muted);background:var(--surface);border:1px solid var(--border);padding:1px 7px;border-radius:99px}
 .sc-main-body{padding:var(--sp3) var(--sp4)}
 
 /* Collapsible section toggle */
@@ -5274,7 +5275,7 @@ body[data-workspace] .wdash-wrap .rpt-card{--rpt-accent:var(--ws-primary);--rpt-
 .sc-search input{
   width:100%;padding:9px 12px 9px 34px;border-radius:var(--radius-xs);
   border:1.5px solid var(--border);background:var(--surface);color:var(--text);
-  font-size:calc(13px*var(--app-text-scale,1));font-family:inherit;transition:border-color .15s;
+  font-size:calc(var(--fs-body)*var(--app-text-scale,1));font-family:inherit;transition:border-color .15s;
 }
 .sc-search input:focus{outline:none;border-color:var(--green);box-shadow:0 0 0 3px var(--green-tint)}
 .sc-search{position:relative}
@@ -8542,7 +8543,7 @@ html.wdash-sheet-lock,html.wdash-sheet-lock body{overflow:hidden}
 .cx-wrap{gap:20px;padding-bottom:150px}
 .cx-wrap .cx-mn{display:inline-flex;align-items:baseline;gap:4px;direction:ltr;unicode-bidi:isolate;white-space:nowrap}
 .cx-wrap .cx-mn b{font-weight:800;font-variant-numeric:tabular-nums}
-.cx-wrap .cx-mn small{font-size:calc(11px*var(--app-text-scale,1));font-weight:700;color:var(--muted)}
+.cx-wrap .cx-mn small{font-size:calc(var(--fs-caption)*var(--app-text-scale,1));font-weight:700;color:var(--muted)}
 
 /* Hero */
 .cx-hero{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-hero);padding:18px 18px 16px;box-shadow:var(--shadow-xs)}
@@ -8556,10 +8557,10 @@ html.wdash-sheet-lock,html.wdash-sheet-lock body{overflow:hidden}
 .cx-figrow{margin-top:14px}
 .cx-fig{display:inline-flex;align-items:baseline;gap:8px;max-width:100%;unicode-bidi:isolate}
 .cx-amt{font-family:var(--font);font-size:calc(44px*var(--app-text-scale,1));font-weight:700;line-height:1.05;letter-spacing:-.02em;color:var(--text);font-variant-numeric:lining-nums tabular-nums}
-.cx-cur{font-size:calc(15px*var(--app-text-scale,1));font-weight:700;color:var(--muted)}
+.cx-cur{font-size:calc(var(--fs-h3)*var(--app-text-scale,1));font-weight:700;color:var(--muted)}
 .cx-fig.over .cx-amt{color:var(--red)}
 .cx-fig.none .cx-amt{color:var(--text)}
-.cx-fig-note{margin-top:6px;font-size:calc(13px*var(--app-text-scale,1));font-weight:500;color:var(--muted);line-height:1.5}
+.cx-fig-note{margin-top:6px;font-size:calc(var(--fs-body)*var(--app-text-scale,1));font-weight:500;color:var(--muted);line-height:1.5}
 
 /* Gauge: track = max(available, spent); tick marks the custody limit when overspent */
 .cx-gauge{position:relative;height:10px;margin-top:18px}
@@ -8582,7 +8583,7 @@ html.wdash-sheet-lock,html.wdash-sheet-lock body{overflow:hidden}
 
 /* Actions */
 .cx-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:18px}
-.cx-act{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:50px;border-radius:12px;border:1.5px solid var(--border-strong);background:transparent;color:var(--text);font-family:inherit;font-size:calc(15px*var(--app-text-scale,1));font-weight:800;cursor:pointer;transition:transform .12s,box-shadow .18s,background-color .18s}
+.cx-act{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:50px;border-radius:12px;border:1.5px solid var(--border-strong);background:transparent;color:var(--text);font-family:inherit;font-size:calc(var(--fs-h3)*var(--app-text-scale,1));font-weight:800;cursor:pointer;transition:transform .12s,box-shadow .18s,background-color .18s}
 .cx-act:active{transform:scale(.98)}
 .cx-act.dep{background:var(--green);border-color:var(--green);color:#fff}
 .cx-act.with svg{color:var(--red)}
@@ -8610,7 +8611,7 @@ html.wdash-sheet-lock,html.wdash-sheet-lock body{overflow:hidden}
 .cx-row2 .date-wrap-auto{min-width:0;height:48px;padding:0 14px;border-radius:12px;border:1.5px solid var(--border-strong);background:var(--surface);color:var(--text);font-size:calc(16px*var(--app-text-scale,1));font-weight:600}
 .cx-row2 .date-wrap-auto:focus-within{border-color:var(--green);box-shadow:0 0 0 4px var(--green-glow)}
 .cx-form-btns{display:flex;align-items:center;gap:8px}
-.cx-save{flex:1;height:50px;border:0;border-radius:12px;background:var(--green);color:#fff;font-family:inherit;font-size:calc(15px*var(--app-text-scale,1));font-weight:800;cursor:pointer;transition:transform .12s}
+.cx-save{flex:1;height:50px;border:0;border-radius:12px;background:var(--green);color:#fff;font-family:inherit;font-size:calc(var(--fs-h3)*var(--app-text-scale,1));font-weight:800;cursor:pointer;transition:transform .12s}
 .cx-save:active{transform:scale(.98)}
 .cx-entry[data-type="with"] .cx-save{background:var(--red)}
 .cx-cancel{height:50px;padding:0 16px;border:0;background:none;color:var(--muted);font-family:inherit;font-size:calc(14px*var(--app-text-scale,1));font-weight:700;cursor:pointer}
@@ -8619,9 +8620,9 @@ html.wdash-sheet-lock,html.wdash-sheet-lock body{overflow:hidden}
 .cx-sec{display:flex;flex-direction:column;gap:10px}
 .cx-sh{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 4px}
 .cx-sh-l{display:flex;flex-direction:column;gap:2px;min-width:0;text-align:start}
-.cx-sh-t{font-size:calc(17px*var(--app-text-scale,1));font-weight:800;color:var(--text)}
+.cx-sh-t{font-size:calc(var(--fs-h2)*var(--app-text-scale,1));font-weight:800;color:var(--text)}
 .cx-sh-s{font-size:calc(12.5px*var(--app-text-scale,1));font-weight:500;color:var(--muted)}
-.cx-sh-v{font-size:calc(17px*var(--app-text-scale,1));color:var(--text)}
+.cx-sh-v{font-size:calc(var(--fs-h2)*var(--app-text-scale,1));color:var(--text)}
 button.cx-sh-tap{width:100%;background:none;border:0;font-family:inherit;color:inherit;cursor:pointer;min-height:44px}
 .cx-chev{display:flex;align-items:center;justify-content:center;width:28px;height:28px;color:var(--muted);transition:transform .25s cubic-bezier(.32,1,.32,1),color .15s}
 .cx-ledger.cx-open .cx-chev{transform:rotate(180deg);color:var(--green)}
@@ -8629,7 +8630,7 @@ button.cx-sh-tap{width:100%;background:none;border:0;font-family:inherit;color:i
 .cx-ledger.cx-open .cx-lbody{grid-template-rows:1fr}
 .cx-lbody-in{overflow:hidden;min-height:0}
 .cx-panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
-.cx-none{padding:28px 16px;text-align:center;color:var(--muted);font-size:calc(13px*var(--app-text-scale,1))}
+.cx-none{padding:28px 16px;text-align:center;color:var(--muted);font-size:calc(var(--fs-body)*var(--app-text-scale,1))}
 
 /* Search row */
 .cx-wrap .cx-search{display:flex;align-items:center;gap:8px;padding:0;border:0;background:none}
@@ -8637,7 +8638,7 @@ button.cx-sh-tap{width:100%;background:none;border:0;font-family:inherit;color:i
 .cx-wrap .cx-search svg{position:absolute;top:50%;left:auto;inset-inline-start:14px;transform:translateY(-50%);color:var(--muted);pointer-events:none}
 .cx-wrap .cx-search input{width:100%;height:46px;padding:0 12px;padding-inline-start:40px;border-radius:12px;border:1.5px solid var(--border);background:var(--surface);color:var(--text);font-family:inherit;font-size:calc(16px*var(--app-text-scale,1))}
 .cx-wrap .cx-search input:focus{border-color:var(--green);box-shadow:0 0 0 4px var(--green-glow);outline:none}
-.cx-textbtn{flex:none;height:46px;padding:0 6px;border:0;background:none;color:var(--green);font-family:inherit;font-size:calc(13px*var(--app-text-scale,1));font-weight:800;cursor:pointer;white-space:nowrap}
+.cx-textbtn{flex:none;height:46px;padding:0 6px;border:0;background:none;color:var(--green);font-family:inherit;font-size:calc(var(--fs-body)*var(--app-text-scale,1));font-weight:800;cursor:pointer;white-space:nowrap}
 
 /* Expense groups — one panel, hairline rows (re-skins the shared .note-* classes, scoped) */
 .cx-glist{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;overflow-anchor:none}
@@ -8647,7 +8648,7 @@ button.cx-sh-tap{width:100%;background:none;border:0;font-family:inherit;color:i
 .cx-wrap .note-header:active{transform:none;background:var(--surface2)}
 .cx-wrap .note-title{grid-area:title;font-size:calc(15.5px*var(--app-text-scale,1));font-weight:800;color:var(--text)}
 .cx-wrap .note-meta{display:contents}
-.cx-wrap .cx-tot{grid-area:tot;justify-self:end;font-size:calc(15px*var(--app-text-scale,1));color:var(--text)}
+.cx-wrap .cx-tot{grid-area:tot;justify-self:end;font-size:calc(var(--fs-h3)*var(--app-text-scale,1));color:var(--text)}
 .cx-wrap .cx-cnt{grid-area:cnt;font-size:calc(12.5px*var(--app-text-scale,1));font-weight:600;color:var(--muted);white-space:nowrap}
 .cx-wrap .cx-share{grid-area:share;display:flex;align-items:center;gap:8px;min-width:0}
 .cx-wrap .cx-share .bar{flex:1;height:4px;border-radius:99px;background:var(--surface3);overflow:hidden}
@@ -8662,7 +8663,7 @@ button.cx-sh-tap{width:100%;background:none;border:0;font-family:inherit;color:i
 .cx-wrap .note-row-actions{grid-area:actions;gap:0;margin-inline-end:-8px}
 .cx-wrap .note-row-check{grid-area:chk;align-self:center}
 .cx-wrap .note-group.ng-select-active .note-row{grid-template-columns:auto minmax(0,1fr) auto;grid-template-areas:"chk desc amt" "chk date date";column-gap:12px}
-.cx-bankchip{display:inline-flex;align-items:center;gap:4px;padding:1px 8px;border-radius:99px;font-size:calc(11px*var(--app-text-scale,1));font-weight:700;color:var(--blue);background:var(--blue-tint)}
+.cx-bankchip{display:inline-flex;align-items:center;gap:4px;padding:1px 8px;border-radius:99px;font-size:calc(var(--fs-caption)*var(--app-text-scale,1));font-weight:700;color:var(--blue);background:var(--blue-tint)}
 .cx-imglink{display:inline-flex;align-items:center;color:var(--muted)}
 .cx-icbtn{display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;border:0;border-radius:10px;background:none;color:var(--muted);cursor:pointer;transition:background-color .15s,color .15s}
 .cx-icbtn:active{background:var(--surface2);color:var(--text)}
@@ -8679,7 +8680,7 @@ button.cx-sh-tap{width:100%;background:none;border:0;font-family:inherit;color:i
 /* Insights */
 .cx-ins{display:flex;align-items:baseline;justify-content:space-between;gap:16px;padding:12px 16px;border-bottom:1px solid var(--border)}
 .cx-ins:last-child{border-bottom:0}
-.cx-ins-l{flex:none;font-size:calc(13px*var(--app-text-scale,1));font-weight:600;color:var(--muted)}
+.cx-ins-l{flex:none;font-size:calc(var(--fs-body)*var(--app-text-scale,1));font-weight:600;color:var(--muted)}
 .cx-ins-v{min-width:0;text-align:end;font-size:calc(13.5px*var(--app-text-scale,1));font-weight:700;color:var(--text);line-height:1.45;overflow-wrap:anywhere}
 
 /* Custody movements */
@@ -8704,7 +8705,7 @@ button.cx-sh-tap{width:100%;background:none;border:0;font-family:inherit;color:i
 .rq-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
 .rq-stat{appearance:none;-webkit-appearance:none;border:1.5px solid var(--border);background:var(--surface);border-radius:var(--radius-sm);font-family:inherit;padding:13px 4px 11px;min-height:70px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;cursor:pointer;color:var(--muted);box-shadow:var(--shadow-xs);transition:background-color .15s,border-color .15s,transform .12s,box-shadow .15s}
 .rq-stat:active{transform:scale(.96)}
-.rq-stat b{font-size:calc(20px*var(--app-text-scale,1));font-weight:800;line-height:1;color:var(--text);font-variant-numeric:tabular-nums}
+.rq-stat b{font-size:calc(var(--fs-h1)*var(--app-text-scale,1));font-weight:800;line-height:1;color:var(--text);font-variant-numeric:tabular-nums}
 .rq-stat span{font-size:calc(10.5px*var(--app-text-scale,1));font-weight:700;line-height:1.25;text-align:center}
 .rq-stat.ok b{color:var(--green)}
 .rq-stat.low b{color:var(--gold)}
@@ -8728,13 +8729,13 @@ button.cx-sh-tap{width:100%;background:none;border:0;font-family:inherit;color:i
 .rq-head{flex:1;min-width:0;padding-top:1px}
 .rq-top .cx-chip{flex:none;margin-top:2px}
 .rq-co{min-width:0;font-size:calc(16px*var(--app-text-scale,1));font-weight:800;line-height:1.3;color:var(--text);overflow-wrap:anywhere}
-.rq-type{margin-top:2px;font-size:calc(13px*var(--app-text-scale,1));font-weight:600;color:var(--sub);line-height:1.4;overflow-wrap:anywhere}
+.rq-type{margin-top:2px;font-size:calc(var(--fs-body)*var(--app-text-scale,1));font-weight:600;color:var(--sub);line-height:1.4;overflow-wrap:anywhere}
 .rq-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px 14px;margin:14px 0 0;padding:13px 0 0;border-top:1px solid var(--border)}
 .rq-grid>div{min-width:0}
 .rq-grid dt{display:flex;align-items:center;gap:5px;margin:0 0 4px;font-size:calc(10.5px*var(--app-text-scale,1));font-weight:700;letter-spacing:.3px;text-transform:none;color:var(--muted)}
 .rq-grid dt svg{flex:none;opacity:.8}
 .rq-grid dd{margin:0;font-size:calc(14.5px*var(--app-text-scale,1));font-weight:700;color:var(--text);overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
-.rq-notes{display:flex;gap:9px;align-items:flex-start;margin-top:13px;padding:11px 13px;background:var(--surface2);border-inline-start:3px solid var(--border-strong);border-radius:var(--radius-xs);font-size:calc(13px*var(--app-text-scale,1));line-height:1.6;color:var(--sub)}
+.rq-notes{display:flex;gap:9px;align-items:flex-start;margin-top:13px;padding:11px 13px;background:var(--surface2);border-inline-start:3px solid var(--border-strong);border-radius:var(--radius-xs);font-size:calc(var(--fs-body)*var(--app-text-scale,1));line-height:1.6;color:var(--sub)}
 .rq-notes svg{flex:none;margin-top:2px;opacity:.7}
 .rq-notes span{min-width:0;white-space:pre-wrap;overflow-wrap:anywhere}
 .rq-foot{display:flex;justify-content:flex-end;gap:4px;margin-top:10px;padding-top:7px;border-top:1px solid var(--border);margin-inline-end:-8px}
@@ -9135,7 +9136,7 @@ body .screen-wrap .sc-header.sav-plain-header.sav-plain-header::after{display:no
 .txlg-wrap .txlg-filters{box-shadow:none;border:1px solid var(--border);border-radius:var(--radius-sm);padding:6px 0 8px}
 .txlg-wrap .txlg-toolbar{gap:6px}
 .txlg-wrap .sc-search{padding:2px var(--sp3) 0}
-.txlg-wrap .sc-search input{height:40px;border-radius:var(--radius-sm);font-size:calc(13px*var(--app-text-scale,1))}
+.txlg-wrap .sc-search input{height:40px;border-radius:var(--radius-sm);font-size:calc(var(--fs-body)*var(--app-text-scale,1))}
 .txlg-wrap .txlg-filter-row{padding:0 var(--sp3)}
 .txlg-wrap .txlg-seg{border:0;border-radius:var(--radius-sm);padding:2px;gap:2px;background:var(--surface2);box-shadow:none;overflow:hidden}
 .txlg-wrap .txlg-seg button{padding:6px 4px;border-radius:var(--radius-sm);font-size:calc(11px*var(--app-text-scale,1))}
@@ -9238,7 +9239,7 @@ body .screen-wrap .sc-header.sav-plain-header.sav-plain-header::after{display:no
 .rq-stats{gap:8px}
 .rq-stat{border-width:1px;min-height:62px;padding:10px 4px 9px;border-radius:14px}
 .rq-stat b{font-size:calc(19px*var(--app-text-scale,1))}
-.rq-stat span{font-size:calc(10px*var(--app-text-scale,1));letter-spacing:.2px}
+.rq-stat span{font-size:calc(var(--fs-label)*var(--app-text-scale,1));letter-spacing:.2px}
 .rq-stat.on,.rq-stat.ok.on,.rq-stat.low.on,.rq-stat.over.on{border-width:1.5px}
 
 .rq-list{gap:10px}
@@ -9253,7 +9254,7 @@ body .screen-wrap .sc-header.sav-plain-header.sav-plain-header::after{display:no
 .rq-type{font-size:calc(12.5px*var(--app-text-scale,1));font-weight:700;color:var(--muted);letter-spacing:.2px}
 .rq-grid{grid-template-columns:1fr 1fr;gap:12px 14px;margin-top:12px;padding-top:12px}
 .rq-grid>div:last-child:nth-child(odd){grid-column:1/-1}
-.rq-grid dt{font-size:calc(10px*var(--app-text-scale,1));font-weight:700;letter-spacing:.5px;text-transform:uppercase;margin-bottom:3px}
+.rq-grid dt{font-size:calc(var(--fs-label)*var(--app-text-scale,1));font-weight:700;letter-spacing:.5px;text-transform:uppercase;margin-bottom:3px}
 .rq-grid dd{font-size:calc(14px*var(--app-text-scale,1));font-weight:700;line-height:1.35}
 .rq-notes{margin-top:12px;padding:10px 12px;border-inline-start-width:2px;font-size:calc(12.5px*var(--app-text-scale,1));line-height:1.65;color:var(--text2)}
 .rq-foot{border-top:0;margin-top:2px;padding-top:0;gap:2px}
@@ -9268,14 +9269,14 @@ body .screen-wrap .sc-header.sav-plain-header.sav-plain-header::after{display:no
 .rq-card.rq-t .rq-grid,.rq-card.rq-t .rq-foot{border-color:color-mix(in srgb,var(--rq-tc) 20%,var(--border))}
 .rq-card.rq-t .rq-notes{background:color-mix(in srgb,var(--rq-tc) 7%,var(--surface2));border-inline-start-color:var(--rq-tc)}
 .rq-types-wrap{margin-top:16px}
-.rq-types-h{margin:0 2px 8px;font-size:calc(11px*var(--app-text-scale,1));font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.rq-types-h{margin:0 2px 8px;font-size:calc(var(--fs-caption)*var(--app-text-scale,1));font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
 .rq-types{display:flex;gap:10px;overflow-x:auto;padding:2px 2px 12px;scroll-snap-type:x proximity;scrollbar-width:none;-webkit-overflow-scrolling:touch}
 .rq-types::-webkit-scrollbar{display:none}
 .rq-tchip{flex:0 0 auto;scroll-snap-align:start;min-width:96px;display:flex;flex-direction:column;align-items:flex-start;gap:9px;padding:13px 15px 12px;border-radius:18px;border:1px solid color-mix(in srgb,var(--rq-tc) 24%,var(--border));background:linear-gradient(150deg,color-mix(in srgb,var(--rq-tc) 17%,var(--surface)) 0%,var(--surface) 80%);color:var(--text);font-family:inherit;text-align:start;cursor:pointer;box-shadow:0 8px 18px -12px color-mix(in srgb,var(--rq-tc) 75%,transparent);transition:transform .15s,box-shadow .2s,background .2s}
 .rq-tchip:active{transform:scale(.97)}
 .rq-tc-top{display:flex;align-items:center;gap:7px}
 .rq-tc-top i{width:8px;height:8px;border-radius:50%;background:var(--rq-tc);box-shadow:0 0 0 3px color-mix(in srgb,var(--rq-tc) 22%,transparent)}
-.rq-tc-l{font-size:calc(11px*var(--app-text-scale,1));font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.rq-tc-l{font-size:calc(var(--fs-caption)*var(--app-text-scale,1));font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
 .rq-tchip b{display:block;font-size:calc(27px*var(--app-text-scale,1));font-weight:800;line-height:1;letter-spacing:-.02em;color:var(--rq-tc);font-variant-numeric:tabular-nums}
 .rq-tc-bar{display:block;width:100%;height:4px;border-radius:99px;background:color-mix(in srgb,var(--rq-tc) 16%,transparent);overflow:hidden}
 .rq-tc-bar em{display:block;height:100%;width:var(--pct);border-radius:inherit;background:var(--rq-tc)}
@@ -13449,9 +13450,9 @@ function renderFinanceDashboard(m){
       <button class="dfp-card-btn" onclick="navCloseAll();navDropGo('transactions','Finance')">${L('View Details','عرض التفاصيل')}</button>
     </div>
     <div class="ctr-grid" style="grid-template-columns:1fr 1fr 1fr">
-      <div class="ctr-kpi"><div class="ctr-kpi-label">${L('Cash In','وارد')}</div><div class="ctr-kpi-val" style="color:var(--fin-income);font-size:calc(13px*var(--app-text-scale,1))">${fmtEGP(s.cashInTotal)}</div></div>
-      <div class="ctr-kpi"><div class="ctr-kpi-label">${L('Cash Out','صادر')}</div><div class="ctr-kpi-val" style="color:var(--fin-outcome);font-size:calc(13px*var(--app-text-scale,1))">${fmtEGP(s.cashOutTotal)}</div></div>
-      <div class="ctr-kpi"><div class="ctr-kpi-label">${L('Net','صافي')}</div><div class="ctr-kpi-val" style="color:${s.netCashFlow>=0?'var(--success)':'var(--danger)'};font-size:calc(13px*var(--app-text-scale,1))">${s.netCashFlow>=0?'+':'-'}${fmtEGP(Math.abs(s.netCashFlow))}</div></div>
+      <div class="ctr-kpi"><div class="ctr-kpi-label">${L('Cash In','وارد')}</div><div class="ctr-kpi-val" style="color:var(--fin-income);font-size:calc(var(--fs-body)*var(--app-text-scale,1))">${fmtEGP(s.cashInTotal)}</div></div>
+      <div class="ctr-kpi"><div class="ctr-kpi-label">${L('Cash Out','صادر')}</div><div class="ctr-kpi-val" style="color:var(--fin-outcome);font-size:calc(var(--fs-body)*var(--app-text-scale,1))">${fmtEGP(s.cashOutTotal)}</div></div>
+      <div class="ctr-kpi"><div class="ctr-kpi-label">${L('Net','صافي')}</div><div class="ctr-kpi-val" style="color:${s.netCashFlow>=0?'var(--success)':'var(--danger)'};font-size:calc(var(--fs-body)*var(--app-text-scale,1))">${s.netCashFlow>=0?'+':'-'}${fmtEGP(Math.abs(s.netCashFlow))}</div></div>
     </div>
     <div style="padding-top:10px"><canvas id="fdCashFlowChart" style="width:100%" height="110" role="img" aria-label="${L('Daily cash flow chart for the selected month','رسم بياني للتدفق النقدي اليومي للشهر المحدد')}"></canvas></div>
   </div>`;
@@ -13490,7 +13491,7 @@ function renderFinanceDashboard(m){
           <div class="dash-hero-main-lbl">${L('Operational Profit','الربح التشغيلي')}</div>
           <div class="dash-hero-main-val">${sigNumHTML(Math.abs(s.monthlyProfit),{sign:s.monthlyProfit>=0?'+':'-'})}</div>
           <div class="dash-hero-trend ${s.monthlyProfit>=0?'up':'down'}">${ic(s.monthlyProfit>=0?'trend_up':'trend_down', 12, 'aria-hidden="true"')} ${s.monthlyProfit>=0?L('Profitable this month','مربح هذا الشهر'):L('Loss this month','خسارة هذا الشهر')}</div>
-          <div class="dfp-hero-note" style="font-size:calc(9.5px*var(--app-text-scale,1));margin-top:4px">${L('Income & bank activity only — excludes custody deposits (see Cash Flow below)','دخل وحركة بنوك فقط — لا يشمل إيداعات العهدة (شوف التدفق النقدي تحت)')}</div>
+          <div class="dfp-hero-note" style="font-size:calc(var(--fs-label)*var(--app-text-scale,1));margin-top:4px">${L('Income & bank activity only — excludes custody deposits (see Cash Flow below)','دخل وحركة بنوك فقط — لا يشمل إيداعات العهدة (شوف التدفق النقدي تحت)')}</div>
         </div>
         <div class="dash-hero-stats" style="position:relative;z-index:1">
           <div class="dash-hero-stat">
@@ -13791,12 +13792,12 @@ function renderBankDashboard(m){
         <button class="dfp-card-btn" onclick="dfpToggleDetail(this)">${L('View Calculation','عرض الحساب')}</button>
       </div>
       <div class="ctr-grid" style="grid-template-columns:1fr 1fr 1fr;margin-top:var(--sp3)">
-        <div class="ctr-kpi"><div class="ctr-kpi-label">${L('Net Banks Now','صافي البنوك الآن')}</div><div class="ctr-kpi-val" style="font-size:calc(13px*var(--app-text-scale,1))">${fmtEGP(netBanksNow)}</div></div>
-        <div class="ctr-kpi"><div class="ctr-kpi-label">${L('Net Banks Last Month','صافي البنوك الشهر السابق')}</div><div class="ctr-kpi-val" style="font-size:calc(13px*var(--app-text-scale,1))">${fmtEGP(netBanksPrev)}</div></div>
-        <div class="ctr-kpi"><div class="ctr-kpi-label">${L('Real Profit','الربح الحقيقي')}</div><div class="ctr-kpi-val" style="font-size:calc(15px*var(--app-text-scale,1));color:${realProfitDelta>=0?'#0f7a55':'#dc4f4f'}">${realProfitDelta>=0?'+':'-'}${fmtEGP(Math.abs(realProfitDelta))}</div></div>
+        <div class="ctr-kpi"><div class="ctr-kpi-label">${L('Net Banks Now','صافي البنوك الآن')}</div><div class="ctr-kpi-val" style="font-size:calc(var(--fs-body)*var(--app-text-scale,1))">${fmtEGP(netBanksNow)}</div></div>
+        <div class="ctr-kpi"><div class="ctr-kpi-label">${L('Net Banks Last Month','صافي البنوك الشهر السابق')}</div><div class="ctr-kpi-val" style="font-size:calc(var(--fs-body)*var(--app-text-scale,1))">${fmtEGP(netBanksPrev)}</div></div>
+        <div class="ctr-kpi"><div class="ctr-kpi-label">${L('Real Profit','الربح الحقيقي')}</div><div class="ctr-kpi-val" style="font-size:calc(var(--fs-h3)*var(--app-text-scale,1));color:${realProfitDelta>=0?'#0f7a55':'#dc4f4f'}">${realProfitDelta>=0?'+':'-'}${fmtEGP(Math.abs(realProfitDelta))}</div></div>
       </div>
       <div class="dfp-detail">
-        <div class="dfp-detail-inner" style="font-size:calc(9.5px*var(--app-text-scale,1));color:var(--muted);text-align:center">${L('(Banks − Custody) this month − (Banks − Custody) last month = Real Profit','(البنوك − العهدة) هذا الشهر − (البنوك − العهدة) الشهر السابق = الربح الحقيقي')}</div>
+        <div class="dfp-detail-inner" style="font-size:calc(var(--fs-label)*var(--app-text-scale,1));color:var(--muted);text-align:center">${L('(Banks − Custody) this month − (Banks − Custody) last month = Real Profit','(البنوك − العهدة) هذا الشهر − (البنوك − العهدة) الشهر السابق = الربح الحقيقي')}</div>
       </div>
     </div>`:`
     <div class="sc-card" style="border:1px solid var(--border)">
@@ -13806,7 +13807,7 @@ function renderBankDashboard(m){
     ${totalInterest>0?`
     <div class="sc-card" style="border:1px solid #0f7a5533;background:#0f7a5508">
       <div class="sc-card-label" style="color:#0f7a55">${ic('money', 13, 'aria-hidden="true"')} ${L('Total Monthly Interest','إجمالي الفوائد الشهرية')}</div>
-      <div style="font-size:calc(20px*var(--app-text-scale,1));font-weight:900;color:#0f7a55">+${fmtEGP(totalInterest)}</div>
+      <div style="font-size:calc(var(--fs-h1)*var(--app-text-scale,1));font-weight:900;color:#0f7a55">+${fmtEGP(totalInterest)}</div>
     </div>`:''}
     ${banks.length?`
     <div class="sc-card">
@@ -14400,7 +14401,7 @@ function renderCustodyDashboardCard(m){
         </div>
       </div>
     </div>
-    <div style="font-size:calc(9.5px*var(--app-text-scale,1));color:var(--muted);text-align:center;padding:6px 6px 0">${L('Site cash only — not income, not part of the Bank Dashboard.','نقدية الموقع بس — مش دخل ومش جزء من لوحة البنوك.')}</div>
+    <div style="font-size:calc(var(--fs-label)*var(--app-text-scale,1));color:var(--muted);text-align:center;padding:6px 6px 0">${L('Site cash only — not income, not part of the Bank Dashboard.','نقدية الموقع بس — مش دخل ومش جزء من لوحة البنوك.')}</div>
   </div>`;
 }
 
@@ -15567,15 +15568,15 @@ function renderPurchasesDashCard(){
       shown++;
       const nm=_txlgItemName(t.notes)||String(t.notes||'').trim()||L('Untitled item','عنصر بدون اسم');
       const d=String(t.date||'').slice(5);
-      return `<div class="dfp-toplist-row"><div class="dfp-toplist-name" dir="auto">${esc(nm)}<span style="color:var(--muted);font-size:calc(10px*var(--app-text-scale,1));margin-inline-start:8px">${esc(d)}</span></div><div class="dfp-toplist-amt">${fmtEGP(t.payment||0)}</div></div>`;
+      return `<div class="dfp-toplist-row"><div class="dfp-toplist-name" dir="auto">${esc(nm)}<span style="color:var(--muted);font-size:calc(var(--fs-label)*var(--app-text-scale,1));margin-inline-start:8px">${esc(d)}</span></div><div class="dfp-toplist-amt">${fmtEGP(t.payment||0)}</div></div>`;
     }).join('');
     const mName=(typeof MONTH_NAMES!=='undefined' && MONTH_NAMES[g.mk]) || g.mk;
-    return `<div style="display:flex;justify-content:space-between;align-items:baseline;margin:14px 0 4px;padding-bottom:6px;border-bottom:1px solid var(--border)"><b style="font-size:calc(12px*var(--app-text-scale,1))">${esc(mName)}</b><span style="font-size:calc(11px*var(--app-text-scale,1));color:var(--muted)">${g.items.length} · ${fmtEGP(g.sum)}</span></div>${rows}`;
+    return `<div style="display:flex;justify-content:space-between;align-items:baseline;margin:14px 0 4px;padding-bottom:6px;border-bottom:1px solid var(--border)"><b style="font-size:calc(12px*var(--app-text-scale,1))">${esc(mName)}</b><span style="font-size:calc(var(--fs-caption)*var(--app-text-scale,1));color:var(--muted)">${g.items.length} · ${fmtEGP(g.sum)}</span></div>${rows}`;
   }).join('');
   const more=count>CAP?`<div class="dfp-toplist-empty">${L('Showing latest','يعرض الأحدث')} ${CAP} ${L('of','من')} ${count}</div>`:'';
   return `<div class="sc-card">${title}
-    <div style="display:flex;gap:16px;padding:4px 0 2px"><div><div style="font-size:calc(11px*var(--app-text-scale,1));color:var(--muted)">${L('Items','العناصر')}</div><b style="font-size:calc(18px*var(--app-text-scale,1))">${count}</b></div>
-    <div><div style="font-size:calc(11px*var(--app-text-scale,1));color:var(--muted)">${L('Total spent','إجمالي المصروف')}</div><b style="font-size:calc(18px*var(--app-text-scale,1))">${fmtEGP(total)}</b></div></div>
+    <div style="display:flex;gap:16px;padding:4px 0 2px"><div><div style="font-size:calc(var(--fs-caption)*var(--app-text-scale,1));color:var(--muted)">${L('Items','العناصر')}</div><b style="font-size:calc(18px*var(--app-text-scale,1))">${count}</b></div>
+    <div><div style="font-size:calc(var(--fs-caption)*var(--app-text-scale,1));color:var(--muted)">${L('Total spent','إجمالي المصروف')}</div><b style="font-size:calc(18px*var(--app-text-scale,1))">${fmtEGP(total)}</b></div></div>
     ${body}${more}</div>`;
 }
 function renderWorkspaceDashboard(m){
@@ -28681,7 +28682,7 @@ function renderSmsImport(){
   <!-- 3. INBOX -->
   <div class="sc-card sc-main">
     <div class="sc-main-header" style="cursor:default">
-      <div class="sc-main-title">${ic('message',14)} ${L('Inbox','الوارد')}${filtered.length>0?` <span style="font-size:calc(9px*var(--app-text-scale,1));font-weight:700;color:var(--muted);background:var(--surface);border:1px solid var(--border);padding:1px 7px;border-radius:99px">${filtered.length}</span>`:''}</div>
+      <div class="sc-main-title">${ic('message',14)} ${L('Inbox','الوارد')}${filtered.length>0?` <span class="tx-count-badge">${filtered.length}</span>`:''}</div>
     </div>
     <div class="sms-list">
       ${all.length===0 ? noMsgsAtAll : (filtered.length===0 ? noMsgsMatchFilter : filtered.map(cardHTML).join(''))}
@@ -30247,7 +30248,7 @@ function renderTransactions(m){
   const purchasesHTML = purchaseRowsAll.length ? `
   <div class="sc-card sc-main">
     <div class="sc-main-header" onclick="_buyToggleFold(this)">
-      <div class="sc-main-title">${ic('shopping_bag',14)} ${L('My Purchases','مشترياتي')} <span style="font-size:calc(9px*var(--app-text-scale,1));font-weight:700;color:var(--muted);background:var(--surface);border:1px solid var(--border);padding:1px 7px;border-radius:99px">${purchaseRowsAll.length}</span></div>
+      <div class="sc-main-title">${ic('shopping_bag',14)} ${L('My Purchases','مشترياتي')} <span class="tx-count-badge">${purchaseRowsAll.length}</span></div>
       <span class="sc-collapse-chev${buyOpen?' open':''}">›</span>
     </div>
     <div class="sc-collapsible${buyOpen?' open':''}">
@@ -30265,7 +30266,7 @@ function renderTransactions(m){
     </div>
     ${purchaseRowsAll.length>PURCHASES_CAP?`
     <div style="text-align:center;padding:10px var(--sp4);border-top:1px solid var(--border)">
-      <span style="font-size:calc(11px*var(--app-text-scale,1));font-weight:700;color:var(--muted)">${L('Showing latest','يعرض الأحدث')} ${PURCHASES_CAP} ${L('of','من')} ${purchaseRowsAll.length}</span>
+      <span style="font-size:calc(var(--fs-caption)*var(--app-text-scale,1));font-weight:700;color:var(--muted)">${L('Showing latest','يعرض الأحدث')} ${PURCHASES_CAP} ${L('of','من')} ${purchaseRowsAll.length}</span>
     </div>`:''}
     </div>
   </div>` : '';
@@ -30528,14 +30529,14 @@ ${_pgHdr('Finance','المالية','Daily Spend','الإنفاق اليومي',
   <!-- 3. TIMELINE -->
   <div class="sc-card sc-main" id="txlgTimelineAnchor">
     <div class="sc-main-header" style="cursor:default">
-      <div class="sc-main-title">${ic('card',14)} ${L('Timeline','سجل العمليات')}${txns.length>0?` <span style="font-size:calc(9px*var(--app-text-scale,1));font-weight:700;color:var(--muted);background:var(--surface);border:1px solid var(--border);padding:1px 7px;border-radius:99px">${txns.length}</span>`:''}</div>
+      <div class="sc-main-title">${ic('card',14)} ${L('Timeline','سجل العمليات')}${txns.length>0?` <span class="tx-count-badge">${txns.length}</span>`:''}</div>
     </div>
     <div class="txlg-timeline">
       ${txns.length===0 ? emptyFilteredState : timelineHTML}
     </div>
     ${hasMore?`
     <div style="text-align:center;padding:10px var(--sp4);border-top:1px solid var(--border)">
-      <button onclick="txViewAll()" style="background:none;border:none;color:var(--green);font-size:calc(11px*var(--app-text-scale,1));font-weight:800;padding:6px 10px;cursor:pointer">
+      <button onclick="txViewAll()" style="background:none;border:none;color:var(--green);font-size:calc(var(--fs-caption)*var(--app-text-scale,1));font-weight:800;padding:16px 10px;margin:-10px 0;cursor:pointer">
         ${L('View All','عرض الكل')} (${txns.length}) ›
       </button>
     </div>`:''}
