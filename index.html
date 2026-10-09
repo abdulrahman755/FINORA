@@ -7195,18 +7195,18 @@ html.wdash-sheet-lock,html.wdash-sheet-lock body{overflow:hidden}
 .banks-v2 .bnk-hero::after{display:none}
 .banks-v2 .bnk-hero-glass-sheen{display:none}
 .banks-v2 .bnk-hero-top-row{position:relative;z-index:1;display:flex;align-items:center;justify-content:space-between;gap:8px}
-.banks-v2 .bnk-hero-eyebrow{font-size:calc(10px*var(--app-text-scale,1));font-weight:700;letter-spacing:0.3px;text-transform:none;color:var(--green)}
-.banks-v2 .bnk-hero-month-pill{font-size:calc(10px*var(--app-text-scale,1));font-weight:800;color:var(--muted);background:var(--surface2);padding:4px 10px;border-radius:99px;white-space:nowrap}
+.banks-v2 .bnk-hero-eyebrow{font-size:calc(10.5px*var(--app-text-scale,1));font-weight:700;letter-spacing:0.3px;text-transform:none;color:var(--green)}
+.banks-v2 .bnk-hero-month-pill{font-size:calc(10px*var(--app-text-scale,1));font-weight:800;color:var(--muted);background:var(--surface2);padding:4px 10px;border-radius:var(--radius-pill);white-space:nowrap}
 .banks-v2 .bnk-hero-total-lbl{position:relative;z-index:1;font-size:calc(11px*var(--app-text-scale,1));font-weight:700;color:var(--muted);margin-top:var(--bk8-1)}
 .banks-v2 .bnk-hero-total{position:relative;z-index:1;font-family:var(--font);font-variant-numeric:tabular-nums lining-nums;font-size:calc(34px*var(--app-text-scale,1));font-weight:700;letter-spacing:-.3px;line-height:1.1;margin-top:2px;color:var(--text)}
 .banks-v2 .bnk-hero-row{position:relative;z-index:1;display:flex;align-items:center;gap:var(--sp3);margin-top:var(--bk8-2);flex-wrap:wrap}
-.banks-v2 .bnk-hero-chip{display:inline-flex;align-items:center;gap:5px;font-size:calc(11.5px*var(--app-text-scale,1));font-weight:900;padding:5px 10px;border-radius:99px}
+.banks-v2 .bnk-hero-chip{display:inline-flex;align-items:center;gap:5px;font-size:calc(11.5px*var(--app-text-scale,1));font-weight:900;padding:5px 10px;border-radius:var(--radius-pill)}
 .banks-v2 .bnk-hero-chip.up{background:#0f7a551a;color:#0f7a55}
 .banks-v2 .bnk-hero-chip.down{background:#dc4f4f1a;color:#dc4f4f}
 .banks-v2 .bnk-hero-stat-val{font-size:calc(14px*var(--app-text-scale,1));font-weight:900;color:var(--text)}
-.banks-v2 .bnk-hero-stat-lbl{font-size:calc(9.5px*var(--app-text-scale,1));font-weight:700;color:var(--muted);text-transform:none;letter-spacing:0.3px;margin-top:2px}
+.banks-v2 .bnk-hero-stat-lbl{font-size:calc(10.5px*var(--app-text-scale,1));font-weight:700;color:var(--muted);text-transform:none;letter-spacing:0.3px;margin-top:2px}
 .banks-v2 .bnk-hero-spark{position:relative;z-index:1;margin-top:var(--bk8-2)}
-.banks-v2 .bnk-spark-tip{position:absolute;transform:translate(-50%,-130%);background:var(--text);color:var(--surface);font-size:calc(11px*var(--app-text-scale,1));font-weight:700;padding:4px 8px;border-radius:6px;white-space:nowrap;pointer-events:none;display:none;z-index:5}
+.banks-v2 .bnk-spark-tip{position:absolute;transform:translate(-50%,-130%);background:var(--text);color:var(--surface);font-size:calc(11px*var(--app-text-scale,1));font-weight:700;padding:4px 8px;border-radius:var(--radius-xs);white-space:nowrap;pointer-events:none;display:none;z-index:5}
 /* Hero trend redesign #2 (Commit: Apple-Wallet-style bar chart) — replaced
    the gradient ribbon line with rounded daily bars; the current day's bar
    is tinted green/pink by trend direction so it pops against the rest. */
@@ -7223,7 +7223,7 @@ html.wdash-sheet-lock,html.wdash-sheet-lock body{overflow:hidden}
   border-radius:var(--radius-hero);
   background:#F2F5FA;
   border:1px solid #E2E8F0;
-  box-shadow:0 8px 26px rgba(15,23,42,.07),0 2px 8px rgba(15,23,42,.03);
+  box-shadow:var(--shadow-md);
   transition:transform .18s var(--ease-standard);
   /* iOS scroll-smoothness fix: without this, the expand/collapse
      max-height transition below forces the browser to re-layout every
@@ -7242,7 +7242,7 @@ html.wdash-sheet-lock,html.wdash-sheet-lock body{overflow:hidden}
      unwanted auto-scroll on tap. The tapped card now just stays put. */
   overflow-anchor:none;
 }
-[data-theme="dark"] .banks-v2 .bnk-card{background:var(--surface);border-color:var(--border);box-shadow:0 1px 8px rgba(0,0,0,.26)}
+[data-theme="dark"] .banks-v2 .bnk-card{background:var(--surface);border-color:var(--border);box-shadow:var(--shadow-sm)}
 /* overflow:hidden above clips the dropdown menu (a descendant of
    .bnk-card-front) whenever it needs to extend past the card's own bounds
    on a short card — bnkToggleOverflow() toggles .bnk-menu-open-parent
@@ -7256,7 +7256,7 @@ html.wdash-sheet-lock,html.wdash-sheet-lock body{overflow:hidden}
 .banks-v2 .bnk-card-top{display:flex;align-items:center;gap:12px}
 .banks-v2 .bank-logo-icon{width:46px;height:46px}
 .banks-v2 .bnk-card-name{font-size:calc(13.5px*var(--app-text-scale,1));font-weight:800;color:var(--text)}
-.banks-v2 .bnk-card-badge{display:inline-flex;align-items:center;font-size:calc(9px*var(--app-text-scale,1));font-weight:800;padding:2px 7px;border-radius:99px;text-transform:uppercase;letter-spacing:.4px;margin-top:3px}
+.banks-v2 .bnk-card-badge{display:inline-flex;align-items:center;font-size:calc(10px*var(--app-text-scale,1));font-weight:800;padding:2px 7px;border-radius:var(--radius-pill);text-transform:uppercase;letter-spacing:.4px;margin-top:3px}
 .banks-v2 .bnk-card-controls{position:relative;display:flex;align-items:center;gap:2px;flex-shrink:0;margin-inline-start:auto}
 .banks-v2 .bnk-drag{cursor:grab;padding:6px;color:var(--muted);display:flex;align-items:center;border-radius:var(--radius-xs)}
 .banks-v2 .bnk-drag:active{background:var(--surface3);cursor:grabbing}
@@ -7269,10 +7269,10 @@ html.wdash-sheet-lock,html.wdash-sheet-lock body{overflow:hidden}
 .banks-v2 .bnk-card-front > .bnk-drag{position:absolute;inset-inline-start:1px;top:50%;transform:translateY(-50%);padding:8px 2px;z-index:2;touch-action:pan-y;background:transparent}
 .banks-v2 .bnk-card-front > .bnk-drag.bnk-drag-armed{background:var(--surface3);color:var(--text);transform:translateY(-50%) scale(1.15)}
 .banks-v2 .bnk-card.drag-dragging{opacity:.9;box-shadow:var(--shadow-xl);z-index:50;transition:none!important}
-.banks-v2 .bnk-overflow-btn{background:none;border:none;color:var(--muted);cursor:pointer;padding:var(--sp2);border-radius:9px;display:flex;align-items:center;justify-content:center}
+.banks-v2 .bnk-overflow-btn{background:none;border:none;color:var(--muted);cursor:pointer;padding:var(--sp2);border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center}
 .banks-v2 .bnk-overflow-btn:active{background:var(--surface3)}
 .banks-v2 .bnk-chevron{transition:transform var(--dur-base) var(--ease-standard);color:var(--muted);flex-shrink:0;margin-inline-start:2px}
-.banks-v2 .bnk-card-balance-lbl{font-size:calc(9.5px*var(--app-text-scale,1));font-weight:700;color:var(--muted);text-transform:none;letter-spacing:0.3px;margin-top:4px}
+.banks-v2 .bnk-card-balance-lbl{font-size:calc(10.5px*var(--app-text-scale,1));font-weight:700;color:var(--muted);text-transform:none;letter-spacing:0.3px;margin-top:4px}
 .banks-v2 .bnk-card-balance{font-family:var(--bnk-num-font,inherit);font-size:calc(24px*var(--bnk-num-scale,1));font-weight:var(--bnk-num-weight,900);color:var(--text);letter-spacing:-.2px;line-height:1.15}
 .banks-v2 .bnk-card-balance.hidden{letter-spacing:3px;font-size:calc(17px*var(--app-text-scale,1));opacity:.6}
 .banks-v2 .bnk-card-lasttx{font-size:calc(11px*var(--app-text-scale,1));font-weight:600;color:var(--muted);display:flex;align-items:center;gap:5px;margin-top:2px}
@@ -7405,13 +7405,13 @@ html.wdash-sheet-lock,html.wdash-sheet-lock body{overflow:hidden}
 .banks-v2 .bnk-menu{
   position:absolute;top:38px;inset-inline-end:0;z-index:6;min-width:190px;
   max-width:calc(100vw - 32px);max-height:min(70vh,420px);overflow-y:auto;
-  background:var(--surface);border:1px solid var(--border);border-radius:16px;
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
   box-shadow:var(--shadow-lg);padding:6px;
   opacity:0;visibility:hidden;transform:translateY(-6px) scale(.97);
   transition:opacity var(--dur-base) var(--ease-standard),transform var(--dur-base) var(--ease-standard),visibility var(--dur-base);
 }
 .banks-v2 .bnk-menu.bnk-menu-open{opacity:1;visibility:visible;transform:translateY(0) scale(1)}
-.banks-v2 .bnk-menu-item{display:flex;align-items:center;gap:var(--sp3);padding:9px 10px;border-radius:10px;cursor:pointer;font-size:calc(12px*var(--app-text-scale,1));font-weight:700;color:var(--text);background:none;border:none;width:100%;text-align:start}
+.banks-v2 .bnk-menu-item{display:flex;align-items:center;gap:var(--sp3);padding:9px 10px;border-radius:var(--radius-sm);cursor:pointer;font-size:calc(12px*var(--app-text-scale,1));font-weight:700;color:var(--text);background:none;border:none;width:100%;text-align:start}
 .banks-v2 .bnk-menu-item:active{background:var(--surface2)}
 .banks-v2 .bnk-menu-item.danger{color:var(--red)}
 .banks-v2 .bnk-menu-item svg{width:15px;height:15px;flex-shrink:0}
@@ -7435,7 +7435,7 @@ html.wdash-sheet-lock,html.wdash-sheet-lock body{overflow:hidden}
 .banks-v2 .bnk-timeline{
   display:flex;flex-direction:column;margin-bottom:var(--bk8-3);
   background:var(--surface);border-radius:var(--radius-hero);border:1px solid var(--border);
-  box-shadow:0 1px 6px rgba(15,31,24,.04);padding:2px var(--bk8-2) 4px;
+  box-shadow:var(--shadow-xs);padding:2px var(--bk8-2) 4px;
   max-height:560px;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;
   scrollbar-width:thin;
 }
@@ -7444,7 +7444,7 @@ html.wdash-sheet-lock,html.wdash-sheet-lock body{overflow:hidden}
 .banks-v2 .bnk-timeline::-webkit-scrollbar-thumb{background:var(--border-strong);border-radius:99px}
 .banks-v2 .bnk-tl-row{display:flex;align-items:center;gap:11px;padding:13px 2px;border-bottom:1px solid var(--border);transition:background var(--dur-fast,.12s) var(--ease-standard)}
 .banks-v2 .bnk-tl-row:last-child{border-bottom:none}
-.banks-v2 .bnk-tl-group-label{display:flex;align-items:center;gap:8px;font-size:calc(10px*var(--app-text-scale,1));font-weight:700;color:var(--muted);text-transform:none;letter-spacing:0.3px;padding:14px 2px 7px}
+.banks-v2 .bnk-tl-group-label{display:flex;align-items:center;gap:8px;font-size:calc(10.5px*var(--app-text-scale,1));font-weight:700;color:var(--muted);text-transform:none;letter-spacing:0.3px;padding:14px 2px 7px}
 .banks-v2 .bnk-tl-group-label:first-child{padding-top:8px}
 .banks-v2 .bnk-tl-group-label::after{content:'';flex:1;height:1px;background:var(--border)}
 .banks-v2 .bnk-tl-dot{width:37px;height:37px;border-radius:var(--radius-sm);flex-shrink:0;display:flex;align-items:center;justify-content:center}
@@ -7452,27 +7452,27 @@ html.wdash-sheet-lock,html.wdash-sheet-lock body{overflow:hidden}
 .banks-v2 .bnk-tl-title{font-size:calc(12.5px*var(--app-text-scale,1));font-weight:800;color:var(--text);line-height:1.3;letter-spacing:-.1px}
 .banks-v2 .bnk-tl-sub{font-size:calc(10.5px*var(--app-text-scale,1));color:var(--muted);margin-top:3px;display:flex;align-items:center;gap:5px;overflow:hidden;line-height:1.3;font-variant-numeric:tabular-nums}
 .banks-v2 .bnk-tl-sub span:not(.bnk-tl-fee-badge){white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.banks-v2 .bnk-tl-fee-badge{flex-shrink:0;font-size:calc(8.5px*var(--app-text-scale,1));font-weight:800;padding:2px 7px;border-radius:99px;background:var(--surface2);color:var(--muted);letter-spacing:.2px;white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums}
+.banks-v2 .bnk-tl-fee-badge{flex-shrink:0;font-size:calc(10px*var(--app-text-scale,1));font-weight:800;padding:2px 7px;border-radius:var(--radius-pill);background:var(--surface2);color:var(--muted);letter-spacing:.2px;white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums}
 .banks-v2 .bnk-tl-end{flex-shrink:0;min-width:64px;text-align:end;display:flex;flex-direction:column;align-items:flex-end;gap:var(--sp1)}
 .banks-v2 .bnk-tl-amt{font-size:calc(15px*var(--app-text-scale,1));font-weight:900;letter-spacing:-.2px;line-height:1.2;font-variant-numeric:tabular-nums;font-feature-settings:'tnum' 1,'lnum' 1;white-space:nowrap}
-.banks-v2 .bnk-tl-time{font-size:calc(9.5px*var(--app-text-scale,1));font-weight:700;color:var(--muted);letter-spacing:.2px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.banks-v2 .bnk-tl-time{font-size:calc(10.5px*var(--app-text-scale,1));font-weight:700;color:var(--muted);letter-spacing:.2px;font-variant-numeric:tabular-nums;white-space:nowrap}
 .banks-v2 .bnk-tl-del{background:none;border:none;color:var(--muted);cursor:pointer;padding:6px;border-radius:var(--radius-xs);flex-shrink:0;margin-inline-start:-3px}
 .banks-v2 .bnk-tl-del:active{color:#fff;background:var(--red)}
 .banks-v2 .bnk-tl-empty{display:flex;flex-direction:column;align-items:center;text-align:center;padding:var(--bk8-3) var(--bk8-2)}
 .banks-v2 .bnk-tl-empty-icon{width:48px;height:48px;border-radius:50%;background:var(--surface2);color:var(--muted);display:flex;align-items:center;justify-content:center;margin-bottom:var(--bk8-1)}
 .banks-v2 .bnk-tl-empty-title{font-size:calc(12.5px*var(--app-text-scale,1));font-weight:800;color:var(--text)}
 .banks-v2 .bnk-tl-empty-sub{font-size:calc(11px*var(--app-text-scale,1));color:var(--muted);margin-top:3px}
-.banks-v2 .bnk-tl-empty-btn{display:inline-flex;align-items:center;gap:6px;margin-top:var(--bk8-2);background:var(--green);color:#fff;border:none;padding:9px 16px;border-radius:99px;font-size:calc(12px*var(--app-text-scale,1));font-weight:800;cursor:pointer}
+.banks-v2 .bnk-tl-empty-btn{display:inline-flex;align-items:center;gap:6px;margin-top:var(--bk8-2);background:var(--green);color:#fff;border:none;padding:9px 16px;border-radius:var(--radius-pill);font-size:calc(12px*var(--app-text-scale,1));font-weight:800;cursor:pointer}
 .banks-v2 .bnk-tl-empty-btn:active{transform:scale(.97)}
 
 /* ---- Analytics ---- */
 .banks-v2 .bnk-analytics{
   background:var(--surface);border-radius:var(--radius-hero);border:1px solid var(--border);
-  box-shadow:0 1px 6px rgba(15,31,24,.04);padding:var(--bk8-2);margin-bottom:var(--bk8-3);
+  box-shadow:var(--shadow-xs);padding:var(--bk8-2);margin-bottom:var(--bk8-3);
   display:flex;flex-direction:column;gap:var(--bk8-2);
 }
 .banks-v2 .bnk-analytics-chips{display:flex;flex-wrap:wrap;gap:8px}
-.banks-v2 .bnk-analytics-chip{display:inline-flex;align-items:center;gap:6px;font-size:calc(11px*var(--app-text-scale,1));font-weight:800;padding:6px 11px;border-radius:99px}
+.banks-v2 .bnk-analytics-chip{display:inline-flex;align-items:center;gap:6px;font-size:calc(11px*var(--app-text-scale,1));font-weight:800;padding:6px 11px;border-radius:var(--radius-pill)}
 .banks-v2 .bnk-analytics-chip.up{background:var(--green-tint);color:var(--green)}
 .banks-v2 .bnk-analytics-chip.down{background:var(--red-tint);color:var(--red)}
 .banks-v2 .bnk-analytics-top{display:flex;align-items:center;gap:var(--bk8-3)}
@@ -7482,7 +7482,7 @@ html.wdash-sheet-lock,html.wdash-sheet-lock body{overflow:hidden}
 .banks-v2 .bnk-analytics-grid{display:grid;grid-template-columns:1fr 1fr;gap:var(--bk8-2)}
 .banks-v2 .bnk-analytics-stat{padding:var(--bk8-1) 10px;border-radius:var(--radius-sm)}
 .banks-v2 .bnk-analytics-stat-top{background:var(--green-tint);border:1px solid var(--green)}
-.banks-v2 .bnk-analytics-stat-lbl{display:flex;align-items:center;gap:4px;font-size:calc(9.5px*var(--app-text-scale,1));font-weight:700;color:var(--muted);text-transform:none;letter-spacing:0.3px}
+.banks-v2 .bnk-analytics-stat-lbl{display:flex;align-items:center;gap:4px;font-size:calc(10.5px*var(--app-text-scale,1));font-weight:700;color:var(--muted);text-transform:none;letter-spacing:0.3px}
 .banks-v2 .bnk-analytics-stat-top .bnk-analytics-stat-lbl{color:var(--green)}
 .banks-v2 .bnk-analytics-stat-val{font-size:calc(13px*var(--app-text-scale,1));font-weight:900;color:var(--text);margin-top:3px;overflow-wrap:break-word}
 
@@ -7507,7 +7507,7 @@ html.wdash-sheet-lock,html.wdash-sheet-lock body{overflow:hidden}
    known iOS :active quirk), which read as an unwanted flicker rather than
    feedback. The plain 0.98 press-scale above is kept. */
 
-.banks-v2 .bnk-empty-cta{display:flex;align-items:center;justify-content:center;gap:var(--sp2);width:100%;margin-top:var(--bk8-2);background:var(--green);color:#fff;border:none;padding:12px 18px;border-radius:99px;font-size:calc(13px*var(--app-text-scale,1));font-weight:800;cursor:pointer}
+.banks-v2 .bnk-empty-cta{display:flex;align-items:center;justify-content:center;gap:var(--sp2);width:100%;margin-top:var(--bk8-2);background:var(--green);color:#fff;border:none;padding:12px 18px;border-radius:var(--radius-pill);font-size:calc(13px*var(--app-text-scale,1));font-weight:800;cursor:pointer}
 .banks-v2 .bnk-empty-cta:active{transform:scale(.98)}
 
 @media(max-width:430px){
@@ -7534,7 +7534,7 @@ html.wdash-sheet-lock,html.wdash-sheet-lock body{overflow:hidden}
 }
 .txlg-stat{background:var(--surface);padding:var(--s-1) var(--s-half);text-align:center}
 .txlg-stat-val{font-size:calc(13px*var(--app-text-scale,1));font-weight:900;color:var(--text);letter-spacing:-.2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.txlg-stat-lbl{font-size:calc(8.5px*var(--app-text-scale,1));font-weight:700;color:var(--muted);text-transform:none;letter-spacing:0.3px;margin-top:2px}
+.txlg-stat-lbl{font-size:calc(10.5px*var(--app-text-scale,1));font-weight:700;color:var(--muted);text-transform:none;letter-spacing:0.3px;margin-top:2px}
 @media(max-width:360px){ .txlg-stat-val{font-size:calc(11.5px*var(--app-text-scale,1))} }
 
 /* KPI typography hierarchy (Commit 1) — Total Paid + Total Target read as
@@ -7543,10 +7543,10 @@ html.wdash-sheet-lock,html.wdash-sheet-lock body{overflow:hidden}
    changes size/weight/color via modifier classes on the existing markup. */
 .txlg-stat-primary .txlg-stat-val{font-size:calc(16px*var(--app-text-scale,1));font-weight:900}
 .txlg-stat-secondary .txlg-stat-val{font-size:calc(11px*var(--app-text-scale,1));font-weight:700;color:var(--muted)}
-.txlg-stat-secondary .txlg-stat-lbl{font-size:calc(7.5px*var(--app-text-scale,1))}
+.txlg-stat-secondary .txlg-stat-lbl{font-size:calc(10.5px*var(--app-text-scale,1))}
 @media(max-width:360px){
   .txlg-stat-primary .txlg-stat-val{font-size:calc(14px*var(--app-text-scale,1))}
-  .txlg-stat-secondary .txlg-stat-val{font-size:calc(9.5px*var(--app-text-scale,1))}
+  .txlg-stat-secondary .txlg-stat-val{font-size:calc(10.5px*var(--app-text-scale,1))}
 }
 
 /* ══════════════════════════════════════════════════════════════════════════
@@ -7664,7 +7664,7 @@ html.wdash-sheet-lock,html.wdash-sheet-lock body{overflow:hidden}
    no border/background, just a small colored tap target. */
 .kpi3-saved-mode-btn{
   margin-top:5px;padding:2px 0;border:none;background:none;
-  font-size:calc(9px*var(--app-text-scale,1));font-weight:700;color:var(--green);opacity:.85;
+  font-size:calc(10px*var(--app-text-scale,1));font-weight:700;color:var(--green);opacity:.85;
   cursor:pointer;white-space:nowrap;font-family:inherit;
 }
 .kpi3-saved-mode-btn:active{opacity:1}
@@ -7696,14 +7696,14 @@ html.wdash-sheet-lock,html.wdash-sheet-lock body{overflow:hidden}
   display:flex;flex-direction:column;gap:1px;text-align:start;
 }
 .kpi3-sec+.kpi3-sec::before{content:'';position:absolute;inset-inline-start:0;top:9px;bottom:9px;width:1px;background:var(--border)}
-.kpi3-sec-label{font-size:calc(9.5px*var(--app-text-scale,1));font-weight:700;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.kpi3-sec-label{font-size:calc(10.5px*var(--app-text-scale,1));font-weight:700;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .kpi3-sec-val{font-size:calc(13.5px*var(--app-text-scale,1));font-weight:800;letter-spacing:-.2px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.kpi3-sec .kpi3-saved-mode-btn{margin-top:2px;font-size:calc(8.5px*var(--app-text-scale,1))}
+.kpi3-sec .kpi3-saved-mode-btn{margin-top:2px;font-size:calc(10px*var(--app-text-scale,1))}
 
 /* ── Search bar polish (scoped to Daily screen only via .txlg-wrap; the
    shared .sc-search rule used by every other screen is untouched) ── */
 .txlg-wrap .sc-search{padding:4px var(--sp4) 3px}
-.txlg-wrap .sc-search input{height:52px;border-radius:12px;padding-top:0;padding-bottom:0}
+.txlg-wrap .sc-search input{height:52px;border-radius:var(--radius-sm);padding-top:0;padding-bottom:0}
 .txlg-wrap .txlg-toolbar{gap:4px;padding-top:0}
 
 /* ── Timeline row polish: 58px rows, single "Category • Merchant • Time"
@@ -7777,7 +7777,7 @@ html.wdash-sheet-lock,html.wdash-sheet-lock body{overflow:hidden}
    classes). Same visual output, no layout/behavior change. ─────────────── */
 .txlg-target-card{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 16px;margin-bottom:12px;cursor:pointer}
 .txlg-target-left{display:flex;align-items:center;gap:10px;min-width:0}
-.txlg-target-icon{width:34px;height:34px;border-radius:10px;background:var(--blue-tint);color:var(--blue);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.txlg-target-icon{width:34px;height:34px;border-radius:var(--radius-sm);background:var(--blue-tint);color:var(--blue);display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .txlg-target-label{font-size:calc(var(--fs-caption)*var(--app-text-scale,1));font-weight:800;color:var(--muted)}
 .txlg-target-value{font-size:calc(15px*var(--app-text-scale,1));font-weight:900;color:var(--text)}
 .txlg-target-edit{color:var(--blue);font-weight:800;font-size:calc(11px*var(--app-text-scale,1));flex-shrink:0}
@@ -7802,7 +7802,7 @@ html.wdash-sheet-lock,html.wdash-sheet-lock body{overflow:hidden}
 .txlg-buy-row-wrap.txlg-buy-swiped .txlg-buy-del{opacity:1;pointer-events:auto}
 .txlg-buy-del:active{color:var(--red)}
 .txlg-group-label{
-  font-size:calc(9.5px*var(--app-text-scale,1));font-weight:700;color:var(--muted);text-transform:none;letter-spacing:0.3px;
+  font-size:calc(10.5px*var(--app-text-scale,1));font-weight:700;color:var(--muted);text-transform:none;letter-spacing:0.3px;
   padding:var(--s-2) var(--sp1) var(--s-half);
 }
 .txlg-group-label:first-child{padding-top:var(--s-1)}
@@ -7854,7 +7854,7 @@ html.wdash-sheet-lock,html.wdash-sheet-lock body{overflow:hidden}
 .txlg-del:active{color:var(--red)}
 
 /* Sticky summary trend arrows */
-.txlg-trend{display:inline-block;margin-inline-start:4px;font-size:calc(8px*var(--app-text-scale,1))}
+.txlg-trend{display:inline-block;margin-inline-start:4px;font-size:calc(10px*var(--app-text-scale,1))}
 .txlg-trend.up{color:var(--green)}
 .txlg-trend.down{color:var(--red)}
 
@@ -7872,7 +7872,7 @@ html.wdash-sheet-lock,html.wdash-sheet-lock body{overflow:hidden}
 .txlg-ai-primary{display:flex;align-items:center;gap:4px;min-width:0;overflow:hidden}
 .txlg-ai-cat{font-size:calc(var(--fs-overline)*var(--app-text-scale,1));font-weight:700;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .txlg-ai-sep{font-size:calc(var(--fs-overline)*var(--app-text-scale,1));color:var(--border-strong);flex-shrink:0}
-.txlg-time{font-size:calc(8.5px*var(--app-text-scale,1));font-weight:600;color:var(--sub);white-space:nowrap;flex-shrink:0;opacity:.85}
+.txlg-time{font-size:calc(10.5px*var(--app-text-scale,1));font-weight:600;color:var(--sub);white-space:nowrap;flex-shrink:0;opacity:.85}
 
 /* ══════════════════════════════════════════════════════════════════════════
    UI Refinement (pre-Phase 3) — Timeline row enhancements. All new elements
@@ -7884,7 +7884,7 @@ html.wdash-sheet-lock,html.wdash-sheet-lock body{overflow:hidden}
 .txlg-fade-in{animation:txlgFadeScale var(--dur-fast) var(--ease-standard) both}
 
 .txlg-merchant-chip{
-  font-size:calc(9px*var(--app-text-scale,1));font-weight:700;color:var(--sub);
+  font-size:calc(10px*var(--app-text-scale,1));font-weight:700;color:var(--sub);
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:120px;
 }
 
@@ -7895,7 +7895,7 @@ html.wdash-sheet-lock,html.wdash-sheet-lock body{overflow:hidden}
    has no timeline representation at all. */
 .txlg-review-badge{
   display:inline-flex;align-items:center;flex-shrink:0;cursor:pointer;
-  font-size:calc(8px*var(--app-text-scale,1));font-weight:800;color:#fff;background:var(--orange);
+  font-size:calc(10px*var(--app-text-scale,1));font-weight:800;color:#fff;background:var(--orange);
   padding:1.5px 5px;border-radius:var(--radius-pill);line-height:1.4;letter-spacing:.2px;
 }
 .txlg-dup-icon{
@@ -7985,7 +7985,7 @@ html.wdash-sheet-lock,html.wdash-sheet-lock body{overflow:hidden}
 .txlg-empty-filtered-title{font-size:calc(var(--fs-body)*var(--app-text-scale,1));font-weight:800;color:var(--text)}
 .txlg-empty-filtered-sub{font-size:calc(11.5px*var(--app-text-scale,1));color:var(--muted);margin-top:4px}
 .txlg-empty-filtered-btn{
-  margin-top:14px;background:var(--surface2);border:1.5px solid var(--border);border-radius:99px;
+  margin-top:14px;background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--radius-pill);
   color:var(--text);font-size:calc(11px*var(--app-text-scale,1));font-weight:800;padding:7px 18px;cursor:pointer;
   display:inline-flex;align-items:center;gap:5px;
 }
@@ -9083,8 +9083,8 @@ body .screen-wrap .sc-header.sav-plain-header.sav-plain-header::after{display:no
 .txlg-wrap .kpi3-primary-label::before{display:none}
 .txlg-wrap .kpi3-primary .kpi3-primary-val{font-size:calc(38px*var(--app-text-scale,1));margin-top:4px}
 .txlg-wrap .kpi3-prog{width:100%;margin-top:10px}
-.txlg-wrap .kpi3-prog-track{overflow:hidden;border-radius:99px}
-.txlg-wrap .kpi3-prog-track i{display:block;height:100%;border-radius:99px}
+.txlg-wrap .kpi3-prog-track{overflow:hidden;border-radius:var(--radius-pill)}
+.txlg-wrap .kpi3-prog-track i{display:block;height:100%;border-radius:var(--radius-pill)}
 .txlg-wrap .kpi3-prog-meta{display:flex;justify-content:space-between;gap:8px}
 .txlg-wrap .kpi3-prog-track{height:3px;background:var(--border)}
 .txlg-wrap .kpi3-prog-track i{background:var(--green)}
@@ -9117,7 +9117,7 @@ body .screen-wrap .sc-header.sav-plain-header.sav-plain-header::after{display:no
 .txlg-wrap .kpi3-sec{padding:10px 18px 10px 12px;gap:2px}
 .txlg-wrap .kpi3-sec:first-child{padding-inline-start:18px}
 .txlg-wrap .kpi3-sec::after{display:none}
-.txlg-wrap .kpi3-sec-label{font-size:calc(9.5px*var(--app-text-scale,1));letter-spacing:.5px;margin-top:0}
+.txlg-wrap .kpi3-sec-label{font-size:calc(10.5px*var(--app-text-scale,1));letter-spacing:.5px;margin-top:0}
 .txlg-wrap .kpi3-sec-val{font-family:var(--font);font-size:calc(15px*var(--app-text-scale,1));font-weight:800;letter-spacing:-.2px}
 .txlg-wrap .kpi3-sec-val.is-empty{font-size:calc(12.5px*var(--app-text-scale,1))}
 .txlg-wrap .kpi3-sec .kpi3-saved-mode-btn{margin-top:0}
@@ -9135,10 +9135,10 @@ body .screen-wrap .sc-header.sav-plain-header.sav-plain-header::after{display:no
 .txlg-wrap .txlg-filters{box-shadow:none;border:1px solid var(--border);border-radius:var(--radius-sm);padding:6px 0 8px}
 .txlg-wrap .txlg-toolbar{gap:6px}
 .txlg-wrap .sc-search{padding:2px var(--sp3) 0}
-.txlg-wrap .sc-search input{height:40px;border-radius:10px;font-size:calc(13px*var(--app-text-scale,1))}
+.txlg-wrap .sc-search input{height:40px;border-radius:var(--radius-sm);font-size:calc(13px*var(--app-text-scale,1))}
 .txlg-wrap .txlg-filter-row{padding:0 var(--sp3)}
-.txlg-wrap .txlg-seg{border:0;border-radius:10px;padding:2px;gap:2px;background:var(--surface2);box-shadow:none;overflow:hidden}
-.txlg-wrap .txlg-seg button{padding:6px 4px;border-radius:8px;font-size:calc(11px*var(--app-text-scale,1))}
+.txlg-wrap .txlg-seg{border:0;border-radius:var(--radius-sm);padding:2px;gap:2px;background:var(--surface2);box-shadow:none;overflow:hidden}
+.txlg-wrap .txlg-seg button{padding:6px 4px;border-radius:var(--radius-sm);font-size:calc(11px*var(--app-text-scale,1))}
 .txlg-wrap .txlg-seg button+button{border-inline-start:0}
 .txlg-wrap .txlg-seg button.active{background:var(--green);color:#fff;box-shadow:none}
 .txlg-wrap .txlg-chip{background:var(--surface2);border-color:var(--border)}
@@ -9153,7 +9153,7 @@ body .screen-wrap .sc-header.sav-plain-header.sav-plain-header::after{display:no
 .txlg-wrap .txlg-row-content{min-height:0;padding:9px var(--sp1);border-radius:0}
 .txlg-wrap .txlg-amt{font-family:var(--font);font-size:calc(16px*var(--app-text-scale,1));font-weight:800;letter-spacing:-.2px}
 .txlg-wrap .txlg-line1{justify-content:flex-start;gap:8px}
-.txlg-wrap .txlg-review-badge{margin-inline-start:auto;background:var(--orange-tint);color:var(--orange);font-size:calc(9px*var(--app-text-scale,1));padding:2px 8px}
+.txlg-wrap .txlg-review-badge{margin-inline-start:auto;background:var(--orange-tint);color:var(--orange);font-size:calc(10px*var(--app-text-scale,1));padding:2px 8px}
 .txlg-wrap .txlg-dup-icon{margin-inline-start:auto}
 .txlg-wrap .txlg-review-badge+.txlg-dup-icon{margin-inline-start:0}
 .txlg-wrap .txlg-conf-dot{display:none}
@@ -9460,7 +9460,7 @@ body .screen-wrap .sc-header.sav-plain-header.sav-plain-header::after{display:no
    ═══════════════════════════════════════════════════════════════════ */
 
 /* header badges */
-.banks-v2 .bnk-card-badge{font-weight:700;letter-spacing:.7px;padding:3px 10px;font-size:calc(9px*var(--app-text-scale,1))}
+.banks-v2 .bnk-card-badge{font-weight:700;letter-spacing:.7px;padding:3px 10px;font-size:calc(10px*var(--app-text-scale,1))}
 
 /* ── the card itself ── */
 .banks-v2 .bnk-visacard.bnk-visacard-expanded{
@@ -9531,12 +9531,12 @@ body .screen-wrap .sc-header.sav-plain-header.sav-plain-header::after{display:no
 
 /* ── add-movement form: a solid sheet, not frosted glass ── */
 .banks-v2 .sc-add-row{
-  margin:0;padding:18px 16px 16px;gap:16px;border-radius:18px;
+  margin:0;padding:18px 16px 16px;gap:16px;border-radius:var(--radius);
   background:var(--surface);border:1px solid var(--border);
   box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none
 }
 .banks-v2 .sc-add-label{
-  font-size:calc(10px*var(--app-text-scale,1));font-weight:700;letter-spacing:.9px;text-transform:uppercase;
+  font-size:calc(10.5px*var(--app-text-scale,1));font-weight:700;letter-spacing:.9px;text-transform:uppercase;
   color:var(--muted);opacity:1;padding-inline-start:0
 }
 .banks-v2 .tx-type-toggle,.banks-v2 .wm-toggle{
@@ -9555,7 +9555,7 @@ body .screen-wrap .sc-header.sav-plain-header.sav-plain-header::after{display:no
   background:var(--surface);border-color:var(--green);box-shadow:none
 }
 .banks-v2 .sc-add-submit{
-  background:var(--accent,var(--fin-outcome));border-radius:14px;box-shadow:none;
+  background:var(--accent,var(--fin-outcome));border-radius:var(--radius);box-shadow:none;
   font-weight:700;letter-spacing:.3px;min-height:50px
 }
 .banks-v2 .sc-add-submit:active{transform:scale(.99);box-shadow:none;opacity:.92}
@@ -9576,8 +9576,7 @@ body .screen-wrap .sc-header.sav-plain-header.sav-plain-header::after{display:no
 
 /* Movement list: a single sheet, grouped by day, hairline rows */
 .banks-v2 .tx-rows.bnk-mv-list{
-  margin-top:14px;padding:0;gap:0;background:var(--surface);border:1px solid var(--border);border-radius:18px
-}
+  margin-top:14px;padding:0;gap:0;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius)}
 .banks-v2 .bnk-mv-list .list-empty{padding:22px 16px}
 .banks-v2 .bnk-mv-day{
   display:flex;align-items:center;justify-content:space-between;gap:8px;
@@ -9603,9 +9602,8 @@ body .screen-wrap .sc-header.sav-plain-header.sav-plain-header::after{display:no
   font-size:calc(11px*var(--app-text-scale,1));font-weight:500;color:var(--muted)
 }
 .banks-v2 .bnk-mv-tag{
-  font-size:calc(9px*var(--app-text-scale,1));font-weight:700;letter-spacing:.5px;text-transform:uppercase;
-  padding:2px 7px;border-radius:99px
-}
+  font-size:calc(10px*var(--app-text-scale,1));font-weight:700;letter-spacing:.5px;text-transform:uppercase;
+  padding:2px 7px;border-radius:var(--radius-pill)}
 .banks-v2 .bnk-mv-tag.is-fee{background:var(--primary-soft);color:var(--primary)}
 .banks-v2 .bnk-mv-tag.is-info{background:var(--info-tint);color:var(--info)}
 .banks-v2 .bnk-mv-tag.is-site{background:var(--purple-tint);color:var(--purple)}
@@ -9845,6 +9843,56 @@ body .screen-wrap .sc-header.sav-plain-header.sav-plain-header::after{display:no
 .tx-entry .tx-amt input[placeholder]:not(:placeholder-shown):not(:focus){border-bottom-color:var(--inp-bd-filled)}
 .tx-entry :is(.tx-amt,.tx-notes):focus-within>label{color:var(--tx-accent)}
 .tx-entry .tx-notes input[placeholder]:not(:placeholder-shown):not(:focus){background:var(--surface);border-color:var(--inp-bd-filled);font-weight:600}
+
+/* ══ FINORA Input System — Part 4 · Commit 3 (visual only · existing tokens) ══
+   `.fin-inp` replaces the per-element inline look (border / background / radius / colour)
+   that used to sit in style="" on 10 entry controls: SMS paste + SMS test boxes, quick
+   custom-category field, split-transaction category + amount, smart-description category
+   picker + new-category field, and the Reminder title / date / notify-days fields.
+   Layout props (width, flex, height, padding, font-size) stay inline on each element.
+   States follow Commit 1/2: empty well → hover → focus → filled. */
+.fin-inp{
+  box-sizing:border-box;
+  background-color:var(--inp-bg);
+  border:1.5px solid var(--inp-bd);
+  border-radius:10px;
+  color:var(--text);
+  outline:none;
+  transition:border-color .15s,box-shadow .15s,background-color .15s;
+}
+.fin-inp::placeholder{color:var(--muted);opacity:.6;font-weight:400}
+.fin-inp:not(:focus):not(:disabled):hover{border-color:var(--inp-bd-hover)}
+.fin-inp[placeholder]:not(:placeholder-shown):not(:focus),
+.fin-inp:is(select):has(option[value=""]):not(:has(option[value=""]:checked)):not(:focus){
+  background-color:var(--inp-bg-filled);border-color:var(--inp-bd-filled);box-shadow:var(--inp-edge);
+}
+[dir="rtl"] .fin-inp[placeholder]:not(:placeholder-shown):not(:focus),
+[dir="rtl"] .fin-inp:is(select):has(option[value=""]):not(:has(option[value=""]:checked)):not(:focus){box-shadow:var(--inp-edge-rtl)}
+.fin-inp:focus{background-color:var(--inp-bg-filled);border-color:var(--green);box-shadow:var(--inp-edge),var(--inp-ring)}
+[data-theme="dark"] .fin-inp:focus{border-color:var(--green-light)}
+[dir="rtl"] .fin-inp:focus{box-shadow:var(--inp-edge-rtl),var(--inp-ring)}
+.fin-inp:is(select){
+  appearance:none;-webkit-appearance:none;cursor:pointer;
+  background-image:var(--inp-chev);background-repeat:no-repeat;background-size:16px 16px;
+  background-position:right 10px center;padding-inline-end:34px!important;
+}
+[dir="rtl"] .fin-inp:is(select){background-position:left 10px center}
+.fin-inp[inputmode=decimal]{font-variant-numeric:tabular-nums}
+.fin-inp:disabled{background-color:var(--surface3);color:var(--muted);opacity:.7;cursor:not-allowed}
+
+/* Date fields: _wrapDateInput() moves the input's inline style onto a .date-wrap-auto wrapper and
+   hides the native input, so the visible box is the wrapper. Give wrappers of .fin-inp dates the
+   same well + states (markup/JS untouched). */
+.date-wrap-auto:has(>.fin-inp){
+  background-color:var(--inp-bg);border:1.5px solid var(--inp-bd);border-radius:10px;color:var(--text);
+  transition:border-color .15s,box-shadow .15s,background-color .15s;
+}
+.date-wrap-auto:has(>.fin-inp):hover:not(:focus-within){border-color:var(--inp-bd-hover)}
+.date-wrap-auto:has(>.fin-inp):focus-within{
+  background-color:var(--inp-bg-filled);border-color:var(--green);box-shadow:var(--inp-edge),var(--inp-ring);
+}
+[data-theme="dark"] .date-wrap-auto:has(>.fin-inp):focus-within{border-color:var(--green-light)}
+[dir="rtl"] .date-wrap-auto:has(>.fin-inp):focus-within{box-shadow:var(--inp-edge-rtl),var(--inp-ring)}
 </style>
 <script>
 // Suppress cross-origin Script errors (in-app browsers like TikTok/Instagram)
@@ -28474,7 +28522,7 @@ function smsOpenAddModal(){
     </div>
     <div class="field">
       <label>${L('SMS Text','نص الرسالة')}</label>
-      <textarea id="smsPasteBox" rows="8" placeholder="${L('Paste your bank SMS text here…','الصق نص الرسالة البنكية هنا…')}" style="width:100%;font-family:inherit;font-size:calc(12.5px*var(--app-text-scale,1));padding:var(--sp3);border-radius:10px;border:1.5px solid var(--border);background:var(--surface2);color:var(--text);resize:vertical"></textarea>
+      <textarea class="fin-inp" id="smsPasteBox" rows="8" placeholder="${L('Paste your bank SMS text here…','الصق نص الرسالة البنكية هنا…')}" style="width:100%;font-family:inherit;font-size:calc(12.5px*var(--app-text-scale,1));padding:var(--sp3);resize:vertical"></textarea>
     </div>
     <div class="modal-btns"><button class="mbtn save" onclick="smsSubmitPaste()">${ic('search',14)} ${L('Detect & Add','اكتشاف وإضافة')}</button><button class="mbtn cancel" onclick="closeModal()">${L('Cancel','إلغاء')}</button></div>`;
   document.getElementById('modalOverlay').style.display='flex';
@@ -29008,7 +29056,7 @@ function renderSmsTestConsole(){
       <select id="smsTcProvider">${providerOpts}</select>
     </div>
     <div class="field"><label>Raw SMS Text</label>
-      <textarea id="smsTcInput" rows="6" style="width:100%;font-family:inherit;font-size:calc(12.5px*var(--app-text-scale,1));padding:var(--sp3);border-radius:10px;border:1.5px solid var(--border);background:var(--surface2);color:var(--text);resize:vertical" placeholder="Paste raw SMS text…"></textarea>
+      <textarea class="fin-inp" id="smsTcInput" rows="6" style="width:100%;font-family:inherit;font-size:calc(12.5px*var(--app-text-scale,1));padding:var(--sp3);resize:vertical" placeholder="Paste raw SMS text…"></textarea>
     </div>
     <button class="sc-btn primary" style="width:100%;margin-top:8px" onclick="smsTcRun()">${ic('search',14)} Run Parser</button>
   </div>
@@ -33476,9 +33524,9 @@ function handleCustodyNoteSelect(sel){
   row.className = '_custom-note-row';
   row.style.cssText = 'display:flex;gap:8px;margin-top:8px;align-items:center';
   row.innerHTML = `
-    <input type="text" id="_customNoteInline"
+    <input class="fin-inp" type="text" id="_customNoteInline"
       placeholder="${L('Type new category...','اكتب تصنيف جديد...')}"
-      style="flex:1;padding:10px 12px;border-radius:10px;border:1.5px solid var(--green);background:var(--surface);color:var(--text);font-size:calc(14px*var(--app-text-scale,1));font-weight:600;outline:none">
+      style="flex:1;padding:10px 12px;font-size:calc(14px*var(--app-text-scale,1));font-weight:600">
     <button onclick="_applyCustomNote(this)" class="card-add-btn green">${L('Confirm','تأكيد')}</button>
     <button onclick="this.closest('._custom-note-row').remove()" class="card-add-btn ghost">${ic('close',15)}</button>`;
   field.appendChild(row);
@@ -34050,9 +34098,9 @@ function _txSplitRender(){
           oninput="_txSplit.items[${i}].notes=this.value"
           style="width:100%;font-size:calc(12px*var(--app-text-scale,1));color:var(--muted);border:none;background:transparent;padding:0" />
       </div>
-      <input type="text" inputmode="decimal" class="txsplit-amt-input" value="${it.amount!=null?it.amount:''}" placeholder="0"
+      <input type="text" inputmode="decimal" class="txsplit-amt-input fin-inp" value="${it.amount!=null?it.amount:''}" placeholder="0"
         oninput="_txSplit.items[${i}].amount=this.value;_txSplitUpdateSummary()"
-        style="width:90px;text-align:end;font-weight:700;padding:8px 10px;border-radius:var(--radius-sm,10px);border:1px solid var(--border-color,var(--border-strong));background:var(--surface2,transparent)" />
+        style="width:90px;text-align:end;font-weight:700;padding:8px 10px" />
       <button type="button" onclick="_txSplitRemoveRow(${i})" ${_txSplit.items.length<=2?'disabled style="opacity:.35"':''}
         style="border:none;background:transparent;color:var(--muted);padding:4px">${ic('close',14)}</button>
     </div>`).join('');
@@ -34079,7 +34127,7 @@ function _txSplitRender(){
       <div class="txai-divider"></div>
       <div id="txSplitRows">${rowsHTML}</div>
       <div style="display:flex;gap:8px;margin:10px 0">
-        <select id="txSplitAddCat" style="flex:1;padding:8px 10px;border-radius:var(--radius-sm,10px);border:1px solid var(--border-color,var(--border-strong));background:var(--surface2,transparent)">${catOptions}</select>
+        <select class="fin-inp" id="txSplitAddCat" style="flex:1;padding:8px 10px">${catOptions}</select>
         <button type="button" onclick="_txSplitAddRow()" style="padding:8px 14px;border-radius:var(--radius-sm,10px);border:1px solid var(--border-color,var(--border-strong));background:transparent;color:var(--text2,inherit)">${L('Add','إضافة')}</button>
       </div>
       <div class="txai-divider"></div>
@@ -37155,7 +37203,7 @@ function _sdeOpenPicker(fieldId, boxId, ctx){
   const base = all.filter(c=>!c.custom).map(c=>`<option value="${c.idx}">${lbl(c)}</option>`).join('');
   box.innerHTML = `
     <div style="display:flex;gap:6px;align-items:center">
-      <select id="_sdePickSel" style="flex:1;padding:8px 10px;border-radius:9px;border:1.5px solid var(--border);background:var(--surface);color:var(--text);font-size:calc(12px*var(--app-text-scale,1))" onchange="_sdePickChanged('${fieldId}','${boxId}','${ctx}')">
+      <select class="fin-inp" id="_sdePickSel" style="flex:1;padding:8px 10px;font-size:calc(12px*var(--app-text-scale,1))" onchange="_sdePickChanged('${fieldId}','${boxId}','${ctx}')">
         <option value="">${L('— Select category —','— اختر التصنيف —')}</option>
         <option value="__new__">+ ${L('New category…','تصنيف جديد…')}</option>
         ${mine ? `<option value="__manage__">✎ ${L('Manage my categories…','إدارة تصنيفاتي…')}</option>` : ''}
@@ -37180,9 +37228,9 @@ function _sdeShowNewCat(fieldId, boxId, ctx){
   if(!box) return;
   box.innerHTML = `
     <div style="display:flex;gap:6px;align-items:center">
-      <input id="_sdeNewCatInp" type="text" dir="auto" maxlength="60" autocomplete="off"
+      <input class="fin-inp" id="_sdeNewCatInp" type="text" dir="auto" maxlength="60" autocomplete="off"
         placeholder="${L('e.g. Falafel or Food › Falafel','مثال: فلافل أو طعام › فلافل')}"
-        style="flex:1;padding:8px 10px;border-radius:9px;border:1.5px solid var(--border);background:var(--surface);color:var(--text);font-size:calc(12px*var(--app-text-scale,1))"
+        style="flex:1;padding:8px 10px;font-size:calc(12px*var(--app-text-scale,1))"
         onkeydown="if(event.key==='Enter'){event.preventDefault();_sdeSaveNewCat('${fieldId}','${boxId}','${ctx}')}">
       <button type="button" onclick="_sdeSaveNewCat('${fieldId}','${boxId}','${ctx}')"
         style="border:none;background:#0f7a55;color:#fff;font-weight:800;border-radius:9px;padding:8px 14px;cursor:pointer;font-size:calc(12px*var(--app-text-scale,1))">${L('Add','إضافة')}</button>
@@ -40928,10 +40976,10 @@ function openRemindersPanel(){
       </div>
     </div>
     <div style="display:flex;flex-direction:column;gap:8px;background:var(--surface2);border-radius:var(--radius-sm);padding:12px;margin-bottom:6px">
-      <input id="remTitleInput" type="text" dir="auto" placeholder="${L('Reminder title — e.g. Contract renewal','عنوان التذكير — مثال: تجديد عقد')}" style="height:40px;border-radius:9px;border:1.5px solid var(--border);background:var(--surface);color:var(--text);padding:0 12px;font-size:calc(13px*var(--app-text-scale,1));font-family:inherit">
+      <input class="fin-inp" id="remTitleInput" type="text" dir="auto" placeholder="${L('Reminder title — e.g. Contract renewal','عنوان التذكير — مثال: تجديد عقد')}" style="height:40px;padding:0 12px;font-size:calc(13px*var(--app-text-scale,1));font-family:inherit">
       <div style="display:flex;gap:8px">
-        <input id="remDateInput" type="date" style="flex:1;height:40px;border-radius:9px;border:1.5px solid var(--border);background:var(--surface);color:var(--text);padding:0 10px;font-size:calc(13px*var(--app-text-scale,1));font-family:inherit">
-        <select id="remNotifyDaysInput" style="width:132px;height:40px;border-radius:9px;border:1.5px solid var(--border);background:var(--surface);color:var(--text);padding:0 8px;font-size:calc(12px*var(--app-text-scale,1));font-family:inherit">
+        <input class="fin-inp" id="remDateInput" type="date" style="flex:1;height:40px;padding:0 10px;font-size:calc(13px*var(--app-text-scale,1));font-family:inherit">
+        <select class="fin-inp" id="remNotifyDaysInput" style="width:132px;height:40px;padding:0 8px;font-size:calc(12px*var(--app-text-scale,1));font-family:inherit">
           <option value="0">${L('On the day','في نفس اليوم')}</option>
           <option value="1">${L('1 day before','قبلها بيوم')}</option>
           <option value="3" selected>${L('3 days before','قبلها 3 أيام')}</option>
