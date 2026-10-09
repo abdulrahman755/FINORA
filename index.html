@@ -2389,35 +2389,46 @@ tr.row-selected td{background:var(--green-tint)}
 }
 .tx-add-btn:active{opacity:.6}
 
-/* shared Provided summary: one soft panel, colour only on the number + bar */
+/* Provided summary — deliberately set apart from the form above it: a deep
+   ink-green panel with light type, so the running balance reads as the result
+   of the sheet rather than one more field. State colour lives in --st only. */
 .tx-sum{
-  --st:var(--muted);
-  position:relative;margin:12px 0;padding:16px;border-radius:16px;border:0;background:var(--surface2)
+  --st:rgba(255,255,255,.78);--st-bg:rgba(255,255,255,.10);
+  position:relative;overflow:hidden;margin:18px 0 14px;padding:18px 18px 16px;border-radius:20px;border:0;
+  background:linear-gradient(155deg,#0e2c21 0%,#081b14 100%);color:#fff;
+  box-shadow:0 14px 28px -14px rgba(8,27,20,.6),inset 0 1px 0 rgba(255,255,255,.07)
 }
-.tx-sum[data-state="surplus"]{--st:var(--tx-accent)}
-.tx-sum[data-state="deficit"]{--st:var(--red)}
-.tx-sum[data-state="balanced"]{--st:var(--blue)}
+.tx-sum[data-state="surplus"]{--st:#62e3b0;--st-bg:rgba(98,227,176,.16)}
+.tx-sum[data-state="deficit"]{--st:#ff917f;--st-bg:rgba(255,145,127,.16)}
+.tx-sum[data-state="balanced"]{--st:#8ec3ff;--st-bg:rgba(142,195,255,.16)}
 .tx-sum-top{display:flex;align-items:center;justify-content:space-between;gap:8px}
-.tx-sum-label{font-size:calc(12px*var(--app-text-scale,1));font-weight:600;color:var(--muted)}
+.tx-sum-label{font-size:calc(12px*var(--app-text-scale,1));font-weight:600;color:rgba(255,255,255,.62)}
+/* the badge colours are set inline by _txCalcProvided(); !important maps them onto the dark panel */
 .tx-sum-badge{
   display:none;font-size:calc(11px*var(--app-text-scale,1));font-weight:700;padding:3px 10px;border-radius:99px;
-  background:var(--surface3);color:var(--sub)
+  background:var(--st-bg)!important;color:var(--st)!important
 }
 .tx-sum input.tx-sum-val{
-  display:block;width:100%;min-height:0;height:auto;margin:6px 0 12px;padding:0;border:0;border-radius:0;
+  display:block;width:100%;min-height:0;height:auto;margin:8px 0 14px;padding:0;border:0;border-radius:0;
   background:transparent;box-shadow:none;outline:none;pointer-events:none;
   -webkit-appearance:none;appearance:none;font-family:inherit;
-  font-size:calc(30px*var(--app-text-scale,1));font-weight:800;line-height:1.15;letter-spacing:-.3px;
+  font-size:calc(34px*var(--app-text-scale,1));font-weight:800;line-height:1.1;letter-spacing:-.4px;
   font-variant-numeric:tabular-nums;color:var(--st);-webkit-text-fill-color:var(--st)
 }
-.tx-sum-bar{height:4px;border-radius:99px;background:var(--surface3);overflow:hidden;margin-bottom:14px}
+.tx-sum input.tx-sum-val::placeholder{color:rgba(255,255,255,.32);-webkit-text-fill-color:rgba(255,255,255,.32)}
+.tx-sum-bar{height:5px;border-radius:99px;background:rgba(255,255,255,.13);overflow:hidden;margin-bottom:14px}
 .tx-sum-bar i{display:block;height:100%;width:0;border-radius:99px;background:var(--st);transition:width .3s ease,background .25s}
-.tx-sum-stats{display:flex;gap:8px}
+.tx-sum-stats{display:flex;gap:8px;padding-top:13px;border-top:1px solid rgba(255,255,255,.1)}
 .tx-sum-stats > div{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
-.tx-sum-stats span{font-size:calc(11px*var(--app-text-scale,1));font-weight:500;color:var(--muted)}
-.tx-sum-stats b{font-size:calc(13px*var(--app-text-scale,1));font-weight:700;color:var(--text);font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.tx-sum-hint{font-size:calc(11px*var(--app-text-scale,1));color:var(--muted);margin-top:10px}
+.tx-sum-stats span{font-size:calc(11px*var(--app-text-scale,1));font-weight:500;color:rgba(255,255,255,.55)}
+.tx-sum-stats b{font-size:calc(13px*var(--app-text-scale,1));font-weight:700;color:#fff;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tx-sum-hint{font-size:calc(11px*var(--app-text-scale,1));color:rgba(255,255,255,.55);margin-top:10px}
 .tx-sum-hint:empty{display:none}
+/* on the charcoal dark theme the panel needs an edge to stay separate from the sheet */
+[data-theme="dark"] .tx-sum{
+  background:linear-gradient(155deg,#173025 0%,#10211a 100%);
+  box-shadow:0 0 0 1px rgba(255,255,255,.09),inset 0 1px 0 rgba(255,255,255,.08)
+}
 
 /* ── Select — custom arrow ── */
 .field select,.f-sel{
@@ -33817,7 +33828,7 @@ function _txSplitRender(){
   const catOptions = (() => {
     const seen = new Set(); const opts = [];
     (SmartDescriptionEngine.allCategories()).forEach(c=>{
-      const key = c.category.en; if(seen.has(key)) return; seen.add(key);
+      const key = c.category.en; if(c.hidden || seen.has(key)) return; seen.add(key);
       opts.push(`<option value="${esc(key)}">${esc(L(c.category.en,c.category.ar))}</option>`);
     });
     return opts.join('');
@@ -34559,9 +34570,94 @@ const _CATEGORY_ALIAS_INDEX = (function(){
 // Always returns a complete, well-formed object; unknown/empty input safely
 // resolves to "Other" (never undefined, never the bare wallet icon by accident).
 const _catUnknownWarned = new Set(); // avoid re-logging the same miss every re-render
+// ── User-defined categories ───────────────────────────────────────────────
+// Lets the person type a category the built-in dictionaries don't have. The
+// entry is stored once (localStorage), appended AFTER the built-in dictionaries
+// in SmartDescriptionEngine.allCategories() so existing indices never shift, and
+// then rides the exact same learning pipeline (recordUsage / recordCorrection /
+// vocabulary) as any built-in category — so repeating a description teaches it.
+const CUSTOM_CATS_KEY = 'wdp_custom_categories_v1';
+let _ccCache = null;
+function _ccLoad(){
+  if(_ccCache) return _ccCache;
+  try{ const a = JSON.parse(localStorage.getItem(CUSTOM_CATS_KEY)); _ccCache = Array.isArray(a) ? a : []; }
+  catch(e){ _ccCache = []; }
+  return _ccCache;
+}
+function _ccSave(list){
+  _ccCache = list;
+  try{ localStorage.setItem(CUSTOM_CATS_KEY, JSON.stringify(list)); }catch(e){ /* storage unavailable — stays in memory for this session */ }
+}
+// "Falafel" → {category:'Falafel', sub:'Falafel'}; "Food › Falafel" → {category:'Food', sub:'Falafel'}
+function _ccParse(raw){
+  const s = String(raw||'').replace(/\s+/g,' ').trim().slice(0,60);
+  if(!s) return null;
+  const parts = s.split(/\s*[>›»]\s*/).filter(Boolean);
+  if(parts.length >= 2) return { category: parts[0], sub: parts.slice(1).join(' › ') };
+  return { category: s, sub: s };
+}
+function addCustomCategory(raw, type){
+  const p = _ccParse(raw);
+  if(!p) return false;
+  const list = _ccLoad().slice();
+  const nk = _catNormalize;
+  let i = list.findIndex(c => nk(c.category)===nk(p.category) && nk(c.sub)===nk(p.sub));
+  if(i >= 0){ list[i] = { ...list[i], hidden:false }; }
+  else { list.push({ category:p.category, sub:p.sub, type:type||'expense', created:Date.now() }); }
+  _ccSave(list);
+  try{ _catIconCache.clear(); _catBadgeCache.clear(); }catch(e){}
+  return true;
+}
+// Soft-delete: the slot stays (so indices never shift) but it leaves the picker,
+// and everything the app learned about it is purged so it is never suggested again.
+// Old records keep showing the name (see _ccMetaFor).
+function removeCustomCategory(name){
+  const nk = _catNormalize, n = nk(name);
+  const list = _ccLoad().slice();
+  const i = list.findIndex(c => !c.hidden && nk(c.sub)===n);
+  if(i < 0) return false;
+  const gone = list[i];
+  list[i] = { ...gone, hidden:true };
+  _ccSave(list);
+  const isGone = e => !!e && (
+    (e.subcategory && e.subcategory.en===gone.sub && e.category && e.category.en===gone.category) ||
+    (e.lastCategory && e.lastCategory.subcategory && e.lastCategory.subcategory.en===gone.sub &&
+      e.lastCategory.category && e.lastCategory.category.en===gone.category));
+  ['wdp_sde_learning_v1','wdp_sde_vocabulary_v1','wdp_sde_merchant_intel_v1','wdp_sde_project_intel_v1'].forEach(k=>{
+    try{
+      const st = JSON.parse(localStorage.getItem(k));
+      if(!st || typeof st!=='object') return;
+      let changed = false;
+      Object.keys(st).forEach(key=>{ if(isGone(st[key])){ delete st[key]; changed = true; } });
+      if(changed) localStorage.setItem(k, JSON.stringify(st));
+    }catch(e){}
+  });
+  try{ _catIconCache.clear(); _catBadgeCache.clear(); }catch(e){}
+  try{ SmartDescriptionEngine.clearAnalysisCache(); }catch(e){}
+  return true;
+}
+function _ccHslToHex(h, s, l){
+  s/=100; l/=100;
+  const k = n => (n + h/30) % 12, a = s*Math.min(l, 1-l);
+  const f = n => Math.round(255*(l - a*Math.max(-1, Math.min(k(n)-3, Math.min(9-k(n), 1))))).toString(16).padStart(2,'0');
+  return '#' + f(0) + f(8) + f(4);
+}
+// Same name → same colour, every time; icon is the neutral "items" glyph.
+function _ccMetaFor(category){
+  const n = _catNormalize(category);
+  if(!n) return null;
+  const hit = _ccLoad().find(c => (_catNormalize(c.sub)===n || _catNormalize(c.category)===n));
+  if(!hit) return null;
+  const name = hit.sub || hit.category;
+  let h = 0; for(const ch of String(name)) h = (h*31 + ch.charCodeAt(0)) % 360;
+  const color = _ccHslToHex(h, 55, 40);
+  return { icon:'items', color, background: color + '1a', canonicalName: name };
+}
+
 function getCategoryMeta(category){
   const norm = _catNormalize(category);
   const key = (norm && _CATEGORY_ALIAS_INDEX[norm]) || 'other';
+  if(key==='other' && norm){ const cc = _ccMetaFor(category); if(cc) return cc; }
   if(key==='other' && norm && !_catUnknownWarned.has(norm)){
     _catUnknownWarned.add(norm);
     try{
@@ -36612,11 +36708,19 @@ const SmartDescriptionEngine = (function(){
   // v2: MaterialDictionary entries are appended at the end so existing
   // KeywordDictionary/MerchantDictionary indices (and anything persisted
   // that references them by index) are completely unaffected.
+  function _customEntries(){
+    try{
+      return (typeof _ccLoad==='function' ? _ccLoad() : []).map(c=>({
+        category:{ en:c.category, ar:c.category }, subcategory:{ en:c.sub, ar:c.sub },
+        type:c.type||'expense', tags:[], custom:true, hidden:!!c.hidden
+      }));
+    }catch(e){ return []; }
+  }
   function allCategories(){
-    return [...KeywordDictionary, ...MerchantDictionary, ...MaterialDictionary].map((e,i)=>({ idx:i, category:e.category, subcategory:e.subcategory, type:e.type, tags:e.tags||[] }));
+    return [...KeywordDictionary, ...MerchantDictionary, ...MaterialDictionary, ..._customEntries()].map((e,i)=>({ idx:i, category:e.category, subcategory:e.subcategory, type:e.type, tags:e.tags||[], custom:!!e.custom, hidden:!!e.hidden }));
   }
   function byIndex(i){
-    const e = [...KeywordDictionary, ...MerchantDictionary, ...MaterialDictionary][i];
+    const e = [...KeywordDictionary, ...MerchantDictionary, ...MaterialDictionary, ..._customEntries()][i];
     if(!e) return null;
     return { category:e.category, subcategory:e.subcategory, type:e.type, tags:e.tags||[] };
   }
@@ -36633,6 +36737,7 @@ const SmartDescriptionEngine = (function(){
   return {
     // v1 public API — unchanged, fully backward compatible
     analyze, recordUsage, suggest, allCategories, byIndex, normalize, extractAmount,
+    clearAnalysisCache: ()=>analysisCache.clear(),
     // v2 additions
     recordCorrection, extractEntities,
     // v2 namespaced modules (standalone, reusable elsewhere)
@@ -36810,26 +36915,125 @@ function _sdeRenderConfirmed(box, r){
 function _sdeOpenPicker(fieldId, boxId, ctx){
   const box = document.getElementById(boxId);
   if(!box) return;
-  const opts = SmartDescriptionEngine.allCategories().map(c=>
-    `<option value="${c.idx}">${esc(L(c.category.en,c.category.ar))} › ${esc(L(c.subcategory.en,c.subcategory.ar))}</option>`
-  ).join('');
+  const all = SmartDescriptionEngine.allCategories();
+  const lbl = c => (c.custom && c.category.en===c.subcategory.en)
+    ? esc(L(c.category.en,c.category.ar))
+    : `${esc(L(c.category.en,c.category.ar))} › ${esc(L(c.subcategory.en,c.subcategory.ar))}`;
+  const mine = all.filter(c=>c.custom && !c.hidden).map(c=>`<option value="${c.idx}">${lbl(c)}</option>`).join('');
+  const base = all.filter(c=>!c.custom).map(c=>`<option value="${c.idx}">${lbl(c)}</option>`).join('');
   box.innerHTML = `
     <div style="display:flex;gap:6px;align-items:center">
-      <select id="_sdePickSel" style="flex:1;padding:8px 10px;border-radius:9px;border:1.5px solid var(--border);background:var(--surface);color:var(--text);font-size:calc(12px*var(--app-text-scale,1))" onchange="_sdeApplyPick('${fieldId}','${boxId}')">
+      <select id="_sdePickSel" style="flex:1;padding:8px 10px;border-radius:9px;border:1.5px solid var(--border);background:var(--surface);color:var(--text);font-size:calc(12px*var(--app-text-scale,1))" onchange="_sdePickChanged('${fieldId}','${boxId}','${ctx}')">
         <option value="">${L('— Select category —','— اختر التصنيف —')}</option>
-        ${opts}
+        <option value="__new__">+ ${L('New category…','تصنيف جديد…')}</option>
+        ${mine ? `<option value="__manage__">✎ ${L('Manage my categories…','إدارة تصنيفاتي…')}</option>` : ''}
+        ${mine ? `<optgroup label="${L('My categories','تصنيفاتي')}">${mine}</optgroup>` : ''}
+        ${base}
       </select>
       <button type="button" onclick="_sdeRenderBox('${fieldId}','${boxId}','${ctx}')" style="border:none;background:transparent;color:var(--muted);cursor:pointer">${ic('close',13)}</button>
     </div>`;
 }
 
-function _sdeApplyPick(fieldId, boxId){
+function _sdePickChanged(fieldId, boxId, ctx){
+  const sel = document.getElementById('_sdePickSel');
+  if(!sel) return;
+  if(sel.value === '__new__'){ _sdeShowNewCat(fieldId, boxId, ctx); return; }
+  if(sel.value === '__manage__'){ _sdeManageCats(fieldId, boxId, ctx); return; }
+  _sdeApplyPick(fieldId, boxId);
+}
+
+// Inline "type your own category" row. Accepts "Name" or "Group › Name".
+function _sdeShowNewCat(fieldId, boxId, ctx){
+  const box = document.getElementById(boxId);
+  if(!box) return;
+  box.innerHTML = `
+    <div style="display:flex;gap:6px;align-items:center">
+      <input id="_sdeNewCatInp" type="text" dir="auto" maxlength="60" autocomplete="off"
+        placeholder="${L('e.g. Falafel or Food › Falafel','مثال: فلافل أو طعام › فلافل')}"
+        style="flex:1;padding:8px 10px;border-radius:9px;border:1.5px solid var(--border);background:var(--surface);color:var(--text);font-size:calc(12px*var(--app-text-scale,1))"
+        onkeydown="if(event.key==='Enter'){event.preventDefault();_sdeSaveNewCat('${fieldId}','${boxId}','${ctx}')}">
+      <button type="button" onclick="_sdeSaveNewCat('${fieldId}','${boxId}','${ctx}')"
+        style="border:none;background:#0f7a55;color:#fff;font-weight:800;border-radius:9px;padding:8px 14px;cursor:pointer;font-size:calc(12px*var(--app-text-scale,1))">${L('Add','إضافة')}</button>
+      <button type="button" onclick="_sdeOpenPicker('${fieldId}','${boxId}','${ctx}')" style="border:none;background:transparent;color:var(--muted);cursor:pointer">${ic('close',13)}</button>
+    </div>`;
+  setTimeout(()=>{ const i = document.getElementById('_sdeNewCatInp'); if(i) i.focus(); }, 30);
+}
+
+// Lists the person's own categories with a delete button. Two taps: the first
+// arms the button ("Confirm"), the second deletes.
+function _sdeManageCats(fieldId, boxId, ctx){
+  const box = document.getElementById(boxId);
+  if(!box) return;
+  const mine = SmartDescriptionEngine.allCategories().filter(c=>c.custom && !c.hidden);
+  if(!mine.length){ _sdeOpenPicker(fieldId, boxId, ctx); return; }
+  const rows = mine.map(c=>{
+    const nm = c.subcategory.en;
+    const label = c.category.en===nm ? esc(nm) : `${esc(c.category.en)} › ${esc(nm)}`;
+    return `<div style="display:flex;align-items:center;gap:8px;padding:6px 0">
+      <span dir="auto" style="flex:1;font-size:calc(12px*var(--app-text-scale,1));color:var(--text)">${label}</span>
+      <button type="button" data-name="${esc(nm)}" onclick="_sdeDeleteCat(this,'${fieldId}','${boxId}','${ctx}')"
+        style="border:1.5px solid var(--border);background:transparent;color:var(--muted);font-weight:700;border-radius:9px;padding:5px 10px;cursor:pointer;font-size:calc(11px*var(--app-text-scale,1));display:inline-flex;align-items:center;gap:4px">${ic('trash',12)} ${L('Delete','حذف')}</button>
+    </div>`;
+  }).join('');
+  box.innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2px">
+      <span style="font-weight:800;font-size:calc(12px*var(--app-text-scale,1))">${L('My categories','تصنيفاتي')}</span>
+      <button type="button" onclick="_sdeOpenPicker('${fieldId}','${boxId}','${ctx}')" style="border:none;background:transparent;color:var(--muted);cursor:pointer;font-weight:700;font-size:calc(11px*var(--app-text-scale,1))">${L('Back','رجوع')}</button>
+    </div>${rows}`;
+}
+
+function _sdeDeleteCat(btn, fieldId, boxId, ctx){
+  if(btn.dataset.armed !== '1'){
+    btn.dataset.armed = '1';
+    btn.style.color = '#c0392b'; btn.style.borderColor = '#c0392b';
+    btn.textContent = L('Confirm','تأكيد الحذف');
+    setTimeout(()=>{ if(btn.isConnected && btn.dataset.armed==='1'){
+      btn.dataset.armed = ''; btn.style.color = 'var(--muted)'; btn.style.borderColor = 'var(--border)';
+      btn.innerHTML = `${ic('trash',12)} ${L('Delete','حذف')}`; } }, 3000);
+    return;
+  }
+  removeCustomCategory(btn.dataset.name);
+  _sdeManageCats(fieldId, boxId, ctx);
+}
+
+function _sdeSaveNewCat(fieldId, boxId, ctx){
+  const inp = document.getElementById('_sdeNewCatInp');
+  const raw = inp ? inp.value : '';
+  const p = _ccParse(raw);
+  if(!p){ if(inp) inp.focus(); return; }
+  const nk = _catNormalize;
+  const eq = (o, str) => nk(o.en)===nk(str) || nk(o.ar)===nk(str);
+  const single = p.category === p.sub;
+  // Already a built-in? Reuse it instead of creating a near-duplicate.
+  let hit = SmartDescriptionEngine.allCategories().find(c => !c.custom &&
+    (single ? eq(c.subcategory, p.sub) : (eq(c.category, p.category) && eq(c.subcategory, p.sub))));
+  let isNew = false;
+  if(!hit){
+    addCustomCategory(raw, 'expense');
+    hit = SmartDescriptionEngine.allCategories().find(c => c.custom && !c.hidden &&
+      nk(c.category.en)===nk(p.category) && nk(c.subcategory.en)===nk(p.sub));
+    isNew = true;
+  }
+  if(!hit) return;
+  _sdeApplyPick(fieldId, boxId, hit.idx, isNew);
+}
+
+function _sdeApplyPick(fieldId, boxId, forcedIdx, isNew){
   const sel = document.getElementById('_sdePickSel');
   const box = document.getElementById(boxId);
-  if(!sel || !box || sel.value==='') return;
-  const picked = SmartDescriptionEngine.byIndex(parseInt(sel.value,10));
+  if(!box) return;
+  let idx;
+  if(forcedIdx != null){ idx = forcedIdx; }
+  else {
+    if(!sel || sel.value==='' || sel.value==='__new__' || sel.value==='__manage__') return;
+    idx = parseInt(sel.value,10);
+  }
+  const picked = SmartDescriptionEngine.byIndex(idx);
   if(!picked) return;
-  const r = { ...picked, confidence:100, source:'manual', explanation:{ en:'Manually selected', ar:'اختيار يدوي' } };
+  const r = { ...picked, confidence:100, source:'manual',
+    explanation: isNew
+      ? { en:'New category — remembered for next time', ar:'تصنيف جديد — سيُحفظ للمرات القادمة' }
+      : { en:'Manually selected', ar:'اختيار يدوي' } };
   // v2 Smart Corrections (§6): if the engine had already auto-suggested a
   // *different* category for this text, flag it as a correction so the next
   // save call learns it with priority (see recordCorrection()/_sdeCommitLearning()).
