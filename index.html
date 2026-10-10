@@ -10128,6 +10128,23 @@ body .screen-wrap .sc-header.sav-plain-header.sav-plain-header::after{display:no
 .wdash-tile-sum{font-size:calc(11px*var(--app-text-scale,1))}
 .wdash-showall{margin:12px auto 0;width:fit-content;min-width:140px;padding:9px 20px;border-radius:999px;border:1px solid var(--border);background:var(--surface);color:var(--text2);font-weight:600}
 .wdash-wrap{padding-bottom:calc(var(--bottom-nav-h,100px) + 28px + env(safe-area-inset-bottom))}
+
+/* ── My Report sheet: compact footer row + chips bleed to the edge ── */
+.bs-footer:has(.rpt-foot-row){padding-top:10px}
+.rpt-foot-row{display:flex;gap:8px;align-items:stretch;width:100%}
+.bs-footer .rpt-foot-row .rpt-cta,.bs-footer .rpt-foot-row .rpt-cta2{flex:1;min-width:0;height:46px;border-radius:14px;font-size:calc(13.5px*var(--app-text-scale,1));font-weight:800;margin:0}
+.bs-footer .rpt-foot-row .rpt-cta{flex:1.3;background:linear-gradient(135deg,var(--green-dark),var(--green));color:#fff}
+.bs-footer .rpt-foot-row .rpt-cta2{background:var(--surface);color:var(--text2);border:1px solid var(--border);box-shadow:none}
+.bs-body .rpt-chips{margin-inline:calc(var(--sp5)*-1);padding-inline:var(--sp5);scroll-padding-inline:var(--sp5)}
+.rpt-paper{max-height:none}
+.rpt-paper .rpt-title{font-size:calc(15px*var(--app-text-scale,1));letter-spacing:.08em;margin:14px 2px 2px}
+.rpt-paper .rpt-title::before{width:8px;height:8px}
+
+/* My Report: .rpt-ib uses all:unset, which dropped position:relative and let its
+   ::after hit-area stretch over the whole sheet, swallowing taps on the chips,
+   date picker and stats. Re-anchor it. */
+.rpt-ib{position:relative}
+.rpt-chips,.rpt-top{position:relative;z-index:1}
 </style>
 <script>
 // Suppress cross-origin Script errors (in-app browsers like TikTok/Instagram)
@@ -40345,7 +40362,12 @@ function closeModal(e){
       // --- Extract .modal-btns (legacy buttons) ---
       const btnsEl = tmp.querySelector('.modal-btns');
       let footerHTML = '';
-      if(btnsEl){
+      if(btnsEl && btnsEl.classList.contains('rpt-actions')){
+        // My Report: keep its own button classes (compact row) instead of
+        // rebuilding them as stacked full-width save buttons.
+        footerHTML = `<div class="rpt-foot-row">${btnsEl.innerHTML}</div>`;
+        btnsEl.remove();
+      } else if(btnsEl){
         const btns = Array.from(btnsEl.querySelectorAll('button'));
         // Primary = .save or .danger (action buttons), secondary = .cancel
         // Any button lacking all three is treated as primary too (safety net —
