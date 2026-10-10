@@ -2457,6 +2457,35 @@ tr.row-selected td{background:var(--green-tint)}
 }
 .tx-add-btn:active{opacity:.6}
 
+/* ── New Transaction: every entry is its own card ──────────────────────────────
+   header band (number · title · delete) → amount → notes → suggestion panel → purchase footer.
+   Same fields/ids/handlers as before; only the grouping and spacing changed.            */
+#txEntries{gap:14px;margin-top:14px}
+#txEntries .tx-entry,#txEntries.multi .tx-entry+.tx-entry{
+  margin-top:0;padding:14px 16px 16px;border:1px solid var(--border);border-radius:var(--radius);
+  background:var(--surface);box-shadow:var(--shadow-sm)
+}
+#txEntries .tx-entry-hdr{margin:0 0 12px;padding-bottom:10px;border-bottom:1px solid var(--border)}
+/* amount: soft filled field, same family as Notes (no underline) */
+#txEntries .tx-entry .tx-amt input{
+  min-height:62px;padding:6px 14px;border:1.5px solid transparent;border-radius:var(--radius-sm);background:var(--surface2)
+}
+#txEntries .tx-entry .tx-amt input:focus{border-color:var(--tx-accent);background:var(--surface)}
+#txEntries .tx-entry .tx-amt input[placeholder]:not(:placeholder-shown):not(:focus){border-color:transparent}
+#txEntries .tx-entry .tx-amt label{margin-bottom:8px}
+/* AI suggestion + category prompt: quiet panels instead of loose lines */
+#txEntries .tx-entry .aip-card,#txEntries .tx-entry .aip-card.aip-has-kw{max-height:none}
+#txEntries .tx-entry .aip-card:not(:empty){margin-top:2px;padding:10px 12px;background:var(--surface2);border-radius:var(--radius-sm);gap:6px}
+#txEntries .tx-entry .sde-box:not(:empty){margin-top:8px;padding:9px 12px;background:var(--surface2);border-radius:var(--radius-sm)}
+#txEntries .tx-entry .aip-card:not(:empty)+.sde-box:not(:empty){margin-top:6px}
+#txEntries .tx-entry .aip-actions{align-items:center}
+/* product purchase: footer strip of the card */
+#txEntries .tx-entry .tx-prod{
+  margin:2px -16px -16px;padding:12px 16px;border-top:1px solid var(--border);background:var(--surface2);
+  border-radius:0 0 calc(var(--radius) - 1px) calc(var(--radius) - 1px)
+}
+.tx-add-btn{justify-content:center;margin:2px 0 6px;border:1.5px dashed var(--border);border-radius:var(--radius-sm)}
+
 /* Provided summary — deliberately set apart from the form above it: a deep
    ink-green panel with light type, so the running balance reads as the result
    of the sheet rather than one more field. State colour lives in --st only. */
@@ -37678,9 +37707,9 @@ function _aipRender(fieldId, ctx){
   // a wrong or generic badge if used here directly.
   const catLabel = r.subcategory ? L(r.subcategory.en, r.subcategory.ar) : (r.category ? L(r.category.en, r.category.ar) : '');
   if(catLabel){ parts.push(`${renderCategoryIcon(r.subcategory?.en||r.category.en,11)}<b>${renderCategoryLabel(r.subcategory?.en||r.category.en)}</b>`); }
-  if(e.merchant) parts.push(esc(e.merchant));
-  if(e.project)  parts.push(esc(e.project));
-  if(shownAmt!=null && !Number.isNaN(shownAmt)) parts.push(`<b>${fmtEGP(shownAmt)}</b>`);
+  if(e.merchant) parts.push(`<bdi>${esc(e.merchant)}</bdi>`);
+  if(e.project)  parts.push(`<bdi>${esc(e.project)}</bdi>`);
+  if(shownAmt!=null && !Number.isNaN(shownAmt)) parts.push(`<b><bdi>${fmtEGP(shownAmt)}</bdi></b>`);
   if(e.quantity!=null) parts.push(`${e.quantity} ${esc(L(e.unit||'', e.unitAr||''))}`.trim());
   else if(e.unit) parts.push(esc(L(e.unit, e.unitAr||e.unit)));
 
