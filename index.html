@@ -2527,6 +2527,29 @@ tr.row-selected td{background:var(--green-tint)}
   box-shadow:0 0 0 1px rgba(255,255,255,.09),inset 0 1px 0 rgba(255,255,255,.08)
 }
 
+/* Provided summary — now a compact light card that matches the entry cards above it
+   (same border / radius / shadow). The balance state still lives in --st / --st-bg only, and
+   _txCalcProvided() is untouched: it sets data-state + the badge/bar exactly as before.       */
+#txSum{
+  --st:var(--muted);--st-bg:var(--surface3);
+  margin:14px 0 12px;padding:14px 16px;border:1px solid var(--border);border-radius:var(--radius);
+  background:var(--surface);color:var(--text);box-shadow:var(--shadow-sm)
+}
+#txSum[data-state="surplus"]{--st:var(--green);--st-bg:var(--green-tint)}
+#txSum[data-state="deficit"]{--st:var(--red);--st-bg:var(--red-tint)}
+#txSum[data-state="balanced"]{--st:var(--blue);--st-bg:var(--blue-tint)}
+#txSum .tx-sum-label{color:var(--muted)}
+#txSum input.tx-sum-val{margin:2px 0 10px;font-size:calc(26px*var(--app-text-scale,1))}
+#txSum input.tx-sum-val::placeholder{color:var(--muted);-webkit-text-fill-color:var(--muted);opacity:.55}
+#txSum .tx-sum-bar{height:4px;background:var(--surface3);margin-bottom:10px}
+#txSum .tx-sum-stats{padding-top:10px;border-top:1px solid var(--border)}
+#txSum .tx-sum-stats > div{gap:2px}
+#txSum .tx-sum-stats span{color:var(--muted);font-size:calc(var(--fs-label)*var(--app-text-scale,1))}
+#txSum .tx-sum-stats b{color:var(--text);font-size:calc(var(--fs-body)*var(--app-text-scale,1))}
+#txSum .tx-sum-hint{color:var(--muted);margin-top:8px}
+/* the long "Product purchase — add to My Purchases" label wraps cleanly instead of colliding with itself */
+#txEntries .tx-entry .tx-prod .chk-row{font-size:calc(13px*var(--app-text-scale,1));line-height:1.35}
+
 /* ── Select — custom arrow ── */
 .field select,.f-sel{
   cursor:pointer;
