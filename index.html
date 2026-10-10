@@ -10050,6 +10050,84 @@ body .screen-wrap .sc-header.sav-plain-header.sav-plain-header::after{display:no
 }
 [data-theme="dark"] .date-wrap-auto:has(>.fin-inp):focus-within{border-color:var(--green-light)}
 [dir="rtl"] .date-wrap-auto:has(>.fin-inp):focus-within{box-shadow:var(--inp-edge-rtl),var(--inp-ring)}
+
+/* ── My Receipts: cleaner, calmer layout ── */
+.cx-wrap .rq-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:0;padding:4px;border-radius:16px;background:var(--surface);border:1px solid var(--border);box-shadow:none}
+.cx-wrap .rq-stat{min-height:58px;padding:9px 2px 8px;gap:4px;border:0;border-radius:12px;background:transparent;box-shadow:none;position:relative}
+.cx-wrap .rq-stat + .rq-stat::before{content:"";position:absolute;inset-block:14px;inset-inline-start:0;width:1px;background:var(--border)}
+.cx-wrap .rq-stat b{font-size:calc(19px*var(--app-text-scale,1))}
+.cx-wrap .rq-stat span{font-size:calc(10.5px*var(--app-text-scale,1));font-weight:600;letter-spacing:0;color:var(--muted)}
+.cx-wrap .rq-stat.on,.cx-wrap .rq-stat.ok.on,.cx-wrap .rq-stat.low.on,.cx-wrap .rq-stat.over.on{border:0;background:var(--surface2)}
+.cx-wrap .rq-stat.on::before,.cx-wrap .rq-stat.on + .rq-stat::before{opacity:0}
+.cx-wrap .rq-stat.on span{color:var(--text)}
+.cx-wrap .rq-types-wrap{margin-top:14px;display:flex;align-items:center;gap:10px}
+.cx-wrap .rq-types-h{margin:0;flex:none;font-size:calc(11px*var(--app-text-scale,1));letter-spacing:.06em}
+.cx-wrap .rq-types{flex:1;min-width:0;gap:8px;padding:2px 0}
+.cx-wrap .rq-tchip{min-width:0;flex-direction:row;align-items:center;gap:7px;padding:7px 12px;border-radius:999px;border:1px solid var(--border);background:var(--surface);box-shadow:none;transform:none}
+.cx-wrap .rq-tchip i{width:8px;height:8px;border-radius:50%;background:var(--rq-tc);flex:none}
+.cx-wrap .rq-tchip .rq-tc-l{font-size:calc(12px*var(--app-text-scale,1));letter-spacing:.04em;color:var(--text2)}
+.cx-wrap .rq-tchip b{font-size:calc(13px*var(--app-text-scale,1));letter-spacing:0;color:var(--rq-tc)}
+.cx-wrap .rq-tchip.on{background:color-mix(in srgb,var(--rq-tc) 12%,var(--surface));border-color:var(--rq-tc);box-shadow:none;transform:none}
+.cx-wrap .rq-tchip.on .rq-tc-l{color:var(--text)}
+.cx-wrap .rq-tchip.on b{color:var(--rq-tc)}
+.cx-wrap .rq-hub{margin:14px 0;border-radius:18px;border:1px solid var(--border);background:var(--surface);overflow:hidden}
+.cx-wrap .rq-hub-top{display:flex;align-items:center;gap:12px;width:100%;padding:12px 14px;border:0;background:transparent;color:var(--text);font-family:inherit;text-align:start;cursor:pointer}
+.cx-wrap .rq-hub-top:active{background:var(--surface2)}
+.cx-wrap .rq-hub-ic{width:36px;height:36px;border-radius:11px;display:flex;align-items:center;justify-content:center;flex:none;background:color-mix(in srgb,var(--green) 13%,var(--surface));color:var(--green)}
+.cx-wrap .rq-hub-tx{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.cx-wrap .rq-hub-tx b{font-size:calc(14.5px*var(--app-text-scale,1));font-weight:800}
+.cx-wrap .rq-hub-tx small{font-size:calc(11.5px*var(--app-text-scale,1));color:var(--muted);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cx-wrap .rq-hub-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--muted);margin-inline:7px 5px;vertical-align:middle;opacity:.6}
+.cx-wrap .rq-hub-dot.on{background:var(--green);opacity:1}
+.cx-wrap .rq-hub-go{flex:none;font-size:calc(11.5px*var(--app-text-scale,1));font-weight:800;color:var(--green);padding:6px 12px;border-radius:999px;background:color-mix(in srgb,var(--green) 11%,transparent)}
+.cx-wrap .rq-hub-tools{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid var(--border)}
+.cx-wrap .rq-hub-btn{display:flex;align-items:center;justify-content:center;gap:6px;min-height:44px;padding:8px 4px;border:0;background:transparent;color:var(--text2);font-family:inherit;font-size:calc(12px*var(--app-text-scale,1));font-weight:700;cursor:pointer}
+.cx-wrap .rq-hub-btn + .rq-hub-btn{border-inline-start:1px solid var(--border)}
+.cx-wrap .rq-hub-btn svg{color:var(--green);flex:none}
+.cx-wrap .rq-hub-btn:active{background:var(--surface2)}
+.cx-wrap .rq-hub + .sc-search{margin-top:0}
+
+/* ── Dashboard + Monthly Comparison: organised, calmer (scoped overrides) ── */
+.dfp-sec-h{display:flex;align-items:center;gap:8px;margin:18px var(--sp4) 6px;font-size:calc(11px*var(--app-text-scale,1));font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.dfp-sec-h::before{content:"";width:3px;height:12px;border-radius:2px;background:var(--green)}
+.dfp-sec-h::after{content:"";flex:1;height:1px;background:var(--border)}
+.dfp-rank{display:grid;grid-template-columns:26px minmax(0,1fr) auto;align-items:center;gap:10px;padding:11px var(--sp4)}
+.dfp-rank-n{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:calc(11px*var(--app-text-scale,1));font-weight:800;color:var(--muted);background:var(--surface2)}
+.dfp-rank.best .dfp-rank-n{background:var(--green-tint);color:var(--green)}
+.dfp-rank.worst .dfp-rank-n{background:var(--red-tint);color:var(--red)}
+.dfp-rank-mid{display:flex;align-items:center;gap:8px;min-width:0;flex-wrap:wrap}
+.dfp-rank-name{font-size:calc(13px*var(--app-text-scale,1));font-weight:800;color:var(--text)}
+.dfp-rank-tag{font-size:calc(10px*var(--app-text-scale,1));font-weight:800;padding:2px 8px;border-radius:99px;color:var(--tg);background:color-mix(in srgb,var(--tg) 12%,transparent)}
+.dfp-rank .dfp-cmp-cur{font-size:calc(13px*var(--app-text-scale,1));font-variant-numeric:tabular-nums}
+.dfp-bul{list-style:none;margin:0;padding:0 var(--sp4);display:flex;flex-direction:column;gap:10px}
+.dfp-bul li{display:flex;align-items:flex-start;gap:10px;font-size:calc(12.5px*var(--app-text-scale,1));line-height:1.65;color:var(--text2)}
+.dfp-bul li i{flex:none;width:6px;height:6px;border-radius:50%;background:var(--muted);margin-top:.62em;opacity:.55}
+.dfp-bul.advice{margin:2px var(--sp4) var(--sp4);padding:14px;border-radius:14px;background:color-mix(in srgb,var(--green) 7%,var(--surface));border:1px solid color-mix(in srgb,var(--green) 18%,var(--border))}
+.dfp-bul.advice li{color:var(--text)}
+.dfp-bul.advice li i{background:var(--green);opacity:1}
+.dfp-bul:not(.advice){padding-bottom:4px}
+
+.wdash-wrap.dv3-dark-v2 .dv3h-stat-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0;justify-content:stretch;width:100%}
+.wdash-wrap.dv3-dark-v2 .dv3h-stat{padding:0 10px;gap:3px}
+.wdash-wrap.dv3-dark-v2 .dv3h-stat:first-child{padding-inline-start:0}
+.wdash-wrap.dv3-dark-v2 .dv3h-stat + .dv3h-stat{border-inline-start:1px solid var(--border)}
+.wdash-wrap.dv3-dark-v2 .dv3h-stat-lbl{font-size:calc(10px*var(--app-text-scale,1));letter-spacing:.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wdash-wrap.dv3-dark-v2 .dv3h-stat-val{font-size:calc(12px*var(--app-text-scale,1));font-weight:600;white-space:nowrap;font-variant-numeric:tabular-nums;display:flex;align-items:center;gap:3px;overflow:hidden;text-overflow:ellipsis}
+.wdash-wrap.dv3-dark-v2 > .dv3-kpi-row .dfp-kpi3-card{min-height:64px;align-items:center}
+.wdash-wrap.dv3-dark-v2 .dfp-kpi3-lbl{font-size:calc(10px*var(--app-text-scale,1));letter-spacing:.02em;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wdash-wrap.dv3-dark-v2 .dv3-kpi-text{min-width:0}
+.wdash-wrap.dv3-dark-v2 .dfp-kpi3-val{font-size:calc(14.5px*var(--app-text-scale,1));white-space:nowrap;font-variant-numeric:tabular-nums}
+.wdash-wrap.dv3-dark-v2 .fp-qa-row{margin-bottom:var(--sp6,24px)}
+.wdash-apps-title{display:flex;align-items:center;gap:8px;margin:0 var(--sp1) var(--sp2);font-size:calc(11px*var(--app-text-scale,1));font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+.wdash-apps-title::after{content:"";flex:1;height:1px;background:var(--border)}
+.wdash-tile{min-height:64px;align-items:center;position:relative;padding-inline-end:26px}
+.wdash-tile::after{content:"";position:absolute;inset-inline-end:12px;top:50%;width:6px;height:6px;border-top:1.5px solid var(--muted);border-inline-end:1.5px solid var(--muted);transform:translateY(-50%) rotate(45deg);opacity:.45}
+[dir="rtl"] .wdash-tile::after{transform:translateY(-50%) rotate(-135deg)}
+.wdash-tile-ico{width:32px;height:32px;border-radius:10px}
+.wdash-tile-lbl{font-weight:600;font-size:calc(13px*var(--app-text-scale,1))}
+.wdash-tile-sum{font-size:calc(11px*var(--app-text-scale,1))}
+.wdash-showall{margin:12px auto 0;width:fit-content;min-width:140px;padding:9px 20px;border-radius:999px;border:1px solid var(--border);background:var(--surface);color:var(--text2);font-weight:600}
+.wdash-wrap{padding-bottom:calc(var(--bottom-nav-h,100px) + 28px + env(safe-area-inset-bottom))}
 </style>
 <script>
 // Suppress cross-origin Script errors (in-app browsers like TikTok/Instagram)
@@ -15495,12 +15573,9 @@ function renderMonthlyComparisonCard(m, sig){
     const margin = r.inc>0 ? Math.round((r.profit/r.inc)*100) : 0;
     const c = r.profit>=0 ? 'var(--success)' : 'var(--danger)';
     const tag = r===bestM ? L('Best','الأفضل') : (r===worstM && ranked.length>1 ? L('Weakest','الأضعف') : '');
-    return `<div class="dfp-cmp-row">
-      <div class="dfp-cmp-lbl" style="display:flex;align-items:center;gap:6px">
-        <span style="min-width:18px;color:var(--muted);font-weight:900">${i+1}</span>
-        <span>${esc(r.name)}</span>
-        ${tag?`<span style="font-size:calc(9.5px*var(--app-text-scale,1));font-weight:900;color:${c};border:1px solid ${c};border-radius:99px;padding:0 6px">${tag}</span>`:''}
-      </div>
+    return `<div class="dfp-cmp-row dfp-rank${r===bestM?' best':''}${tag&&r===worstM?' worst':''}">
+      <span class="dfp-rank-n">${i+1}</span>
+      <div class="dfp-rank-mid"><span class="dfp-rank-name">${esc(r.name)}</span>${tag?`<span class="dfp-rank-tag" style="--tg:${c}">${tag}</span>`:''}</div>
       <div class="dfp-cmp-vals"><span class="dfp-cmp-cur" style="color:${c}">${fmtEGP(r.profit)}</span>
         <span class="dfp-cmp-prev">${L('Margin','الهامش')} ${margin}%</span></div>
     </div>`;
@@ -15528,14 +15603,14 @@ function renderMonthlyComparisonCard(m, sig){
   if(expRatio!==null && expRatio>=90) advice.push(L('Expenses are eating almost all income — set a monthly spending cap near 80% of income.','المصروفات بتاكل تقريبًا كل الإيراد — حدد سقف مصروفات شهري حوالي 80% من الإيراد.'));
   else if(expRatio!==null && expRatio<=75) advice.push(L('Margins are healthy — consider setting aside part of the profit as a cash reserve.','الهامش كويس — فكّر تحجز جزء من الربح كاحتياطي نقدي.'));
   else if(expRatio!==null) advice.push(L('Margins are acceptable but thin — keep expenses under 85% of income.','الهامش مقبول بس ضيق — حاول تخلي المصروفات أقل من 85% من الإيراد.'));
-  if(negCf.length) advice.push(L(`${negCf.length} month(s) had negative cash flow (${negCf.map(r=>r.name).join(', ')}) — match payments to collection dates and delay non-urgent ones.`,
+  if(negCf.length) advice.push(L(`${negCf.length} ${negCf.length===1?'month had':'months had'} negative cash flow (${negCf.map(r=>r.name).join(', ')}) — match payments to collection dates and delay non-urgent ones.`,
                  `${negCf.length} شهر فيهم تدفق نقدي سالب (${negCf.map(r=>esc(r.name)).join('، ')}) — وافق مواعيد الدفع مع مواعيد التحصيل وأجّل المدفوعات غير العاجلة.`));
   if(spike>=25) advice.push(L(`${topExp.name} expenses were ${spike}% above average — review what drove that spike so it doesn't repeat.`,
                  `مصروفات ${esc(topExp.name)} أعلى من المتوسط بـ ${spike}% — راجع إيه اللي سبّب الارتفاع ده عشان ما يتكررش.`));
   if(worstM.profit<0) advice.push(L(`Investigate ${worstM.name}: it closed at a loss, so check its largest expense items first.`,`ادرس ${esc(worstM.name)}: قفل بخسارة، فابدأ بمراجعة أكبر بنود المصروفات فيه.`));
   advice.push(L(`Repeat what worked in ${bestM.name} and use it as the benchmark for upcoming months.`,`كرّر اللي نجح في ${esc(bestM.name)} واعتبره المعيار للشهور الجاية.`));
-  const secHead = t=>`<div style="margin:12px var(--sp4) 4px;font-size:calc(10.5px*var(--app-text-scale,1));font-weight:800;letter-spacing:.3px;color:var(--muted)">${t}</div>`;
-  const bullets = arr=>`<div class="dfp-summary-text" style="padding:0 var(--sp4) 4px">${arr.map(p=>`<p>• ${p}</p>`).join('')}</div>`;
+  const secHead = t=>`<div class="dfp-sec-h">${t}</div>`;
+  const bullets = (arr,cls)=>`<ul class="dfp-bul${cls?' '+cls:''}">${arr.map(p=>`<li><i aria-hidden="true"></i><span>${p}</span></li>`).join('')}</ul>`;
   return `<div class="sc-card">
     <div class="dfp-card-head"><div class="dfp-card-title">${ic('chart', 13, 'aria-hidden="true"')} ${L('Monthly Comparison','مقارنة شهرية')}</div></div>
     ${balanceBars ? `
@@ -15550,7 +15625,7 @@ function renderMonthlyComparisonCard(m, sig){
     ${secHead(L('What the numbers say','ملخص الأداء'))}
     ${bullets(insights)}
     ${secHead(L('Recommendations','توصيات ونصائح للتحسين'))}
-    ${bullets(advice)}
+    ${bullets(advice,'advice')}
   </div>`;
 }
 
@@ -31945,7 +32020,7 @@ function renderMyRequests(){
     const label=t.k==='__none'?L('No type','بدون نوع'):(_rqIsCodeType(raw)?raw.toUpperCase():_rqDisplayValue(t.r,'type'));
     const on=typeFilter===t.k;
     const pct=Math.max(6,Math.round(t.n*100/Math.max(1,byStatus.length)));
-    return `<button type="button" class="rq-tchip${on?' on':''}" style="--rq-tc:${_rqTypeColor(t.r)};--pct:${pct}%" data-k="${esc(t.k)}" aria-pressed="${on?'true':'false'}" onclick="_rqSetTypeFilter(this.dataset.k)"><span class="rq-tc-top"><i></i><span class="rq-tc-l">${esc(label)}</span></span><b>${t.n}</b><span class="rq-tc-bar"><em></em></span></button>`;
+    return `<button type="button" class="rq-tchip${on?' on':''}" style="--rq-tc:${_rqTypeColor(t.r)}" data-k="${esc(t.k)}" aria-pressed="${on?'true':'false'}" onclick="_rqSetTypeFilter(this.dataset.k)"><i></i><span class="rq-tc-l">${esc(label)}</span><b>${t.n}</b></button>`;
   }).join('');
   const statsHTML=(all.length?`<div class="rq-stats">
     ${stat('all','all',all.length,L('All','الكل'))}
@@ -41619,13 +41694,18 @@ function rqReportToggle(){
 function rqReportBarHTML(){
   const on=rqReportEnabled();
   const n=(_rqReportDates().find(h=>h.d===today())||{n:0}).n;
-  return `<button type="button" class="rq-rpt-card" onclick="_rqRptDate='';_rqRptLang='';rqReportOpen()">
-    <span class="rq-rpt-ic">${ic('clipboard',20)}</span>
-    <span class="rq-rpt-tx"><b>${L('My Report','تقريري')}</b><small>${n?L(n+' receipt(s) today',n+' استلام اليوم'):L('No receipts yet today','لا استلامات اليوم')} · ${on?L('4:30 PM on','٤:٣٠ م شغال'):L('4:30 PM off','٤:٣٠ م موقوف')}</small></span>
-    <span class="rq-rpt-go">${L('Open','فتح')}</span>
+  return `<div class="rq-hub">
+  <button type="button" class="rq-hub-top" onclick="_rqRptDate='';_rqRptLang='';rqReportOpen()">
+    <span class="rq-hub-ic">${ic('clipboard',18)}</span>
+    <span class="rq-hub-tx"><b>${L('My Report','تقريري')}</b><small>${n?L(n+' receipt(s) today',n+' استلام اليوم'):L('No receipts yet today','لا استلامات اليوم')}<i class="rq-hub-dot${on?' on':''}"></i>${on?L('4:30 PM','٤:٣٠ م'):L('Off','موقوف')}</small></span>
+    <span class="rq-hub-go">${L('Open','فتح')}</span>
   </button>
-  <div class="rq-xl-row"><button type="button" class="rq-imp-btn" onclick="rqImportPick()">${ic('upload',15)} ${L('Import from Excel','استيراد من Excel')}</button><button type="button" class="rq-imp-btn" onclick="rqExportExcel()">${ic('download',15)} ${L('Export to Excel','تصدير إلى Excel')}</button></div>
-  <button type="button" class="rq-imp-btn rq-de-btn" onclick="rqDataEntryOpen()">${ic('edit',15)} ${L('Data entry','إدخال البيانات')}</button>`;
+  <div class="rq-hub-tools">
+    <button type="button" class="rq-hub-btn" onclick="rqImportPick()">${ic('upload',16)}<span>${L('Import','استيراد')}</span></button>
+    <button type="button" class="rq-hub-btn" onclick="rqExportExcel()">${ic('download',16)}<span>${L('Export','تصدير')}</span></button>
+    <button type="button" class="rq-hub-btn" onclick="rqDataEntryOpen()">${ic('edit',16)}<span>${L('Data entry','إدخال البيانات')}</span></button>
+  </div>
+</div>`;
 }
 
 
