@@ -9253,6 +9253,42 @@ body .screen-wrap .sc-header.sav-plain-header.sav-plain-header::after{display:no
 .txlg-wrap .kpi3-sec-dup{display:none}
 .txlg-wrap .kpi3-sec:nth-child(2)::before{display:none}
 .txlg-wrap .kpi3-sec-dup+.kpi3-sec{padding-inline-start:18px}
+
+/* ══ DAILY PAGE — SIMPLIFICATION PASS (scoped to .txlg-wrap; same data, fewer boxes) ══
+   A · page header becomes a plain title block; Target moves into the summary row (one surface)
+   B · search + target filter share one row; period selector sits under it
+   C · timeline rows: description + category/time on the start side, amount + flags on the end
+       side; no dot/line column, one hairline between rows, red only when over target          */
+/* A */
+.txlg-wrap>.sc-header{background:none!important;border:0;border-radius:0;box-shadow:none;padding:2px 2px 0;overflow:visible}
+.txlg-wrap>.sc-header::before{display:none}
+.txlg-wrap>.sc-header .sc-header-title{font-size:calc(22px*var(--app-text-scale,1))}
+.txlg-wrap .kpi3-secondary-row .kpi3-sec{padding:10px 12px}
+.txlg-wrap .kpi3-secondary-row .kpi3-sec-dup+.kpi3-sec{padding-inline-start:16px}
+.txlg-wrap .kpi3-secondary-row .kpi3-sec-val{font-size:calc(var(--fs-body)*var(--app-text-scale,1)*1.05)}
+.txlg-wrap .kpi3-sec-today{flex:.85}
+.txlg-wrap .kpi3-secondary-row .kpi3-sec:last-child{flex:1.25}
+.kpi3-sec-edit{font-size:calc(var(--fs-label)*var(--app-text-scale,1));font-weight:800;color:var(--blue);margin-top:2px}
+/* B */
+.txlg-wrap .txlg-search-row{display:flex;align-items:center;gap:8px;padding:2px var(--sp3) 0}
+.txlg-wrap .txlg-search-row .sc-search{flex:1;min-width:0;padding:0}
+.txlg-var-select{
+  flex:0 0 auto;height:40px;max-width:46%;padding-block:0;padding-inline:12px 28px;
+  border:1px solid var(--border);border-radius:var(--radius-sm);background-color:var(--surface2);color:var(--text);
+  font-family:inherit;font-size:calc(var(--fs-caption)*var(--app-text-scale,1));font-weight:700;
+  -webkit-appearance:none;appearance:none;cursor:pointer;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path d='M1 1l4 4 4-4' fill='none' stroke='%23888' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+  background-repeat:no-repeat;background-position:right 10px center;
+}
+[dir="rtl"] .txlg-var-select{background-position:left 10px center}
+.txlg-var-select.is-active{border-color:var(--green);color:var(--green);background-color:var(--green-tint)}
+/* C */
+.txlg-wrap .txlg-row{border-radius:0}
+.txlg-wrap .txlg-row-content{gap:12px;padding:11px 2px}
+.txlg-wrap .txlg-notes{font-size:calc(var(--fs-body)*var(--app-text-scale,1));font-weight:700;color:var(--text);margin:0 0 3px}
+.txlg-side{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0}
+.txlg-wrap .txlg-amt{font-size:calc(var(--fs-h3)*var(--app-text-scale,1));font-weight:800}
+.txlg-wrap .txlg-review-badge,.txlg-wrap .txlg-dup-icon{margin-inline-start:0}
 /* ── Notes: headings stayed near-black in dark mode (colour baked into the
    saved note HTML as an inline style / <font>). Force theme colours on
    headings and anything nested inside them, except notes pinned to the
@@ -30482,7 +30518,7 @@ function renderTransactions(m){
     const statusLabel=!hasTarget?'':diff<0?L('Over','تجاوز'):diff===0?L('On Target','مطابق'):L('Saved','وفّر');
     const statusColor=diff<0?'var(--red)':diff>0?'var(--green)':'var(--muted)';
     const dotColor=!hasTarget?'var(--green)':(diff<0?'var(--red)':diff>0?'var(--green)':'var(--muted)');
-    const amtColor=!hasTarget?'var(--text)':(diff<0?'var(--red)':diff>0?'var(--green)':'var(--text)');
+    const amtColor=(hasTarget && diff<0)?'var(--red)':'var(--text)'; // red = over target; everything else stays neutral
     const lineCls=(isFirst?' txlg-line-first':'')+(isLast?' txlg-line-last':'');
     const _aiMeta = _aiaClassify(t);
     const _aiConf = _aiMeta.confidence || 0;
@@ -30528,18 +30564,17 @@ function renderTransactions(m){
     return `
     <div class="txlg-row" data-ri="${ri}" oncontextmenu="event.preventDefault();openTxQuickActions(${ri});return false;">
     <div class="txlg-row-content" onclick="_txlgRowClick(event,${ri})" ontouchstart="_txlgTouchStart(event,${ri})" ontouchmove="_txlgTouchMove(event)" ontouchend="_txlgTouchEnd(event,${ri})" ontouchcancel="_txlgTouchCancel(event)">
-      <div class="txlg-line-col${lineCls}"><span class="txlg-dot" style="background:${dotColor}"></span></div>
       <div class="txlg-mid">
-        <div class="txlg-line1">
-          <span class="txlg-amt" style="color:${amtColor}">${fmtEGP(t.payment)}</span>
-          ${reviewBadgeHTML}
-          ${dupIconHTML}
-          <span class="txlg-conf-dot" style="background:${confColor}" title="${L('AI confidence','ثقة الذكاء الاصطناعي')}: ${_aiConf}%"></span>
-        </div>
         <div class="txlg-notes">${esc(t.notes)||L('Untitled entry','بدون عنوان')}</div>
         <div class="txlg-ai-line" onclick="event.stopPropagation();openTxAISheet(${ri})" title="${L('View AI analysis','عرض التحليل الذكي')}">
           <span class="txlg-ai-meta">${metaLineHTML}</span>
         </div>
+      </div>
+      <div class="txlg-side">
+        <span class="txlg-amt" style="color:${amtColor}">${fmtEGP(t.payment)}</span>
+        ${reviewBadgeHTML}
+        ${dupIconHTML}
+        <span class="txlg-conf-dot" style="background:${confColor}" title="${L('AI confidence','ثقة الذكاء الاصطناعي')}: ${_aiConf}%"></span>
       </div>
     </div>
       <button class="txlg-del" onclick="event.stopPropagation();deleteTx(${ri})" title="${L('Delete','حذف')}">${ic('trash',14)}</button>
@@ -30593,8 +30628,6 @@ function renderTransactions(m){
   return `<div class="screen-wrap txlg-wrap" style="padding-bottom:160px">
 ${_pgHdr('Finance','المالية','Daily Spend','الإنفاق اليومي','Log what you spend each day against your target','سجّل مصروفك كل يوم مقابل المستهدف')}
 
-  ${todaysTargetCardHTML}
-
   <!-- 1. STICKY SUMMARY — Daily KPI strip, hierarchy pass: Spent is the
        primary figure (what the eye should land on first); Target/Remaining/
        Saved are a secondary row underneath, separated by a hairline divider
@@ -30618,6 +30651,11 @@ ${_pgHdr('Finance','المالية','Daily Spend','الإنفاق اليومي',
         <div class="kpi3-sec-label">${L('Target','مستهدف')}</div>
         <div class="kpi3-sec-val${_kpiHasTarget?'':' is-empty'}" style="color:var(--blue)">${_kpiHasTarget?fmtEGP(totalTargetAll):L('Tap to set','اضغط للتحديد')}</div>
       </div>
+      <div class="kpi3-sec kpi3-sec-today" role="button" tabindex="0" style="cursor:pointer" onclick="openDailyTargetModal()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}" aria-label="${L("Today's Target",'تارجت اليوم')} ${_todayTarget>0?fmtEGP(_todayTarget):L('not set','غير محدد')}">
+        <div class="kpi3-sec-label">${L("Today's Target",'تارجت اليوم')}</div>
+        <div class="kpi3-sec-val${_todayTarget>0?'':' is-empty'}" style="color:var(--blue)">${_todayTarget>0?fmtEGP(_todayTarget):L('Tap to set','اضغط للتحديد')}</div>
+        <span class="kpi3-sec-edit">${_todayTarget>0?L('Edit','تعديل'):L('Set','حدد')}</span>
+      </div>
       <div class="kpi3-sec" role="button" tabindex="0" style="cursor:pointer" onclick="openBudgetModal(activeMonth)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}" aria-label="${L('Remaining','متبقي')} ${_kpiHasTarget?fmtEGP(_kpiRemaining):L('not available','غير متاح')}">
         <div class="kpi3-sec-label">${L('Remaining','متبقي')}</div>
         <div class="kpi3-sec-val${_kpiHasTarget?'':' is-empty'}" style="color:${_kpiHasTarget?_kpiZoneColor:'var(--muted)'}">${_kpiHasTarget?fmtEGP(_kpiRemaining):L('Tap to set','اضغط للتحديد')}</div>
@@ -30638,22 +30676,22 @@ ${_pgHdr('Finance','المالية','Daily Spend','الإنفاق اليومي',
   <!-- 2. SMART FILTERS — Search, Time, Variance merged into one compact toolbar (Commit 2) -->
   <div class="sc-card txlg-filters">
     <div class="txlg-toolbar">
-      <div class="sc-search" style="border-bottom:none;background:transparent;padding:var(--sp2) var(--sp4) 0">
-        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
-        <input placeholder="${L('Search notes or amount...','ابحث في الملاحظات أو المبلغ...')}" value="${esc(searchQ)}" oninput="doSearch(this.value)"/>
+      <div class="txlg-search-row">
+        <div class="sc-search" style="border-bottom:none;background:transparent;padding:0">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
+          <input placeholder="${L('Search notes or amount...','ابحث في الملاحظات أو المبلغ...')}" value="${esc(searchQ)}" oninput="doSearch(this.value)"/>
+        </div>
+        <select class="txlg-var-select${txFilterVariance!=='all'?' is-active':''}" aria-label="${L('Target filter','فلتر المستهدف')}" onchange="txSetVarianceFilter(this.value)">
+          <option value="all" ${txFilterVariance==='all'?'selected':''}>${L('All','الكل')}</option>
+          <option value="under" ${txFilterVariance==='under'?'selected':''}>${L('Under Target','أقل من المستهدف')}</option>
+          <option value="over" ${txFilterVariance==='over'?'selected':''}>${L('Over Target','عدّى المستهدف')}</option>
+        </select>
       </div>
       <div class="txlg-filter-row">
         <div class="txlg-seg">
           <button class="${txFilterPeriod==='today'?'active':''}" onclick="txSetPeriodFilter('today')">${L('Today','اليوم')}</button>
           <button class="${txFilterPeriod==='week'?'active':''}" onclick="txSetPeriodFilter('week')">${L('This Week','هذا الأسبوع')}</button>
           <button class="${txFilterPeriod==='month'?'active':''}" onclick="txSetPeriodFilter('month')">${L('This Month','هذا الشهر')}</button>
-        </div>
-      </div>
-      <div class="txlg-filter-row">
-        <div class="txlg-seg">
-          <button class="${txFilterVariance==='all'?'active':''}" onclick="txSetVarianceFilter('all')">${L('All','الكل')}</button>
-          <button class="${txFilterVariance==='under'?'active':''}" onclick="txSetVarianceFilter('under')">${L('Under Target','أقل من المستهدف')}</button>
-          <button class="${txFilterVariance==='over'?'active':''}" onclick="txSetVarianceFilter('over')">${L('Over Target','عدّى المستهدف')}</button>
         </div>
       </div>
     </div>
