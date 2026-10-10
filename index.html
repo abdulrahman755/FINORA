@@ -10145,6 +10145,17 @@ body .screen-wrap .sc-header.sav-plain-header.sav-plain-header::after{display:no
    date picker and stats. Re-anchor it. */
 .rpt-ib{position:relative}
 .rpt-chips,.rpt-top{position:relative;z-index:1}
+
+/* My Report: fixed sheet height so switching day doesn't make the sheet jump */
+#modalContent:has(.rpt-chips){height:min(88vh,calc(100vh - 80px));height:min(88dvh,calc(100dvh - 80px))}
+#modalContent:has(.rpt-chips) .bs-body{min-height:0}
+.rpt-empty{min-height:160px;justify-content:center}
+.rpt-autobox{margin:10px 0 2px;border:1px solid var(--border);border-radius:16px;background:var(--surface);overflow:hidden}
+.rpt-autobox .rpt-auto{margin:0;border:0;border-radius:0;background:transparent;width:100%}
+.rpt-time{position:relative;display:flex;align-items:center;gap:10px;padding:10px 14px 12px;border-top:1px solid var(--border);cursor:pointer;color:var(--muted);font-size:calc(12px*var(--app-text-scale,1));font-weight:700}
+.rpt-time span{flex:1}
+.rpt-time b{min-width:84px;text-align:center;padding:7px 14px;border-radius:99px;background:color-mix(in srgb,var(--green) 11%,var(--surface));color:var(--green);font-size:calc(13px*var(--app-text-scale,1));font-weight:800;font-variant-numeric:tabular-nums}
+.rpt-time input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;font-size:16px}
 </style>
 <script>
 // Suppress cross-origin Script errors (in-app browsers like TikTok/Instagram)
@@ -40365,7 +40376,7 @@ function closeModal(e){
       if(btnsEl && btnsEl.classList.contains('rpt-actions')){
         // My Report: keep its own button classes (compact row) instead of
         // rebuilding them as stacked full-width save buttons.
-        footerHTML = `<div class="rpt-foot-row">${btnsEl.innerHTML}</div>`;
+        footerHTML = btnsEl.querySelector('button') ? `<div class="rpt-foot-row">${btnsEl.innerHTML}</div>` : '';
         btnsEl.remove();
       } else if(btnsEl){
         const btns = Array.from(btnsEl.querySelectorAll('button'));
@@ -41339,10 +41350,30 @@ remCheckDue();
 // Reads receipts only; never writes to them.
 // ═════════════════════════════════════════════════════════════════════
 const RQ_RPT_KEY='wdp_rq_daily_report_v1';   // {on:boolean (default true), last:'YYYY-MM-DD'}
-const RQ_RPT_MINUTE=16*60+30;                 // 4:30 PM
+const RQ_RPT_MINUTE=16*60+30;                 // default: 4:30 PM (editable, saved as `min` in RQ_RPT_KEY)
 function _rqReportState(){ try{ return JSON.parse(localStorage.getItem(RQ_RPT_KEY))||{}; }catch(e){ return {}; } }
 function _rqReportSet(p){ try{ localStorage.setItem(RQ_RPT_KEY,JSON.stringify(Object.assign(_rqReportState(),p))); }catch(e){ _logErr('_rqReportSet',e); } }
 function rqReportEnabled(){ return _rqReportState().on!==false; }
+function rqReportMinute(){ const m=_rqReportState().min; return (typeof m==='number'&&m>=0&&m<1440)?m:RQ_RPT_MINUTE; }
+function rqReportTimeValue(){ const m=rqReportMinute(); return String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0'); }
+// "4:30 PM" / "٤:٣٠ م" — follows the app language
+function rqReportTimeLabel(){
+  const m=rqReportMinute(), h=Math.floor(m/60), mi=m%60, h12=((h+11)%12)+1, pm=h>=12;
+  let t=h12+':'+String(mi).padStart(2,'0');
+  if(lang==='ar'){ t=t.replace(/\d/g,d=>'٠١٢٣٤٥٦٧٨٩'[d]); return t+' '+(pm?'م':'ص'); }
+  return t+' '+(pm?'PM':'AM');
+}
+function rqReportSetTime(v){
+  const mt=/^(\d{1,2}):(\d{2})/.exec(v||''); if(!mt) return;
+  const min=Math.min(23,+mt[1])*60+Math.min(59,+mt[2]);
+  const now=new Date();
+  // moved to a later time today → let it fire again at the new time
+  const patch={min}; if(min>now.getHours()*60+now.getMinutes()) patch.last='';
+  _rqReportSet(patch);
+  showToast(L('✓ Daily report time: '+rqReportTimeLabel(),'✓ ميعاد التقرير اليومي: '+rqReportTimeLabel()),'success');
+  if(currentView==='expenses') renderView();
+  try{ const l=document.getElementById('rptTimeLbl'); if(l) l.textContent=rqReportTimeLabel(); }catch(e){}
+}
 
 // One receipt → one sentence, in the app's current language, built from the
 // card's own fields exactly as typed (no translation):
@@ -41688,11 +41719,14 @@ function rqReportOpen(d){
     </div>
     ${stats?`<div class="rpt-stats">${stats}</div>`:''}
     <div class="rpt-paper" id="rptPaper" dir="${ar?'rtl':'ltr'}">${text?_rqReportPreviewHTML(date):`<div class="rpt-empty">${ic('clipboard',26)}<div>${L('No receipts logged on this day','لا توجد استلامات مسجلة في هذا اليوم')}</div></div>`}</div>
-    <button type="button" class="rpt-auto${on?' on':''}" onclick="rqReportToggle()">
-      <span class="rpt-auto-ic">${ic('bell',16)}</span>
-      <span class="rpt-auto-t"><b>${L('Daily report at 4:30 PM','تقرير يومي الساعة ٤:٣٠ م')}</b><small>${L('Arrives as a notification, ready to copy','يوصلك كإشعار وجاهز للنسخ')}</small></span>
-      <span class="rpt-sw"><i></i></span>
-    </button>
+    <div class="rpt-autobox${on?' on':''}">
+      <button type="button" class="rpt-auto${on?' on':''}" onclick="rqReportToggle()">
+        <span class="rpt-auto-ic">${ic('bell',16)}</span>
+        <span class="rpt-auto-t"><b>${L('Daily report','تقرير يومي')}</b><small>${L('Arrives as a notification, ready to copy','يوصلك كإشعار وجاهز للنسخ')}</small></span>
+        <span class="rpt-sw"><i></i></span>
+      </button>
+      ${on?`<label class="rpt-time"><span>${L('Send at','ميعاد الإرسال')}</span><b id="rptTimeLbl">${rqReportTimeLabel()}</b><input type="time" value="${rqReportTimeValue()}" onchange="rqReportSetTime(this.value)" aria-label="${L('Report time','ميعاد التقرير')}"></label>`:''}
+    </div>
     <div class="modal-btns rpt-actions">
       ${text?`<button type="button" class="rpt-cta" id="rptCopyBtn" onclick="rqReportCopy('${esc(date)}')">${ic('copy',15)}<span>${isAll?L('Copy all days','نسخ كل الأيام'):L('Copy report','نسخ التقرير')}</span></button>`:''}
       ${text&&!isAll&&hist.length>1?`<button type="button" class="rpt-cta2" onclick="rqReportCopy('all')">${ic('copy',15)}<span>${L('Copy all days','نسخ كل الأيام')}</span><em>${hist.length}</em></button>`:''}
@@ -41705,11 +41739,11 @@ function rqReportToggle(){
   const refresh=()=>{ if(document.querySelector('.rpt-auto')) rqReportOpen(_rqRptDate||today()); if(currentView==='expenses') renderView(); };
   if(on && ('Notification' in window) && Notification.permission==='default'){
     Notification.requestPermission().then(p=>{
-      showToast(p==='granted'?L('✓ Daily report notification on (4:30 PM)','✓ تم تفعيل إشعار التقرير اليومي (٤:٣٠ م)'):L('Report will show inside the app only (notifications not allowed)','التقرير هيظهر جوه التطبيق فقط (الإشعارات غير مسموحة)'),p==='granted'?'success':'warn');
+      showToast(p==='granted'?L('✓ Daily report notification on ('+rqReportTimeLabel()+')','✓ تم تفعيل إشعار التقرير اليومي ('+rqReportTimeLabel()+')'):L('Report will show inside the app only (notifications not allowed)','التقرير هيظهر جوه التطبيق فقط (الإشعارات غير مسموحة)'),p==='granted'?'success':'warn');
       refresh();
     });
   } else {
-    showToast(on?L('✓ Daily report on (4:30 PM)','✓ تم تفعيل التقرير اليومي (٤:٣٠ م)'):L('Daily report off','تم إيقاف التقرير اليومي'),on?'success':'info');
+    showToast(on?L('✓ Daily report on ('+rqReportTimeLabel()+')','✓ تم تفعيل التقرير اليومي ('+rqReportTimeLabel()+')'):L('Daily report off','تم إيقاف التقرير اليومي'),on?'success':'info');
     refresh();
   }
 }
@@ -41719,7 +41753,7 @@ function rqReportBarHTML(){
   return `<div class="rq-hub">
   <button type="button" class="rq-hub-top" onclick="_rqRptDate='';_rqRptLang='';rqReportOpen()">
     <span class="rq-hub-ic">${ic('clipboard',18)}</span>
-    <span class="rq-hub-tx"><b>${L('My Report','تقريري')}</b><small>${n?L(n+' receipt(s) today',n+' استلام اليوم'):L('No receipts yet today','لا استلامات اليوم')}<i class="rq-hub-dot${on?' on':''}"></i>${on?L('4:30 PM','٤:٣٠ م'):L('Off','موقوف')}</small></span>
+    <span class="rq-hub-tx"><b>${L('My Report','تقريري')}</b><small>${n?L(n+' receipt(s) today',n+' استلام اليوم'):L('No receipts yet today','لا استلامات اليوم')}<i class="rq-hub-dot${on?' on':''}"></i>${on?rqReportTimeLabel():L('Off','موقوف')}</small></span>
     <span class="rq-hub-go">${L('Open','فتح')}</span>
   </button>
   <div class="rq-hub-tools">
@@ -42184,7 +42218,7 @@ function rqReportCheck(){
   if(!rqReportEnabled()) return;
   const now=new Date(), t=today();
   if(_rqReportState().last===t) return;
-  if(now.getHours()*60+now.getMinutes()<RQ_RPT_MINUTE) return;
+  if(now.getHours()*60+now.getMinutes()<rqReportMinute()) return;
   const text=_rqBuildDailyReport(t);
   if(!text) return;
   _rqReportSet({last:t});
