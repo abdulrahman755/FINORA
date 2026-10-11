@@ -10233,6 +10233,176 @@ html body .sc-header .sc-header-sub{padding-inline-start:12px;margin-top:4px;fon
 .prj-dot{width:18px;height:18px;flex-shrink:0;border-radius:50%;border:2px solid var(--border-strong)}
 .prj-dot.on{border-color:var(--green);background:radial-gradient(circle,var(--green) 0 45%,transparent 50%)}
 .prj-now{flex-shrink:0;padding:3px 10px;border-radius:999px;font-size:calc(11px*var(--app-text-scale,1));font-weight:700;color:var(--green);background:var(--green-tint)}
+.prj-ic.has-logo{background:none;overflow:hidden}
+.prj-av{width:36px;height:36px;flex-shrink:0;border-radius:var(--icon-r-3,10px);display:flex;align-items:center;justify-content:center}
+.prj-av.on{box-shadow:0 0 0 2px var(--green)}
+.prj-edlg{cursor:pointer}
+
+/* ── Data entry: calmer, aligned layout ── */
+.de-sheet .de-list{gap:0}
+.de-sheet .de-row{padding:12px 0;gap:12px;border-top:1px solid var(--border)}
+.de-sheet .de-row:first-child{border-top:0;padding-top:2px}
+.de-sheet .de-row:last-child{padding-bottom:2px}
+.de-sheet .de-lg{width:44px;height:44px;border-radius:12px}
+.de-sheet .de-nm{font-size:calc(14.5px*var(--app-text-scale,1));font-weight:700;line-height:1.35}
+.de-sheet .de-nm small{margin-top:2px;font-size:calc(11.5px*var(--app-text-scale,1));font-weight:600;color:var(--muted)}
+.de-sheet .de-ib{width:38px;height:38px;border-radius:11px;border-color:var(--border);background:var(--surface)}
+.de-sheet .de-hint{margin:0 0 12px}
+.de-sheet .de-cologo{gap:10px;margin:2px 0 16px;align-items:center}
+.de-sheet .de-cologo .bnk-custom-logo-preview{width:44px;height:44px}
+.de-sheet .de-cologo .bnk-custom-logo-btn{height:44px;display:inline-flex;align-items:center}
+.de-sheet .de-addbtn{height:44px;justify-content:center}
+.de-edit{margin:8px 0;padding:14px;border-radius:16px;border:1px solid color-mix(in srgb,var(--green) 30%,var(--border));background:color-mix(in srgb,var(--green) 5%,var(--surface))}
+.de-edit-top{display:flex;align-items:center;gap:12px}
+.de-edit-top .de-edit-inp{height:44px}
+.de-edit .de-lg{cursor:pointer}
+.de-tools{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.de-tool{display:inline-flex;align-items:center;gap:6px;height:38px;padding:0 12px;border:1px solid var(--border);border-radius:11px;background:var(--surface);color:var(--text);font-family:inherit;font-size:calc(12.5px*var(--app-text-scale,1));font-weight:700;cursor:pointer}
+.de-tool svg{color:var(--green)}
+.de-tool.del{margin-inline-start:auto;color:var(--red,#b2534a)}
+.de-tool.del svg{color:inherit}
+.de-acts{display:flex;gap:10px;margin-top:14px}
+.de-acts>button{flex:1}
+.de-cancel{height:44px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface);color:var(--text2,var(--text));font-family:inherit;font-size:calc(13px*var(--app-text-scale,1));font-weight:800;cursor:pointer}
+
+/* ══ Data entry v3 — one calm system: cards · inputs · inset lists · chips ══ */
+.de-sheet{gap:14px;--de-ctl:46px;--de-fill:color-mix(in srgb,var(--surface2) 50%,var(--surface));--inp-bg:var(--de-fill);--inp-bd:var(--border)}
+/* section card */
+.de-sheet .rq-sec{padding:16px;border-radius:20px;background:var(--surface);border:1px solid var(--border);box-shadow:none;overflow:visible}
+.de-sheet .rq-sec-hdr{margin:0 0 14px;padding:0;border-bottom:0;gap:10px;align-items:center}
+.de-sheet .rq-sec-hdr svg{width:30px;height:30px;padding:7px;border-radius:10px}
+.de-sheet .rq-sec-hdr .rq-sec-t{flex:1;min-width:0;font-size:calc(14.5px*var(--app-text-scale,1));font-weight:800;letter-spacing:0;color:var(--text)}
+.de-sheet .rq-sec-hdr .rq-sec-n{flex:none;min-width:24px;height:24px;padding:0 8px;border-radius:999px;box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;background:var(--green-tint);color:var(--green);font-size:calc(11.5px*var(--app-text-scale,1));font-weight:800;letter-spacing:0;font-variant-numeric:tabular-nums}
+.de-sheet .rq-sec-hdr .rq-sec-n[hidden]{display:none}
+/* inputs */
+.de-sheet .field{margin:0;gap:6px}
+.de-sheet .field label{text-transform:none;letter-spacing:0;font-size:calc(12px*var(--app-text-scale,1));font-weight:700;color:var(--muted);margin:0}
+.de-sheet .field input,.de-sheet .rq-fl-in{height:var(--de-ctl);padding:0 14px;box-sizing:border-box;border:1px solid var(--border);border-radius:12px;background:var(--de-fill);box-shadow:none;color:var(--text);font-family:inherit;font-size:calc(14.5px*var(--app-text-scale,1));font-weight:600;min-width:0;width:100%;outline:none;transition:border-color .15s,box-shadow .15s,background .15s}
+.de-sheet .field input::placeholder,.de-sheet .rq-fl-in::placeholder{color:var(--sub,var(--muted));font-weight:500;opacity:.85}
+.de-sheet .field input:focus,.de-sheet .rq-fl-in:focus{border-color:var(--green);background:var(--surface);box-shadow:0 0 0 3px var(--green-glow)}
+/* add row */
+.de-sheet .de-addrow{display:flex;gap:8px;align-items:flex-end;margin:0 0 12px}
+.de-sheet .de-addrow .field{flex:1;min-width:0;margin:0!important}
+.de-sheet .de-addrow .de-f-plot{flex:0 0 38%!important}
+.de-sheet .de-coadd,.de-sheet .de-addrow:has(#deZone){align-items:center}
+.de-sheet .de-addbtn{height:var(--de-ctl);padding:0 18px;border-radius:12px;justify-content:center;background:var(--green);box-shadow:0 1px 0 rgba(255,255,255,.12) inset,0 4px 10px -4px color-mix(in srgb,var(--green) 70%,transparent)}
+.de-sheet .de-addbtn[aria-label]{width:var(--de-ctl);padding:0}
+.de-sheet .de-edit .de-addbtn{box-shadow:none}
+/* logo picker tile */
+.de-pick{flex:none;width:var(--de-ctl);height:var(--de-ctl);box-sizing:border-box;border:1.5px dashed var(--border-strong);border-radius:12px;background:var(--de-fill);color:var(--muted);display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;transition:border-color .15s,color .15s,background .15s}
+.de-pick:active{border-color:var(--green);color:var(--green);background:var(--green-tint)}
+.de-pick-ic{display:flex;align-items:center;justify-content:center;width:100%;height:100%}
+.de-pick-ic .bl-img{width:100%!important;height:100%!important;border-radius:0!important;box-shadow:none!important}
+/* hints */
+.de-sheet .de-hint{margin:0 0 12px;font-size:calc(12px*var(--app-text-scale,1));line-height:1.6;color:var(--muted)}
+.de-sheet .de-hint-sm{margin:-2px 0 12px;font-size:calc(11.5px*var(--app-text-scale,1))}
+/* inset list */
+.de-sheet .de-list{gap:0;border:1px solid var(--border);border-radius:14px;overflow:hidden;background:var(--surface)}
+.de-sheet .de-list:empty{display:none}
+.de-sheet .de-row{padding:10px 12px;gap:12px;border-top:1px solid var(--border);background:transparent}
+.de-sheet .de-row:first-child{border-top:0;padding-top:10px}
+.de-sheet .de-row:last-child{padding-bottom:10px}
+.de-sheet .de-tap{cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background .12s}
+.de-sheet .de-tap:active{background:var(--surface2)}
+@media (hover:hover){.de-sheet .de-tap:hover{background:var(--de-fill)}}
+.de-sheet .de-lg{width:44px;height:44px;border-radius:12px}
+.de-sheet .de-lg .bl-img,.de-sheet .de-edit .bl-img{box-shadow:0 0 0 1px var(--border),0 1px 3px rgba(0,0,0,.08)!important}
+.de-sheet .de-av{width:44px;height:44px;border-radius:12px;font-size:17px;box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--green) 18%,transparent)}
+.de-sheet .de-nm{font-size:calc(14.5px*var(--app-text-scale,1));font-weight:700;line-height:1.35;color:var(--text)}
+.de-sheet .de-nm small{margin-top:2px;font-size:calc(11.5px*var(--app-text-scale,1));font-weight:600;color:var(--muted)}
+.de-sheet .de-ib{width:36px;height:36px;border-radius:10px;border:0;background:transparent;color:var(--muted);transition:background .12s,color .12s}
+.de-sheet .de-ib:active{background:var(--green-tint);color:var(--green)}
+.de-sheet .de-ib.del{color:var(--red,#c0392b)}
+.de-sheet .de-ib.del:active{background:color-mix(in srgb,var(--red,#c0392b) 12%,transparent)}
+.de-sheet .de-empty{padding:16px 14px;text-align:center;border:1px dashed var(--border-strong);border-radius:14px;background:var(--de-fill);color:var(--muted);font-size:calc(12.5px*var(--app-text-scale,1));line-height:1.55}
+.de-sheet .de-list .de-empty{border:0;border-radius:0;background:transparent}
+/* company edit panel (full-bleed inside the list) */
+.de-sheet .de-edit{margin:0;padding:14px;border:0;border-top:1px solid var(--border);border-radius:0;background:color-mix(in srgb,var(--green) 6%,var(--surface))}
+.de-sheet .de-edit:first-child{border-top:0}
+.de-sheet .de-edit-top .de-edit-inp{height:var(--de-ctl);border-radius:12px}
+.de-sheet .de-tool{height:40px;border-radius:12px}
+.de-sheet .de-cancel{height:var(--de-ctl);border-radius:12px}
+/* plot rows */
+.de-sheet .de-plot{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.de-pill{flex:none;display:inline-flex;align-items:center;justify-content:center;min-width:64px;box-sizing:border-box;padding:4px 10px;border-radius:999px;background:var(--green-tint);color:var(--green);font-size:calc(13px*var(--app-text-scale,1));font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:.2px}
+.de-sheet .de-arrow{color:var(--sub,var(--muted));font-weight:700;font-size:14px}
+[dir="rtl"] .de-sheet .de-arrow{display:inline-block;transform:scaleX(-1)}
+.de-mdl{min-width:0;font-weight:800;color:var(--text);overflow-wrap:anywhere}
+/* zone chips */
+.de-sheet .de-chips{gap:8px}
+.de-sheet .de-chip{padding:5px 6px;padding-inline-start:14px;border-radius:999px;background:var(--de-fill);border:1px solid var(--border);font-size:calc(13.5px*var(--app-text-scale,1));font-weight:700}
+.de-sheet .de-chip button{width:24px;height:24px}
+.de-sheet .de-chip button:active{background:color-mix(in srgb,var(--red,#c0392b) 18%,transparent);color:var(--red,#c0392b)}
+.de-sheet .de-chips .de-empty{width:100%;box-sizing:border-box}
+/* levels editor (also used by the receipt form's Levels panel) */
+.rq-fl-head,.rq-fl-row,.rq-fl-add{display:grid;grid-template-columns:minmax(0,1fr) 78px 98px;gap:6px;align-items:center}
+.rq-fl-head{padding:0 2px 6px;font-size:calc(11.5px*var(--app-text-scale,1));font-weight:700;color:var(--muted)}
+.rq-fl-head span:nth-child(2){text-align:center}
+.rq-fl-row{padding:5px 0}
+.rq-fl-in{box-sizing:border-box;min-width:0;width:100%;height:42px;padding:0 12px;border:1px solid var(--border);border-radius:11px;background:var(--surface);color:var(--text);font-family:inherit;font-size:calc(14px*var(--app-text-scale,1));font-weight:600}
+.rq-fl-lv{text-align:center}
+.rq-fl-ctl{display:flex;gap:3px;justify-content:flex-end}
+.rq-fl-b{flex:none;width:31px;height:38px;padding:0;border:0;border-radius:9px;background:transparent;color:var(--muted);font-size:10px;line-height:1;cursor:pointer;display:inline-flex;align-items:center;justify-content:center}
+.rq-fl-b:active{background:var(--green-tint);color:var(--green)}
+.rq-fl-b.del{color:var(--red,#c0392b)}
+.rq-fl-b.del:active{background:color-mix(in srgb,var(--red,#c0392b) 12%,transparent)}
+.rq-fl-add{margin-top:10px;padding-top:12px;border-top:1px dashed var(--border-strong)}
+.rq-fl-addbtn{height:var(--de-ctl,46px);padding:0 10px;border:0;border-radius:12px;background:var(--green);color:#fff;font-family:inherit;font-size:calc(13px*var(--app-text-scale,1));font-weight:800;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:5px;white-space:nowrap}
+.rq-fl-addbtn:active{opacity:.85}
+.de-sheet .rq-lvl-reset{margin:10px 0 0;padding:8px 12px;border:1px solid var(--border);border-radius:999px;background:transparent;text-decoration:none;color:var(--text2,var(--muted));font-size:calc(12px*var(--app-text-scale,1))}
+.de-sheet .rq-lvl-reset:active{background:var(--surface2)}
+/* done button */
+.de-sheet .modal-btns{margin-top:2px}
+
+/* ══ Unified search bar — one look everywhere (46px · 12px radius · icon at the start · green focus ring) ══ */
+.cx-search{display:flex;align-items:center;gap:8px;padding:0;border:0;background:none;position:relative}
+.sc-search.cx-search{padding:0;border:0;background:none}
+.cx-search .cx-sbox{position:relative;flex:1;min-width:0;display:block}
+.cx-search .cx-sbox>svg{position:absolute;top:50%;left:auto;inset-inline-start:14px;transform:translateY(-50%);color:var(--muted);pointer-events:none;transition:color .15s}
+.cx-search .cx-sbox:focus-within>svg{color:var(--green)}
+.sc-search.cx-search .cx-sbox>input{width:100%;height:46px;box-sizing:border-box;padding:0 14px;padding-inline-start:42px;border-radius:12px;border:1.5px solid var(--border);background:var(--surface);color:var(--text);font-family:inherit;font-size:calc(16px*var(--app-text-scale,1));font-weight:500;box-shadow:none;transition:border-color .15s,box-shadow .15s}
+.sc-search.cx-search .cx-sbox>input::placeholder{color:var(--muted);font-weight:500;opacity:.9}
+.sc-search.cx-search .cx-sbox>input:focus{outline:none;border-color:var(--green);box-shadow:0 0 0 4px var(--green-glow)}
+/* bank / wallet pickers */
+.bnk-search-wrap .bnk-search-input{height:46px;box-sizing:border-box;padding:0 14px;padding-inline-start:42px;border-radius:12px;font-size:calc(16px*var(--app-text-scale,1));font-weight:500}
+.bnk-search-wrap .bnk-search-icon{inset-inline-start:14px}
+.bnk-search-wrap .bnk-search-input:focus{box-shadow:0 0 0 4px var(--green-glow)}
+/* notes */
+.qn-search-wrap{padding:8px var(--sp4) 4px}
+.qn-search-bar{height:46px;box-sizing:border-box;gap:10px;padding:0 14px;border:1.5px solid var(--border);border-radius:12px;background:var(--surface);transition:border-color .15s,box-shadow .15s}
+.qn-search-bar:focus-within{border-color:var(--green);box-shadow:0 0 0 4px var(--green-glow)}
+.qn-search-bar:focus-within>svg{color:var(--green)}
+.qn-search-input{font-size:calc(16px*var(--app-text-scale,1));font-weight:500}
+/* global search overlay */
+.gsearch-input-wrap svg,[dir=rtl] .gsearch-input-wrap svg{left:auto;right:auto;inset-inline-start:14px}
+.gsearch-input,[dir=rtl] .gsearch-input{height:46px;box-sizing:border-box;padding:0 14px;padding-inline-start:42px;border-radius:12px;background:var(--surface);font-size:calc(16px*var(--app-text-scale,1));font-weight:500}
+.gsearch-input:focus{box-shadow:0 0 0 4px var(--green-glow)}
+
+/* ══ My Receipts page — one vertical rhythm, aligned stats, calmer cards ══ */
+.cx-wrap .cx-sec:has(.rq-hub){gap:14px}
+.cx-wrap .cx-sec:has(.rq-hub) .cx-sh{padding:2px 4px 0}
+.cx-wrap .cx-sec:has(.rq-hub) .cx-sh-t{font-size:calc(22px*var(--app-text-scale,1));letter-spacing:-.01em}
+.cx-wrap .cx-sec:has(.rq-hub) .cx-sh-s{font-size:calc(13px*var(--app-text-scale,1))}
+/* project bar: keep the caret clear of the floating Notes tab */
+[dir=ltr] .cx-wrap .prj-bar{padding-right:44px;position:relative}
+[dir=ltr] .cx-wrap .prj-bar .prj-caret{position:absolute;right:18px;top:50%;margin:-6px 0 0}
+.prj-caret{border:0;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted)}
+/* status stats: numbers share one baseline, labels one line */
+.cx-wrap .rq-stats{padding:5px;border-radius:18px;box-shadow:var(--shadow-xs)}
+.cx-wrap .rq-stat{min-height:66px;padding:12px 4px 10px;justify-content:flex-start;gap:6px;border-radius:13px}
+.cx-wrap .rq-stat b{font-size:calc(21px*var(--app-text-scale,1));line-height:1}
+.cx-wrap .rq-stat span{font-size:calc(11px*var(--app-text-scale,1));line-height:1.25;white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+.cx-wrap .rq-stat.zero b{color:var(--sub,var(--muted))}
+/* by-type row + report hub */
+.cx-wrap .rq-types-wrap{margin-top:0;gap:12px}
+.cx-wrap .rq-types-h{font-weight:800;color:var(--muted)}
+.cx-wrap .rq-tchip{padding:8px 13px}
+.cx-wrap .rq-hub{margin:0;box-shadow:var(--shadow-xs)}
+.cx-wrap .rq-hub-top{padding:14px 16px;gap:14px}
+.cx-wrap .rq-hub-ic{width:42px;height:42px}
+.cx-wrap .rq-hub-tx b{font-size:calc(15.5px*var(--app-text-scale,1))}
+.cx-wrap .rq-hub-tx small{font-size:calc(12px*var(--app-text-scale,1))}
+.cx-wrap .rq-hub-btn{min-height:48px;font-size:calc(13px*var(--app-text-scale,1));font-weight:700}
 </style>
 <script>
 // Suppress cross-origin Script errors (in-app browsers like TikTok/Instagram)
@@ -29136,10 +29306,10 @@ function renderSmsImport(){
   ${all.length>0?`
   <!-- 2. FILTERS -->
   <div class="sc-card sms-filters">
-    <div class="sc-search" style="border-bottom:none;background:transparent;padding:var(--sp3) var(--sp4) 0">
-      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
+    <div class="sc-search cx-search" style="padding:var(--sp3) var(--sp4) 0"><span class="cx-sbox">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
       <input placeholder="${L('Search messages...','ابحث في الرسائل...')}" value="${esc(smsSearchQ)}" oninput="smsSetSearch(this.value)"/>
-    </div>
+    </span></div>
     <div class="sms-filter-row">
       <select class="sms-bank-select" onchange="smsSetBankFilter(this.value)">
         <option value="all">${L('All Banks','كل البنوك')}</option>
@@ -30982,10 +31152,10 @@ ${_pgHdr('Finance','المالية','Daily Spend','الإنفاق اليومي',
   <div class="sc-card txlg-filters">
     <div class="txlg-toolbar">
       <div class="txlg-search-row">
-        <div class="sc-search" style="border-bottom:none;background:transparent;padding:0">
-          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
+        <div class="sc-search cx-search" style="padding:0"><span class="cx-sbox">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
           <input placeholder="${L('Search notes or amount...','ابحث في الملاحظات أو المبلغ...')}" value="${esc(searchQ)}" oninput="doSearch(this.value)"/>
-        </div>
+        </span></div>
         <select class="txlg-var-select${txFilterVariance!=='all'?' is-active':''}" aria-label="${L('Target filter','فلتر المستهدف')}" onchange="txSetVarianceFilter(this.value)">
           <option value="all" ${txFilterVariance==='all'?'selected':''}>${L('All','الكل')}</option>
           <option value="under" ${txFilterVariance==='under'?'selected':''}>${L('Under Target','أقل من المستهدف')}</option>
@@ -31381,26 +31551,38 @@ try{
     _PRJ={list:l,active:l.some(x=>x.id===_pp.active)?_pp.active:_PRJ_DEFAULT};
   }
 }catch(e){_logErr('_PRJ:read',e);}
-function _prjSave(){ try{ localStorage.setItem(_PRJ_KEY,JSON.stringify(_PRJ)); }catch(e){ _logErr('_prjSave',e); } }
+function _prjSave(){ try{ localStorage.setItem(_PRJ_KEY,JSON.stringify(_PRJ)); return true; }catch(e){ _logErr('_prjSave',e); try{ showToast(L('⚠️ Could not save (storage full)','⚠️ تعذّر الحفظ (التخزين ممتلئ)'),'warn'); }catch(_){} return false; } }
 function _prjKey(base){ return _PRJ.active===_PRJ_DEFAULT?base:base+'__'+_PRJ.active; }
 function _prjMine(x){ return ((x&&x.projectId)||_PRJ_DEFAULT)===_PRJ.active; }
 function _prjName(p){ const n=String((p&&p.name)||'').trim(); return n||(p&&p.id===_PRJ_DEFAULT?L('Project 1','المشروع الأول'):L('Untitled project','مشروع بدون اسم')); }
 function _prjCur(){ return _PRJ.list.find(x=>x.id===_PRJ.active)||_PRJ.list[0]; }
-function _prjBarHTML(){
-  return `<button type="button" class="prj-bar" onclick="_prjOpen()" aria-label="${L('Switch project','تغيير المشروع')}"><span class="prj-ic">${ic('folder',17)}</span><span class="prj-tx"><span class="prj-lb">${L('Project','المشروع')}</span><b dir="auto">${esc(_prjName(_prjCur()))}</b></span><span class="prj-caret" aria-hidden="true"></span></button>`;
+function _prjAv(p,size){
+  if(p&&p.logo) return bankLogoHTML(p.logo,size,{alt:''});
+  const ini=_prjName(p).charAt(0).toUpperCase();
+  return `<span class="de-av" style="width:${size}px;height:${size}px;font-size:${Math.round(size*.42)}px">${esc(ini)}</span>`;
 }
+function _prjBarHTML(){
+  const cur=_prjCur();
+  return `<button type="button" class="prj-bar" onclick="_prjOpen()" aria-label="${L('Switch project','تغيير المشروع')}"><span class="prj-ic${cur.logo?' has-logo':''}">${cur.logo?bankLogoHTML(cur.logo,36,{alt:''}):ic('folder',17)}</span><span class="prj-tx"><span class="prj-lb">${L('Project','المشروع')}</span><b dir="auto">${esc(_prjName(cur))}</b></span><span class="prj-caret" aria-hidden="true"></span></button>`;
+}
+let _prjEditLogo, _prjNewLogo;
 function _prjOpen(){
-  _prjEditId=null; _prjRender(true);
+  _prjEditId=null; _prjEditLogo=undefined; _prjNewLogo=undefined; _prjRender();
   document.getElementById('modalOverlay').style.display='flex';
 }
-function _prjRender(first){
+function _prjRender(){
   const rows=_PRJ.list.map(p=>{
     const on=p.id===_PRJ.active;
-    if(_prjEditId===p.id) return `<div class="de-row editing"><input type="text" class="de-edit-inp" id="prjEditName" dir="auto" autocomplete="off" value="${esc(_prjName(p))}" onkeydown="if(event.key==='Enter'){event.preventDefault();_prjRenameSave('${p.id}')}else if(event.key==='Escape'){_prjEditId=null;_prjRender()}">
+    if(_prjEditId===p.id){
+      const lg=_prjEditLogo!==undefined?_prjEditLogo:p.logo;
+      return `<div class="de-row editing"><label class="de-lg prj-edlg" id="prjEditPrev" title="${L('Change logo','تغيير الشعار')}">${_prjAv({...p,logo:lg},36)}<input type="file" accept="image/*" style="display:none" onchange="_prjEditPick(this)"></label>
+      <input type="text" class="de-edit-inp" id="prjEditName" dir="auto" autocomplete="off" value="${esc(_prjName(p))}" onkeydown="if(event.key==='Enter'){event.preventDefault();_prjRenameSave('${p.id}')}else if(event.key==='Escape'){_prjEditId=null;_prjRender()}">
+      ${lg?`<button type="button" class="de-ib" title="${L('Remove logo','حذف الشعار')}" onclick="_prjEditLogo='';_prjRender()">${ic('trash',14)}</button>`:''}
       <button type="button" class="de-ib ok" title="${L('Save changes','حفظ التعديل')}" onclick="_prjRenameSave('${p.id}')">${ic('check',15)}</button>
-      <button type="button" class="de-ib" title="${L('Cancel','إلغاء')}" onclick="_prjEditId=null;_prjRender()">${ic('close',14)}</button></div>`;
-    return `<div class="de-row prj-row${on?' on':''}"><button type="button" class="prj-pick" onclick="_prjSwitch('${p.id}')"><span class="prj-dot${on?' on':''}"></span><span class="de-nm" dir="auto">${esc(_prjName(p))}</span>${on?`<span class="prj-now">${L('Current','الحالي')}</span>`:''}</button>
-      <button type="button" class="de-ib edit" title="${L('Rename','تغيير الاسم')}" onclick="_prjEditId='${p.id}';_prjRender()">${ic('edit',15)}</button></div>`;
+      <button type="button" class="de-ib" title="${L('Cancel','إلغاء')}" onclick="_prjEditId=null;_prjEditLogo=undefined;_prjRender()">${ic('close',14)}</button></div>`;
+    }
+    return `<div class="de-row prj-row${on?' on':''}"><button type="button" class="prj-pick" onclick="_prjSwitch('${p.id}')"><span class="prj-av${on?' on':''}">${_prjAv(p,36)}</span><span class="de-nm" dir="auto">${esc(_prjName(p))}</span>${on?`<span class="prj-now">${L('Current','الحالي')}</span>`:''}</button>
+      <button type="button" class="de-ib edit" title="${L('Edit','تعديل')}" onclick="_prjEditId='${p.id}';_prjEditLogo=undefined;_prjRender()">${ic('edit',15)}</button></div>`;
   }).join('');
   const html=`<div class="rq-modal de-sheet">
       <div class="modal-hdr">
@@ -31412,21 +31594,35 @@ function _prjRender(first){
       <div class="rq-sec"><div class="de-list">${rows}</div></div>
       <div class="rq-sec"><div class="rq-sec-hdr">${ic('plus',15)}<span>${L('Start a new project','ابدأ مشروعاً جديداً')}</span></div>
         <div class="de-hint">${L('A new project starts empty: no receipts, no custody, no saved companies or plots.','المشروع الجديد يبدأ فارغاً: بدون استلامات أو عهدة أو شركات وقطع محفوظة.')}</div>
-        <div class="de-addrow"><div class="field"><input type="text" id="prjNew" dir="auto" autocomplete="off" placeholder="${L('Project name','اسم المشروع')}" onkeydown="if(event.key==='Enter')_prjCreate()"></div>
-        <button type="button" class="de-addbtn" onclick="_prjCreate()">${ic('plus',14)} ${L('Create','إنشاء')}</button></div></div>
+        <div class="de-addrow"><div class="field"><input type="text" id="prjNew" dir="auto" autocomplete="off" placeholder="${L('Project name','اسم المشروع')}" onkeydown="if(event.key==='Enter')_prjCreate()"></div></div>
+        <div class="de-cologo">
+          <div id="prjNewPrev" class="bnk-custom-logo-preview">${_prjNewLogo?bankLogoHTML(_prjNewLogo,36,{alt:''}):ic('photo',15)}</div>
+          <label class="bnk-custom-logo-btn">${ic('upload',13)} ${L('Upload logo (optional)','رفع شعار (اختياري)')}<input type="file" accept="image/*" style="display:none" onchange="_prjNewPick(this)"></label>
+          <button type="button" class="de-addbtn" style="margin-inline-start:auto" onclick="_prjCreate()">${ic('plus',14)} ${L('Create','إنشاء')}</button>
+        </div></div>
       <div class="modal-btns"><button class="mbtn save" onclick="closeModal()">${L('Done','تم')}</button></div></div>`;
-  const mc=document.getElementById('modalContent');
   const keep=document.getElementById('prjNew')?.value||'';
-  mc.innerHTML=`<div class="modal-handle"></div>`+html;
+  document.getElementById('modalContent').innerHTML=`<div class="modal-handle"></div>`+html;
   const nn=document.getElementById('prjNew'); if(nn&&keep) nn.value=keep;
   if(_prjEditId){ const el=document.getElementById('prjEditName'); if(el){ try{ el.focus(); el.setSelectionRange(el.value.length,el.value.length); }catch(e){} } }
+}
+function _prjEditPick(input){
+  const nameEl=document.getElementById('prjEditName'); const typed=nameEl?nameEl.value:'';
+  _deReadLogo(input,url=>{ _prjEditLogo=url; _prjRender(); const el=document.getElementById('prjEditName'); if(el&&typed) el.value=typed; });
+}
+function _prjNewPick(input){
+  _deReadLogo(input,url=>{ _prjNewLogo=url; const pv=document.getElementById('prjNewPrev'); if(pv) pv.innerHTML=bankLogoHTML(url,36,{alt:''}); });
 }
 function _prjRenameSave(id){
   const p=_PRJ.list.find(x=>x.id===id); if(!p) return;
   const name=(document.getElementById('prjEditName')?.value||'').replace(/\s+/g,' ').trim();
   if(!name){ showToast(L('Enter the project name','اكتب اسم المشروع'),'warn'); return; }
   if(_PRJ.list.some(x=>x.id!==id && _prjName(x).toLowerCase()===name.toLowerCase())){ showToast(L('A project with this name already exists','يوجد مشروع بنفس الاسم'),'warn'); return; }
-  p.name=name; _prjSave(); _prjEditId=null; _prjRender();
+  const prev={name:p.name,logo:p.logo};
+  p.name=name;
+  if(_prjEditLogo!==undefined){ if(_prjEditLogo) p.logo=_prjEditLogo; else delete p.logo; }
+  if(!_prjSave()){ p.name=prev.name; if(prev.logo) p.logo=prev.logo; else delete p.logo; return; }
+  _prjEditId=null; _prjEditLogo=undefined; _prjRender();
   try{ renderView(true); }catch(e){}
 }
 function _prjCreate(){
@@ -31434,7 +31630,10 @@ function _prjCreate(){
   if(!name){ showToast(L('Enter the project name','اكتب اسم المشروع'),'warn'); el?.focus(); return; }
   if(_PRJ.list.some(x=>_prjName(x).toLowerCase()===name.toLowerCase())){ showToast(L('A project with this name already exists','يوجد مشروع بنفس الاسم'),'warn'); el?.focus(); return; }
   const id='p'+Date.now().toString(36)+Math.random().toString(36).slice(2,4);
-  _PRJ.list.push({id,name}); _prjSave();
+  const proj={id,name}; if(_prjNewLogo) proj.logo=_prjNewLogo;
+  _PRJ.list.push(proj);
+  if(!_prjSave()){ _PRJ.list.pop(); return; }
+  _prjNewLogo=undefined;
   _prjSwitch(id,true);
 }
 function _prjSwitch(id,isNew){
@@ -32336,7 +32535,7 @@ function renderMyRequests(){
   if(q) list=list.filter(r=>_rqMatchSearch(r,q));
   list.sort((a,b)=>String(b.date||'').localeCompare(String(a.date||''))||((b.createdAt||0)-(a.createdAt||0)));
 
-  const stat=(f,cls,n,lbl)=>`<button type="button" class="rq-stat ${cls}${_rqFilter===f?' on':''}" aria-pressed="${_rqFilter===f?'true':'false'}" onclick="_rqSetFilter('${f}')"><b>${n}</b><span>${lbl}</span></button>`;
+  const stat=(f,cls,n,lbl)=>`<button type="button" class="rq-stat ${cls}${n===0?' zero':''}${_rqFilter===f?' on':''}" aria-pressed="${_rqFilter===f?'true':'false'}" onclick="_rqSetFilter('${f}')"><b>${n}</b><span>${lbl}</span></button>`;
   const typeChips=[...typeMap.values()].sort((a,b)=>b.n-a.n||a.k.localeCompare(b.k)).map(t=>{
     const raw=String(t.r.type||'').trim();
     const label=t.k==='__none'?L('No type','بدون نوع'):(_rqIsCodeType(raw)?raw.toUpperCase():_rqDisplayValue(t.r,'type'));
@@ -32347,7 +32546,7 @@ function renderMyRequests(){
   const statsHTML=(all.length?`<div class="rq-stats">
     ${stat('all','all',all.length,L('All','الكل'))}
     ${stat('received','ok',counts.received,_rqStatusLabel('received'))}
-    ${stat('notes','low',counts.notes,_rqStatusLabel('notes'))}
+    ${stat('notes','low',counts.notes,L('With notes','بملاحظات'))}
     ${stat('rejected','over',counts.rejected,_rqStatusLabel('rejected'))}
   </div>`:'')+(typeChips?`<div class="rq-types-wrap"><div class="rq-types-h">${L('By type','حسب النوع')}</div><div class="rq-types">${typeChips}</div></div>`:'');
 
@@ -32631,7 +32830,7 @@ function _rqRenderCommentSuggestions(){
     const del=(cset.has(n)&&!bset.has(n))?`<button type="button" class="rq-sugg-chip" style="padding:0 9px" title="${L('Remove from memory','حذف من الذاكرة')}" onclick="_rqDelLearned(${i})">${ic('close',12)}</button>`:'';
     return `<span class="rq-cmt-wrap" data-i="${i}" style="display:inline-flex;align-items:center;gap:2px;max-width:100%"><button type="button" class="rq-sugg-chip rq-cmt-chip" data-i="${i}" onclick="_rqTapComment(this)">${esc(c)}</button>${del}</span>`;
   }).join('');
-  const search=list.length>6?`<input type="text" dir="auto" autocomplete="off" oninput="_rqFilterComments(this.value)" placeholder="${L('Search comments (Arabic or English)…','ابحث في الكومنتات (عربي أو إنجليزي)…')}" style="width:100%;box-sizing:border-box;margin:6px 0;padding:8px 11px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface);color:var(--text);font:inherit;font-size:12px">`:'';
+  const search=list.length>6?`<div class="sc-search cx-search" style="padding:0;margin:6px 0"><span class="cx-sbox">${ic('search',16)}<input type="text" dir="auto" autocomplete="off" oninput="_rqFilterComments(this.value)" placeholder="${L('Search comments (Arabic or English)…','ابحث في الكومنتات (عربي أو إنجليزي)…')}"></span></div>`:'';
   host.innerHTML=`<div class="rq-sugg-panel">
     <div class="rq-sugg-panel-hdr"><span>${ic('note',13)} ${L('Suggested comments','كومنتات مقترحة')}${ctx?` · <b>${esc(ctx)}</b>`:''}</span><em>${list.length}</em></div>
     ${search}<div class="rq-sugg-panel-body">${chips}</div>
@@ -41714,19 +41913,18 @@ const _RQ_FLOOR_NAMES_DEFAULT={en:Object.assign({},_RQ_FLOORS_EN),ar:Object.assi
 })();
 // ── Floors editor: rename, add, delete, reorder (shared by the form panel and Data entry) ──
 function _rqFloorsEditorHTML(){
-  const inp='border:1px solid var(--border);background:var(--surface);color:var(--text);border-radius:var(--radius-sm);padding:8px 10px;font:inherit;font-size:13px;min-width:0;box-sizing:border-box';
-  const btn='border:1px solid var(--border);background:var(--surface);color:var(--text);border-radius:var(--radius-sm);min-width:30px;height:34px;font-size:13px;cursor:pointer;padding:0 6px';
-  const rows=_RQ_FLOOR_ORDER.map(k=>`<div class="rq-fl-row" style="display:flex;gap:5px;align-items:center;margin:6px 0">
-    <input type="text" dir="auto" autocomplete="off" value="${esc(L(_RQ_FLOORS_EN[k],_RQ_FLOORS_AR[k]))}" onchange="_rqFloorRename('${k}',this.value)" style="${inp};flex:1.5">
-    <input type="text" dir="ltr" autocomplete="off" inputmode="text" placeholder="—" value="${esc(_RQ_FLOOR_LEVELS[k]||'')}" oninput="_rqSetFloorLevel('${k}',this.value)" style="${inp};flex:1">
-    <button type="button" onclick="_rqFloorMove('${k}',-1)" style="${btn}">▲</button><button type="button" onclick="_rqFloorMove('${k}',1)" style="${btn}">▼</button><button type="button" onclick="_rqFloorDel('${k}')" style="${btn};color:var(--red)" aria-label="${L('Delete','حذف')}">×</button>
+  const head=`<div class="rq-fl-head"><span>${L('Floor','الدور')}</span><span>${L('Level','المنسوب')}</span><span></span></div>`;
+  const rows=_RQ_FLOOR_ORDER.map(k=>`<div class="rq-fl-row">
+    <input class="rq-fl-in" type="text" dir="auto" autocomplete="off" aria-label="${L('Floor','الدور')}" value="${esc(L(_RQ_FLOORS_EN[k],_RQ_FLOORS_AR[k]))}" onchange="_rqFloorRename('${k}',this.value)">
+    <input class="rq-fl-in rq-fl-lv" type="text" dir="ltr" autocomplete="off" inputmode="text" aria-label="${L('Level','المنسوب')}" placeholder="—" value="${esc(_RQ_FLOOR_LEVELS[k]||'')}" oninput="_rqSetFloorLevel('${k}',this.value)">
+    <div class="rq-fl-ctl"><button type="button" class="rq-fl-b" onclick="_rqFloorMove('${k}',-1)" aria-label="${L('Move up','تحريك لأعلى')}">▲</button><button type="button" class="rq-fl-b" onclick="_rqFloorMove('${k}',1)" aria-label="${L('Move down','تحريك لأسفل')}">▼</button><button type="button" class="rq-fl-b del" onclick="_rqFloorDel('${k}')" aria-label="${L('Delete','حذف')}">${ic('close',13)}</button></div>
   </div>`).join('');
-  const add=`<div class="rq-fl-add" style="display:flex;gap:5px;align-items:center;margin:10px 0 4px">
-    <input class="rq-fl-n" type="text" dir="auto" autocomplete="off" placeholder="${L('New floor name','اسم دور جديد')}" style="${inp};flex:1.5">
-    <input class="rq-fl-l" type="text" dir="ltr" autocomplete="off" placeholder="${L('Level','المنسوب')}" style="${inp};flex:1">
-    <button type="button" onclick="_rqFloorAdd(this)" style="${btn};background:var(--green,#107c5a);color:#fff;border-color:transparent;padding:0 12px">+ ${L('Add','إضافة')}</button>
+  const add=`<div class="rq-fl-add">
+    <input class="rq-fl-in rq-fl-n" type="text" dir="auto" autocomplete="off" placeholder="${L('New floor name','اسم دور جديد')}">
+    <input class="rq-fl-in rq-fl-lv rq-fl-l" type="text" dir="ltr" autocomplete="off" placeholder="${L('Level','المنسوب')}">
+    <button type="button" class="rq-fl-addbtn" onclick="_rqFloorAdd(this)">${ic('plus',13)} ${L('Add','إضافة')}</button>
   </div>`;
-  return rows+add;
+  return head+rows+add;
 }
 function _rqFloorsRerender(){
   _rqSaveFloorLevels();
@@ -42106,39 +42304,59 @@ function _deReadLogo(input,cb){
 }
 function _deCompanies(){
   const m=new Map();
-  const add=(n,used)=>{ const t=String(n||'').trim(); if(!t) return; const k=_rqCoLogoKey(t); const e=m.get(k); if(e) e.used=e.used||used; else m.set(k,{name:t,key:k,used:!!used}); };
+  const add=(n,used)=>{ const t=String(n||'').trim(); if(!t) return; const k=_rqCoLogoKey(t); const e=m.get(k); if(e){ e.used=e.used||used; if(used) e.n=(e.n||0)+1; } else m.set(k,{name:t,key:k,used:!!used,n:used?1:0}); };
   _rqLoad().forEach(r=>add(r.company,true));
   (_rqCustomFields.company||[]).forEach(n=>add(n,false));
   Object.keys(_rqCoLogos).forEach(k=>add(k,false));
   return [...m.values()].sort((a,b)=>a.name.localeCompare(b.name));
 }
+let _deCoEditName;
+function _deCount(id,n){ const e=document.getElementById(id); if(!e) return; e.textContent=n?String(n):''; e.hidden=!n; }
 function rqDeRenderCo(){
   const box=document.getElementById('deCoList'); if(!box) return;
   _deCoList=_deCompanies();
+  const avatar=(c,src,size)=>src?bankLogoHTML(src,size,{alt:''}):`<span class="de-av" style="width:${size}px;height:${size}px;font-size:${Math.round(size*.4)}px">${esc(c.name.charAt(0).toUpperCase())}</span>`;
   box.innerHTML=_deCoList.length?_deCoList.map((c,i)=>{
     const editing=_deCoEditKey===c.key;
-    const src=editing?(_deCoEditLogo!==undefined?_deCoEditLogo:_rqCoLogoSrc(c.name)):_rqCoLogoSrc(c.name);
-    const av=src?bankLogoHTML(src,36,{alt:''}):`<span class="de-av">${esc(c.name.charAt(0).toUpperCase())}</span>`;
-    if(editing) return `<div class="de-row editing"><div class="de-lg" id="deCoEditPrev">${av}</div>
-      <input type="text" class="de-edit-inp" id="deCoEditName" dir="auto" autocomplete="off" value="${esc(c.name)}" onkeydown="if(event.key==='Enter'){event.preventDefault();rqDeCoEditSave(${i})}else if(event.key==='Escape'){rqDeCoEditCancel()}">
-      <label class="de-ib" title="${L('Change logo','تغيير الشعار')}">${ic('photo',15)}<input type="file" accept="image/*" style="display:none" onchange="rqDeCoEditPick(this)"></label>
-      <button type="button" class="de-ib ok" title="${L('Save changes','حفظ التعديل')}" onclick="rqDeCoEditSave(${i})">${ic('check',15)}</button>
-      <button type="button" class="de-ib" title="${L('Cancel','إلغاء')}" onclick="rqDeCoEditCancel()">${ic('close',14)}</button>
-    </div>`;
-    return `<div class="de-row"><div class="de-lg">${av}</div><div class="de-nm" dir="auto">${esc(c.name)}</div>
-      <button type="button" class="de-ib edit" title="${L('Edit','تعديل')}" onclick="rqDeCoEdit(${i})">${ic('edit',15)}</button>
-      <label class="de-ib" title="${L('Logo','شعار')}">${ic('photo',15)}<input type="file" accept="image/*" style="display:none" onchange="rqDeCoLogoSet(${i},this)"></label>
-      ${src?`<button type="button" class="de-ib" title="${L('Remove logo','حذف الشعار')}" onclick="rqDeCoLogoDel(${i})">${ic('close',14)}</button>`:''}
-      ${c.used?'':`<button type="button" class="de-ib del" title="${L('Delete','حذف')}" onclick="rqDeCoDel(${i})">${ic('trash',15)}</button>`}
+    if(editing){
+      const src=_deCoEditLogo!==undefined?_deCoEditLogo:_rqCoLogoSrc(c.name);
+      const nm=_deCoEditName!==undefined?_deCoEditName:c.name;
+      return `<div class="de-edit">
+        <div class="de-edit-top"><label class="de-lg" id="deCoEditPrev" title="${L('Change logo','تغيير الشعار')}">${avatar(c,src,44)}<input type="file" accept="image/*" style="display:none" onchange="rqDeCoEditPick(this)"></label>
+          <input type="text" class="de-edit-inp" id="deCoEditName" dir="auto" autocomplete="off" value="${esc(nm)}" onkeydown="if(event.key==='Enter'){event.preventDefault();rqDeCoEditSave(${i})}else if(event.key==='Escape'){rqDeCoEditCancel()}"></div>
+        <div class="de-tools">
+          <label class="de-tool">${ic('photo',15)} ${src?L('Change logo','تغيير الشعار'):L('Add logo','إضافة شعار')}<input type="file" accept="image/*" style="display:none" onchange="rqDeCoEditPick(this)"></label>
+          ${src?`<button type="button" class="de-tool" onclick="rqDeCoEditLogoRemove()">${ic('close',14)} ${L('Remove logo','حذف الشعار')}</button>`:''}
+          ${c.used?'':`<button type="button" class="de-tool del" onclick="rqDeCoDelEdit(${i})">${ic('trash',15)} ${L('Delete','حذف')}</button>`}
+        </div>
+        <div class="de-acts"><button type="button" class="de-cancel" onclick="rqDeCoEditCancel()">${L('Cancel','إلغاء')}</button><button type="button" class="de-addbtn" onclick="rqDeCoEditSave(${i})">${ic('check',15)} ${L('Save changes','حفظ التعديل')}</button></div>
+      </div>`;
+    }
+    const src=_rqCoLogoSrc(c.name);
+    const sub=c.n?`<small>${c.n} ${c.n===1?L('receipt','استلام'):L('receipts','استلامات')}</small>`:'';
+    return `<div class="de-row de-tap" onclick="rqDeCoEdit(${i})"><div class="de-lg">${avatar(c,src,44)}</div><div class="de-nm" dir="auto">${esc(c.name)}${sub}</div>
+      <button type="button" class="de-ib edit" title="${L('Edit','تعديل')}" aria-label="${L('Edit','تعديل')}">${ic('edit',16)}</button>
     </div>`;
   }).join(''):`<div class="de-empty">${L('No companies yet','لا توجد شركات بعد')}</div>`;
+  _deCount('deCoN',_deCoList.length);
   if(_deCoEditKey){ const el=document.getElementById('deCoEditName'); if(el&&document.activeElement!==el){ try{ el.focus({preventScroll:false}); el.setSelectionRange(el.value.length,el.value.length); }catch(e){} } }
 }
-// Edit a company: rename (updates every card that uses it, the saved list and the logo) and/or change the logo.
-function rqDeCoEdit(i){ const c=_deCoList[i]; if(!c) return; _deCoEditKey=c.key; _deCoEditLogo=undefined; rqDeRenderCo(); }
-function rqDeCoEditCancel(){ _deCoEditKey=null; _deCoEditLogo=undefined; rqDeRenderCo(); }
+// Edit a company: rename (updates every card that uses it, the saved list and the logo), change/remove the logo, or delete an unused one.
+function rqDeCoEdit(i){ const c=_deCoList[i]; if(!c) return; _deCoEditKey=c.key; _deCoEditLogo=undefined; _deCoEditName=undefined; rqDeRenderCo(); }
+function rqDeCoEditCancel(){ _deCoEditKey=null; _deCoEditLogo=undefined; _deCoEditName=undefined; rqDeRenderCo(); }
 function rqDeCoEditPick(input){
-  _deReadLogo(input,url=>{ _deCoEditLogo=url; const pv=document.getElementById('deCoEditPrev'); if(pv) pv.innerHTML=bankLogoHTML(url,36,{alt:''}); });
+  const typed=document.getElementById('deCoEditName')?.value;
+  _deReadLogo(input,url=>{ _deCoEditLogo=url; if(typed!==undefined) _deCoEditName=typed; rqDeRenderCo(); });
+}
+function rqDeCoEditLogoRemove(){
+  const typed=document.getElementById('deCoEditName')?.value; if(typed!==undefined) _deCoEditName=typed;
+  _deCoEditLogo=''; rqDeRenderCo();
+}
+function rqDeCoDelEdit(i){
+  const c=_deCoList[i]; if(!c||c.used) return;
+  showConfirm(L('Delete this company?','حذف هذه الشركة؟'),function(){
+    rqDeCoDel(i); _deCoEditKey=null; _deCoEditLogo=undefined; _deCoEditName=undefined; rqDeRenderCo();
+  });
 }
 function rqDeCoEditSave(i){
   const c=_deCoList[i]; if(!c) return;
@@ -42160,7 +42378,7 @@ function rqDeCoEditSave(i){
     const cf=(_rqCustomFields.company||[]).filter(v=>_rqCoLogoKey(v)!==c.key); cf.push(name);
     _rqCustomFields.company=cf; _rqPersistCustomFields();
   }
-  _deCoEditKey=null; _deCoEditLogo=undefined;
+  _deCoEditKey=null; _deCoEditLogo=undefined; _deCoEditName=undefined;
   rqDeRenderCo(); _deRefreshBehind();
   showToast(L('Saved ✓','تم الحفظ ✓'),'success');
 }
@@ -42206,9 +42424,10 @@ function _deNormRange(s){
 function rqDeRenderPlots(){
   const box=document.getElementById('dePlotList'); if(!box) return;
   box.innerHTML=_rqPlotUser.length?_rqPlotUser.map(e=>`<div class="de-row">
-      <div class="de-nm" dir="auto">${L('Plot','قطعة')} <span dir="ltr">${esc(e.range.replace(/,/g,', '))}</span> <span class="de-arrow">→</span> ${esc(e.model)}</div>
-      <button type="button" class="de-ib del" title="${L('Delete','حذف')}" onclick="rqDePlotDel('${esc(e.id)}')">${ic('trash',15)}</button></div>`).join('')
+      <div class="de-nm de-plot" dir="auto"><span class="de-pill" dir="ltr">${esc(e.range.replace(/,/g,', '))}</span><span class="de-arrow">→</span><span class="de-mdl">${esc(e.model)}</span></div>
+      <button type="button" class="de-ib del" title="${L('Delete','حذف')}" aria-label="${L('Delete','حذف')}" onclick="rqDePlotDel('${esc(e.id)}')">${ic('trash',15)}</button></div>`).join('')
     :`<div class="de-empty">${L('Nothing added yet — the built-in table is used','لا يوجد إدخال — بيُستخدم الجدول الافتراضي')}</div>`;
+  _deCount('dePlotN',_rqPlotUser.length);
 }
 function rqDePlotAdd(){
   const pe=document.getElementById('dePlot'), me=document.getElementById('deModel');
@@ -42237,6 +42456,7 @@ function rqDeRenderZones(){
   const z=_rqCustomFields.zone||[];
   box.innerHTML=z.length?z.map((v,i)=>`<span class="de-chip" dir="auto">${esc(v)}<button type="button" aria-label="${L('Delete','حذف')}" onclick="rqDeZoneDel(${i})">${ic('close',12)}</button></span>`).join('')
     :`<div class="de-empty">${L('No zones yet','لا توجد زونات بعد')}</div>`;
+  _deCount('deZoneN',z.length);
 }
 function rqDeZoneAdd(){
   const el=document.getElementById('deZone'); const parts=String(el?.value||'').split(/[,،\n]+/).map(x=>x.trim()).filter(Boolean);
@@ -42247,8 +42467,8 @@ function rqDeZoneAdd(){
 function rqDeZoneDel(i){ (_rqCustomFields.zone||[]).splice(i,1); _rqPersistCustomFields(); rqDeRenderZones(); }
 
 function rqDataEntryOpen(){
-  _deLogoPending=undefined; _deCoEditKey=null; _deCoEditLogo=undefined;
-  const sec=(icon,title,body)=>`<div class="rq-sec"><div class="rq-sec-hdr">${ic(icon,15)}<span>${title}</span></div>${body}</div>`;
+  _deLogoPending=undefined; _deCoEditKey=null; _deCoEditLogo=undefined; _deCoEditName=undefined;
+  const sec=(icon,title,body,metaId)=>`<div class="rq-sec"><div class="rq-sec-hdr">${ic(icon,15)}<span class="rq-sec-t">${title}</span>${metaId?`<span class="rq-sec-n" id="${metaId}" hidden></span>`:''}</div>${body}</div>`;
   document.getElementById('modalContent').innerHTML=`
     <div class="modal-handle"></div>
     <div class="rq-modal de-sheet">
@@ -42262,23 +42482,22 @@ function rqDataEntryOpen(){
       </div>
 
       ${sec('building',L('Companies & logos','الشركات والشعار'),`
-        <div class="field"><label>${L('Company','اسم الشركة')}</label>
-          <input type="text" id="deCoName" dir="auto" autocomplete="off" placeholder="${L('Company name','اسم الشركة')}" onkeydown="if(event.key==='Enter')rqDeCoAdd()"></div>
-        <div class="de-cologo">
-          <div id="deCoPrev" class="bnk-custom-logo-preview">${ic('photo',15)}</div>
-          <label class="bnk-custom-logo-btn">${ic('upload',13)} ${L('Upload logo','رفع شعار')}<input type="file" accept="image/*" style="display:none" onchange="rqDeCoPick(this)"></label>
-          <button type="button" class="de-addbtn" style="margin-inline-start:auto" onclick="rqDeCoAdd()">${ic('plus',14)} ${L('Add','إضافة')}</button>
+        <div class="de-addrow de-coadd">
+          <label class="de-pick" title="${L('Upload logo','رفع شعار')}" aria-label="${L('Upload logo','رفع شعار')}"><span id="deCoPrev" class="de-pick-ic">${ic('photo',18)}</span><input type="file" accept="image/*" style="display:none" onchange="rqDeCoPick(this)"></label>
+          <div class="field"><input type="text" id="deCoName" dir="auto" autocomplete="off" aria-label="${L('Company name','اسم الشركة')}" placeholder="${L('Company name','اسم الشركة')}" onkeydown="if(event.key==='Enter')rqDeCoAdd()"></div>
+          <button type="button" class="de-addbtn" onclick="rqDeCoAdd()">${ic('plus',14)} ${L('Add','إضافة')}</button>
         </div>
-        <div class="de-list" id="deCoList"></div>`)}
+        <div class="de-hint de-hint-sm">${L('Tap the square to attach a logo (optional)','اضغط على المربع لإضافة شعار (اختياري)')}</div>
+        <div class="de-list" id="deCoList"></div>`,'deCoN')}
 
       ${sec('clipboard',L('Plot numbers & models','أرقام القطع والنماذج'),`
         <div class="de-hint">${L('Use a single number (48) or a range (39-43, 56). What you add here is used first when you type the plot no.','اكتب رقماً واحداً (48) أو نطاقاً (39-43, 56). ما تضيفه هنا يُستخدم أولاً عند كتابة رقم القطعة.')}</div>
         <div class="de-addrow">
-          <div class="field"><label>${L('Plot No.','رقم القطعة')}</label><input type="text" id="dePlot" dir="ltr" autocomplete="off" inputmode="text" placeholder="39-43"></div>
+          <div class="field de-f-plot"><label>${L('Plot No.','رقم القطعة')}</label><input type="text" id="dePlot" dir="ltr" autocomplete="off" inputmode="text" placeholder="39-43"></div>
           <div class="field"><label>${L('Form / Model','النموذج')}</label><input type="text" id="deModel" dir="auto" autocomplete="off" placeholder="IVLA" onkeydown="if(event.key==='Enter')rqDePlotAdd()"></div>
           <button type="button" class="de-addbtn" onclick="rqDePlotAdd()" aria-label="${L('Add','إضافة')}">${ic('plus',16)}</button>
         </div>
-        <div class="de-list" id="dePlotList"></div>`)}
+        <div class="de-list" id="dePlotList"></div>`,'dePlotN')}
 
       ${sec('ruler',L('Levels','المناسيب'),`
         <div class="de-hint">${L('Level that fills in automatically when you pick a floor. Saved cards keep their own level.','المنسوب الذي يُكتب تلقائياً عند اختيار الدور. تبقى البطاقات المحفوظة بمنسوبها.')}</div>
@@ -42289,7 +42508,7 @@ function rqDataEntryOpen(){
           <div class="field"><input type="text" id="deZone" dir="auto" autocomplete="off" placeholder="${L('e.g. A, B (comma = several)','مثال: A, B (بفاصلة لأكثر من واحد)')}" onkeydown="if(event.key==='Enter')rqDeZoneAdd()"></div>
           <button type="button" class="de-addbtn" onclick="rqDeZoneAdd()" aria-label="${L('Add','إضافة')}">${ic('plus',16)}</button>
         </div>
-        <div class="de-chips" id="deZoneList"></div>`)}
+        <div class="de-chips" id="deZoneList"></div>`,'deZoneN')}
 
       <div class="modal-btns"><button class="mbtn save" onclick="closeModal()">${L('Done','تم')}</button></div>
     </div>`;
