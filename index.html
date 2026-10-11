@@ -10761,10 +10761,15 @@ html body .sc-header .sc-header-sub{padding-inline-start:12px;margin-top:4px;fon
 .rq-tile b{max-width:100%;font-size:calc(16px*var(--app-text-scale,1));font-weight:900;line-height:1.1;color:var(--rq-tc);font-variant-numeric:tabular-nums;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .rq-tile small{font-size:calc(9px*var(--app-text-scale,1));font-weight:700;color:var(--muted)}
 .rq-tile .rq-dot{position:absolute;top:5px;inset-inline-end:5px;width:6px;height:6px}
-.rq-tile{gap:2px;padding:5px 2px 4px}
-.rq-tile-logo{width:28px;height:28px;flex:none;display:flex;align-items:center;justify-content:center;border-radius:8px;overflow:hidden;background:var(--surface);color:var(--rq-tc);box-shadow:0 0 0 1px color-mix(in srgb,var(--rq-tc) 22%,var(--border))}
-.rq-tile-logo .bl-img,.rq-tile-logo img{width:100%!important;height:100%!important;object-fit:contain;border-radius:8px!important;box-shadow:none!important}
-.rq-tile b{font-size:calc(15px*var(--app-text-scale,1))}
+/* tile: the company logo fills the square; plot no. + date sit on a tinted strip at the bottom */
+.rq-tile{display:block;gap:0;padding:0;overflow:hidden;text-align:start}
+.rq-tile-logo{position:absolute;inset:0 0 24px 0;display:flex;align-items:center;justify-content:center;background:#fff;color:var(--rq-tc);overflow:hidden}
+.rq-tile-logo .bl-img,.rq-tile-logo img{width:100%!important;height:100%!important;object-fit:contain!important;border-radius:0!important;box-shadow:none!important;box-sizing:border-box;padding:4px;background:transparent!important}
+.rq-tile-logo>svg{opacity:.75}
+.rq-tile-meta{position:absolute;inset:auto 0 0 0;height:24px;display:flex;align-items:center;justify-content:space-between;gap:3px;padding:0 5px;background:color-mix(in srgb,var(--rq-tc) 16%,var(--surface));border-top:1px solid color-mix(in srgb,var(--rq-tc) 30%,var(--border))}
+.rq-tile-meta b{min-width:0;flex:0 1 auto;font-size:calc(14px*var(--app-text-scale,1));font-weight:900;line-height:1;color:var(--rq-tc);font-variant-numeric:tabular-nums;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rq-tile-meta small{flex:none;font-size:calc(8.5px*var(--app-text-scale,1));font-weight:700;line-height:1;color:var(--sub);white-space:nowrap}
+.rq-tile .rq-dot{z-index:1;top:4px;inset-inline-end:4px;width:7px;height:7px;box-shadow:0 0 0 1.5px #fff}
 @media (max-width:340px){.rq-list.rq-v-grid{grid-template-columns:repeat(4,1fr)}}
 .rq-cardsheet .rq-card{margin-top:4px}
 
@@ -33209,9 +33214,8 @@ function _rqTileHTML(r){
   const plot=_rqPlotLabel(r);
   return `<button type="button" class="rq-tile rq-t ${st.cls}" style="--rq-tc:${_rqTypeColor(r)}" onclick="rqOpenCard('${r.id}')" aria-label="${esc(L('Plot','قطعة'))} ${esc(plot)}">
     <i class="rq-dot ${st.cls}" title="${esc(_rqStatusLabel(r.status))}"></i>
-    <span class="rq-tile-logo">${_rqCoLogoSrc(r.company)?bankLogoHTML(_rqCoLogoSrc(r.company),26,{alt:esc(_rqDisplayValue(r,'company'))}):ic('building',15)}</span>
-    <b dir="auto">${esc(plot||'—')}</b>
-    <small dir="ltr">${esc(_purFmtDate(r.date))}</small>
+    <span class="rq-tile-logo">${_rqCoLogoSrc(r.company)?bankLogoHTML(_rqCoLogoSrc(r.company),40,{alt:esc(_rqDisplayValue(r,'company'))}):ic('building',24)}</span>
+    <span class="rq-tile-meta"><b dir="auto">${esc(plot||'—')}</b><small dir="ltr">${esc(_purFmtDate(r.date))}</small></span>
   </button>`;
 }
 // tap a row / tile → the full card in a sheet (edit and delete work from there)
