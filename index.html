@@ -9024,6 +9024,29 @@ button.cx-sh-tap{width:100%;background:none;border:0;font-family:inherit;color:i
   color:var(--muted)!important;
 }
 
+/* -- Card colour (picked in "Card Color") + Top Categories premium list --------
+   Root cause of the colour having no visible effect: the "premium polish" rule
+   above forces every .wdash-tile-ico / .wdash-sheet-ico to transparent + muted
+   with !important, which also beat the user's --tc. These later, more specific
+   rules re-enable it ONLY when a colour was actually picked. */
+.wdash-tile[style*="--tc"] .wdash-tile-ico:not([style*="gradient"]){color:var(--tc)!important;background:color-mix(in srgb,var(--tc) 14%,transparent)!important}
+.wdash-sheet-ico[style*="--tc"]:not([style*="gradient"]){color:var(--tc)!important;background:color-mix(in srgb,var(--tc) 14%,transparent)!important}
+.wdash-sheet-panel[style*="--tc"] .wdash-sheet-hdr::after{background:var(--tc)}
+.wdash-sheet-panel[style*="--tc"] .wdash-sheet-body .sc-card{box-shadow:inset 0 2px 0 var(--tc)}
+.wdash-sheet-panel[style*="--tc"] .wdash-sheet-body .dfp-card-title svg{color:var(--tc)}
+.tc-card{padding:var(--sp3) var(--sp4)}
+.tc-sum{font-size:calc(11.5px*var(--app-text-scale,1));font-weight:600;color:var(--muted);padding:2px 0 8px}
+.tc-row{display:flex;align-items:center;gap:12px;padding:13px 0;border-top:1px solid var(--border)}
+.tc-ico{width:38px;height:38px;border-radius:var(--icon-r-3);display:flex;align-items:center;justify-content:center;flex-shrink:0;background:color-mix(in srgb,var(--cc) 11%,transparent)}
+.tc-ico .cat-ic{vertical-align:0!important}
+.tc-main{flex:1;min-width:0}
+.tc-top{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+.tc-name{font-size:calc(13.5px*var(--app-text-scale,1));font-weight:700;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tc-amt{font-size:calc(13.5px*var(--app-text-scale,1));font-weight:800;color:var(--text);font-variant-numeric:tabular-nums;flex-shrink:0}
+.tc-bar{height:4px;border-radius:99px;background:var(--surface2);margin-top:9px;overflow:hidden}
+.tc-bar i{display:block;height:100%;width:var(--w);border-radius:inherit;background:var(--tc,var(--green));opacity:.8}
+.tc-pct{font-size:calc(10.5px*var(--app-text-scale,1));font-weight:600;color:var(--muted);margin-top:6px}
+
 /* -- Premium polish A4: AI markers in ONE accent (--green), no glow (Dark + Light) --
    Additive override of the later-wins kind. Gold/purple/gradient AI accents
    and the brand glow shadows are unified to the single brand green.
@@ -15444,11 +15467,27 @@ function _dfpTopListRow(name, amount, color, iconHTML){
 function renderTopListsCard(m, sig){
   sig = sig || fdDashboardSignals(m);
   const catTotals = _insGetCatTotals(activeMonth);
-  const topCats = Object.entries(catTotals).sort((a,z)=>z[1]-a[1]).slice(0,5)
-    .map(([name,amt])=>{const cm=getCategoryMeta(name);return _dfpTopListRow(name, amt, cm.color, renderCategoryIcon(name,12));}).join('')
-    || `<div class="dfp-toplist-empty">${L('No expenses this month','لا توجد مصروفات هذا الشهر')}</div>`;
-
-  return `<div class="sc-card"><div class="dfp-card-title" style="margin-bottom:8px">${ic('cash', 13, 'aria-hidden="true"')} ${L('Top Categories','أعلى التصنيفات')}</div>${topCats}</div>`;
+  const all = Object.entries(catTotals).sort((a,z)=>z[1]-a[1]);
+  const total = all.reduce((a,e)=>a+(e[1]||0),0);
+  const top = all.slice(0,5);
+  if(!top.length) return `<div class="sc-card tc-card"><div class="dfp-toplist-empty">${L('No expenses this month','لا توجد مصروفات هذا الشهر')}</div></div>`;
+  const max = top[0][1] || 1;
+  const topSum = top.reduce((a,e)=>a+(e[1]||0),0);
+  const topPct = total>0 ? Math.round(topSum/total*100) : 0;
+  const rows = top.map(([name,amt])=>{
+    const cm = getCategoryMeta(name);
+    const share = total>0 ? Math.round(amt/total*100) : 0;
+    const w = Math.max(4, Math.round(amt/max*100));
+    return `<div class="tc-row" style="--cc:${cm.color};--w:${w}%">
+      <span class="tc-ico">${renderCategoryIcon(name,16)}</span>
+      <div class="tc-main">
+        <div class="tc-top"><span class="tc-name" dir="auto">${esc(name)}</span><span class="tc-amt">${fmtEGP(amt)}</span></div>
+        <div class="tc-bar"><i></i></div>
+        <div class="tc-pct">${share}% ${L('of spending','من الإنفاق')}</div>
+      </div>
+    </div>`;
+  }).join('');
+  return `<div class="sc-card tc-card"><div class="tc-sum">${L('Top '+top.length+' categories = '+topPct+'% of this month\'s spending','أعلى '+top.length+' تصنيفات = '+topPct+'% من إنفاق هذا الشهر')}</div>${rows}</div>`;
 }
 
 // ── 5) Monthly Comparison ───────────────────────────────────────────────────
@@ -16073,7 +16112,11 @@ function _wdashSheetHeader(id){
   if(!tile || !ico || !ttl) return;
   ico.innerHTML = tile.querySelector('.wdash-tile-ico').innerHTML;
   ico.className = 'wdash-sheet-ico' + (id==='sysintel' ? ' gold' : '');
-  if(tile.style.getPropertyValue('--tc')) ico.style.setProperty('--tc', tile.style.getPropertyValue('--tc')); else ico.style.removeProperty('--tc');
+  const _tcv = tile.style.getPropertyValue('--tc');
+  if(_tcv) ico.style.setProperty('--tc', _tcv); else ico.style.removeProperty('--tc');
+  // The picked colour now tints the whole sheet (header accent + cards), not just the icon.
+  const _panel = ico.closest('.wdash-sheet-panel');
+  if(_panel){ if(_tcv) _panel.style.setProperty('--tc', _tcv); else _panel.style.removeProperty('--tc'); }
   ttl.textContent = tile.querySelector('.wdash-tile-lbl').textContent;
 }
 function _wdashSheetRefreshCharts(){
@@ -25422,16 +25465,21 @@ function renderBanks(m){
                       const country = getBankCountry(b.key);
                       const list = _atmBanksForCountry(country);
                       const ownKey = getOwnBankListKey(b.key);
-                      if(list){
-                        const cur = COUNTRY_ATM_BANKS[country];
-                        return list.map(bk=>{
-                          const isOwn = ownKey===bk.key;
-                          const label = L(bk.en,bk.ar) + (isOwn
-                            ? ' · ' + L('Free (my bank)','مجاني (بنكي)')
-                            : (bk.fee>0 ? ' · ' + bk.fee + ' ' + L(cur.currency,cur.currencyAr) : ' · ' + L('Free','مجاني')));
-                          return `<option value="${bk.key}" ${withMethods[b.key]===bk.key?'selected':''}>${label}</option>`;
-                        }).join('');
-                      }
+                       if(list){
+                         const cur = COUNTRY_ATM_BANKS[country];
+                         const nm = bk => L(bk.en,bk.ar);
+                         const opt = bk => {
+                           const isOwn = ownKey===bk.key;
+                           const fee = isOwn ? L('Free (my bank)','مجاني (بنكي)')
+                             : (bk.fee>0 ? (bk.est?'≈ ':'') + bk.fee + ' ' + L(cur.currency,cur.currencyAr) : L('Free','مجاني'));
+                           return `<option value="${bk.key}" ${withMethods[b.key]===bk.key?'selected':''}>${nm(bk)} · ${fee}</option>`;
+                         };
+                         const mine = list.filter(bk=>bk.key===ownKey && bk.key!=='other');
+                         const oth = list.find(bk=>bk.key==='other');
+                         const rest = list.filter(bk=>bk.key!==ownKey && bk.key!=='other').sort((x,y)=>nm(x).localeCompare(nm(y)));
+                         return (mine.length ? `<optgroup label="${L('My bank','بنكي')}">${mine.map(opt).join('')}</optgroup>` : '')
+                           + `<optgroup label="${L('Other banks','بنوك أخرى')}">${rest.map(opt).join('')}${oth?opt(oth):''}</optgroup>`;
+                       }
                       // No verified data for this country yet — minimal generic picker
                       return `
                         <option value="own" ${withMethods[b.key]==='own'?'selected':''}>${L('My Bank ATM · Free','صراف بنكي · مجاني')}</option>
@@ -25440,6 +25488,7 @@ function renderBanks(m){
                   </select>
                   <svg class="sc-select-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
                 </div>
+                 ${(()=>{ const _l=_atmBanksForCountry(getBankCountry(b.key)); return (_l && _l.some(x=>x.est)) ? `<div style="font-size:calc(10.5px*var(--app-text-scale,1));color:var(--muted);margin-top:6px;line-height:1.5">${L('≈ CBE standard rate (5 EGP) — no bank-specific tariff found for this bank.','≈ تعريفة البنك المركزي القياسية (5 ج.م) — لم نجد تعريفة منشورة خاصة بهذا البنك.')}</div>` : ''; })()}
               </div>
             </div>
             <div class="sc-add-fields">
@@ -27760,7 +27809,12 @@ function getBankCountry(bankKey){
 }
 
 // Per-country ATM networks with real published interbank withdrawal fees.
-// EG: each bank charges its own flat fee for using another bank's ATM.
+// EG: flat fee per withdrawal at ANOTHER bank's ATM. Banks with a tariff published in 2026
+//     press roundups of bank schedules carry that figure (CIB 7, Crédit Agricole 6, aiBANK 3,
+//     others 5); every entry flagged est:true has no bank-specific figure we could confirm and
+//     uses the CBE standard 5 EGP, shown with a "≈" in the picker. Order matters: the first
+//     entry whose match token is contained in the account's bank name wins, so specific names
+//     come first and the broad ones (Banque Misr, NBE) last.
 // SA: mada network — domestic interbank ATM withdrawal is FREE (0 SAR).
 // AE: UAESWITCH — standardized AED 2 flat fee for any other UAE bank's ATM.
 // Countries not listed here fall back to a generic "My Bank / Other Bank"
@@ -27768,28 +27822,43 @@ function getBankCountry(bankKey){
 // don't have verified flat-fee data for them yet.
 const COUNTRY_ATM_BANKS = {
   EG: { currency:'EGP', currencyAr:'ج.م', banks:[
-    { key:'banquemisr', en:'Banque Misr',                ar:'بنك مصر',              fee:5,
-      match:['banquemisr','bankmisr','bankmasr','مصر'] },
-    { key:'nbe',         en:'National Bank of Egypt',     ar:'البنك الأهلي المصري',  fee:5,
-      match:['nationalbankofegypt','nbe','اهلي','ahly','ahli'] },
-    { key:'caire',       en:'Banque du Caire',            ar:'بنك القاهرة',          fee:5,
-      match:['banqueducaire','cairobank','bankofcairo','قاهره'] },
-    { key:'qnb',         en:'QNB',                        ar:'QNB',                  fee:5,
-      match:['qnb'] },
-    { key:'cib',         en:'CIB',                        ar:'البنك التجاري الدولي', fee:7,
-      match:['cib','commercialinternational','تجاريدولي','تجاري'] },
-    { key:'alex',        en:'Bank of Alexandria',         ar:'بنك الإسكندرية',        fee:10,
-      match:['bankofalexandria','alexbank','اسكندريه'] },
-    { key:'agricole',    en:'Credit Agricole',            ar:'كريدي أجريكول',        fee:5,
-      match:['creditagricole','اجريكول'] },
-    { key:'aaib',        en:'AAIB',                       ar:'العربي الأفريقي الدولي', fee:5,
-      match:['aaib','عربيافريقي'] },
-    { key:'adib',        en:'ADIB',                       ar:'أبوظبي الإسلامي',      fee:5,
-      match:['adib','ابوظبيالاسلامي'] },
-    { key:'hdb',         en:'Housing & Development Bank', ar:'بنك التعمير والإسكان',  fee:5,
-      match:['hdb','تعميروالاسكان'] },
-    { key:'other',       en:'Other Bank',                 ar:'بنك آخر',              fee:5,
-      match:[] },
+    { key:'misriran', en:'Misr Iran Development Bank', ar:'بنك مصر إيران للتنمية', fee:5, est:true, match:['misriran','مصرايران'] },
+    { key:'qnb', en:'QNB', ar:'QNB', fee:5, match:['qnb','كيوانبي'] },
+    { key:'kfh', en:'Kuwait Finance House – Egypt', ar:'بيت التمويل الكويتي - مصر', fee:5, est:true, match:['kuwaitfinancehouse','kfh','ahliunited','بيتالتمويلالكويتي','اهليمتحد'] },
+    { key:'abk', en:'Al Ahli Bank of Kuwait – Egypt', ar:'البنك الأهلي الكويتي - مصر', fee:5, est:true, match:['ahlibankofkuwait','abkegypt','الاهليالكويتي'] },
+    { key:'arabintl', en:'Arab International Bank', ar:'المصرف العربي الدولي', fee:5, est:true, match:['arabintl','arabinternationalbank','المصرفالعربيالدولي'] },
+    { key:'aaib', en:'Arab African International Bank (AAIB)', ar:'البنك العربي الأفريقي الدولي', fee:5, match:['aaib','arabafrican','عربيافريقي','عربيالافريقي'] },
+    { key:'arabbank', en:'Arab Bank', ar:'البنك العربي', fee:5, est:true, match:['arabbank','البنكالعربي'] },
+    { key:'aibank', en:'aiBANK (Arab Investment Bank)', ar:'بنك الاستثمار العربي', fee:3, match:['aibank','arabinvestment','الاستثمارالعربي'] },
+    { key:'agribank', en:'Agricultural Bank of Egypt', ar:'البنك الزراعي المصري', fee:5, match:['agriculturalbank','agribank','الزراعيالمصري','البنكالزراعي'] },
+    { key:'adib', en:'Abu Dhabi Islamic Bank (ADIB)', ar:'مصرف أبوظبي الإسلامي', fee:5, match:['adib','ابوظبيالاسلامي'] },
+    { key:'fab', en:'First Abu Dhabi Bank Misr (FAB)', ar:'بنك أبوظبي الأول - مصر', fee:5, match:['firstabudhabi','fab','ابوظبيالاول'] },
+    { key:'alex', en:'Bank of Alexandria', ar:'بنك الإسكندرية', fee:5, est:true, match:['bankofalexandria','alexbank','اسكندريه','الاسكندريه'] },
+    { key:'cib', en:'CIB', ar:'البنك التجاري الدولي', fee:7, match:['cib','commercialinternational','تجاريدولي','التجاريالدولي'] },
+    { key:'agricole', en:'Credit Agricole', ar:'كريدي أجريكول', fee:6, match:['creditagricole','créditagricole','اجريكول'] },
+    { key:'hdb', en:'Housing & Development Bank', ar:'بنك التعمير والإسكان', fee:5, match:['hdb','housing','تعميروالاسكان'] },
+    { key:'egbank', en:'Egyptian Gulf Bank', ar:'البنك المصري الخليجي', fee:5, match:['egyptiangulf','egbank','المصريالخليجي'] },
+    { key:'hsbc', en:'HSBC Egypt', ar:'HSBC مصر', fee:5, match:['hsbc','اتشاسبيسي'] },
+    { key:'enbd', en:'Emirates NBD Egypt', ar:'بنك الإمارات دبي الوطني', fee:5, match:['emiratesnbd','enbd','الاماراتدبيالوطني'] },
+    { key:'faisal', en:'Faisal Islamic Bank of Egypt', ar:'بنك فيصل الإسلامي المصري', fee:5, est:true, match:['faisal','فيصل'] },
+    { key:'albaraka', en:'Al Baraka Bank Egypt', ar:'بنك البركة مصر', fee:5, est:true, match:['albaraka','baraka','البركه'] },
+    { key:'saib', en:'SAIB', ar:'SAIB', fee:5, est:true, match:['saib','المصرفيهالعربيهالدوليه'] },
+    { key:'mashreq', en:'Mashreq Bank', ar:'بنك المشرق', fee:5, est:true, match:['mashreq','المشرق'] },
+    { key:'nbk', en:'National Bank of Kuwait – Egypt', ar:'بنك الكويت الوطني - مصر', fee:5, est:true, match:['nationalbankofkuwait','nbk','الكويتالوطني'] },
+    { key:'blom', en:'BLOM Bank Egypt', ar:'بنك بلوم مصر', fee:5, est:true, match:['blom','بلوم'] },
+    { key:'attijari', en:'Attijariwafa Bank Egypt', ar:'التجاري وفا بنك مصر', fee:5, est:true, match:['attijari','وفابنك'] },
+    { key:'unitedbank', en:'The United Bank', ar:'البنك المتحد', fee:5, est:true, match:['unitedbank','البنكالمتحد'] },
+    { key:'midbank', en:'MIDBank', ar:'ميد بنك', fee:5, est:true, match:['midbank','ميدبنك'] },
+    { key:'arlb', en:'Egyptian Arab Land Bank', ar:'البنك العقاري المصري العربي', fee:5, est:true, match:['arlb','arabland','العقاريالمصريالعربي'] },
+    { key:'suez', en:'Suez Canal Bank', ar:'بنك قناة السويس', fee:5, est:true, match:['suezcanal','قناهالسويس'] },
+    { key:'edbe', en:'Export Development Bank of Egypt', ar:'بنك تنمية الصادرات', fee:5, est:true, match:['exportdev','edbe','تنميهالصادرات'] },
+    { key:'idb', en:'Industrial Development Bank', ar:'بنك التنمية الصناعية', fee:5, est:true, match:['industrialdevelopment','التنميهالصناعيه'] },
+    { key:'nasser', en:'Nasser Social Bank', ar:'بنك ناصر الاجتماعي', fee:5, est:true, match:['nasser','ناصر'] },
+    { key:'post', en:'Egypt Post', ar:'البريد المصري', fee:5, est:true, match:['egyptpost','البريد'] },
+    { key:'caire', en:'Banque du Caire', ar:'بنك القاهرة', fee:5, match:['banqueducaire','cairobank','bankofcairo','قاهره'] },
+    { key:'nbe', en:'National Bank of Egypt', ar:'البنك الأهلي المصري', fee:5, match:['nationalbankofegypt','nationalbankegypt','nbe','الاهليالمصري','البنكالاهلي','بنكالاهلي','الاهلي'] },
+    { key:'banquemisr', en:'Banque Misr', ar:'بنك مصر', fee:5, match:['banquemisr','bankmisr','bankmasr','بنكمصر','misr','مصر'] },
+    { key:'other', en:'Other Bank', ar:'بنك آخر', fee:5, est:true, match:[] },
   ]},
   SA: { currency:'SAR', currencyAr:'ر.س', banks:[
     { key:'rajhi',   en:'Al Rajhi Bank',        ar:'مصرف الراجحي',          fee:0, match:['alrajhi','rajhi','الراجحي'] },
