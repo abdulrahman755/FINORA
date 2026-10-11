@@ -9495,6 +9495,36 @@ body .screen-wrap .sc-header.sav-plain-header.sav-plain-header::after{display:no
 .de-chips{display:flex;flex-wrap:wrap;gap:8px}
 .de-chip{display:inline-flex;align-items:center;gap:6px;padding:6px 6px 6px 12px;border-radius:999px;background:var(--surface2);border:1px solid var(--border);font-size:calc(13px*var(--app-text-scale,1));font-weight:700;color:var(--text)}
 .de-chip button{width:22px;height:22px;border:0;border-radius:50%;background:color-mix(in srgb,var(--text) 10%,transparent);color:var(--text2);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;padding:0}
+/* ── My Purchases — clean grouped list ── */
+.pur-card{display:flex;flex-direction:column;gap:18px}
+.wdash-sheet-body .sc-card.pur-card{background:transparent!important;border:0!important;box-shadow:none!important;padding:2px 2px 8px!important}
+.pur-sum{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:18px 20px;border-radius:var(--radius);background:var(--surface);border:1px solid var(--border);box-shadow:var(--shadow-sm)}
+.pur-sum-main{display:flex;flex-direction:column;gap:4px;min-width:0}
+.pur-sum-lb{font-size:calc(12px*var(--app-text-scale,1));font-weight:600;color:var(--muted)}
+.pur-sum-val{display:flex;align-items:baseline;gap:6px;font-size:calc(30px*var(--app-text-scale,1));font-weight:800;letter-spacing:-.02em;line-height:1.1;color:var(--text);font-variant-numeric:tabular-nums}
+.pur-sum-val small,.pur-amt small{font-size:calc(12px*var(--app-text-scale,1));font-weight:700;letter-spacing:0;color:var(--muted)}
+.pur-sum-n{flex-shrink:0;padding:6px 12px;border-radius:999px;font-size:calc(12px*var(--app-text-scale,1));font-weight:700;white-space:nowrap;color:var(--tc,var(--green));background:color-mix(in srgb,var(--tc,var(--green)) 12%,transparent)}
+.pur-grp{display:flex;flex-direction:column;gap:8px}
+.pur-gh{display:flex;align-items:baseline;justify-content:space-between;gap:10px;padding:0 6px}
+.pur-gm{font-size:calc(13px*var(--app-text-scale,1));font-weight:800;color:var(--text);text-transform:none}
+.pur-gs{font-size:calc(11.5px*var(--app-text-scale,1));font-weight:600;color:var(--muted);display:inline-flex;gap:8px;align-items:baseline}
+.pur-gs b{font-weight:800;color:var(--text2,var(--text));font-variant-numeric:tabular-nums}
+.pur-list{border-radius:var(--radius);background:var(--surface);border:1px solid var(--border);box-shadow:var(--shadow-sm);overflow:hidden}
+.pur-row{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:13px 16px;border-top:1px solid var(--border)}
+.pur-row:first-child{border-top:0}
+.pur-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px;text-align:start}
+.pur-nm{unicode-bidi:plaintext;font-size:calc(14.5px*var(--app-text-scale,1));font-weight:700;color:var(--text);line-height:1.35;overflow-wrap:anywhere}
+.pur-dt{font-size:calc(11.5px*var(--app-text-scale,1));font-weight:600;color:var(--muted)}
+.pur-amt{flex-shrink:0;display:flex;align-items:baseline;gap:4px;font-size:calc(14.5px*var(--app-text-scale,1));font-weight:800;color:var(--text);font-variant-numeric:tabular-nums}
+.pur-more{text-align:center;font-size:calc(11.5px*var(--app-text-scale,1));font-weight:600;color:var(--muted)}
+.pur-empty{display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;padding:36px 20px;color:var(--muted);font-size:calc(12.5px*var(--app-text-scale,1));line-height:1.6}
+.pur-empty b{color:var(--text);font-size:calc(14px*var(--app-text-scale,1));font-weight:800}
+.pur-empty-ic{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin-bottom:6px;color:var(--tc,var(--green));background:color-mix(in srgb,var(--tc,var(--green)) 12%,transparent)}
+/* ── Data entry: company edit ── */
+.de-row.editing{border-top:0;margin:4px 0;padding:8px;border-radius:14px;background:color-mix(in srgb,var(--green) 7%,transparent)}
+.de-edit-inp{flex:1;min-width:0;height:38px;padding:0 12px;border:1.5px solid var(--green);border-radius:var(--icon-r-2);background:var(--surface);color:var(--text);font-family:inherit;font-size:calc(13.5px*var(--app-text-scale,1));font-weight:700;outline:none}
+.de-ib.ok{background:var(--green);border-color:var(--green);color:#fff}
+.de-ib.edit{color:var(--text2,var(--green))}
 .rq-lvl-reset{margin-top:6px;padding:6px 2px;border:0;background:none;color:var(--muted);font-family:inherit;font-size:calc(11.5px*var(--app-text-scale,1));font-weight:700;cursor:pointer;text-decoration:underline}
 .rq-line{margin:4px 0 3px;font-size:calc(13.5px*var(--app-text-scale,1));font-weight:600;line-height:1.55;color:var(--text);overflow-wrap:anywhere}
 [data-theme="dark"] .rq-card.rq-t .rq-avatar,[data-theme="dark"] .rq-card.rq-t .rq-type{color:color-mix(in srgb,var(--rq-tc) 65%,#fff)}
@@ -10179,6 +10209,30 @@ body .screen-wrap .sc-header.sav-plain-header.sav-plain-header::after{display:no
 .rpt-time span{flex:1}
 .rpt-time b{min-width:84px;text-align:center;padding:7px 14px;border-radius:99px;background:color-mix(in srgb,var(--green) 11%,var(--surface));color:var(--green);font-size:calc(13px*var(--app-text-scale,1));font-weight:800;font-variant-numeric:tabular-nums}
 .rpt-time input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;font-size:16px}
+
+/* ── Unified page header (FINORA) — one identity for every screen ──
+   Plain title block, no card chrome: heavy title with a slim accent bar on the reading side,
+   one muted line under it. Beats the per-workspace / dark / per-screen header overrides above. */
+html body .sc-header.sc-header.sc-header:not(.sav-plain-header){background:none!important;background-image:none!important;border:0!important;border-radius:0!important;box-shadow:none!important;padding:4px 2px 2px!important;overflow:visible}
+html body .sc-header.sc-header.sc-header::before,html body .sc-header.sc-header.sc-header::after{display:none!important}
+html body .sc-header .sc-header-eyebrow{display:none}
+html body .sc-header .sc-header-title{position:relative;padding-inline-start:12px;font-size:calc(22px*var(--app-text-scale,1));font-weight:800;letter-spacing:-.3px;line-height:1.2;color:var(--text)}
+html body .sc-header .sc-header-title::before{content:'';position:absolute;inset-inline-start:0;top:.14em;bottom:.14em;width:3px;border-radius:3px;background:var(--sc-accent,var(--green))}
+html body .sc-header .sc-header-sub{padding-inline-start:12px;margin-top:4px;font-size:calc(12.5px*var(--app-text-scale,1));font-weight:500;line-height:1.5;color:var(--muted)}
+
+/* ── Projects ── */
+.prj-bar{display:flex;align-items:center;gap:12px;width:100%;margin:2px 0 4px;padding:10px 14px;border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);box-shadow:var(--shadow-sm);font-family:inherit;color:var(--text);cursor:pointer;text-align:start}
+.prj-bar:active{background:var(--surface2)}
+.prj-ic{width:34px;height:34px;flex-shrink:0;border-radius:var(--icon-r-2,10px);display:flex;align-items:center;justify-content:center;color:var(--green);background:var(--green-tint)}
+.prj-tx{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
+.prj-lb{font-size:calc(11px*var(--app-text-scale,1));font-weight:600;color:var(--muted)}
+.prj-tx b{font-size:calc(14.5px*var(--app-text-scale,1));font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.prj-caret{width:8px;height:8px;flex-shrink:0;border-inline-end:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:rotate(45deg);margin:0 4px 3px}
+.prj-row{padding:4px 0}
+.prj-pick{flex:1;min-width:0;display:flex;align-items:center;gap:12px;padding:8px 0;border:0;background:none;font-family:inherit;color:var(--text);cursor:pointer;text-align:start}
+.prj-dot{width:18px;height:18px;flex-shrink:0;border-radius:50%;border:2px solid var(--border-strong)}
+.prj-dot.on{border-color:var(--green);background:radial-gradient(circle,var(--green) 0 45%,transparent 50%)}
+.prj-now{flex-shrink:0;padding:3px 10px;border-radius:999px;font-size:calc(11px*var(--app-text-scale,1));font-weight:700;color:var(--green);background:var(--green-tint)}
 </style>
 <script>
 // Suppress cross-origin Script errors (in-app browsers like TikTok/Instagram)
@@ -14712,9 +14766,9 @@ function dfpAnimateCounts(){
 // deposited/spent/remaining figures. It intentionally does NOT touch banks,
 // income, or profit math; that separation is the whole point of this widget.
 function renderCustodyDashboardCard(m){
-  const exps  = m?.site_expenses || [];
+  const exps  = (m?.site_expenses || []).filter(_prjMine);
   const spent = exps.reduce((s,e)=>s+(e.amount||0),0);
-  const deposits = m?.custody_deposits || [];
+  const deposits = (m?.custody_deposits || []).filter(_prjMine);
   let totalDeposit=0, totalWithdrawn=0;
   for(let i=0;i<deposits.length;i++){
     const d=deposits[i];
@@ -15920,26 +15974,32 @@ function _dashPurchasesCollect(){
   });
   return {groups, total, count};
 }
+function _purFmtDate(ds){
+  // "2026-10-07" -> "7 Oct" / "٧ أكتوبر" (Western digits). Built by hand so there is no timezone shift.
+  const m=/^(\d{4})-(\d{2})-(\d{2})/.exec(String(ds||''));
+  if(!m) return String(ds||'').slice(5);
+  try{
+    return new Date(+m[1],+m[2]-1,+m[3]).toLocaleDateString(lang==='ar'?'ar-EG-u-nu-latn':'en-GB',{day:'numeric',month:'short'});
+  }catch(e){ return m[3]+'/'+m[2]; }
+}
 function renderPurchasesDashCard(){
   const {groups,total,count}=_dashPurchasesCollect();
-  const title=`<div class="dfp-card-head"><div class="dfp-card-title">${ic('shopping_bag',13,'aria-hidden="true"')} ${L('My Purchases','مشترياتي')}</div></div>`;
-  if(!count) return `<div class="sc-card">${title}<div class="dfp-toplist-empty">${L('No purchases yet. Tick "Product purchase" when adding a transaction.','لا توجد مشتريات بعد. فعّل "منتج" عند إضافة معاملة.')}</div></div>`;
+  if(!count) return `<div class="sc-card pur-card"><div class="pur-empty"><span class="pur-empty-ic">${ic('shopping_bag',22,'aria-hidden="true"')}</span><b>${L('No purchases yet','لا توجد مشتريات بعد')}</b><span>${L('Tick "Product purchase" when you add a transaction and it will show up here.','فعّل "منتج" عند إضافة معاملة وستظهر هنا.')}</span></div></div>`;
   const CAP=300; let shown=0;
+  const cur=esc(curLabel());
   const body=groups.map(g=>{
     if(shown>=CAP) return '';
     const rows=g.items.slice(0,Math.max(0,CAP-shown)).map(t=>{
       shown++;
       const nm=_txlgItemName(t.notes)||String(t.notes||'').trim()||L('Untitled item','عنصر بدون اسم');
-      const d=String(t.date||'').slice(5);
-      return `<div class="dfp-toplist-row"><div class="dfp-toplist-name" dir="auto">${esc(nm)}<span style="color:var(--muted);font-size:calc(var(--fs-label)*var(--app-text-scale,1));margin-inline-start:8px">${esc(d)}</span></div><div class="dfp-toplist-amt">${fmtEGP(t.payment||0)}</div></div>`;
+      return `<div class="pur-row"><div class="pur-main"><span class="pur-nm">${esc(nm)}</span><span class="pur-dt">${esc(_purFmtDate(t.date))}</span></div><div class="pur-amt"><span dir="ltr">${fmt(t.payment||0)}</span><small>${cur}</small></div></div>`;
     }).join('');
     const mName=(typeof MONTH_NAMES!=='undefined' && MONTH_NAMES[g.mk]) || g.mk;
-    return `<div style="display:flex;justify-content:space-between;align-items:baseline;margin:14px 0 4px;padding-bottom:6px;border-bottom:1px solid var(--border)"><b style="font-size:calc(12px*var(--app-text-scale,1))">${esc(mName)}</b><span style="font-size:calc(var(--fs-caption)*var(--app-text-scale,1));color:var(--muted)">${g.items.length} · ${fmtEGP(g.sum)}</span></div>${rows}`;
+    return `<section class="pur-grp"><div class="pur-gh"><span class="pur-gm">${esc(mName)}</span><span class="pur-gs">${_cnt(g.items.length,'item','items','عنصر','عنصران','عناصر','عنصراً')} <b dir="ltr">${fmt(g.sum)} ${cur}</b></span></div><div class="pur-list">${rows}</div></section>`;
   }).join('');
-  const more=count>CAP?`<div class="dfp-toplist-empty">${L('Showing latest','يعرض الأحدث')} ${CAP} ${L('of','من')} ${count}</div>`:'';
-  return `<div class="sc-card">${title}
-    <div style="display:flex;gap:16px;padding:4px 0 2px"><div><div style="font-size:calc(var(--fs-caption)*var(--app-text-scale,1));color:var(--muted)">${L('Items','العناصر')}</div><b style="font-size:calc(18px*var(--app-text-scale,1))">${count}</b></div>
-    <div><div style="font-size:calc(var(--fs-caption)*var(--app-text-scale,1));color:var(--muted)">${L('Total spent','إجمالي المصروف')}</div><b style="font-size:calc(18px*var(--app-text-scale,1))">${fmtEGP(total)}</b></div></div>
+  const more=count>CAP?`<div class="pur-more">${L('Showing latest','يعرض الأحدث')} ${CAP} ${L('of','من')} ${count}</div>`:'';
+  return `<div class="sc-card pur-card">
+    <div class="pur-sum"><div class="pur-sum-main"><span class="pur-sum-lb">${L('Total spent','إجمالي المصروف')}</span><span class="pur-sum-val"><span dir="ltr">${fmt(total)}</span><small>${cur}</small></span></div><span class="pur-sum-n">${_cnt(count,'item','items','عنصر','عنصران','عناصر','عنصراً')}</span></div>
     ${body}${more}</div>`;
 }
 function renderWorkspaceDashboard(m){
@@ -16656,22 +16716,42 @@ const fmtEGP=n=>fmt(n||0)+' '+curLabel();
 // section shows, so the original full text is always still visible in the
 // Timeline row for the same entry.
 function _txlgItemName(raw){
-  let s=String(raw||'').trim();
-  if(!s) return s;
-  const leadVerbs=['اشتريت','أشتريت','اشترت','اشتري','شريت','جبت','جبتلي','خدت','اخدت','أخدت','هاتيت','bought','purchased','picked up','buy','got'];
-  for(const v of leadVerbs){
-    const re=new RegExp('^\\s*'+v+'\\s+','i');
-    if(re.test(s)){ s=s.replace(re,''); break; }
+  const orig=String(raw||'').trim();
+  if(!orig) return orig;
+  let s=orig.replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/[۰-۹]/g,d=>'۰۱۲۳۴۵۶۷۸۹'.indexOf(d)).replace(/\u0640/g,'').replace(/\s+/g,' ');
+  const CUR='(?:جنيه|جنية|جنيها|جنيهات|جنية|ج|egp|le|l\\.e|pounds?|pound|bucks?)';
+  const NUM='\\d+(?:[.,]\\d+)?';
+  // 1) price phrases anywhere: "ب 20 جنيه", "بـ20", "بسعر 20", "for 20 EGP", "20 جنيه"
+  s=s.replace(new RegExp('(?:^|\\s)(?:ب|بسعر|بمبلغ|بقيمة|بتمن|بثمن|for|at|@)?\\s?'+NUM+'\\s?'+CUR+'(?=\\s|$|[.,،])','gi'),' ');
+  s=s.replace(new RegExp('(?:^|\\s)(?:ب|بسعر|بمبلغ|بقيمة|بتمن|بثمن)\\s?'+NUM+'(?=\\s|$|[.,،])','gi'),' ');
+  s=s.replace(new RegExp('\\s'+NUM+'\\s?'+CUR+'?$','i'),'');   // trailing "…  20" / "…  20 EGP"
+  s=s.replace(/\s+/g,' ').trim();
+  // 2) leading verb / filler words, one token at a time ("انا جبت شيبسي" -> "شيبسي")
+  const VERB=new Set(['اشتريت','اشتريتها','اشتريتلي','اشترى','اشتري','اشترينا','اشتر','شريت','شريتلي','شرينا','جبت','جبتلي','جبتله','جبتلها','جبتلهم','جبنا','جت','جيت','خدت','خدنا','اخدت','أخدت','أخذت','أخذنا','هات','هاتيت','دفعت','صرفت','شربت','اكلت','أكلت','كلت','طلبت','bought','purchased','buy','got','ordered','had','ate','drank']);
+  const FILL=new Set(['انا','أنا','لسه','لسة','النهاردة','النهارده','امبارح','دلوقتي','دلوقتى','كمان','برضه','وبعدين','i','just']);
+  const AFTER=new Set(['في','على','ثمن','تمن','for','on']);
+  let toks=s.split(' ');
+  let moved=true, sawVerb=false;
+  while(moved && toks.length>1){
+    moved=false;
+    const t=toks[0].toLowerCase().replace(/^و(?=(?:اشتر|شري|جب|خد|اخد|أخد))/,'');
+    if(VERB.has(t)){ toks.shift(); moved=true; sawVerb=true; }
+    else if(FILL.has(t)){ toks.shift(); moved=true; }
+    else if(sawVerb && AFTER.has(t)){ toks.shift(); moved=true; }
+    else if((t==='picked'||t==='paid'||t==='spent') && toks.length>2 && /^(up|for|on)$/i.test(toks[1])){ toks.splice(0,2); moved=true; sawVerb=true; }
   }
-  const cutMarkers=[/\sمن\s/, /\s(بطعم|طعم)\s/, /\s(بسعر)\s?\d/, /\sب\s?\d/, /\s(from|at)\s/i];
-  let cutIdx=-1;
-  for(const re of cutMarkers){
-    const m=s.match(re);
-    if(m && m.index>0 && (cutIdx===-1||m.index<cutIdx)) cutIdx=m.index;
-  }
-  if(cutIdx>0) s=s.slice(0,cutIdx);
-  s=s.trim().replace(/[،,.\-–]+$/,'').trim();
-  return s||String(raw||'').trim();
+  s=toks.join(' ');
+  // 3) cut trailing clauses: merchant / place / reason / flavour
+  const cut=[/\sمن\s/, /\sعند\s/, /\s(بطعم|طعم)\s/, /\s(علشان|عشان|لأجل)\s/, /\s(ودفعت|وبعدين)\s/, /\s(from|at|with|because)\s/i];
+  let ci=-1;
+  for(const re of cut){ const m=s.match(re); if(m && m.index>0 && (ci===-1||m.index<ci)) ci=m.index; }
+  if(ci>0) s=s.slice(0,ci);
+  // 4) leftovers: dangling prepositions / currency words / punctuation
+  s=s.replace(new RegExp('\\s(?:ب|بـ|و|for|at)$','i'),'').replace(new RegExp('^(?:ب|بـ)\\s'),'');
+  s=s.replace(/[\s،,.:;!؟?\-–—]+$/,'').replace(/^[\s،,.:;!؟?\-–—]+/,'').trim();
+  if(!s) return orig;
+  if(/^[a-z]/.test(s)) s=s.charAt(0).toUpperCase()+s.slice(1);
+  return s;
 }
 // Which SmartDescriptionEngine categories count as an actual product
 // (food/drink/clothing) for "My Purchases" — shared by the collector below.
@@ -31035,11 +31115,12 @@ function generateExpenseAIInsights(exps, groups){
 // deleteExp, deleteNoteGroup, _ng* categorize) are untouched.
 function renderExpenses(m){
   if(_cxTab==='requests') return renderMyRequests();
-  const all=m?.site_expenses||[];
+  const allRaw=m?.site_expenses||[];
+  const all=allRaw.filter(_prjMine);
   const exps=all.filter(e=>!searchQ||(e.description||'').toLowerCase().includes(searchQ.toLowerCase())||(e.notes||'').toLowerCase().includes(searchQ.toLowerCase())||String(e.amount).includes(searchQ)||_smartSearchHit(e,e.description,searchQ));
   const total=exps.reduce((s,e)=>s+(e.amount||0),0);      // list scope (respects search)
   const spentAll=all.reduce((s,e)=>s+(e.amount||0),0);     // custody math (never search-filtered)
-  const deposits=m?.custody_deposits||[];
+  const deposits=(m?.custody_deposits||[]).filter(_prjMine);
   let totalDeposit=0, totalWithdrawn=0, depCount=0;
   for(let i=0;i<deposits.length;i++){
     const d=deposits[i];
@@ -31128,7 +31209,7 @@ function renderExpenses(m){
   // ── Expense groups (grouped by note = category), biggest first ────────────
   const groups={};
   exps.forEach(e=>{
-    const ri=all.indexOf(e);
+    const ri=allRaw.indexOf(e);
     const key=(e.notes||'').trim()||'__none__';
     if(!groups[key]) groups[key]=[];
     groups[key].push({...e, _ri:ri});
@@ -31268,6 +31349,7 @@ function renderExpenses(m){
 
   return `<div class="screen-wrap cx-wrap">
   ${_pgHdr('Site','الموقع','Site Custody','عهدة الموقع','Receipts log and custody money','سجل الاستلامات وفلوس العهدة')}
+  ${_prjBarHTML()}
   ${_cxTabsHTML()}
   ${heroHTML}
   ${expensesHTML}
@@ -31283,6 +31365,87 @@ function renderExpenses(m){
 // status of received / received with notes / not received (+ optional notes).
 // Persisted to its own localStorage key; touches no finance data.
 // ══════════════════════════════════════════════════════════════════════════════
+// ═════════════════════════════════════════════════════════════════════
+// PROJECTS — Site Custody is kept per project. The first project ("p0") owns everything saved
+// before this feature existed (its storage keys are unchanged); every other project gets its own
+// receipts + entry lists, and its own custody deposits / site expenses (tagged with projectId).
+// Bank balances and the finance dashboards still add up all projects — that money is one wallet.
+// ═════════════════════════════════════════════════════════════════════
+const _PRJ_KEY='wdp_projects_v1', _PRJ_DEFAULT='p0';
+let _PRJ={list:[{id:_PRJ_DEFAULT,name:''}],active:_PRJ_DEFAULT}, _prjEditId=null;
+try{
+  const _pp=JSON.parse(localStorage.getItem(_PRJ_KEY)||'null');
+  if(_pp&&Array.isArray(_pp.list)){
+    const l=_pp.list.filter(x=>x&&x.id);
+    if(!l.some(x=>x.id===_PRJ_DEFAULT)) l.unshift({id:_PRJ_DEFAULT,name:''});
+    _PRJ={list:l,active:l.some(x=>x.id===_pp.active)?_pp.active:_PRJ_DEFAULT};
+  }
+}catch(e){_logErr('_PRJ:read',e);}
+function _prjSave(){ try{ localStorage.setItem(_PRJ_KEY,JSON.stringify(_PRJ)); }catch(e){ _logErr('_prjSave',e); } }
+function _prjKey(base){ return _PRJ.active===_PRJ_DEFAULT?base:base+'__'+_PRJ.active; }
+function _prjMine(x){ return ((x&&x.projectId)||_PRJ_DEFAULT)===_PRJ.active; }
+function _prjName(p){ const n=String((p&&p.name)||'').trim(); return n||(p&&p.id===_PRJ_DEFAULT?L('Project 1','المشروع الأول'):L('Untitled project','مشروع بدون اسم')); }
+function _prjCur(){ return _PRJ.list.find(x=>x.id===_PRJ.active)||_PRJ.list[0]; }
+function _prjBarHTML(){
+  return `<button type="button" class="prj-bar" onclick="_prjOpen()" aria-label="${L('Switch project','تغيير المشروع')}"><span class="prj-ic">${ic('folder',17)}</span><span class="prj-tx"><span class="prj-lb">${L('Project','المشروع')}</span><b dir="auto">${esc(_prjName(_prjCur()))}</b></span><span class="prj-caret" aria-hidden="true"></span></button>`;
+}
+function _prjOpen(){
+  _prjEditId=null; _prjRender(true);
+  document.getElementById('modalOverlay').style.display='flex';
+}
+function _prjRender(first){
+  const rows=_PRJ.list.map(p=>{
+    const on=p.id===_PRJ.active;
+    if(_prjEditId===p.id) return `<div class="de-row editing"><input type="text" class="de-edit-inp" id="prjEditName" dir="auto" autocomplete="off" value="${esc(_prjName(p))}" onkeydown="if(event.key==='Enter'){event.preventDefault();_prjRenameSave('${p.id}')}else if(event.key==='Escape'){_prjEditId=null;_prjRender()}">
+      <button type="button" class="de-ib ok" title="${L('Save changes','حفظ التعديل')}" onclick="_prjRenameSave('${p.id}')">${ic('check',15)}</button>
+      <button type="button" class="de-ib" title="${L('Cancel','إلغاء')}" onclick="_prjEditId=null;_prjRender()">${ic('close',14)}</button></div>`;
+    return `<div class="de-row prj-row${on?' on':''}"><button type="button" class="prj-pick" onclick="_prjSwitch('${p.id}')"><span class="prj-dot${on?' on':''}"></span><span class="de-nm" dir="auto">${esc(_prjName(p))}</span>${on?`<span class="prj-now">${L('Current','الحالي')}</span>`:''}</button>
+      <button type="button" class="de-ib edit" title="${L('Rename','تغيير الاسم')}" onclick="_prjEditId='${p.id}';_prjRender()">${ic('edit',15)}</button></div>`;
+  }).join('');
+  const html=`<div class="rq-modal de-sheet">
+      <div class="modal-hdr">
+        <div class="modal-hdr-icon" style="background:linear-gradient(135deg,#0f7a55,#0a5c40)">${ic('folder',22)}</div>
+        <div style="flex:1;min-width:0"><div class="modal-hdr-title">${L('Projects','المشاريع')}</div>
+        <div class="modal-hdr-sub">${L('Receipts, custody and entry lists are kept per project','الاستلامات والعهدة وقوائم الإدخال منفصلة لكل مشروع')}</div></div>
+        <button type="button" class="sheet-close-btn sq" onclick="closeModal()" aria-label="${L('Close','إغلاق')}">${ic('close',16)}</button>
+      </div>
+      <div class="rq-sec"><div class="de-list">${rows}</div></div>
+      <div class="rq-sec"><div class="rq-sec-hdr">${ic('plus',15)}<span>${L('Start a new project','ابدأ مشروعاً جديداً')}</span></div>
+        <div class="de-hint">${L('A new project starts empty: no receipts, no custody, no saved companies or plots.','المشروع الجديد يبدأ فارغاً: بدون استلامات أو عهدة أو شركات وقطع محفوظة.')}</div>
+        <div class="de-addrow"><div class="field"><input type="text" id="prjNew" dir="auto" autocomplete="off" placeholder="${L('Project name','اسم المشروع')}" onkeydown="if(event.key==='Enter')_prjCreate()"></div>
+        <button type="button" class="de-addbtn" onclick="_prjCreate()">${ic('plus',14)} ${L('Create','إنشاء')}</button></div></div>
+      <div class="modal-btns"><button class="mbtn save" onclick="closeModal()">${L('Done','تم')}</button></div></div>`;
+  const mc=document.getElementById('modalContent');
+  const keep=document.getElementById('prjNew')?.value||'';
+  mc.innerHTML=`<div class="modal-handle"></div>`+html;
+  const nn=document.getElementById('prjNew'); if(nn&&keep) nn.value=keep;
+  if(_prjEditId){ const el=document.getElementById('prjEditName'); if(el){ try{ el.focus(); el.setSelectionRange(el.value.length,el.value.length); }catch(e){} } }
+}
+function _prjRenameSave(id){
+  const p=_PRJ.list.find(x=>x.id===id); if(!p) return;
+  const name=(document.getElementById('prjEditName')?.value||'').replace(/\s+/g,' ').trim();
+  if(!name){ showToast(L('Enter the project name','اكتب اسم المشروع'),'warn'); return; }
+  if(_PRJ.list.some(x=>x.id!==id && _prjName(x).toLowerCase()===name.toLowerCase())){ showToast(L('A project with this name already exists','يوجد مشروع بنفس الاسم'),'warn'); return; }
+  p.name=name; _prjSave(); _prjEditId=null; _prjRender();
+  try{ renderView(true); }catch(e){}
+}
+function _prjCreate(){
+  const el=document.getElementById('prjNew'); const name=(el?.value||'').replace(/\s+/g,' ').trim();
+  if(!name){ showToast(L('Enter the project name','اكتب اسم المشروع'),'warn'); el?.focus(); return; }
+  if(_PRJ.list.some(x=>_prjName(x).toLowerCase()===name.toLowerCase())){ showToast(L('A project with this name already exists','يوجد مشروع بنفس الاسم'),'warn'); el?.focus(); return; }
+  const id='p'+Date.now().toString(36)+Math.random().toString(36).slice(2,4);
+  _PRJ.list.push({id,name}); _prjSave();
+  _prjSwitch(id,true);
+}
+function _prjSwitch(id,isNew){
+  if(!_PRJ.list.some(x=>x.id===id)) return;
+  _PRJ.active=id; _prjSave();
+  _prjReloadScoped();
+  try{ _rqFilter='all'; searchQ=''; }catch(e){}
+  try{ closeModal(); }catch(e){}
+  try{ renderView(); }catch(e){ _logErr('_prjSwitch',e); }
+  showToast(isNew?L('New project started','بدأ مشروع جديد'):L('Switched project','تم تغيير المشروع'),'success');
+}
 const _RQ_KEY='wdp_receipts_v1';
 const _RQ_STATUS={
   received:{cls:'ok',  en:'Received',            ar:'تم الاستلام'},
@@ -31609,8 +31772,8 @@ function _rqExtractNotesLines(text){
 // One shared store keyed by field name, same idea for all three fields.
 const _RQ_CUSTOM_FIELDS_KEY='wdp_rq_custom_fields_v1';
 let _rqCustomFields={company:[],engineer:[],model:[],irtype:[],zone:[]};
-try{ const _f=localStorage.getItem(_RQ_CUSTOM_FIELDS_KEY); if(_f){ const p=JSON.parse(_f)||{}; _rqCustomFields={company:p.company||[],engineer:p.engineer||[],model:p.model||[],irtype:p.irtype||[],zone:p.zone||[]}; } }catch(e){_logErr('_rqCustomFields:read',e);}
-function _rqPersistCustomFields(){ try{ localStorage.setItem(_RQ_CUSTOM_FIELDS_KEY,JSON.stringify(_rqCustomFields)); }catch(e){ _logErr('_rqPersistCustomFields',e); } }
+try{ const _f=localStorage.getItem(_prjKey(_RQ_CUSTOM_FIELDS_KEY)); if(_f){ const p=JSON.parse(_f)||{}; _rqCustomFields={company:p.company||[],engineer:p.engineer||[],model:p.model||[],irtype:p.irtype||[],zone:p.zone||[]}; } }catch(e){_logErr('_rqCustomFields:read',e);}
+function _rqPersistCustomFields(){ try{ localStorage.setItem(_prjKey(_RQ_CUSTOM_FIELDS_KEY),JSON.stringify(_rqCustomFields)); }catch(e){ _logErr('_rqPersistCustomFields',e); } }
 function _rqFieldOptions(field,historyVals){
   const seen=new Set();
   const out=[];
@@ -31709,13 +31872,13 @@ function rqRemoveCoLogo(){
 
 function _rqLoad(){
   try{
-    const raw=localStorage.getItem(_RQ_KEY);
+    const raw=localStorage.getItem(_prjKey(_RQ_KEY));
     const arr=raw?JSON.parse(raw):[];
     return Array.isArray(arr)?arr.filter(r=>r&&typeof r==='object'&&r.id):[];
   }catch(e){ _logErr('_rqLoad',e); return []; }
 }
 function _rqSave(list){
-  try{ localStorage.setItem(_RQ_KEY,JSON.stringify(list)); }
+  try{ localStorage.setItem(_prjKey(_RQ_KEY),JSON.stringify(list)); }
   catch(e){ _logErr('_rqSave',e); showToast(L('Could not save','تعذّر الحفظ'),'warn'); }
 }
 function _rqNewId(){ return 'rq'+Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
@@ -31779,19 +31942,74 @@ function _rqIsCodeType(v){
   if(/^[A-Z0-9]{2,6}$/.test(t)) return true;
   return _RQ_TYPE_QUICK.some(q=>q.toLowerCase()===t.toLowerCase() && !/\s/.test(q) && q.length<=6);
 }
+// Company names are never translated by meaning — only by sound:
+//   English mode: "الشروق" -> "El Shrouk"      Arabic mode: "El Shorouk" -> "الشروق"
+// Latin->Arabic asks Google's transliteration service once per name (cached on the device); if that is
+// unreachable a local letter-by-letter guess is used. Short all-caps codes (DMC, CIB) stay as typed.
+const _RQ_COAR_KEY='wdp_rq_co_ar_v1';
+let _rqCoAr={}; try{ _rqCoAr=JSON.parse(localStorage.getItem(_RQ_COAR_KEY)||'{}')||{}; }catch(e){}
+const _rqCoArPending=new Set(); let _rqCoArTimer=null;
+function _latinToArabicGuess(str){
+  const di={sh:'ش',kh:'خ',th:'ث',gh:'غ',ch:'تش',ph:'ف',ou:'و',oo:'و',ee:'ي',aa:'ا',ei:'ي',ai:'اي',ay:'اي'};
+  const one={b:'ب',c:'ك',d:'د',f:'ف',g:'ج',h:'ه',j:'ج',k:'ك',l:'ل',m:'م',n:'ن',p:'ب',q:'ق',r:'ر',s:'س',t:'ت',v:'ف',w:'و',x:'كس',y:'ي',z:'ز'};
+  return String(str).split(/(\s+)/).map(w=>{
+    if(!/[A-Za-z]/.test(w)) return w;
+    let t=w.toLowerCase(), pre='';
+    if(/^(el|al)$/.test(t)) return 'ال';
+    const m=/^(el|al)-?(.{2,})$/.exec(t); if(m){ pre='ال'; t=m[2]; }
+    let out='';
+    for(let i=0;i<t.length;i++){
+      const two=t.substr(i,2);
+      if(di[two]){ out+=di[two]; i++; continue; }
+      const ch=t[i];
+      if(one[ch]){ out+=one[ch]; continue; }
+      if('aeiou'.includes(ch)){
+        if(i===0) out+='ا';
+        else if(i===t.length-1) out+=(ch==='a'?'ا':ch==='i'||ch==='e'?'ي':ch==='o'?'و':'و');
+        continue; // short vowels inside a word are not written in Arabic
+      }
+      if(/[0-9]/.test(ch)) out+=ch;
+    }
+    return pre+out;
+  }).join('');
+}
+function _rqCompanyLabel(raw){
+  const v=String(raw||'').trim(); if(!v) return '';
+  const d=_atDetectLang(v);
+  if(lang==='en') return d==='ar' ? _transliterateArabic(v) : v;
+  if(d!=='en' || /^[A-Z0-9 .&-]{2,6}$/.test(v)) return v;   // already Arabic, or a short code
+  if(_rqCoAr[v]) return _rqCoAr[v];
+  if(!_rqCoArPending.has(v)){
+    _rqCoArPending.add(v);
+    (async()=>{
+      let out='';
+      try{
+        const res=await fetch('https://inputtools.google.com/request?text='+encodeURIComponent(v)+'&itc=ar-t-i0-und&num=1&cp=0&cs=1&ie=utf-8&oe=utf-8&app=demopage');
+        const j=await res.json();
+        if(j&&j[0]==='SUCCESS') out=String(((j[1]||[])[0]||[])[1]&&j[1][0][1][0]||'').trim();
+      }catch(e){}
+      if(!out) out=_latinToArabicGuess(v);
+      if(out&&out!==v){
+        _rqCoAr[v]=out;
+        try{ localStorage.setItem(_RQ_COAR_KEY,JSON.stringify(_rqCoAr)); }catch(e){}
+        clearTimeout(_rqCoArTimer);
+        _rqCoArTimer=setTimeout(()=>{ try{ if(currentView==='expenses' && _cxTab==='requests') renderView(); }catch(e){} },60);
+      }
+    })().finally(()=>_rqCoArPending.delete(v));
+  }
+  return v;
+}
 function _rqDisplayValue(r,key){
   const raw=(r[key]||'').toString();
   if(!raw.trim()) return '';
-  if(key==='plot'||key==='model'||key==='zone') return raw; // left exactly as entered — MT mangles proper names/codes
-  if(key==='company'){
-    // Never run through machine translation here — that turns a proper
-    // name into its literal meaning (e.g. "الشروق" → "Sunrise"). In English
-    // mode, show a phonetic transliteration instead ("El Shrouk"); in
-    // Arabic mode, or if it's already Latin script, show exactly as typed.
-    if(lang==='en' && _atDetectLang(raw)==='ar') return _transliterateArabic(raw);
-    return raw;
+  // Shown exactly as typed, never translated: plot no., zone and request type. Company names are transliterated (sound, not meaning).
+  if(key==='plot'||key==='zone'||key==='type') return raw;
+  if(key==='company') return _rqCompanyLabel(raw);
+  if(key==='model'){
+    // Model codes (IVLA, DM 06…) stay as typed; a descriptive word (e.g. "Pump") follows the app language.
+    if(/^[A-Z0-9][A-Z0-9 .\-]{0,9}$/.test(raw.trim())) return raw;
+    return _rqAutoTrText(raw);
   }
-  if(key==='type' && _rqIsCodeType(raw)) return raw;
   const detected=_atDetectLang(raw);
   if(!detected || detected===lang) return raw;
   const cached=(r.tr && r.tr[lang] && r.tr[lang].__v===_AT_GLOSS_VER) ? r.tr[lang][key] : null; // older (literal MT) caches are ignored and refreshed
@@ -31971,8 +32189,14 @@ let _rqModelAuto='';
 // if a number is listed here, the built-in table above is ignored for it.
 const _RQ_PLOT_USER_KEY='wdp_rq_plot_models_v1';
 let _rqPlotUser=[];
-try{ const _pu=JSON.parse(localStorage.getItem(_RQ_PLOT_USER_KEY)||'[]'); if(Array.isArray(_pu)) _rqPlotUser=_pu.filter(e=>e&&e.range&&e.model); }catch(e){_logErr('_rqPlotUser:read',e);}
-function _rqPersistPlotUser(){ try{ localStorage.setItem(_RQ_PLOT_USER_KEY,JSON.stringify(_rqPlotUser)); }catch(e){ _logErr('_rqPersistPlotUser',e); showToast(L('Could not save','تعذّر الحفظ'),'warn'); } }
+try{ const _pu=JSON.parse(localStorage.getItem(_prjKey(_RQ_PLOT_USER_KEY))||'[]'); if(Array.isArray(_pu)) _rqPlotUser=_pu.filter(e=>e&&e.range&&e.model); }catch(e){_logErr('_rqPlotUser:read',e);}
+function _prjReloadScoped(){
+  _rqCustomFields={company:[],engineer:[],model:[],irtype:[],zone:[]};
+  try{ const f=localStorage.getItem(_prjKey(_RQ_CUSTOM_FIELDS_KEY)); if(f){ const p=JSON.parse(f)||{}; _rqCustomFields={company:p.company||[],engineer:p.engineer||[],model:p.model||[],irtype:p.irtype||[],zone:p.zone||[]}; } }catch(e){_logErr('_prjReloadScoped:fields',e);}
+  _rqPlotUser=[];
+  try{ const pu=JSON.parse(localStorage.getItem(_prjKey(_RQ_PLOT_USER_KEY))||'[]'); if(Array.isArray(pu)) _rqPlotUser=pu.filter(e=>e&&e.range&&e.model); }catch(e){_logErr('_prjReloadScoped:plots',e);}
+}
+function _rqPersistPlotUser(){ try{ localStorage.setItem(_prjKey(_RQ_PLOT_USER_KEY),JSON.stringify(_rqPlotUser)); }catch(e){ _logErr('_rqPersistPlotUser',e); showToast(L('Could not save','تعذّر الحفظ'),'warn'); } }
 function _rqRangeHas(range,n){
   return String(range||'').split(',').some(part=>{ const [a,b]=part.split('-').map(Number); const hi=(b===undefined||isNaN(b))?a:b; return n>=a&&n<=hi; });
 }
@@ -32152,7 +32376,7 @@ function renderMyRequests(){
         ${cell(ic('clipboard',12),L('Form / Model','النموذج'),dModel)}
         ${cell(ic('type',12),L('Inspection type','نوع الاستلامة'),_rqIrLabel(r))}
         ${cell(ic('floor',12),L('Floor','الدور'),_rqFloorLabel(r.floor))}
-        ${cell(ic('ruler',12),L('Level','المنسوب'),r.level,true)}
+        ${cell(ic('ruler',12),L('Level','المنسوب'),_rqAutoTrText(r.level),!/[\u0600-\u06FF]/.test(_rqAutoTrText(r.level)))}
       </dl>
       ${dNotes?`<div class="rq-notes">${ic('message',13)}<div class="rq-notes-lines">${_rqNotesLinesHTML(dNotes)}</div></div>`:''}
       <div class="rq-foot">
@@ -32174,6 +32398,7 @@ function renderMyRequests(){
   const shown=(q||_rqFilter!=='all'||typeFilter)?`${list.length} / ${all.length}`:String(all.length);
   return `<div class="screen-wrap cx-wrap">
   ${_pgHdr('Site','الموقع','Site Custody','عهدة الموقع','Receipts log and custody money','سجل الاستلامات وفلوس العهدة')}
+  ${_prjBarHTML()}
   ${_cxTabsHTML()}
   <section class="cx-sec">
     <div class="cx-sh">
@@ -32231,7 +32456,7 @@ function openRequestModal(id){
       </div>
       <div class="rq-sugg-row" id="rqModelSugg"></div>
       <div class="rq-row2">
-      <div class="field"><label>${L('Floor','الدور')}</label><input type="text" id="rqFloor" list="rqDlFloor" dir="auto" autocomplete="off" placeholder="${L('e.g. Third','مثال: الثالث')}" value="${esc(r?.floor||'')}" oninput="_rqOnFloorInput()"><datalist id="rqDlFloor">${_RQ_FLOOR_ORDER.map(k=>`<option value="${esc(L(_RQ_FLOORS_EN[k],_RQ_FLOORS_AR[k]))}"></option>`).join('')}</datalist></div>
+      <div class="field"><label>${L('Floor','الدور')}</label><input type="text" id="rqFloor" list="rqDlFloor" dir="auto" autocomplete="off" placeholder="${L('e.g. Third','مثال: الثالث')}" value="${esc(r?.floor?_rqFloorLabel(r.floor):'')}" oninput="_rqOnFloorInput()"><datalist id="rqDlFloor">${_RQ_FLOOR_ORDER.map(k=>`<option value="${esc(L(_RQ_FLOORS_EN[k],_RQ_FLOORS_AR[k]))}"></option>`).join('')}</datalist></div>
       <div class="field"><label>${L('Level','المنسوب')}</label><input type="text" id="rqLevel" dir="ltr" autocomplete="off" inputmode="text" placeholder="${L('e.g. +12.50','مثال: +12.50')}" value="${esc(r?.level||'')}"></div>
       </div>
       <button type="button" class="rq-lvl-btn" onclick="_rqToggleLevelsPanel()">${ic('ruler',13)} ${L('Edit floor levels','تعديل مناسيب الأدوار')}</button>
@@ -33974,7 +34199,7 @@ function addCustodyDeposit(type='dep'){
   const noteVal = noteEl ? (noteEl.tagName==='SELECT' ? (noteEl.value==='__custom__'?'':noteEl.value) : noteEl.value) : '';
   DATA[activeMonth].custody_deposits.push({
     date: dateEl?.value||today(), amount: amt, type: type,
-    note: noteVal.trim(), id: Date.now().toString()
+    note: noteVal.trim(), id: Date.now().toString(), projectId: _PRJ.active
   });
   if(amtEl) amtEl.value='';
   if(noteEl) noteEl.value='';
@@ -34633,14 +34858,14 @@ function deleteExp(idx){
 function deleteNoteGroup(noteKey){
   const label = noteKey === '__none__' ? 'بدون نوت' : noteKey;
   const exps = DATA[activeMonth].site_expenses || [];
-  const toDelete = exps.filter(e => ((e.notes||'').trim() || '__none__') === noteKey);
+  const toDelete = exps.filter(e => _prjMine(e) && ((e.notes||'').trim() || '__none__') === noteKey);
   if(!toDelete.length){ showToast(L('Nothing to delete','لا يوجد بنود'), 'info'); return; }
   showConfirm(
     L(`حذف كل بنود "${label}" (${toDelete.length} بند)؟`, `Delete all "${label}" items (${toDelete.length})?`),
     function(){
       if(!canMutateMonth(activeMonth)) return;
       const indices = [];
-      exps.forEach((e,i)=>{ if(((e.notes||'').trim()||'__none__')===noteKey) indices.push(i); });
+      exps.forEach((e,i)=>{ if(_prjMine(e) && ((e.notes||'').trim()||'__none__')===noteKey) indices.push(i); });
       // Remove linked bank movements
       indices.forEach(i=>{
         const exp = exps[i];
@@ -38660,6 +38885,7 @@ function _commitExpenseRecord({date, description, amount, category='', supplier=
   const all = DATA[activeMonth].site_expenses;
 
   const exp = {
+    projectId:   _PRJ.active,
     date:        date,
     description: description,
     amount:      amount,
@@ -41541,7 +41767,33 @@ function _rqFloorAdd(btn){
   if(r>=0) _RQ_FLOOR_ORDER.splice(r,0,k); else _RQ_FLOOR_ORDER.push(k);
   _rqFloorsRerender();
 }
-function _rqFloorLabel(raw){
+// Free-text values that have no EN/AR pair (custom floor names, levels…) are translated into the
+// app language on display only — the saved value is never changed. Cached per language, so each
+// word hits the network once; until it lands the text shows as typed, then the view re-renders.
+const _RQ_AUTOTR_KEY='wdp_rq_autotr_v1';
+let _rqAutoTr={}; try{ _rqAutoTr=JSON.parse(localStorage.getItem(_RQ_AUTOTR_KEY)||'{}')||{}; }catch(e){}
+const _rqAutoTrPending=new Set(); let _rqAutoTrTimer=null;
+function _rqAutoTrText(raw){
+  const v=String(raw||'').trim(); if(!v) return '';
+  const d=_atDetectLang(v); if(!d||d===lang) return v;
+  const k=lang+'|'+v;
+  if(_rqAutoTr[k]) return _rqAutoTr[k];
+  if(!_rqAutoTrPending.has(k)){
+    _rqAutoTrPending.add(k);
+    _atTranslate(v,lang).then(t=>{
+      t=String(t||'').trim();
+      if(t&&t!==v){
+        _rqAutoTr[k]=t;
+        try{ localStorage.setItem(_RQ_AUTOTR_KEY,JSON.stringify(_rqAutoTr)); }catch(e){}
+        clearTimeout(_rqAutoTrTimer);
+        _rqAutoTrTimer=setTimeout(()=>{ try{ if(currentView==='expenses' && _cxTab==='requests') renderView(); }catch(e){} },60);
+      }
+    }).catch(e=>_logErr('_rqAutoTrText',e)).finally(()=>_rqAutoTrPending.delete(k));
+  }
+  return v;
+}
+function _rqFloorLabel(raw){ return _rqAutoTrText(_rqFloorLabelBase(raw)); }
+function _rqFloorLabelBase(raw){
   const v=String(raw||'').trim(); if(!v) return '';
   const low=v.toLowerCase();
   if(_RQ_FLOORS_EN[low]) return L(_RQ_FLOORS_EN[low],_RQ_FLOORS_AR[low]);
@@ -41842,7 +42094,7 @@ function rqReportBarHTML(){
 // the stores the receipt form already reads (company logos, custom fields,
 // floor levels) plus one new key for the plot → model pairs.
 // ═════════════════════════════════════════════════════════════════════
-let _deLogoPending, _deCoList=[];
+let _deLogoPending, _deCoList=[], _deCoEditKey=null, _deCoEditLogo;
 function _deRefreshBehind(){ try{ if(currentView==='expenses') renderView(); }catch(e){} }
 function _deReadLogo(input,cb){
   const file=input.files&&input.files[0]; if(!file) return;
@@ -41864,14 +42116,53 @@ function rqDeRenderCo(){
   const box=document.getElementById('deCoList'); if(!box) return;
   _deCoList=_deCompanies();
   box.innerHTML=_deCoList.length?_deCoList.map((c,i)=>{
-    const src=_rqCoLogoSrc(c.name);
+    const editing=_deCoEditKey===c.key;
+    const src=editing?(_deCoEditLogo!==undefined?_deCoEditLogo:_rqCoLogoSrc(c.name)):_rqCoLogoSrc(c.name);
     const av=src?bankLogoHTML(src,36,{alt:''}):`<span class="de-av">${esc(c.name.charAt(0).toUpperCase())}</span>`;
+    if(editing) return `<div class="de-row editing"><div class="de-lg" id="deCoEditPrev">${av}</div>
+      <input type="text" class="de-edit-inp" id="deCoEditName" dir="auto" autocomplete="off" value="${esc(c.name)}" onkeydown="if(event.key==='Enter'){event.preventDefault();rqDeCoEditSave(${i})}else if(event.key==='Escape'){rqDeCoEditCancel()}">
+      <label class="de-ib" title="${L('Change logo','تغيير الشعار')}">${ic('photo',15)}<input type="file" accept="image/*" style="display:none" onchange="rqDeCoEditPick(this)"></label>
+      <button type="button" class="de-ib ok" title="${L('Save changes','حفظ التعديل')}" onclick="rqDeCoEditSave(${i})">${ic('check',15)}</button>
+      <button type="button" class="de-ib" title="${L('Cancel','إلغاء')}" onclick="rqDeCoEditCancel()">${ic('close',14)}</button>
+    </div>`;
     return `<div class="de-row"><div class="de-lg">${av}</div><div class="de-nm" dir="auto">${esc(c.name)}</div>
+      <button type="button" class="de-ib edit" title="${L('Edit','تعديل')}" onclick="rqDeCoEdit(${i})">${ic('edit',15)}</button>
       <label class="de-ib" title="${L('Logo','شعار')}">${ic('photo',15)}<input type="file" accept="image/*" style="display:none" onchange="rqDeCoLogoSet(${i},this)"></label>
       ${src?`<button type="button" class="de-ib" title="${L('Remove logo','حذف الشعار')}" onclick="rqDeCoLogoDel(${i})">${ic('close',14)}</button>`:''}
       ${c.used?'':`<button type="button" class="de-ib del" title="${L('Delete','حذف')}" onclick="rqDeCoDel(${i})">${ic('trash',15)}</button>`}
     </div>`;
   }).join(''):`<div class="de-empty">${L('No companies yet','لا توجد شركات بعد')}</div>`;
+  if(_deCoEditKey){ const el=document.getElementById('deCoEditName'); if(el&&document.activeElement!==el){ try{ el.focus({preventScroll:false}); el.setSelectionRange(el.value.length,el.value.length); }catch(e){} } }
+}
+// Edit a company: rename (updates every card that uses it, the saved list and the logo) and/or change the logo.
+function rqDeCoEdit(i){ const c=_deCoList[i]; if(!c) return; _deCoEditKey=c.key; _deCoEditLogo=undefined; rqDeRenderCo(); }
+function rqDeCoEditCancel(){ _deCoEditKey=null; _deCoEditLogo=undefined; rqDeRenderCo(); }
+function rqDeCoEditPick(input){
+  _deReadLogo(input,url=>{ _deCoEditLogo=url; const pv=document.getElementById('deCoEditPrev'); if(pv) pv.innerHTML=bankLogoHTML(url,36,{alt:''}); });
+}
+function rqDeCoEditSave(i){
+  const c=_deCoList[i]; if(!c) return;
+  const el=document.getElementById('deCoEditName'); const name=(el?.value||'').replace(/\s+/g,' ').trim();
+  if(!name){ showToast(L('Enter the company name','اكتب اسم الشركة'),'warn'); el?.focus(); return; }
+  const nk=_rqCoLogoKey(name);
+  if(nk!==c.key && _deCoList.some(x=>x.key===nk)){ showToast(L('A company with this name already exists','يوجد شركة بنفس الاسم'),'warn'); el?.focus(); return; }
+  // 1) logo first — if storage is full nothing else has been touched yet
+  const prevLogos=Object.assign({},_rqCoLogos);
+  const logo=_deCoEditLogo!==undefined?_deCoEditLogo:_rqCoLogos[c.key];
+  if(nk!==c.key) delete _rqCoLogos[c.key];
+  if(logo) _rqCoLogos[nk]=logo; else delete _rqCoLogos[nk];
+  if(!_rqPersistCoLogos()){ _rqCoLogos=prevLogos; return; }
+  // 2) rename on every card + the saved company list
+  if(name!==c.name){
+    const list=_rqLoad(); let changed=false;
+    list.forEach(r=>{ if(_rqCoLogoKey(r.company)===c.key){ r.company=name; changed=true; } });
+    if(changed) _rqSave(list);
+    const cf=(_rqCustomFields.company||[]).filter(v=>_rqCoLogoKey(v)!==c.key); cf.push(name);
+    _rqCustomFields.company=cf; _rqPersistCustomFields();
+  }
+  _deCoEditKey=null; _deCoEditLogo=undefined;
+  rqDeRenderCo(); _deRefreshBehind();
+  showToast(L('Saved ✓','تم الحفظ ✓'),'success');
 }
 function rqDeCoPick(input){
   _deReadLogo(input,url=>{ _deLogoPending=url; const pv=document.getElementById('deCoPrev'); if(pv) pv.innerHTML=bankLogoHTML(url,36,{alt:''}); });
@@ -41956,7 +42247,7 @@ function rqDeZoneAdd(){
 function rqDeZoneDel(i){ (_rqCustomFields.zone||[]).splice(i,1); _rqPersistCustomFields(); rqDeRenderZones(); }
 
 function rqDataEntryOpen(){
-  _deLogoPending=undefined;
+  _deLogoPending=undefined; _deCoEditKey=null; _deCoEditLogo=undefined;
   const sec=(icon,title,body)=>`<div class="rq-sec"><div class="rq-sec-hdr">${ic(icon,15)}<span>${title}</span></div>${body}</div>`;
   document.getElementById('modalContent').innerHTML=`
     <div class="modal-handle"></div>
