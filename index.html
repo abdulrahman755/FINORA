@@ -16550,6 +16550,7 @@ function renderWorkspaceDashboard(m){
   if(WorkspaceEngine.canShow('banks')) candidates.push({id:'banks', icon:'bank', label:L('Top Banks','أكبر البنوك'), body:renderBankSummaryCompactV3(m), foldable:true, summary:`${_cnt(getBanksOrdered().length,'account','accounts','حساب','حسابان','حسابات','حساباً')}`});
   if(canFinance) candidates.push({id:'activity', icon:'clock', label:L('Recent Activity','آخر العمليات'), body:dfpSafeCard(()=>renderRecentActivityDashCard(m)), foldable:true});
   if(canFinance){ const _pc=_dashPurchasesCollect().count; candidates.push({id:'purchases', icon:'shopping_bag', label:L('My Purchases','مشترياتي'), body:dfpSafeCard(()=>renderPurchasesDashCard()), foldable:true, summary:_pc?`${_cnt(_pc,'item','items','عنصر','عنصران','عناصر','عنصراً')}`:''}); }
+  if(canFinance) candidates.push({id:'attendance', icon:'attendance', label:L('Attendance','الحضور والانصراف'), body:dfpSafeCard(()=>ATT.dashCard()), foldable:true, summary:(()=>{ try{ return ATT.dashSummary(); }catch(e){ return ''; } })()});
   if(canFinance) candidates.push({id:'sysintel', icon:'sparkle', label:L('AI Insights','تحليلات ذكية'), body:renderSystemIntelligenceV3(m, sig), foldable:true});
   if(canFinance) candidates.push({id:'site', icon:'lock', label:L('My Job','My Job'), body:renderCustodyDashboardCard(m), foldable:true, summary:`${L('Remaining','المتبقي')}: ${sig.custodyRemaining<0?'-':''}${fmtEGP(Math.abs(sig.custodyRemaining))}`});
   if(canFinance) candidates.push({id:'comparison', icon:'chart', label:L('Monthly Comparison','مقارنة شهرية'), body:DashboardLazy.placeholder('monthlyComparison', ()=>dfpSafeCard(
@@ -16618,12 +16619,7 @@ function renderWorkspaceDashboard(m){
     ? `<button type="button" class="wdash-showall" id="wdashShowAllBtn" aria-expanded="${_wdashShowAll?'true':'false'}" onclick="wdashToggleAll()">${_wdashShowAll ? L('Show less','عرض أقل') : L('Show all','عرض الكل')+' ('+visible.length+')'}</button>`
     : '';
   const appsHtml = tiles ? `<div class="wdash-apps-title">${L('Dashboards','الأقسام')}</div><div class="wdash-apps${_wdashCollapsible && !_wdashShowAll ? ' is-collapsed' : ''}" id="wdashApps" role="group" aria-label="${L('Dashboards','الأقسام')}">${tiles}</div>${_wdashToggleHtml}` : '';
-  // Attendance card (check-in / check-out + monthly attendance rate) — My Job's attendance log, shown on the home screen.
-  let attendanceHtml = '';
-  if(canFinance && !hiddenSet.has('attendance')){
-    try{ attendanceHtml = ATT.dashCard(); }catch(e){ _logErr('wdash:attendance', e); }
-  }
-  return `<div class="wdash-wrap dv3-dark-v2">${manageBar}${heroHtml}${quickActionsHtml}${attendanceHtml}${appsHtml}<div class="wdash-vault" aria-hidden="true" inert>${body}</div></div>`;
+  return `<div class="wdash-wrap dv3-dark-v2">${manageBar}${heroHtml}${quickActionsHtml}${appsHtml}<div class="wdash-vault" aria-hidden="true" inert>${body}</div></div>`;
 }
 
 // -- Dashboard tiles: collapsed to the first N, "Show all" expands (presentation-only) --
@@ -44461,9 +44457,6 @@ const ATT=(function(){
       <div class="sc-card att-today">
         <div class="att-today-top"><div><div class="att-lbl">${L('Today','النهاردة')}</div><div class="att-today-d">${tName}</div></div>
           ${trec&&BY[trec.s]?`<span class="att-pill att-st-${trec.s}">${ic(BY[trec.s].ic,12)} ${stLbl(BY[trec.s])}</span>`:`<span class="att-pill none">${L('Not recorded','لسه متسجلش')}</span>`}</div>
-        <div class="att-times">${timeTile('in',trec&&WORKING(trec.s)?trec.i:'',tkey)}${timeTile('out',trec&&WORKING(trec.s)?trec.o:'',tkey)}</div>
-        ${durHTML(trec)}
-        <div class="att-sec-lbl">${L('Or set today\'s status','أو حدّد حالة النهاردة')}</div>
         <div class="att-quick">${quick}</div>
         <button type="button" class="att-link" onclick="ATT.openDay('${tkey}')">${L('More options / add a note','خيارات أكتر / إضافة ملاحظة')}</button>
       </div>
@@ -44620,7 +44613,14 @@ const ATT=(function(){
     try{ renderView(true); }catch(e){}
     showToast(L('Checked out at ','تم تسجيل الانصراف ')+fmtT(rec.o),'success');
   }
-  function openPage(){ try{ navCloseAll(); }catch(e){} setView('attendance'); }
+  function openPage(){ try{ wdashSheetClose(); }catch(e){} try{ navCloseAll(); }catch(e){} setView('attendance'); }
+  // one-line summary for the dashboard tile: this month's rate · today's status
+  function dashSummary(){
+    load();
+    const now=new Date(), c=countsFor(now.getFullYear()+'-'+pad(now.getMonth()+1)).c, rate=rateOf(c);
+    const r=db.days[tk()], x=r&&BY[r.s];
+    return (rate===null?'—':rate+'%')+' · '+(x?stLbl(x):L('Not recorded','لسه متسجلش'));
+  }
   // compact card for the main dashboard: today's check-in/out + this month's attendance rate
   function dashCard(){
     load();
@@ -44763,7 +44763,7 @@ const ATT=(function(){
       if(save()){ try{ renderView(true); }catch(e){} showToast(L('Month cleared','تم مسح الشهر'),'success'); }
     });
   }
-  return {render,dashCard,checkIn,checkOut,stamp,openPage,openDay,pick,saveDay,clearDay,quick,nav,goToday,setScope,setField,pickLogo,removeLogo,clearMonth,toggleCo,toggleMulti,setRangeMode,clearSel,tapDay,openMulti,saveMulti,clearMulti};
+  return {render,dashCard,dashSummary,checkIn,checkOut,stamp,openPage,openDay,pick,saveDay,clearDay,quick,nav,goToday,setScope,setField,pickLogo,removeLogo,clearMonth,toggleCo,toggleMulti,setRangeMode,clearSel,tapDay,openMulti,saveMulti,clearMulti};
 })();
 // My Locations photos live in IndexedDB; carry them through the app's existing backup/restore
 // (which only knows localStorage) without ever writing them into localStorage.
