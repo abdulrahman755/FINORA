@@ -10732,6 +10732,37 @@ html body .sc-header .sc-header-sub{padding-inline-start:12px;margin-top:4px;fon
 /* dashboard helpers */
 .wdash-manage-btn,.wdash-showall{box-shadow:none;font-weight:600}
 .fp-qa-btn{box-shadow:none}
+
+/* ══ My Receipts — view modes (cards · list · tiles) ══ */
+.cx-search{display:flex;align-items:center;gap:8px}
+.cx-search .cx-sbox{flex:1;min-width:0}
+.rq-vbar{flex:none;display:inline-flex;gap:2px;padding:3px;border-radius:12px;background:var(--surface2);border:1px solid var(--border)}
+.rq-vbtn{width:34px;height:34px;display:flex;align-items:center;justify-content:center;border:0;border-radius:9px;background:none;color:var(--muted);cursor:pointer;-webkit-tap-highlight-color:transparent}
+.sc-search .rq-vbtn svg{position:static;transform:none;left:auto;color:inherit}
+.rq-vbtn.on{background:var(--surface);color:var(--green);box-shadow:0 1px 3px rgba(0,0,0,.1)}
+.rq-dot{width:10px;height:10px;border-radius:50%;flex:none;background:var(--muted)}
+.rq-dot.ok{background:var(--green)}.rq-dot.low{background:var(--gold,#c9992b)}.rq-dot.over{background:var(--red)}
+/* list */
+.rq-list.rq-v-list{gap:8px}
+.rq-row{display:flex;align-items:center;gap:12px;width:100%;padding:10px 12px;border:1px solid color-mix(in srgb,var(--rq-tc) 32%,var(--border));border-inline-start:4px solid var(--rq-tc);border-radius:14px;background:color-mix(in srgb,var(--rq-tc) 8%,var(--surface));font-family:inherit;text-align:start;color:var(--text);cursor:pointer;-webkit-tap-highlight-color:transparent}
+.rq-row:active{background:color-mix(in srgb,var(--rq-tc) 16%,var(--surface))}
+.rq-row-plot{flex:none;min-width:52px;display:flex;flex-direction:column;align-items:center;padding:6px 8px;border-radius:11px;background:color-mix(in srgb,var(--rq-tc) 16%,var(--surface));color:var(--rq-tc)}
+.rq-row-plot small{font-size:calc(9.5px*var(--app-text-scale,1));font-weight:700;opacity:.85}
+.rq-row-plot b{font-size:calc(18px*var(--app-text-scale,1));font-weight:900;line-height:1.1;font-variant-numeric:tabular-nums;max-width:64px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rq-row-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.rq-row-main b{font-size:calc(14.5px*var(--app-text-scale,1));font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rq-row-main small{font-size:calc(11.5px*var(--app-text-scale,1));font-weight:600;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rq-row-side{flex:none;display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+.rq-row-side em{font-style:normal;font-size:calc(12px*var(--app-text-scale,1));font-weight:700;color:var(--sub);font-variant-numeric:tabular-nums}
+/* tiles */
+.rq-list.rq-v-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.rq-tile{position:relative;aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-width:0;padding:6px 4px;border:1.5px solid color-mix(in srgb,var(--rq-tc) 38%,var(--border));border-radius:16px;background:color-mix(in srgb,var(--rq-tc) 12%,var(--surface));font-family:inherit;color:var(--text);cursor:pointer;-webkit-tap-highlight-color:transparent}
+.rq-tile:active{transform:scale(.96)}
+.rq-tile b{max-width:100%;font-size:calc(20px*var(--app-text-scale,1));font-weight:900;line-height:1.1;color:var(--rq-tc);font-variant-numeric:tabular-nums;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rq-tile small{font-size:calc(10px*var(--app-text-scale,1));font-weight:700;color:var(--muted)}
+.rq-tile .rq-dot{position:absolute;top:7px;inset-inline-end:7px;width:8px;height:8px}
+@media (max-width:340px){.rq-list.rq-v-grid{grid-template-columns:repeat(3,1fr)}}
+.rq-cardsheet .rq-card{margin-top:4px}
 </style>
 <script>
 // Suppress cross-origin Script errors (in-app browsers like TikTok/Instagram)
@@ -33082,6 +33113,96 @@ function _rqOnFloorInput(){
   else if(!lv && cur && cur===_rqLevelAuto){ l.value=''; _rqLevelAuto=''; }
 }
 
+function _rqCardHTML(r){
+  const cell=(icon,lbl,val,ltr)=>val?`<div><dt>${icon}${lbl}</dt><dd${ltr?` dir="ltr" style="text-align:${lang==='ar'?'end':'start'}"`:''}>${esc(val)}</dd></div>`:'';
+    const st=_RQ_STATUS[r.status]||_RQ_STATUS.received;
+    const dCompany=_rqDisplayValue(r,'company'), dType=_rqDisplayValue(r,'type'),
+          dEngineer=_rqDisplayValue(r,'engineer'), dPlot=_rqDisplayValue(r,'plot'),
+          dModel=_rqDisplayValue(r,'model'), dNotes=_rqDisplayValue(r,'notes'), dZone=_rqDisplayValue(r,'zone');
+    return `
+    <article class="rq-card rq-t ${st.cls}" style="--rq-tc:${_rqTypeColor(r)}">
+      <div class="rq-top">
+        <div class="rq-avatar">${_rqCoLogoSrc(r.company)?bankLogoHTML(_rqCoLogoSrc(r.company),36,{alt:dCompany}):ic('building',17)}</div>
+        <div class="rq-head">
+          <div class="rq-co">${esc(dCompany)}</div>
+          ${_rqCardLine(r)}
+          ${dType?`<div class="rq-type">${esc(dType)}</div>`:''}
+        </div>
+        <span class="cx-chip ${st.cls}">${_rqStatusLabel(r.status)}</span>
+      </div>
+      <dl class="rq-grid">
+        ${cell(ic('hardhat',12),L('Engineer','المهندس'),dEngineer)}
+        ${cell(ic('calendar',12),L('Date','التاريخ'),r.date,true)}
+        ${cell(ic('map',12),L('Zone','المنطقة'),dZone)}
+        ${cell(ic('pin',12),L('Plot No.','رقم القطعة'),dPlot)}
+        ${cell(ic('clipboard',12),L('Form / Model','النموذج'),dModel)}
+        ${cell(ic('type',12),L('Inspection type','نوع الاستلامة'),_rqIrLabel(r))}
+        ${cell(ic('floor',12),L('Floor','الدور'),_rqFloorLabel(r.floor))}
+        ${cell(ic('ruler',12),L('Level','المنسوب'),_rqAutoTrText(r.level),!/[\u0600-\u06FF]/.test(_rqAutoTrText(r.level)))}
+      </dl>
+      ${dNotes?`<div class="rq-notes">${ic('message',13)}<div class="rq-notes-lines">${_rqNotesLinesHTML(dNotes)}</div></div>`:''}
+      <div class="rq-foot">
+        <button type="button" class="cx-icbtn" onclick="openRequestModal('${r.id}')" aria-label="${L('Edit','تعديل')}">${ic('edit',17)}</button>
+        <button type="button" class="cx-icbtn del" onclick="deleteRequest('${r.id}')" aria-label="${L('Delete','حذف')}">${ic('trash',17)}</button>
+      </div>
+    </article>`;
+}
+
+
+// ── My Receipts view modes: full cards (default) · compact list · small square tiles ──
+const _RQ_VIEW_KEY='wdp_rq_view_v1';
+let _rqView='cards';
+try{ const _v=localStorage.getItem(_RQ_VIEW_KEY); if(_v==='list'||_v==='grid'||_v==='cards') _rqView=_v; }catch(e){}
+function _rqSetView(v){
+  if(v!=='list'&&v!=='grid'&&v!=='cards') return;
+  _rqView=v; try{ localStorage.setItem(_RQ_VIEW_KEY,v); }catch(e){}
+  renderView(true);
+}
+function _rqPlotLabel(r){ return String(_rqDisplayValue(r,'plot')||r.plot||'').trim(); }
+function _rqRowHTML(r){
+  const st=_RQ_STATUS[r.status]||_RQ_STATUS.received;
+  const plot=_rqPlotLabel(r), co=_rqDisplayValue(r,'company');
+  const sub=[_rqIrLabel(r),_rqFloorLabel(r.floor)].filter(Boolean).join(' · ');
+  return `<button type="button" class="rq-row rq-t ${st.cls}" style="--rq-tc:${_rqTypeColor(r)}" onclick="rqOpenCard('${r.id}')" aria-label="${esc(L('Plot','قطعة'))} ${esc(plot)}">
+    <span class="rq-row-plot"><small>${L('Plot','قطعة')}</small><b dir="auto">${esc(plot||'—')}</b></span>
+    <span class="rq-row-main"><b dir="auto">${esc(co)}</b>${sub?`<small dir="auto">${esc(sub)}</small>`:''}</span>
+    <span class="rq-row-side"><em dir="ltr">${esc(_purFmtDate(r.date))}</em><i class="rq-dot ${st.cls}" title="${esc(_rqStatusLabel(r.status))}"></i></span>
+  </button>`;
+}
+function _rqTileHTML(r){
+  const st=_RQ_STATUS[r.status]||_RQ_STATUS.received;
+  const plot=_rqPlotLabel(r);
+  return `<button type="button" class="rq-tile rq-t ${st.cls}" style="--rq-tc:${_rqTypeColor(r)}" onclick="rqOpenCard('${r.id}')" aria-label="${esc(L('Plot','قطعة'))} ${esc(plot)}">
+    <i class="rq-dot ${st.cls}" title="${esc(_rqStatusLabel(r.status))}"></i>
+    <b dir="auto">${esc(plot||'—')}</b>
+    <small dir="ltr">${esc(_purFmtDate(r.date))}</small>
+  </button>`;
+}
+// tap a row / tile → the full card in a sheet (edit and delete work from there)
+function rqOpenCard(id){
+  const r=_rqLoad().find(x=>x.id===id); if(!r) return;
+  const plot=_rqPlotLabel(r);
+  document.getElementById('modalContent').innerHTML=`<div class="modal-handle"></div>
+    <div class="rq-modal rq-cardsheet">
+      <div class="modal-hdr">
+        <div class="modal-hdr-icon" style="background:linear-gradient(135deg,#0f7a55,#0a5c40)">${ic('clipboard',22)}</div>
+        <div style="flex:1;min-width:0"><div class="modal-hdr-title">${L('Receipt','استلامة')}${plot?' · '+esc(plot):''}</div><div class="modal-hdr-sub">${esc(r.date||'')}</div></div>
+        <button type="button" class="sheet-close-btn sq" onclick="closeModal()" aria-label="${L('Close','إغلاق')}">${ic('close',16)}</button>
+      </div>
+      ${_rqCardHTML(r)}
+    </div>`;
+  document.getElementById('modalOverlay').style.display='flex';
+}
+function _rqViewBarHTML(){
+  const b=(v,lbl,svg)=>`<button type="button" class="rq-vbtn${_rqView===v?' on':''}" aria-pressed="${_rqView===v}" aria-label="${lbl}" title="${lbl}" onclick="_rqSetView('${v}')">${svg}</button>`;
+  const sv=p=>`<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
+  return `<span class="rq-vbar" role="group" aria-label="${L('View','طريقة العرض')}">
+    ${b('cards',L('Cards','كروت'),sv('<rect x="3" y="3" width="18" height="8" rx="2"/><rect x="3" y="13" width="18" height="8" rx="2"/>'))}
+    ${b('list',L('List','قائمة'),sv('<path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>'))}
+    ${b('grid',L('Tiles','مربعات'),sv('<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>'))}
+  </span>`;
+}
+
 function renderMyRequests(){
   const all=_rqLoad();
   const counts={received:0,notes:0,rejected:0};
@@ -33115,40 +33236,9 @@ function renderMyRequests(){
     ${stat('rejected','over',counts.rejected,_rqStatusLabel('rejected'))}
   </div>`:'')+(typeChips?`<div class="rq-types-wrap"><div class="rq-types-h">${L('By type','حسب النوع')}</div><div class="rq-types">${typeChips}</div></div>`:'');
 
-  const cell=(icon,lbl,val,ltr)=>val?`<div><dt>${icon}${lbl}</dt><dd${ltr?` dir="ltr" style="text-align:${lang==='ar'?'end':'start'}"`:''}>${esc(val)}</dd></div>`:'';
-  const cardsHTML=list.map(r=>{
-    const st=_RQ_STATUS[r.status]||_RQ_STATUS.received;
-    const dCompany=_rqDisplayValue(r,'company'), dType=_rqDisplayValue(r,'type'),
-          dEngineer=_rqDisplayValue(r,'engineer'), dPlot=_rqDisplayValue(r,'plot'),
-          dModel=_rqDisplayValue(r,'model'), dNotes=_rqDisplayValue(r,'notes'), dZone=_rqDisplayValue(r,'zone');
-    return `
-    <article class="rq-card rq-t ${st.cls}" style="--rq-tc:${_rqTypeColor(r)}">
-      <div class="rq-top">
-        <div class="rq-avatar">${_rqCoLogoSrc(r.company)?bankLogoHTML(_rqCoLogoSrc(r.company),36,{alt:dCompany}):ic('building',17)}</div>
-        <div class="rq-head">
-          <div class="rq-co">${esc(dCompany)}</div>
-          ${_rqCardLine(r)}
-          ${dType?`<div class="rq-type">${esc(dType)}</div>`:''}
-        </div>
-        <span class="cx-chip ${st.cls}">${_rqStatusLabel(r.status)}</span>
-      </div>
-      <dl class="rq-grid">
-        ${cell(ic('hardhat',12),L('Engineer','المهندس'),dEngineer)}
-        ${cell(ic('calendar',12),L('Date','التاريخ'),r.date,true)}
-        ${cell(ic('map',12),L('Zone','المنطقة'),dZone)}
-        ${cell(ic('pin',12),L('Plot No.','رقم القطعة'),dPlot)}
-        ${cell(ic('clipboard',12),L('Form / Model','النموذج'),dModel)}
-        ${cell(ic('type',12),L('Inspection type','نوع الاستلامة'),_rqIrLabel(r))}
-        ${cell(ic('floor',12),L('Floor','الدور'),_rqFloorLabel(r.floor))}
-        ${cell(ic('ruler',12),L('Level','المنسوب'),_rqAutoTrText(r.level),!/[\u0600-\u06FF]/.test(_rqAutoTrText(r.level)))}
-      </dl>
-      ${dNotes?`<div class="rq-notes">${ic('message',13)}<div class="rq-notes-lines">${_rqNotesLinesHTML(dNotes)}</div></div>`:''}
-      <div class="rq-foot">
-        <button type="button" class="cx-icbtn" onclick="openRequestModal('${r.id}')" aria-label="${L('Edit','تعديل')}">${ic('edit',17)}</button>
-        <button type="button" class="cx-icbtn del" onclick="deleteRequest('${r.id}')" aria-label="${L('Delete','حذف')}">${ic('trash',17)}</button>
-      </div>
-    </article>`;
-  }).join('');
+  const cardsHTML=_rqView==='list'?list.map(_rqRowHTML).join('')
+    :_rqView==='grid'?list.map(_rqTileHTML).join('')
+    :list.map(_rqCardHTML).join('');
 
   const emptyHTML=all.length===0
     ? `<div class="cst-empty-state">
@@ -33173,8 +33263,8 @@ function renderMyRequests(){
     ${all.length?`<div class="sc-search cx-search"><span class="cx-sbox">
       <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
       <input placeholder="${L('Search receipts...','ابحث في الاستلامات...')}" value="${esc(searchQ)}" oninput="doSearch(this.value)"/>
-    </span></div>`:''}
-    ${list.length?`<div class="rq-list">${cardsHTML}</div>`:emptyHTML}
+    </span>${_rqViewBarHTML()}</div>`:''}
+    ${list.length?`<div class="rq-list rq-v-${_rqView}">${cardsHTML}</div>`:emptyHTML}
   </section>
   </div>`;
 }
