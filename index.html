@@ -10762,9 +10762,9 @@ html body .sc-header .sc-header-sub{padding-inline-start:12px;margin-top:4px;fon
 .rq-tile small{font-size:calc(9px*var(--app-text-scale,1));font-weight:700;color:var(--muted)}
 .rq-tile .rq-dot{position:absolute;top:5px;inset-inline-end:5px;width:6px;height:6px}
 /* tile: the company logo fills the square; plot no. + date sit on a tinted strip at the bottom */
-.rq-tile{display:block;gap:0;padding:0;overflow:hidden;text-align:start}
+.rq-tile{display:block;gap:0;padding:0;overflow:hidden;text-align:start;aspect-ratio:1/1.1}
 .rq-tile-logo{position:absolute;inset:0 0 24px 0;display:flex;align-items:center;justify-content:center;background:#fff;color:var(--rq-tc);overflow:hidden}
-.rq-tile-logo .bl-img,.rq-tile-logo img{width:100%!important;height:100%!important;object-fit:contain!important;border-radius:0!important;box-shadow:none!important;box-sizing:border-box;padding:4px;background:transparent!important}
+.rq-tile-logo .bl-img,.rq-tile-logo img{width:100%!important;height:100%!important;object-fit:contain!important;border-radius:0!important;box-shadow:none!important;box-sizing:border-box;padding:0;background:transparent!important;transform:scale(1.14);transform-origin:center}
 .rq-tile-logo>svg{opacity:.75}
 .rq-tile-meta{position:absolute;inset:auto 0 0 0;height:24px;display:flex;align-items:center;justify-content:space-between;gap:3px;padding:0 5px;background:color-mix(in srgb,var(--rq-tc) 16%,var(--surface));border-top:1px solid color-mix(in srgb,var(--rq-tc) 30%,var(--border))}
 .rq-tile-meta b{min-width:0;flex:0 1 auto;font-size:calc(14px*var(--app-text-scale,1));font-weight:900;line-height:1;color:var(--rq-tc);font-variant-numeric:tabular-nums;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
