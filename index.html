@@ -10755,14 +10755,42 @@ html body .sc-header .sc-header-sub{padding-inline-start:12px;margin-top:4px;fon
 .rq-row-side{flex:none;display:flex;flex-direction:column;align-items:flex-end;gap:6px}
 .rq-row-side em{font-style:normal;font-size:calc(12px*var(--app-text-scale,1));font-weight:700;color:var(--sub);font-variant-numeric:tabular-nums}
 /* tiles */
-.rq-list.rq-v-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
-.rq-tile{position:relative;aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-width:0;padding:6px 4px;border:1.5px solid color-mix(in srgb,var(--rq-tc) 38%,var(--border));border-radius:16px;background:color-mix(in srgb,var(--rq-tc) 12%,var(--surface));font-family:inherit;color:var(--text);cursor:pointer;-webkit-tap-highlight-color:transparent}
+.rq-list.rq-v-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:7px}
+.rq-tile{position:relative;aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-width:0;padding:4px 2px;border:1.5px solid color-mix(in srgb,var(--rq-tc) 38%,var(--border));border-radius:12px;background:color-mix(in srgb,var(--rq-tc) 12%,var(--surface));font-family:inherit;color:var(--text);cursor:pointer;-webkit-tap-highlight-color:transparent}
 .rq-tile:active{transform:scale(.96)}
-.rq-tile b{max-width:100%;font-size:calc(20px*var(--app-text-scale,1));font-weight:900;line-height:1.1;color:var(--rq-tc);font-variant-numeric:tabular-nums;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.rq-tile small{font-size:calc(10px*var(--app-text-scale,1));font-weight:700;color:var(--muted)}
-.rq-tile .rq-dot{position:absolute;top:7px;inset-inline-end:7px;width:8px;height:8px}
-@media (max-width:340px){.rq-list.rq-v-grid{grid-template-columns:repeat(3,1fr)}}
+.rq-tile b{max-width:100%;font-size:calc(16px*var(--app-text-scale,1));font-weight:900;line-height:1.1;color:var(--rq-tc);font-variant-numeric:tabular-nums;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rq-tile small{font-size:calc(9px*var(--app-text-scale,1));font-weight:700;color:var(--muted)}
+.rq-tile .rq-dot{position:absolute;top:5px;inset-inline-end:5px;width:6px;height:6px}
+@media (max-width:340px){.rq-list.rq-v-grid{grid-template-columns:repeat(4,1fr)}}
 .rq-cardsheet .rq-card{margin-top:4px}
+
+/* ══ Dashboard list v2 — one clean grouped list, uniform coloured icon chips, no truncation ══ */
+.wdash-tile[data-cardid="cash"] .wdash-tile-ico{--tc-d:#0f7a55}
+.wdash-tile[data-cardid="site"] .wdash-tile-ico{--tc-d:#be123c}
+.wdash-tile[data-cardid="sysintel"] .wdash-tile-ico{--tc-d:#0369a1}
+.wdash-tile[data-cardid="activity"] .wdash-tile-ico{--tc-d:#a16207}
+.wdash-tile[data-cardid="banks"] .wdash-tile-ico{--tc-d:#4338ca}
+.wdash-tile[data-cardid="comparison"] .wdash-tile-ico{--tc-d:#0f766e}
+.wdash-tile[data-cardid="trends"] .wdash-tile-ico{--tc-d:#c2410c}
+.wdash-tile[data-cardid="summary"] .wdash-tile-ico{--tc-d:#4b5563}
+.wdash-tile[data-cardid="toplists"] .wdash-tile-ico{--tc-d:#6d28d9}
+.wdash-tile[data-cardid="purchases"] .wdash-tile-ico{--tc-d:#b45309}
+.wdash-tile[data-cardid="attendance"] .wdash-tile-ico{--tc-d:#0f7a55}
+.wdash-apps-title{margin:4px 4px 10px;font-size:calc(11px*var(--app-text-scale,1));font-weight:700;letter-spacing:.08em;color:var(--sub)}
+[dir="rtl"] .wdash-apps-title{letter-spacing:0}
+.wdash-apps{grid-template-columns:1fr;border-radius:20px;border:1px solid var(--border);box-shadow:0 1px 2px rgba(16,24,40,.04)}
+.wdash-apps .wdash-tile,.wdash-apps .wdash-tile:nth-child(odd){border-inline-end:0;border-bottom:1px solid var(--border);grid-column:auto;min-height:66px;padding:10px 40px 10px 14px;padding-inline:14px 40px;gap:14px}
+.wdash-apps .wdash-tile:last-child{border-bottom:0}
+.wdash-apps.is-collapsed .wdash-tile:nth-child(5){border-bottom:1px solid var(--border)}
+.wdash-apps.is-collapsed .wdash-tile:nth-child(6){border-bottom:0}
+.wdash-apps .wdash-tile:active{background:var(--surface2)}
+.wdash-wrap .wdash-tile .wdash-tile-ico:not([style*="gradient"]){width:40px;height:40px;border-radius:12px;color:var(--tc,var(--tc-d,var(--green)))!important;background:color-mix(in srgb,var(--tc,var(--tc-d,var(--green))) 13%,var(--surface))!important}
+.wdash-tile-lbl{font-size:calc(14.5px*var(--app-text-scale,1));font-weight:700;white-space:normal;line-height:1.25}
+.wdash-tile-sum{font-size:calc(12px*var(--app-text-scale,1));font-weight:600;color:var(--muted)}
+.wdash-tile::after{inset-inline-end:16px;width:7px;height:7px;opacity:.5}
+[dir="rtl"] .wdash-tile::after{transform:translateY(-50%) rotate(-45deg)}
+.wdash-wrap.dv3-dark-v2 .fp-qa-row{margin-bottom:18px}
+.wdash-showall{margin-top:14px}
 </style>
 <script>
 // Suppress cross-origin Script errors (in-app browsers like TikTok/Instagram)
@@ -32769,6 +32797,10 @@ function _latinToArabicGuess(str){
   }).join('');
 }
 function _rqCompanyLabel(raw){
+  // Company names are shown exactly as typed — no translation or transliteration.
+  return String(raw||'').trim();
+}
+function _rqCompanyLabelLegacy(raw){
   const v=String(raw||'').trim(); if(!v) return '';
   const d=_atDetectLang(v);
   if(lang==='en') return d==='ar' ? _transliterateArabic(v) : v;
@@ -32797,9 +32829,8 @@ function _rqCompanyLabel(raw){
 function _rqDisplayValue(r,key){
   const raw=(r[key]||'').toString();
   if(!raw.trim()) return '';
-  // Shown exactly as typed, never translated: plot no., zone and request type. Company names are transliterated (sound, not meaning).
-  if(key==='plot'||key==='zone'||key==='type') return raw;
-  if(key==='company') return _rqCompanyLabel(raw);
+  // Shown exactly as typed, never translated: plot no., zone, request type and company name.
+  if(key==='plot'||key==='zone'||key==='type'||key==='company') return raw;
   if(key==='model'){
     // Model codes (IVLA, DM 06…) stay as typed; a descriptive word (e.g. "Pump") follows the app language.
     if(/^[A-Z0-9][A-Z0-9 .\-]{0,9}$/.test(raw.trim())) return raw;
@@ -33521,6 +33552,7 @@ function _rqTapComment(btn){
   const host=document.getElementById('rqCommentSugg');
   const text=host&&host._list?host._list[+btn.dataset.i]:'';
   if(!text) return;
+  try{ const ae=document.activeElement; if(ae&&ae!==document.body&&ae.blur) ae.blur(); }catch(e){} // keep the keyboard closed
   if(btn.classList.contains('added')) _rqRemoveComment(text);
   else _rqAddComment(text);
 }
@@ -33553,8 +33585,7 @@ function _rqAddComment(text){
     val+='\n• '+text;
   }
   ta.value=val;
-  ta.setSelectionRange(ta.value.length,ta.value.length);
-  ta.focus();
+  // no ta.focus(): tapping a suggested comment must not pop the keyboard up
   ta.dispatchEvent(new Event('input',{bubbles:true}));
 }
 // Auto-bullet behavior for a notes <textarea>: first keystroke starts the
