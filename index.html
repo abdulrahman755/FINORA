@@ -8719,6 +8719,8 @@ html.wdash-sheet-lock,html.wdash-sheet-lock body{overflow:hidden}
 .cx-seg{display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:4px;background:var(--surface2);border-radius:12px}
 .cx-seg-btn{height:38px;border:0;border-radius:var(--radius-sm);background:transparent;color:var(--muted);font-family:inherit;font-size:calc(13.5px*var(--app-text-scale,1));font-weight:800;cursor:pointer;transition:background-color .15s,color .15s}
 .cx-seg-btn.on{background:var(--surface);color:var(--text);box-shadow:var(--shadow-xs)}
+.cx-tabs{grid-auto-flow:column;grid-template-columns:none;grid-auto-columns:1fr}
+.cx-tabs .cx-seg-btn{padding:0 4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .cx-entry[data-type="dep"] .cx-seg-btn.on{color:var(--green)}
 .cx-entry[data-type="with"] .cx-seg-btn.on{color:var(--red)}
 .cx-in{width:100%;min-width:0;height:48px;padding:0 14px;border-radius:12px;border:1.5px solid var(--border-strong);background:var(--surface);color:var(--text);font-family:inherit;font-size:calc(16px*var(--app-text-scale,1));font-weight:600}
@@ -10360,6 +10362,77 @@ html body .sc-header .sc-header-sub{padding-inline-start:12px;margin-top:4px;fon
 
 .att-map{display:flex;align-items:center;justify-content:center;gap:7px;height:46px;border-radius:13px;background:var(--green);color:#fff;font-size:calc(13.5px*var(--app-text-scale,1));font-weight:800;text-decoration:none}
 .att-map:active{opacity:.85}
+
+/* ── Attendance v2: clear hierarchy (today → summary → calendar → workplace) ── */
+.att.screen-wrap{gap:14px}
+.att .sc-card{margin:0;padding:16px}
+.att .sc-card.att-co{padding:0}
+.att-st-rec{--c:var(--sub)}
+.att-today-top{margin-bottom:14px}
+.att-today-d{font-size:calc(17px*var(--app-text-scale,1))}
+.att-pill{display:inline-flex;align-items:center;gap:5px}
+.att-quick{gap:8px}
+.att-q{min-height:66px;border-radius:16px;background:color-mix(in srgb,var(--c) 7%,var(--surface));border-color:color-mix(in srgb,var(--c) 28%,var(--border))}
+.att-q.on{background:var(--c);border-color:var(--c);color:#fff;box-shadow:0 4px 12px color-mix(in srgb,var(--c) 35%,transparent)}
+.att-today .att-link{margin-top:10px;padding:8px;width:100%;border-radius:12px;background:var(--surface2);color:var(--sub)}
+.att-sum{display:flex;flex-direction:column;gap:16px}
+.att-sum .att-seg-row{margin:0}
+.att-sum-top{display:flex;align-items:center;gap:16px}
+.att-ring{position:relative;width:84px;height:84px;flex-shrink:0;border-radius:50%;display:flex;align-items:center;justify-content:center;background:conic-gradient(var(--green) calc(var(--p)*1%),var(--surface2) 0)}
+.att-ring::before{content:"";position:absolute;inset:9px;border-radius:50%;background:var(--surface)}
+.att-ring b{position:relative;font-size:calc(18px*var(--app-text-scale,1));font-weight:900;color:var(--green)}
+.att-sum-txt{min-width:0;display:flex;flex-direction:column;gap:2px}
+.att-sum-title{font-size:calc(15px*var(--app-text-scale,1));font-weight:900;color:var(--text)}
+.att-sum-sc{font-size:calc(12.5px*var(--app-text-scale,1));font-weight:800;color:var(--green)}
+.att-sum .att-rate-n{margin-top:4px}
+.att-stats{grid-template-columns:repeat(4,1fr);gap:8px}
+.att-stat{padding:10px 2px;border-radius:14px}
+.att-stat.att-st-rec{background:var(--surface2);border-color:var(--border)}
+.att-stat.att-st-rec .att-stat-n{color:var(--text)}
+.att-nav{margin-bottom:14px}
+.att-month{font-size:calc(16px*var(--app-text-scale,1))}
+.att-cal{gap:5px}
+.att-dn{padding:0 0 6px;font-size:calc(10.5px*var(--app-text-scale,1));text-transform:uppercase;letter-spacing:.3px}
+.att-day{border-radius:12px;border:1px solid transparent;background:var(--surface2);font-size:calc(13.5px*var(--app-text-scale,1))}
+.att-day b{font-weight:700}
+.att-day.has{background:color-mix(in srgb,var(--c) 20%,var(--surface));border-color:color-mix(in srgb,var(--c) 45%,transparent);color:var(--c)}
+.att-day.has b{font-weight:900}
+.att-day.today{box-shadow:none;border:2px solid var(--green)}
+.att-day.today b{color:var(--green)}
+.att-day.has.today b{color:var(--c)}
+.att-cal-card .att-hint{margin-top:12px}
+.att-notes .att-lbl{margin-bottom:2px}
+/* workplace: compact, collapsible */
+.att-co{display:flex;flex-direction:column;align-items:stretch;gap:0;padding:0;overflow:hidden}
+.att-co-head{display:flex;align-items:center;gap:12px;width:100%;padding:12px 14px;border:0;background:none;color:var(--text);font-family:inherit;text-align:start;cursor:pointer}
+.att-logo-s{width:44px;height:44px;flex-shrink:0;border-radius:13px;background:var(--green-tint);color:var(--green);display:flex;align-items:center;justify-content:center;overflow:hidden}
+.att-logo-s .bl-img,.att-logo-s img{border-radius:13px}
+.att-co-txt{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.att-co-txt b{font-size:calc(14.5px*var(--app-text-scale,1));font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.att-co-txt small{font-size:calc(11.5px*var(--app-text-scale,1));font-weight:600;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.att-chev.dn{transform:rotate(225deg);margin-inline-end:4px;border-color:var(--sub)}
+.att-chev.dn.up{transform:rotate(45deg)}
+.att-co>.att-map{margin:0 14px 12px;height:42px;background:var(--green-tint);color:var(--green);border:1px solid color-mix(in srgb,var(--green) 25%,transparent)}
+.att-co-body{display:flex;flex-direction:column;gap:12px;padding:14px;border-top:1px solid var(--border);background:var(--surface2)}
+.att-co-body .att-co-top{display:flex;align-items:center;gap:12px}
+.att-co-body .att-logo{width:60px;height:60px;border-radius:16px;background:var(--surface)}
+.att-co-body .att-co-f input{background:var(--surface)}
+.att-co-body .att-co-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.att-co-body .att-co-wide{grid-column:1/-1}
+.att-co-body .att-rmlogo,.att-co-body .att-logo-hint{margin:0!important;text-align:start;align-self:flex-start}
+.att-foot{padding:4px 0 8px}
+
+.att-multi-bar{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px}
+.att-seg-sm{margin:0;flex:1;max-width:240px}.att-seg-sm .att-seg{height:32px}
+.att-mini{height:34px;padding:0 14px;border:1px solid var(--border);border-radius:11px;background:var(--surface);color:var(--sub);font-family:inherit;font-size:calc(12.5px*var(--app-text-scale,1));font-weight:800;display:inline-flex;align-items:center;justify-content:center;gap:6px;cursor:pointer}
+.att-mini:disabled{opacity:.4;pointer-events:none}
+.att-mini-main{background:var(--green-tint);border-color:color-mix(in srgb,var(--green) 30%,transparent);color:var(--green)}
+.att-multi-bar .att-mini-main:only-child{margin-inline-start:auto}
+.att-day.sel{border:2px solid var(--green);background:color-mix(in srgb,var(--green) 18%,var(--surface));box-shadow:0 0 0 2px color-mix(in srgb,var(--green) 25%,transparent)}
+.att-day.rstart{border-style:dashed}
+.att-act{display:flex;align-items:center;gap:8px;margin-top:12px;padding:10px;border-radius:14px;background:var(--surface2)}
+.att-act span{flex:1;font-size:calc(13px*var(--app-text-scale,1));font-weight:700;color:var(--sub)}
+.att-act span b{color:var(--green);font-size:calc(16px*var(--app-text-scale,1))}
 @media (prefers-reduced-motion:reduce){.prj-card{transition:none}}
 
 /* ── Data entry: calmer, aligned layout ── */
@@ -11152,10 +11225,6 @@ function fpInitSmartHeader(){
             <button class="hdr-more-item" onclick="hdrCloseMoreMenu();setView('mylocations')">
               <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0zM12 13a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/></svg>
               <span data-i18n-en="Place History" data-i18n-ar="سجل الأماكن">Place History</span>
-            </button>
-            <button class="hdr-more-item" onclick="hdrCloseMoreMenu();setView('attendance')">
-              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-              <span data-i18n-en="Attendance" data-i18n-ar="الحضور والغياب">Attendance</span>
             </button>
             <div class="hdr-more-sep" role="separator"></div>
             <button class="hdr-more-item" onclick="hdrCloseMoreMenu();toggleTheme()">
@@ -13579,6 +13648,7 @@ const WS_FAB_ACTION_MAP = {
 // Dashboard identity FAB removed along with the workspace/role system — the
 // dashboard FAB always opens the generic FAB picker now.
 function setView(v){
+  if(v==='attendance'){ window._cxLand='attendance'; v='expenses'; } // Attendance now lives inside My Job (third tab)
   // Defensive guard: if the workspace changed since the last render and a
   // stale caller (FAB, deep link, quick action) still points at a screen
   // this role can no longer reach, redirect to that role's own dashboard
@@ -31519,6 +31589,7 @@ function generateExpenseAIInsights(exps, groups){
 // (addCustodyDeposit, editCustodyDeposit, deleteCustodyDeposit, openEdit('exp'),
 // deleteExp, deleteNoteGroup, _ng* categorize) are untouched.
 function renderExpenses(m){
+  if(_cxTab==='attendance') return ATT.render();
   if(_cxTab==='requests') return renderMyRequests();
   const allRaw=m?.site_expenses||[];
   const all=allRaw.filter(_prjMine);
@@ -32607,10 +32678,10 @@ async function _rqRunTranslate(id,targetLang){
 
 function _cxTabsHTML(){
   const t=(k,lbl)=>`<button type="button" role="tab" class="cx-seg-btn${_cxTab===k?' on':''}" aria-selected="${_cxTab===k?'true':'false'}" onclick="_cxSetTab('${k}')">${lbl}</button>`;
-  return `<div class="cx-seg cx-tabs" role="tablist">${t('requests',L('My Receipts','استلاماتي'))}${t('custody',L('Custody','العهدة'))}</div>`;
+  return `<div class="cx-seg cx-tabs" role="tablist">${t('requests',L('My Receipts','استلاماتي'))}${t('custody',L('Custody','العهدة'))}${t('attendance',L('Attendance','الحضور'))}</div>`;
 }
 function _cxSetTab(k){
-  const nk=(k==='requests')?'requests':'custody';
+  const nk=(k==='requests'||k==='attendance')?k:'custody';
   if(nk===_cxTab) return;
   _cxTab=nk; searchQ='';
   renderView();
@@ -35495,6 +35566,7 @@ function openFabPicker(e){
 }
 function openExpPicker(e){
   e && e.stopPropagation();
+  if(_cxTab==='attendance'){ ATT.openDay(today()); return; }
   if(_cxTab==='requests'){ openRequestModal(null); return; }
   _fpFabPickerRemoveNow();
   const picker=document.createElement('div');
@@ -35580,7 +35652,7 @@ function closeFabPicker(){
   setTimeout(()=>{ picker?.remove(); bd?.remove(); },130);
 }
 function openAddTx(){openAdd();}
-function openAdd(){editTarget=null;if(currentView==='transactions') showTxModal(null);else if(currentView==='expenses'){ if(_cxTab==='requests') openRequestModal(null); else showExpModal(null); }}
+function openAdd(){editTarget=null;if(currentView==='transactions') showTxModal(null);else if(currentView==='expenses'){ if(_cxTab==='attendance') ATT.openDay(today()); else if(_cxTab==='requests') openRequestModal(null); else showExpModal(null); }}
 function openEdit(type,idx){editTarget={type,idx};if(type==='tx') showTxModal(DATA[activeMonth].transactions[idx]);else showExpModal(DATA[activeMonth].site_expenses[idx]);}
 
 // ── AI Quick Entry (UI only — no AI parsing yet) ────────────────────────────
@@ -44143,7 +44215,7 @@ const ATT=(function(){
   const BY={}; ST.forEach(x=>{ BY[x.k]=x; });
   let db=null;
   const nowD=new Date();
-  let vy=nowD.getFullYear(), vm=nowD.getMonth(), scope='month', sel='';
+  let vy=nowD.getFullYear(), vm=nowD.getMonth(), scope='month', sel='', coOpen=null, multi=false, rangeMode=false, rangeStart='', msel=new Set();
   const pad=n=>(n<10?'0':'')+n;
   const dk=(y,m,d)=>y+'-'+pad(m+1)+'-'+pad(d);
   const tk=()=>{ const t=new Date(); return dk(t.getFullYear(),t.getMonth(),t.getDate()); };
@@ -44192,7 +44264,7 @@ const ATT=(function(){
     for(let i=0;i<first;i++) cells+='<div class="att-day empty"></div>';
     for(let d=1;d<=days;d++){
       const key=dk(vy,vm,d), r=db.days[key], x=r&&BY[r.s];
-      cells+=`<button type="button" class="att-day${x?' att-st-'+x.k+' has':''}${key===tkey?' today':''}" onclick="ATT.openDay('${key}')" aria-label="${key}${x?' — '+esc(stLbl(x)):''}"><b>${d}</b>${x?`<i></i>`:''}${r&&r.n?'<u></u>':''}</button>`;
+      cells+=`<button type="button" class="att-day${x?' att-st-'+x.k+' has':''}${key===tkey?' today':''}${msel.has(key)?' sel':''}${rangeStart===key?' rstart':''}" onclick="ATT.tapDay('${key}')" aria-pressed="${msel.has(key)}" aria-label="${key}${x?' — '+esc(stLbl(x)):''}"><b>${d}</b>${r&&r.n?'<u></u>':''}</button>`;
     }
     const legend=ST.map(x=>`<span class="att-lg att-st-${x.k}"><i></i>${stLbl(x)}</span>`).join('');
     // notes of the viewed month
@@ -44202,58 +44274,83 @@ const ATT=(function(){
       return `<button type="button" class="att-note att-st-${r.s}" onclick="ATT.openDay('${k}')"><span class="att-note-d">${parseInt(k.slice(8),10)}</span><span class="att-note-b"><b>${x?esc(stLbl(x)):''}</b><span dir="auto">${esc(r.n)}</span></span></button>`;
     }).join('');
     const sc=(k,en,ar)=>`<button type="button" class="att-seg${scope===k?' on':''}" aria-pressed="${scope===k}" onclick="ATT.setScope('${k}')">${L(en,ar)}</button>`;
-    return `<div class="screen-wrap att">
+    const isOpen = coOpen===null ? !db.company : coOpen;
+    const subLine = [db.project,db.location].filter(Boolean).map(esc).join(' · ');
+    const tiles = stats + `<div class="att-stat att-st-rec"><span class="att-stat-ic">${ic('calendar',14)}</span><span class="att-stat-n">${total}</span><span class="att-stat-l">${L('Recorded','المسجّل')}</span></div>`;
+    return `<div class="screen-wrap cx-wrap att">
       <div class="sc-header">
-        <div class="sc-header-eyebrow">${L('My work','شغلي')}</div>
-        <div class="sc-header-title">${L('Attendance','الحضور والغياب')}</div>
+        <div class="sc-header-eyebrow">${L('Site','الموقع')}</div>
+        <div class="sc-header-title">${L('My Job','My Job')}</div>
         <div class="sc-header-sub" dir="auto">${[db.company,db.project,db.location].filter(Boolean).map(esc).join(' · ')||L('Track your attendance, absence and leave','تابع حضورك وغيابك وإجازاتك')}</div>
       </div>
-      <div class="sc-card att-co">
-        <div class="att-co-top">
-          <label class="att-logo" title="${L('Company logo','لوجو الشركة')}">
-            ${db.logo?bankLogoHTML(db.logo,64,{alt:''}):`<span class="att-logo-ph">${ic('building',26)}</span>`}
-            <span class="att-logo-cam">${ic('photo',12)}</span>
-            <input type="file" accept="image/*" style="display:none" onchange="ATT.pickLogo(this)">
-          </label>
-          <label class="att-co-f"><span>${L('Company name','اسم الشركة')}</span>
-            <input type="text" id="attCo" dir="auto" autocomplete="off" maxlength="80" value="${esc(db.company)}" placeholder="${L('Enter your company name','اكتب اسم الشركة')}" onchange="ATT.setField('company',this.value)"></label>
-        </div>
-        ${db.logo?`<button type="button" class="att-link danger att-rmlogo" onclick="ATT.removeLogo()">${ic('trash',13)} ${L('Remove logo','حذف اللوجو')}</button>`:`<div class="att-hint att-logo-hint">${L('Tap the icon to add the company logo','اضغط على الأيقونة لإضافة لوجو الشركة')}</div>`}
-        <div class="att-co-grid">
-          <label class="att-co-f"><span>${ic('briefcase',12)} ${L('Project name','اسم المشروع')}</span>
-            <input type="text" dir="auto" autocomplete="off" maxlength="80" value="${esc(db.project)}" placeholder="${L('Project you work on','المشروع اللي شغال عليه')}" onchange="ATT.setField('project',this.value)"></label>
-          <label class="att-co-f"><span>${ic('pin',12)} ${L('Location','اللوكيشن')}</span>
-            <input type="text" dir="auto" autocomplete="off" maxlength="100" value="${esc(db.location)}" placeholder="${L('Site or city','الموقع أو المدينة')}" onchange="ATT.setField('location',this.value)"></label>
-          <label class="att-co-f"><span>${ic('link',12)} ${L('Map link','رابط الخريطة')}</span>
-            <input type="url" dir="ltr" inputmode="url" autocomplete="off" autocapitalize="off" maxlength="500" value="${esc(db.mapLink)}" placeholder="https://maps.google.com/..." onchange="ATT.setField('mapLink',this.value)"></label>
-          ${mapUrl()?`<a class="att-map" href="${esc(mapUrl())}" target="_blank" rel="noopener">${ic('pin',15)} ${L('Open on map','فتح على الخريطة')}</a>`:''}
-        </div>
-      </div>
+      ${typeof _cxTabsHTML==='function'?_cxTabsHTML():''}
+
       <div class="sc-card att-today">
         <div class="att-today-top"><div><div class="att-lbl">${L('Today','النهاردة')}</div><div class="att-today-d">${tName}</div></div>
-          ${trec&&BY[trec.s]?`<span class="att-pill att-st-${trec.s}">${stLbl(BY[trec.s])}</span>`:`<span class="att-pill none">${L('Not recorded','لسه متسجلش')}</span>`}</div>
+          ${trec&&BY[trec.s]?`<span class="att-pill att-st-${trec.s}">${ic(BY[trec.s].ic,12)} ${stLbl(BY[trec.s])}</span>`:`<span class="att-pill none">${L('Not recorded','لسه متسجلش')}</span>`}</div>
         <div class="att-quick">${quick}</div>
         <button type="button" class="att-link" onclick="ATT.openDay('${tkey}')">${L('More options / add a note','خيارات أكتر / إضافة ملاحظة')}</button>
       </div>
+
       <div class="sc-card att-sum">
         <div class="att-seg-row">${sc('month','Month','الشهر')}${sc('year','Year','السنة')}${sc('all','All','الكل')}</div>
-        <div class="att-sum-hd"><span>${esc(scopeLabel())}</span><em>${total} ${L('days recorded','يوم مسجّل')}</em></div>
-        <div class="att-stats">${stats}</div>
-        <div class="att-rate"><div class="att-rate-top"><span>${L('Attendance rate','نسبة الحضور')}</span><b>${rate===null?'—':rate+'%'}</b></div>
-          <div class="att-track"><div class="att-fill" style="width:${rate===null?0:rate}%"></div></div>
-          <div class="att-rate-n">${L('Present + late out of working days (leave days included, holidays and days off excluded)','الحضور + التأخير من أيام العمل (الإجازات محسوبة، والرسمي والراحة مش محسوبين)')}</div></div>
+        <div class="att-sum-top">
+          <div class="att-ring" style="--p:${rate===null?0:rate}" role="img" aria-label="${L('Attendance rate','نسبة الحضور')} ${rate===null?'—':rate+'%'}"><b>${rate===null?'—':rate+'%'}</b></div>
+          <div class="att-sum-txt">
+            <div class="att-sum-title">${L('Attendance rate','نسبة الحضور')}</div>
+            <div class="att-sum-sc">${esc(scopeLabel())}</div>
+            <div class="att-rate-n">${L('Present + late out of working days. Holidays and days off are excluded.','الحضور + التأخير من أيام العمل. الرسمي والراحة مش محسوبين.')}</div>
+          </div>
+        </div>
+        <div class="att-stats">${tiles}</div>
       </div>
+
       <div class="sc-card att-cal-card">
         <div class="att-nav">
           <button type="button" class="icon-btn" onclick="ATT.nav(-1)" aria-label="${L('Previous month','الشهر السابق')}"><span class="att-chev prev"></span></button>
-          <button type="button" class="att-month" onclick="ATT.goToday()">${esc(monthLabel())}</button>
+          <button type="button" class="att-month" onclick="ATT.goToday()" title="${L('Back to today','الرجوع لليوم')}">${esc(monthLabel())}</button>
           <button type="button" class="icon-btn" onclick="ATT.nav(1)" aria-label="${L('Next month','الشهر التالي')}"><span class="att-chev next"></span></button>
         </div>
+        <div class="att-multi-bar">${multi
+          ? `<div class="att-seg-row att-seg-sm"><button type="button" class="att-seg${!rangeMode?' on':''}" onclick="ATT.setRangeMode(false)">${L('Pick days','أيام متفرقة')}</button><button type="button" class="att-seg${rangeMode?' on':''}" onclick="ATT.setRangeMode(true)">${L('Range','من – إلى')}</button></div><button type="button" class="att-mini" onclick="ATT.toggleMulti()">${L('Cancel','إلغاء')}</button>`
+          : `<button type="button" class="att-mini att-mini-main" onclick="ATT.toggleMulti()">${ic('check',13)} ${L('Select multiple days','تحديد عدة أيام')}</button>`}</div>
         <div class="att-cal">${cells}</div>
-        <div class="att-legend">${legend}</div>
-        <div class="att-hint">${L('Tap a day to set its status','اضغط على أي يوم لتحديد حالته')}</div>
+        ${multi?`<div class="att-hint">${rangeMode?(rangeStart?L('Now tap the last day of the range','دوس على آخر يوم في الفترة'):L('Tap the first day of the range','دوس على أول يوم في الفترة')):L('Tap the days you want, then set their status','دوس على الأيام اللي عايزها وبعدين حدد حالتها')}</div>
+        <div class="att-act"><span><b>${msel.size}</b> ${L('selected','يوم محدد')}</span><button type="button" class="att-mini" onclick="ATT.clearSel()" ${msel.size?'':'disabled'}>${L('Clear','مسح التحديد')}</button><button type="button" class="att-mini att-mini-main" onclick="ATT.openMulti()" ${msel.size?'':'disabled'}>${L('Set status','تحديد الحالة')}</button></div>`
+        :`<div class="att-hint">${L('Tap a day to set its status','اضغط على أي يوم لتحديد حالته')}</div>`}
       </div>
+
       ${notes?`<div class="sc-card att-notes"><div class="att-lbl">${L('Notes this month','ملاحظات الشهر')}</div>${notes}</div>`:''}
+
+      <div class="sc-card att-co${isOpen?' open':''}">
+        <button type="button" class="att-co-head" onclick="ATT.toggleCo()" aria-expanded="${isOpen}">
+          <span class="att-logo-s">${db.logo?bankLogoHTML(db.logo,40,{alt:''}):`<span class="att-logo-ph">${ic('building',20)}</span>`}</span>
+          <span class="att-co-txt"><b dir="auto">${db.company?esc(db.company):L('Workplace details','بيانات جهة العمل')}</b><small dir="auto">${subLine||L('Company, project, location and map link','الشركة والمشروع والموقع ورابط الخريطة')}</small></span>
+          <span class="att-chev dn${isOpen?' up':''}"></span>
+        </button>
+        ${mapUrl()?`<a class="att-map" href="${esc(mapUrl())}" target="_blank" rel="noopener">${ic('pin',15)} ${L('Open on map','فتح على الخريطة')}</a>`:''}
+        ${isOpen?`<div class="att-co-body">
+          <div class="att-co-top">
+            <label class="att-logo" title="${L('Company logo','لوجو الشركة')}">
+              ${db.logo?bankLogoHTML(db.logo,56,{alt:''}):`<span class="att-logo-ph">${ic('building',24)}</span>`}
+              <span class="att-logo-cam">${ic('photo',12)}</span>
+              <input type="file" accept="image/*" style="display:none" onchange="ATT.pickLogo(this)">
+            </label>
+            <label class="att-co-f"><span>${L('Company name','اسم الشركة')}</span>
+              <input type="text" id="attCo" dir="auto" autocomplete="off" maxlength="80" value="${esc(db.company)}" placeholder="${L('Enter your company name','اكتب اسم الشركة')}" onchange="ATT.setField('company',this.value)"></label>
+          </div>
+          ${db.logo?`<button type="button" class="att-link danger att-rmlogo" onclick="ATT.removeLogo()">${ic('trash',13)} ${L('Remove logo','حذف اللوجو')}</button>`:`<div class="att-hint att-logo-hint">${L('Tap the icon to add the company logo','اضغط على الأيقونة لإضافة لوجو الشركة')}</div>`}
+          <div class="att-co-grid">
+            <label class="att-co-f"><span>${ic('briefcase',12)} ${L('Project name','اسم المشروع')}</span>
+              <input type="text" dir="auto" autocomplete="off" maxlength="80" value="${esc(db.project)}" placeholder="${L('Project you work on','المشروع اللي شغال عليه')}" onchange="ATT.setField('project',this.value)"></label>
+            <label class="att-co-f"><span>${ic('pin',12)} ${L('Location','اللوكيشن')}</span>
+              <input type="text" dir="auto" autocomplete="off" maxlength="100" value="${esc(db.location)}" placeholder="${L('Site or city','الموقع أو المدينة')}" onchange="ATT.setField('location',this.value)"></label>
+            <label class="att-co-f att-co-wide"><span>${ic('link',12)} ${L('Map link','رابط الخريطة')}</span>
+              <input type="url" dir="ltr" inputmode="url" autocomplete="off" autocapitalize="off" maxlength="500" value="${esc(db.mapLink)}" placeholder="https://maps.google.com/..." onchange="ATT.setField('mapLink',this.value)"></label>
+          </div>
+        </div>`:''}
+      </div>
+
       <div class="att-foot"><button type="button" class="att-link danger" onclick="ATT.clearMonth()">${ic('trash',13)} ${L('Clear this month','مسح بيانات الشهر')}</button></div>
     </div>`;
   }
@@ -44313,6 +44410,72 @@ const ATT=(function(){
     try{ renderView(true); }catch(e){}
   }
   function goToday(){ const t=new Date(); vy=t.getFullYear(); vm=t.getMonth(); try{ renderView(true); }catch(e){} }
+
+  function toggleMulti(){ multi=!multi; msel=new Set(); rangeStart=''; rangeMode=false; try{ renderView(true); }catch(e){} }
+  function setRangeMode(on){ rangeMode=!!on; rangeStart=''; try{ renderView(true); }catch(e){} }
+  function clearSel(){ msel=new Set(); rangeStart=''; try{ renderView(true); }catch(e){} }
+  function tapDay(key){
+    if(!multi){ openDay(key); return; }
+    if(rangeMode){
+      if(!rangeStart){ rangeStart=key; msel.add(key); }
+      else{
+        let a=rangeStart, b=key; if(a>b){ const t=a; a=b; b=t; }
+        const ya=+a.slice(0,4), ma=+a.slice(5,7)-1, da=+a.slice(8,10);
+        const d=new Date(ya,ma,da);
+        for(let i=0;i<400;i++){ const k=dk(d.getFullYear(),d.getMonth(),d.getDate()); msel.add(k); if(k===b) break; d.setDate(d.getDate()+1); }
+        rangeStart='';
+      }
+    } else {
+      if(msel.has(key)) msel.delete(key); else msel.add(key);
+    }
+    try{ renderView(true); }catch(e){}
+  }
+  function openMulti(){
+    load();
+    if(!msel.size) return;
+    sel='';
+    const keys=Array.from(msel).sort();
+    const fmt=k=>new Date(+k.slice(0,4),+k.slice(5,7)-1,+k.slice(8,10)).toLocaleDateString(loc(),{day:'numeric',month:'short'});
+    const sub=keys.length+' '+L('days','يوم')+' · '+fmt(keys[0])+(keys.length>1?' → '+fmt(keys[keys.length-1]):'');
+    const chips=ST.map(x=>`<button type="button" class="att-chip att-st-${x.k}" data-k="${x.k}" onclick="ATT.pick('${x.k}')">${ic(x.ic,16)}<span>${stLbl(x)}</span></button>`).join('');
+    document.getElementById('modalContent').innerHTML=`<div class="modal-handle"></div>
+      <div class="rq-modal att-sheet">
+        <div class="modal-hdr">
+          <div class="modal-hdr-icon" style="background:linear-gradient(135deg,#0f7a55,#0a5c40)">${ic('attendance',22)}</div>
+          <div style="flex:1;min-width:0"><div class="modal-hdr-title">${L('Set status for selected days','حالة الأيام المحددة')}</div><div class="modal-hdr-sub">${esc(sub)}</div></div>
+          <button type="button" class="sheet-close-btn sq" onclick="closeModal()" aria-label="${L('Close','إغلاق')}">${ic('close',16)}</button>
+        </div>
+        <div class="att-chips">${chips}</div>
+        <div class="field"><label>${L('Note (optional — applied to all)','ملاحظة (اختياري — تتطبق على الكل)')}</label>
+          <input type="text" id="attNote" dir="auto" autocomplete="off" maxlength="200" placeholder="${L('e.g. annual leave trip…','مثال: إجازة سفر…')}"></div>
+        <div class="modal-btns">
+          <button class="mbtn save" onclick="ATT.saveMulti()">${L('Apply to all','تطبيق على الكل')}</button>
+          <button class="mbtn danger" onclick="ATT.clearMulti()">${L('Clear these days','مسح هذه الأيام')}</button>
+          <button class="mbtn cancel" onclick="closeModal()">${L('Cancel','إلغاء')}</button>
+        </div>
+      </div>`;
+    document.getElementById('modalOverlay').style.display='flex';
+  }
+  function saveMulti(){
+    load();
+    if(!sel){ showToast(L('Choose a status first','اختار الحالة الأول'),'warn'); return; }
+    const note=(document.getElementById('attNote')?.value||'').trim().slice(0,200);
+    const n=msel.size;
+    msel.forEach(k=>{ const prev=db.days[k]; db.days[k]={s:sel,n:note||(prev&&prev.n)||''}; });
+    if(!save()) return;
+    msel=new Set(); rangeStart=''; multi=false;
+    closeModal(); try{ renderView(true); }catch(e){}
+    showToast(L('Saved '+n+' days','تم حفظ '+n+' يوم'),'success');
+  }
+  function clearMulti(){
+    load(); const n=msel.size;
+    msel.forEach(k=>{ delete db.days[k]; });
+    if(!save()) return;
+    msel=new Set(); rangeStart=''; multi=false;
+    closeModal(); try{ renderView(true); }catch(e){}
+    showToast(L('Cleared '+n+' days','تم مسح '+n+' يوم'),'success');
+  }
+  function toggleCo(){ load(); coOpen = !(coOpen===null ? !db.company : coOpen); try{ renderView(true); }catch(e){} }
   function setScope(k){ scope=k; try{ renderView(true); }catch(e){} }
   // the saved map link wins; otherwise search the typed location on Google Maps
   function mapUrl(){
@@ -44342,7 +44505,7 @@ const ATT=(function(){
       if(save()){ try{ renderView(true); }catch(e){} showToast(L('Month cleared','تم مسح الشهر'),'success'); }
     });
   }
-  return {render,openDay,pick,saveDay,clearDay,quick,nav,goToday,setScope,setField,pickLogo,removeLogo,clearMonth};
+  return {render,openDay,pick,saveDay,clearDay,quick,nav,goToday,setScope,setField,pickLogo,removeLogo,clearMonth,toggleCo,toggleMulti,setRangeMode,clearSel,tapDay,openMulti,saveMulti,clearMulti};
 })();
 // My Locations photos live in IndexedDB; carry them through the app's existing backup/restore
 // (which only knows localStorage) without ever writing them into localStorage.
