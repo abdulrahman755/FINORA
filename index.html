@@ -10435,6 +10435,96 @@ html body .sc-header .sc-header-sub{padding-inline-start:12px;margin-top:4px;fon
 .att-act span b{color:var(--green);font-size:calc(16px*var(--app-text-scale,1))}
 @media (prefers-reduced-motion:reduce){.prj-card{transition:none}}
 
+/* ══ Attendance v3 — professional polish (today · summary · calendar · day sheet · dashboard card) ══ */
+.att.screen-wrap{gap:16px}
+.att .sc-card{border-radius:22px}
+.att-lbl{text-transform:uppercase;letter-spacing:.6px}
+[dir="rtl"] .att-lbl,[dir="rtl"] .att-dn{letter-spacing:0;text-transform:none}
+.att-sec-lbl{margin:2px 2px 8px;font-size:calc(11.5px*var(--app-text-scale,1));font-weight:800;color:var(--muted)}
+/* today card */
+.att-today{position:relative;overflow:hidden;padding-top:20px!important}
+.att-today::before{content:"";position:absolute;inset:0 0 auto 0;height:4px;background:linear-gradient(90deg,var(--green-dark),var(--green-light))}
+.att-today-top{align-items:flex-start}
+.att-today-d{font-size:calc(19px*var(--app-text-scale,1));font-weight:900;letter-spacing:-.2px}
+[dir="rtl"] .att-today-d{letter-spacing:0}
+.att-pill{padding:6px 12px;font-size:calc(12px*var(--app-text-scale,1))}
+/* check-in / check-out tiles */
+.att-times{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.att-time{--c:var(--green);display:flex;align-items:center;gap:10px;min-width:0;padding:10px 12px;border:1.5px dashed color-mix(in srgb,var(--c) 42%,var(--border));border-radius:16px;background:color-mix(in srgb,var(--c) 5%,var(--surface));color:var(--text);font-family:inherit;text-align:start;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:transform .12s,background .15s}
+.att-time.out{--c:var(--gold-dark,var(--gold))}
+.att-time.set{border-style:solid;border-color:color-mix(in srgb,var(--c) 38%,transparent);background:color-mix(in srgb,var(--c) 11%,var(--surface))}
+.att-time:active{transform:scale(.98)}
+.att-time-ic{width:34px;height:34px;flex-shrink:0;border-radius:11px;display:flex;align-items:center;justify-content:center;background:color-mix(in srgb,var(--c) 16%,var(--surface));color:var(--c)}
+.att-time-tx{display:flex;flex-direction:column;gap:1px;min-width:0}
+.att-time-tx small{font-size:calc(10.5px*var(--app-text-scale,1));font-weight:700;color:var(--sub)}
+.att-time-tx b{font-size:calc(15.5px*var(--app-text-scale,1));font-weight:900;color:var(--text);font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.att-time:not(.set) .att-time-tx b{font-size:calc(12px*var(--app-text-scale,1));font-weight:800;color:var(--c);white-space:normal;line-height:1.25}
+.att-dur{display:flex;align-items:center;justify-content:center;gap:6px;margin:-2px 0 12px;padding:7px 10px;border-radius:12px;background:var(--surface2);font-size:calc(12px*var(--app-text-scale,1));font-weight:700;color:var(--sub)}
+.att-dur b{font-weight:900;color:var(--text);font-variant-numeric:tabular-nums}
+.att-dur.ok{background:var(--green-tint);color:var(--green)}
+.att-dur.ok b{color:var(--green)}
+.att-q{min-height:64px;font-size:calc(12px*var(--app-text-scale,1))}
+/* summary */
+.att-ring{width:92px;height:92px;background:conic-gradient(from 0deg,var(--green-dark),var(--green-light) calc(var(--p)*1%),var(--surface2) 0);box-shadow:0 6px 18px -8px color-mix(in srgb,var(--green) 55%,transparent)}
+.att-ring::before{inset:10px}
+.att-ring b{font-size:calc(21px*var(--app-text-scale,1));letter-spacing:-.3px}
+.att-ring.sm{width:78px;height:78px}.att-ring.sm::before{inset:8px}.att-ring.sm b{font-size:calc(17px*var(--app-text-scale,1))}
+.att-stat{padding:12px 2px 10px;border-radius:16px;gap:3px}
+.att-stat-n{font-size:calc(22px*var(--app-text-scale,1));font-variant-numeric:tabular-nums}
+.att-hours{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.att-hours>span{display:flex;flex-direction:column;gap:2px;padding:10px 12px;border-radius:14px;background:var(--surface2);font-size:calc(11px*var(--app-text-scale,1));font-weight:700;color:var(--sub)}
+.att-hours>span b{font-size:calc(16px*var(--app-text-scale,1));font-weight:900;color:var(--text);font-variant-numeric:tabular-nums}
+/* calendar */
+.att-cal{gap:6px}
+.att-day{border-radius:14px}
+.att-day.fut{opacity:.78}
+.att-day.wk:not(.has) b{color:var(--sub)}
+.att-dn.wk{color:var(--sub);opacity:.85}
+.att-cal-card .att-legend{justify-content:center;margin-top:14px;padding-top:12px;border-top:1px dashed var(--border)}
+.att-multi-bar{margin-bottom:14px}
+/* day-status sheet */
+.att-sheet{gap:16px}
+.att-sheet .att-chips{gap:10px}
+.att-sheet .att-chip{min-height:50px;border-radius:14px;background:color-mix(in srgb,var(--c) 6%,var(--surface));border-color:color-mix(in srgb,var(--c) 28%,var(--border))}
+.att-sheet .att-chip.on{background:var(--c);border-color:var(--c);color:#fff;box-shadow:0 4px 12px color-mix(in srgb,var(--c) 32%,transparent)}
+.att-sheet .att-chip:last-child:nth-child(odd){grid-column:1/-1;justify-content:center}
+.att-times-edit{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.att-times-edit[hidden]{display:none}
+.att-tf{display:flex;flex-direction:column;gap:6px;min-width:0}
+.att-tf>span{display:flex;align-items:center;gap:5px;font-size:calc(12px*var(--app-text-scale,1));font-weight:700;color:var(--muted)}
+.att-tf>span svg{color:var(--green)}
+.att-tf-row{display:flex;gap:6px;min-width:0}
+.att-tf input[type=time]{flex:1;min-width:0;width:100%;height:46px;box-sizing:border-box;padding:0 10px;border:1px solid var(--border);border-radius:12px;background:var(--surface2);color:var(--text);font-family:inherit;font-size:calc(14.5px*var(--app-text-scale,1));font-weight:700;font-variant-numeric:tabular-nums;text-align:center}
+.att-tf input[type=time]:focus{outline:0;border-color:var(--green);box-shadow:0 0 0 3px var(--green-glow)}
+.att-now{flex:none;height:46px;padding:0 12px;border:1px solid color-mix(in srgb,var(--green) 30%,transparent);border-radius:12px;background:var(--green-tint);color:var(--green);font-family:inherit;font-size:calc(12px*var(--app-text-scale,1));font-weight:800;cursor:pointer}
+.att-now:active{transform:scale(.96)}
+/* sheet footer: Save full-width, then Clear + Cancel side by side (buttons are rebuilt by the bottom-sheet auto-wrapper, so they are matched by data-attf) */
+.bs-footer:has(button[data-attf]){display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.bs-footer button[data-attf="save"]{grid-column:1/-1}
+.bs-footer button[data-attf="cancel"]:nth-child(2){grid-column:1/-1}
+.bs-footer button[data-attf="danger"],.bs-footer button[data-attf="cancel"]{min-height:46px;height:46px;box-shadow:none;font-size:calc(13.5px*var(--app-text-scale,1))}
+.bs-footer button[data-attf="danger"]{background:var(--red-tint)!important;background-image:none!important;color:var(--red)!important;border:1.5px solid color-mix(in srgb,var(--red) 28%,transparent)!important}
+/* dashboard card */
+.att-dash{display:flex;flex-direction:column;gap:12px;padding:16px!important;margin:0 0 12px}
+.att-dash-hd{display:flex;align-items:center;gap:10px}
+.att-dash-ic{width:38px;height:38px;flex-shrink:0;border-radius:12px;background:linear-gradient(135deg,var(--green),var(--green-dark));color:#fff;display:flex;align-items:center;justify-content:center}
+.att-dash-ttl{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
+.att-dash-ttl b{font-size:calc(14.5px*var(--app-text-scale,1));font-weight:800;color:var(--text)}
+.att-dash-ttl small{font-size:calc(11px*var(--app-text-scale,1));font-weight:600;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.att-dash-open{width:34px;height:34px;flex-shrink:0;border:0;border-radius:11px;background:var(--surface2);color:var(--sub);display:flex;align-items:center;justify-content:center;cursor:pointer}
+[dir="rtl"] .att-dash-open svg{transform:scaleX(-1)}
+.att-dash-body{display:flex;align-items:center;gap:14px}
+.att-dash-rate{min-width:0;display:flex;flex-direction:column;gap:2px}
+.att-dash .att-times{margin:0}
+.att-dash .att-dur{margin:0}
+.att-cta{--c:var(--green);display:flex;align-items:center;justify-content:center;gap:8px;width:100%;height:48px;border:0;border-radius:14px;background:linear-gradient(135deg,var(--green),var(--green-dark));color:#fff;font-family:inherit;font-size:calc(14px*var(--app-text-scale,1));font-weight:800;cursor:pointer;box-shadow:0 8px 18px -8px color-mix(in srgb,var(--green) 70%,transparent);-webkit-tap-highlight-color:transparent}
+.att-cta.out{background:linear-gradient(135deg,var(--gold),var(--gold-dark,var(--gold)))}
+.att-cta:active{transform:scale(.98)}
+.att-dash-mini{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.att-dash-mini .att-stat{padding:9px 2px 8px}
+.att-dash-mini .att-stat-n{font-size:calc(18px*var(--app-text-scale,1))}
+@media (max-width:360px){.att-times{grid-template-columns:1fr}}
+
 /* ── Data entry: calmer, aligned layout ── */
 .de-sheet .de-list{gap:0}
 .de-sheet .de-row{padding:12px 0;gap:12px;border-top:1px solid var(--border)}
@@ -10600,6 +10690,48 @@ html body .sc-header .sc-header-sub{padding-inline-start:12px;margin-top:4px;fon
 .cx-wrap .rq-hub-tx b{font-size:calc(15.5px*var(--app-text-scale,1))}
 .cx-wrap .rq-hub-tx small{font-size:calc(12px*var(--app-text-scale,1))}
 .cx-wrap .rq-hub-btn{min-height:48px;font-size:calc(13px*var(--app-text-scale,1));font-weight:700}
+
+/* ══ Buttons v4 — one simple, flat system (solid primary · outlined secondary · soft danger) ══
+   Overrides the older gradient/glow/ripple variants app-wide. Heights, radius and weight are uniform. */
+:root{--btn-h:46px;--btn-r:12px}
+.mbtn,.bs-save-btn,.bs-cancel-btn,.sc-btn,.ds-btn-primary,.ds-btn-secondary,.wm-save-btn,.rpt-cta,.rpt-cta2,.f-action-btn,.card-add-btn,.prj-create,.att-cta{
+  min-height:var(--btn-h);border-radius:var(--btn-r);letter-spacing:0;
+  font-size:calc(14px*var(--app-text-scale,1));font-weight:700;
+  box-shadow:none;text-shadow:none;transition:background-color .15s,border-color .15s,transform .1s}
+.mbtn,.bs-save-btn,.bs-cancel-btn{padding:0 16px}
+.att-cta{height:var(--btn-h)}
+/* primary: solid green */
+.mbtn.save,.bs-save-btn,.sc-btn.primary,.ds-btn-primary,.wm-save-btn,.rpt-cta,.bs-footer .rpt-foot-row .rpt-cta,.f-action-btn.primary,.att-cta,.ws-btn-primary{
+  background:var(--green);background-image:none;color:#fff;border:0;box-shadow:none}
+.mbtn.save:hover,.bs-save-btn:hover,.ds-btn-primary:not(:disabled):hover,.rpt-cta:hover,.att-cta:hover{box-shadow:none;background:var(--green)}
+.mbtn.save:active,.bs-save-btn:active,.sc-btn.primary:active,.ds-btn-primary:active,.wm-save-btn:active,.rpt-cta:active,.f-action-btn.primary:active,.att-cta:active{background:var(--green-dark);box-shadow:none;transform:scale(.98)}
+.att-cta.out{background:var(--green-dark);background-image:none}
+/* no ripple */
+.bs-save-btn::after,.mbtn.save::after{display:none!important}
+/* secondary: white with a thin border */
+.mbtn.cancel,.bs-cancel-btn,.f-action-btn.ghost,.card-add-btn.ghost,.rpt-cta2,.bs-footer .rpt-foot-row .rpt-cta2{
+  background:var(--surface);color:var(--text2,var(--text));border:1.5px solid var(--border);box-shadow:none;font-weight:600}
+.mbtn.cancel:active,.bs-cancel-btn:active,.f-action-btn.ghost:active,.card-add-btn.ghost:active{background:var(--surface2);border-color:var(--border-strong)}
+/* danger: soft red; confirmations (auto-wrapper rebuilds them as .bs-save-btn with an inline gradient) are solid red */
+.mbtn.danger{background:var(--red-tint);color:var(--red);border:1.5px solid color-mix(in srgb,var(--red) 25%,transparent);box-shadow:none}
+.mbtn.danger:active{background:color-mix(in srgb,var(--red) 18%,var(--surface))}
+.bs-save-btn[style*="gradient"]{background:var(--red)!important;background-image:none!important;color:#fff!important}
+/* add / small action buttons */
+.card-add-btn.green,.card-add-btn.emerald{background:var(--green);color:#fff;box-shadow:none}
+.card-add-btn.purple{background:var(--green);color:#fff;box-shadow:none}
+.prj-create{background:var(--green);color:#fff;box-shadow:none}
+/* floating add button & header month pill: flat */
+.fab{background:var(--green);background-image:none;box-shadow:0 2px 8px rgba(0,0,0,.18)}
+.fab:active{background:var(--green-dark)}
+.month-active-btn{background:var(--green);background-image:none;box-shadow:none}
+/* attendance: calmer secondary controls */
+.att-q{box-shadow:none!important}
+.att-q.on{box-shadow:none}
+.att-chip.on,.att-sheet .att-chip.on{box-shadow:none}
+.att-link,.att-mini{box-shadow:none}
+/* dashboard helpers */
+.wdash-manage-btn,.wdash-showall{box-shadow:none;font-weight:600}
+.fp-qa-btn{box-shadow:none}
 </style>
 <script>
 // Suppress cross-origin Script errors (in-app browsers like TikTok/Instagram)
@@ -10732,6 +10864,8 @@ const _ICONS = {
   warning:    'M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0zM12 9v4M12 17h.01',
   info:       'M12 22C6.48 22 2 17.52 2 12S6.48 2 12 2s10 4.48 10 10-4.48 10-10 10zm1-7h-2v-6h2v6zm0-8h-2V7h2v2z',
   check:      'M20 6L9 17l-5-5',
+  login:      'M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3',
+  logout:     'M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9',
   close:      'M18 6L6 18M6 6l12 12',
   plus:       'M12 5v14M5 12h14',
   minus:      'M5 12h14',
@@ -16291,7 +16425,8 @@ const WDASH_CARD_META = {
   trends:     {icon:'chart',   en:'Trends',                ar:'الاتجاهات'},
   summary:    {icon:'clipboard', en:'Summary',              ar:'الملخص'},
   toplists:   {icon:'bank',    en:'Top Categories',        ar:'أعلى التصنيفات'},
-  purchases:  {icon:'shopping_bag', en:'My Purchases',     ar:'مشترياتي'}
+  purchases:  {icon:'shopping_bag', en:'My Purchases',     ar:'مشترياتي'},
+  attendance: {icon:'attendance', en:'Attendance',         ar:'الحضور والانصراف'}
 };
 const WDASH_COLOR_SWATCHES = ['#0f7a55','#6d28d9','#c2410c','#4338ca','#0f766e','#be123c','#0369a1','#a16207','#4b5563'];
 // Chat request: the Manage Cards sheet showed most cards with a plain gray
@@ -16308,7 +16443,7 @@ const WDASH_COLOR_SWATCHES = ['#0f7a55','#6d28d9','#c2410c','#4338ca','#0f766e',
 const WDASH_CARD_DEFAULT_COLORS = {
   cash:'#0f7a55', site:'#be123c', sysintel:'#0369a1', activity:'#a16207',
   banks:'#4338ca', comparison:'#0f766e', trends:'#c2410c', summary:'#4b5563',
-  toplists:'#6d28d9', purchases:'#b45309'
+  toplists:'#6d28d9', purchases:'#b45309', attendance:'#0f7a55'
 };
 function _wdashPrefs(){
   try{
@@ -16483,7 +16618,12 @@ function renderWorkspaceDashboard(m){
     ? `<button type="button" class="wdash-showall" id="wdashShowAllBtn" aria-expanded="${_wdashShowAll?'true':'false'}" onclick="wdashToggleAll()">${_wdashShowAll ? L('Show less','عرض أقل') : L('Show all','عرض الكل')+' ('+visible.length+')'}</button>`
     : '';
   const appsHtml = tiles ? `<div class="wdash-apps-title">${L('Dashboards','الأقسام')}</div><div class="wdash-apps${_wdashCollapsible && !_wdashShowAll ? ' is-collapsed' : ''}" id="wdashApps" role="group" aria-label="${L('Dashboards','الأقسام')}">${tiles}</div>${_wdashToggleHtml}` : '';
-  return `<div class="wdash-wrap dv3-dark-v2">${manageBar}${heroHtml}${quickActionsHtml}${appsHtml}<div class="wdash-vault" aria-hidden="true" inert>${body}</div></div>`;
+  // Attendance card (check-in / check-out + monthly attendance rate) — My Job's attendance log, shown on the home screen.
+  let attendanceHtml = '';
+  if(canFinance && !hiddenSet.has('attendance')){
+    try{ attendanceHtml = ATT.dashCard(); }catch(e){ _logErr('wdash:attendance', e); }
+  }
+  return `<div class="wdash-wrap dv3-dark-v2">${manageBar}${heroHtml}${quickActionsHtml}${attendanceHtml}${appsHtml}<div class="wdash-vault" aria-hidden="true" inert>${body}</div></div>`;
 }
 
 // -- Dashboard tiles: collapsed to the first N, "Show all" expands (presentation-only) --
@@ -44235,23 +44375,56 @@ const ATT=(function(){
     catch(e){ _logErr('ATT:save',e); try{ showToast(L('⚠️ Could not save (storage full)','⚠️ تعذّر الحفظ (التخزين ممتلئ)'),'warn'); }catch(_){} return false; }
   }
   function scopePrefix(){ return scope==='month'?(vy+'-'+pad(vm+1)):(scope==='year'?String(vy):''); }
-  function counts(){
-    const pre=scopePrefix(), c={}; ST.forEach(x=>{ c[x.k]=0; });
-    let total=0;
+  // ── time helpers: check-in / check-out are optional "HH:MM" strings (r.i / r.o) ──
+  const WORKING=s=>s==='present'||s==='late';
+  const validT=v=>/^([01]\d|2[0-3]):[0-5]\d$/.test(String(v||''))?String(v):'';
+  const nowT=()=>{ const t=new Date(); return pad(t.getHours())+':'+pad(t.getMinutes()); };
+  const fmtT=t=>{ const m=/^(\d{2}):(\d{2})$/.exec(t||''); if(!m) return ''; try{ return new Date(2000,0,1,+m[1],+m[2]).toLocaleTimeString(loc(),{hour:'numeric',minute:'2-digit'}); }catch(e){ return t; } };
+  function durMin(i,o){
+    const a=/^(\d{2}):(\d{2})$/.exec(i||''), b=/^(\d{2}):(\d{2})$/.exec(o||'');
+    if(!a||!b) return 0;
+    let d=(+b[1]*60+ +b[2])-(+a[1]*60+ +a[2]); if(d<0) d+=1440;
+    return d;
+  }
+  function fmtDur(m){ const h=Math.floor(m/60), r=m%60; return h?(r?L(h+'h '+r+'m',h+'س '+r+'د'):L(h+'h',h+'س')):L(r+'m',r+'د'); }
+  function countsFor(pre){
+    const c={}; ST.forEach(x=>{ c[x.k]=0; });
+    let total=0, mins=0, hdays=0;
     Object.keys(db.days).forEach(k=>{
       if(pre&&k.indexOf(pre)!==0) return;
       const r=db.days[k];
-      if(r&&c[r.s]!==undefined){ c[r.s]++; total++; }
+      if(r&&c[r.s]!==undefined){
+        c[r.s]++; total++;
+        if(WORKING(r.s)&&r.i&&r.o){ const d=durMin(r.i,r.o); if(d>0){ mins+=d; hdays++; } }
+      }
     });
-    return {c,total};
+    return {c,total,mins,hdays};
+  }
+  function counts(){ return countsFor(scopePrefix()); }
+  function rateOf(c){ const worked=c.present+c.late, due=worked+c.absent+c.sick+c.leave; return due?Math.round(worked/due*100):null; }
+  function timeTile(kind,val,key){
+    const isIn=kind==='in';
+    const act=val?"ATT.openDay('"+key+"')":(isIn?'ATT.checkIn()':'ATT.checkOut()');
+    const lab=isIn?L('Check-in','الحضور'):L('Check-out','الانصراف');
+    const empty=isIn?L('Tap to check in','سجّل حضورك'):L('Tap to check out','سجّل انصرافك');
+    return `<button type="button" class="att-time ${kind}${val?' set':''}" onclick="${act}"><span class="att-time-ic">${ic(isIn?'login':'logout',16)}</span><span class="att-time-tx"><small>${lab}</small><b>${val?esc(fmtT(val)):empty}</b></span></button>`;
+  }
+  function durHTML(rec,onlyDone){
+    if(!rec||!WORKING(rec.s)||!rec.i) return '';
+    if(rec.o){ const m=durMin(rec.i,rec.o); return m>0?`<div class="att-dur ok">${ic('clock',13)} ${L('Worked','ساعات العمل')} <b>${fmtDur(m)}</b></div>`:''; }
+    if(onlyDone) return '';
+    return `<div class="att-dur">${ic('clock',13)} ${L('In progress since','شغّال من')} <b>${esc(fmtT(rec.i))}</b></div>`;
+  }
+  function hoursHTML(mins,hdays){
+    if(!(mins>0&&hdays>0)) return '';
+    return `<div class="att-hours"><span>${L('Total hours','إجمالي الساعات')}<b>${fmtDur(mins)}</b></span><span>${L('Daily average','متوسط اليوم')}<b>${fmtDur(Math.round(mins/hdays))}</b></span></div>`;
   }
   function monthLabel(){ return new Date(vy,vm,1).toLocaleDateString(loc(),{month:'long',year:'numeric'}); }
   function scopeLabel(){ return scope==='month'?monthLabel():(scope==='year'?String(vy):L('All time','كل الفترات')); }
   function render(){
     load();
-    const {c,total}=counts();
-    const worked=c.present+c.late, due=worked+c.absent+c.sick+c.leave;
-    const rate=due?Math.round(worked/due*100):null;
+    const {c,total,mins,hdays}=counts();
+    const rate=rateOf(c);
     const tkey=tk(), trec=db.days[tkey];
     const stats=ST.map(x=>`<div class="att-stat att-st-${x.k}"><span class="att-stat-ic">${ic(x.ic,14)}</span><span class="att-stat-n">${c[x.k]}</span><span class="att-stat-l">${L(x.sEn,x.sAr)}</span></div>`).join('');
     const quick=QUICK.map(k=>{ const x=BY[k]; return `<button type="button" class="att-q att-st-${k}${trec&&trec.s===k?' on':''}" onclick="ATT.quick('${k}')">${ic(x.ic,14)}<span>${stLbl(x)}</span></button>`; }).join('');
@@ -44260,11 +44433,11 @@ const ATT=(function(){
     const first=(new Date(vy,vm,1).getDay()+1)%7;          // week starts on Saturday
     const days=new Date(vy,vm+1,0).getDate();
     const dn=[L('Sat','س'),L('Sun','ح'),L('Mon','ن'),L('Tue','ث'),L('Wed','ر'),L('Thu','خ'),L('Fri','ج')];
-    let cells=dn.map(x=>`<div class="att-dn">${x}</div>`).join('');
+    let cells=dn.map((x,i)=>`<div class="att-dn${(i===0||i===6)?' wk':''}">${x}</div>`).join('');
     for(let i=0;i<first;i++) cells+='<div class="att-day empty"></div>';
     for(let d=1;d<=days;d++){
-      const key=dk(vy,vm,d), r=db.days[key], x=r&&BY[r.s];
-      cells+=`<button type="button" class="att-day${x?' att-st-'+x.k+' has':''}${key===tkey?' today':''}${msel.has(key)?' sel':''}${rangeStart===key?' rstart':''}" onclick="ATT.tapDay('${key}')" aria-pressed="${msel.has(key)}" aria-label="${key}${x?' — '+esc(stLbl(x)):''}"><b>${d}</b>${r&&r.n?'<u></u>':''}</button>`;
+      const key=dk(vy,vm,d), r=db.days[key], x=r&&BY[r.s], dow=(first+d-1)%7;
+      cells+=`<button type="button" class="att-day${x?' att-st-'+x.k+' has':''}${key===tkey?' today':''}${key>tkey?' fut':''}${(dow===0||dow===6)?' wk':''}${msel.has(key)?' sel':''}${rangeStart===key?' rstart':''}" onclick="ATT.tapDay('${key}')" aria-pressed="${msel.has(key)}" aria-label="${key}${x?' — '+esc(stLbl(x)):''}"><b>${d}</b>${r&&r.n?'<u></u>':''}</button>`;
     }
     const legend=ST.map(x=>`<span class="att-lg att-st-${x.k}"><i></i>${stLbl(x)}</span>`).join('');
     // notes of the viewed month
@@ -44288,6 +44461,9 @@ const ATT=(function(){
       <div class="sc-card att-today">
         <div class="att-today-top"><div><div class="att-lbl">${L('Today','النهاردة')}</div><div class="att-today-d">${tName}</div></div>
           ${trec&&BY[trec.s]?`<span class="att-pill att-st-${trec.s}">${ic(BY[trec.s].ic,12)} ${stLbl(BY[trec.s])}</span>`:`<span class="att-pill none">${L('Not recorded','لسه متسجلش')}</span>`}</div>
+        <div class="att-times">${timeTile('in',trec&&WORKING(trec.s)?trec.i:'',tkey)}${timeTile('out',trec&&WORKING(trec.s)?trec.o:'',tkey)}</div>
+        ${durHTML(trec)}
+        <div class="att-sec-lbl">${L('Or set today\'s status','أو حدّد حالة النهاردة')}</div>
         <div class="att-quick">${quick}</div>
         <button type="button" class="att-link" onclick="ATT.openDay('${tkey}')">${L('More options / add a note','خيارات أكتر / إضافة ملاحظة')}</button>
       </div>
@@ -44295,14 +44471,15 @@ const ATT=(function(){
       <div class="sc-card att-sum">
         <div class="att-seg-row">${sc('month','Month','الشهر')}${sc('year','Year','السنة')}${sc('all','All','الكل')}</div>
         <div class="att-sum-top">
-          <div class="att-ring" style="--p:${rate===null?0:rate}" role="img" aria-label="${L('Attendance rate','نسبة الحضور')} ${rate===null?'—':rate+'%'}"><b>${rate===null?'—':rate+'%'}</b></div>
+          <div class="att-ring" style="--p:${rate===null?0:rate}" role="img" aria-label="${L('Attendance rate','معدل الحضور')} ${rate===null?'—':rate+'%'}"><b>${rate===null?'—':rate+'%'}</b></div>
           <div class="att-sum-txt">
-            <div class="att-sum-title">${L('Attendance rate','نسبة الحضور')}</div>
+            <div class="att-sum-title">${L('Attendance rate','معدل الحضور')}</div>
             <div class="att-sum-sc">${esc(scopeLabel())}</div>
             <div class="att-rate-n">${L('Present + late out of working days. Holidays and days off are excluded.','الحضور + التأخير من أيام العمل. الرسمي والراحة مش محسوبين.')}</div>
           </div>
         </div>
         <div class="att-stats">${tiles}</div>
+        ${hoursHTML(mins,hdays)}
       </div>
 
       <div class="sc-card att-cal-card">
@@ -44318,6 +44495,7 @@ const ATT=(function(){
         ${multi?`<div class="att-hint">${rangeMode?(rangeStart?L('Now tap the last day of the range','دوس على آخر يوم في الفترة'):L('Tap the first day of the range','دوس على أول يوم في الفترة')):L('Tap the days you want, then set their status','دوس على الأيام اللي عايزها وبعدين حدد حالتها')}</div>
         <div class="att-act"><span><b>${msel.size}</b> ${L('selected','يوم محدد')}</span><button type="button" class="att-mini" onclick="ATT.clearSel()" ${msel.size?'':'disabled'}>${L('Clear','مسح التحديد')}</button><button type="button" class="att-mini att-mini-main" onclick="ATT.openMulti()" ${msel.size?'':'disabled'}>${L('Set status','تحديد الحالة')}</button></div>`
         :`<div class="att-hint">${L('Tap a day to set its status','اضغط على أي يوم لتحديد حالته')}</div>`}
+        <div class="att-legend">${legend}</div>
       </div>
 
       ${notes?`<div class="sc-card att-notes"><div class="att-lbl">${L('Notes this month','ملاحظات الشهر')}</div>${notes}</div>`:''}
@@ -44360,6 +44538,10 @@ const ATT=(function(){
     const y=+key.slice(0,4), m=+key.slice(5,7)-1, d=+key.slice(8,10);
     const title=new Date(y,m,d).toLocaleDateString(loc(),{weekday:'long',day:'numeric',month:'long',year:'numeric'});
     const chips=ST.map(x=>`<button type="button" class="att-chip att-st-${x.k}${sel===x.k?' on':''}" data-k="${x.k}" onclick="ATT.pick('${x.k}')">${ic(x.ic,16)}<span>${stLbl(x)}</span></button>`).join('');
+    const timesEdit=`<div class="att-times-edit" id="attTimes"${WORKING(sel)?'':' hidden'}>
+          <label class="att-tf"><span>${ic('login',13)} ${L('Check-in','وقت الحضور')}</span><div class="att-tf-row"><input type="time" id="attIn" value="${esc(r&&r.i?r.i:'')}"><button type="button" class="att-now" onclick="ATT.stamp('attIn')">${L('Now','الآن')}</button></div></label>
+          <label class="att-tf"><span>${ic('logout',13)} ${L('Check-out','وقت الانصراف')}</span><div class="att-tf-row"><input type="time" id="attOut" value="${esc(r&&r.o?r.o:'')}"><button type="button" class="att-now" onclick="ATT.stamp('attOut')">${L('Now','الآن')}</button></div></label>
+        </div>`;
     document.getElementById('modalContent').innerHTML=`<div class="modal-handle"></div>
       <div class="rq-modal att-sheet">
         <div class="modal-hdr">
@@ -44368,12 +44550,13 @@ const ATT=(function(){
           <button type="button" class="sheet-close-btn sq" onclick="closeModal()" aria-label="${L('Close','إغلاق')}">${ic('close',16)}</button>
         </div>
         <div class="att-chips">${chips}</div>
+        ${timesEdit}
         <div class="field"><label>${L('Note (optional)','ملاحظة (اختياري)')}</label>
           <input type="text" id="attNote" dir="auto" autocomplete="off" maxlength="200" value="${esc(r&&r.n?r.n:'')}" placeholder="${L('e.g. doctor visit, site visit…','مثال: كشف عند دكتور، زيارة موقع…')}"></div>
         <div class="modal-btns">
-          <button class="mbtn save" onclick="ATT.saveDay('${key}')">${L('Save','حفظ')}</button>
-          ${r?`<button class="mbtn danger" onclick="ATT.clearDay('${key}')">${L('Clear day','مسح اليوم')}</button>`:''}
-          <button class="mbtn cancel" onclick="closeModal()">${L('Cancel','إلغاء')}</button>
+          <button class="mbtn save" data-attf="save" onclick="ATT.saveDay('${key}')">${L('Save','حفظ')}</button>
+          ${r?`<button class="mbtn danger" data-attf="danger" onclick="ATT.clearDay('${key}')">${L('Clear day','مسح اليوم')}</button>`:''}
+          <button class="mbtn cancel" data-attf="cancel" onclick="closeModal()">${L('Cancel','إلغاء')}</button>
         </div>
       </div>`;
     document.getElementById('modalOverlay').style.display='flex';
@@ -44381,14 +44564,23 @@ const ATT=(function(){
   function pick(k){
     sel=(sel===k)?'':k;
     document.querySelectorAll('.att-chip').forEach(b=>b.classList.toggle('on',b.dataset.k===sel));
+    const tb=document.getElementById('attTimes'); if(tb) tb.hidden=!WORKING(sel);
   }
+  function stamp(id){ const el=document.getElementById(id); if(el) el.value=nowT(); }
   function saveDay(key){
     load();
     const note=(document.getElementById('attNote')?.value||'').trim().slice(0,200);
     if(!sel){
       if(note){ showToast(L('Choose a status first','اختار الحالة الأول'),'warn'); return; }
       delete db.days[key];
-    } else db.days[key]={s:sel,n:note};
+    } else {
+      const rec={s:sel,n:note};
+      if(WORKING(sel)){
+        const vi=validT(document.getElementById('attIn')?.value), vo=validT(document.getElementById('attOut')?.value);
+        if(vi) rec.i=vi; if(vo) rec.o=vo;
+      }
+      db.days[key]=rec;
+    }
     if(!save()) return;
     closeModal(); try{ renderView(true); }catch(e){}
     showToast(L('Saved','تم الحفظ'),'success');
@@ -44400,10 +44592,72 @@ const ATT=(function(){
   function quick(k){
     load();
     const key=tk(), prev=db.days[key];
-    db.days[key]={s:k,n:prev&&prev.n?prev.n:''};
+    const rec={s:k,n:prev&&prev.n?prev.n:''};
+    if(WORKING(k)&&prev&&WORKING(prev.s)){ if(prev.i) rec.i=prev.i; if(prev.o) rec.o=prev.o; }
+    db.days[key]=rec;
     if(!save()) return;
     try{ renderView(true); }catch(e){}
     showToast(L('Today: ','النهاردة: ')+stLbl(BY[k]),'success');
+  }
+  // one-tap check-in / check-out for today (works from My Job and from the dashboard card)
+  function checkIn(){
+    load();
+    const key=tk(), prev=db.days[key]||{}, keep=WORKING(prev.s);
+    const rec={s:keep?prev.s:'present',n:prev.n||'',i:nowT()};
+    if(keep&&prev.o) rec.o=prev.o;
+    db.days[key]=rec;
+    if(!save()) return;
+    try{ renderView(true); }catch(e){}
+    showToast(L('Checked in at ','تم تسجيل الحضور ')+fmtT(rec.i),'success');
+  }
+  function checkOut(){
+    load();
+    const key=tk(), prev=db.days[key]||{}, keep=WORKING(prev.s);
+    const rec={s:keep?prev.s:'present',n:prev.n||'',o:nowT()};
+    if(keep&&prev.i) rec.i=prev.i;
+    db.days[key]=rec;
+    if(!save()) return;
+    try{ renderView(true); }catch(e){}
+    showToast(L('Checked out at ','تم تسجيل الانصراف ')+fmtT(rec.o),'success');
+  }
+  function openPage(){ try{ navCloseAll(); }catch(e){} setView('attendance'); }
+  // compact card for the main dashboard: today's check-in/out + this month's attendance rate
+  function dashCard(){
+    load();
+    const now=new Date(), pre=now.getFullYear()+'-'+pad(now.getMonth()+1);
+    const {c,mins,hdays}=countsFor(pre);
+    const rate=rateOf(c), worked=c.present+c.late, due=worked+c.absent+c.sick+c.leave;
+    const tkey=tk(), trec=db.days[tkey]||null, x=trec&&BY[trec.s], work=!!(trec&&WORKING(trec.s));
+    const tIn=work&&trec.i?trec.i:'', tOut=work&&trec.o?trec.o:'';
+    const monthName=now.toLocaleDateString(loc(),{month:'long',year:'numeric'});
+    const dayName=now.toLocaleDateString(loc(),{weekday:'long',day:'numeric',month:'long'});
+    const pill=x?`<span class="att-pill att-st-${trec.s}">${ic(x.ic,12)} ${stLbl(x)}</span>`:`<span class="att-pill none">${L('Not recorded','لسه متسجلش')}</span>`;
+    let cta='';
+    if(!tIn) cta=`<button type="button" class="att-cta in" onclick="ATT.checkIn()">${ic('login',17)} ${L('Check in now','سجّل حضور الآن')}</button>`;
+    else if(!tOut) cta=`<button type="button" class="att-cta out" onclick="ATT.checkOut()">${ic('logout',17)} ${L('Check out now','سجّل انصراف الآن')}</button>`;
+    const mini=[['present',c.present,L('Present','حضور')],['late',c.late,L('Late','تأخير')],['absent',c.absent,L('Absent','غياب')],['leave',c.leave+c.sick,L('Leave','إجازات')]]
+      .map(a=>`<div class="att-stat att-st-${a[0]}"><span class="att-stat-n">${a[1]}</span><span class="att-stat-l">${a[2]}</span></div>`).join('');
+    return `<div class="sc-card att-dash" data-cardid="attendance">
+      <div class="att-dash-hd">
+        <span class="att-dash-ic">${ic('attendance',19)}</span>
+        <div class="att-dash-ttl"><b>${L('Attendance','الحضور والانصراف')}</b><small>${esc(dayName)}</small></div>
+        ${pill}
+        <button type="button" class="att-dash-open" onclick="ATT.openPage()" aria-label="${L('Open attendance','فتح الحضور')}">${ic('chevron_right',16)}</button>
+      </div>
+      <div class="att-dash-body">
+        <div class="att-ring sm" style="--p:${rate===null?0:rate}" role="img" aria-label="${L('Attendance rate','معدل الحضور')} ${rate===null?'—':rate+'%'}"><b>${rate===null?'—':rate+'%'}</b></div>
+        <div class="att-dash-rate">
+          <div class="att-sum-title">${L('Attendance rate','معدل الحضور')}</div>
+          <div class="att-sum-sc">${esc(monthName)}</div>
+          <div class="att-rate-n">${due?worked+' '+L('of','من')+' '+due+' '+L('working days','يوم عمل'):L('No records this month yet','لا توجد سجلات هذا الشهر بعد')}</div>
+        </div>
+      </div>
+      <div class="att-times">${timeTile('in',tIn,tkey)}${timeTile('out',tOut,tkey)}</div>
+      ${durHTML(work?trec:null,true)}
+      ${cta}
+      <div class="att-dash-mini">${mini}</div>
+      ${hoursHTML(mins,hdays)}
+    </div>`;
   }
   function nav(dm){
     vm+=dm; if(vm<0){ vm=11; vy--; } else if(vm>11){ vm=0; vy++; }
@@ -44449,9 +44703,9 @@ const ATT=(function(){
         <div class="field"><label>${L('Note (optional — applied to all)','ملاحظة (اختياري — تتطبق على الكل)')}</label>
           <input type="text" id="attNote" dir="auto" autocomplete="off" maxlength="200" placeholder="${L('e.g. annual leave trip…','مثال: إجازة سفر…')}"></div>
         <div class="modal-btns">
-          <button class="mbtn save" onclick="ATT.saveMulti()">${L('Apply to all','تطبيق على الكل')}</button>
-          <button class="mbtn danger" onclick="ATT.clearMulti()">${L('Clear these days','مسح هذه الأيام')}</button>
-          <button class="mbtn cancel" onclick="closeModal()">${L('Cancel','إلغاء')}</button>
+          <button class="mbtn save" data-attf="save" onclick="ATT.saveMulti()">${L('Apply to all','تطبيق على الكل')}</button>
+          <button class="mbtn danger" data-attf="danger" onclick="ATT.clearMulti()">${L('Clear these days','مسح هذه الأيام')}</button>
+          <button class="mbtn cancel" data-attf="cancel" onclick="closeModal()">${L('Cancel','إلغاء')}</button>
         </div>
       </div>`;
     document.getElementById('modalOverlay').style.display='flex';
@@ -44461,7 +44715,11 @@ const ATT=(function(){
     if(!sel){ showToast(L('Choose a status first','اختار الحالة الأول'),'warn'); return; }
     const note=(document.getElementById('attNote')?.value||'').trim().slice(0,200);
     const n=msel.size;
-    msel.forEach(k=>{ const prev=db.days[k]; db.days[k]={s:sel,n:note||(prev&&prev.n)||''}; });
+    msel.forEach(k=>{
+      const prev=db.days[k]||{}, rec={s:sel,n:note||prev.n||''};
+      if(WORKING(sel)&&WORKING(prev.s)){ if(prev.i) rec.i=prev.i; if(prev.o) rec.o=prev.o; }
+      db.days[k]=rec;
+    });
     if(!save()) return;
     msel=new Set(); rangeStart=''; multi=false;
     closeModal(); try{ renderView(true); }catch(e){}
@@ -44505,7 +44763,7 @@ const ATT=(function(){
       if(save()){ try{ renderView(true); }catch(e){} showToast(L('Month cleared','تم مسح الشهر'),'success'); }
     });
   }
-  return {render,openDay,pick,saveDay,clearDay,quick,nav,goToday,setScope,setField,pickLogo,removeLogo,clearMonth,toggleCo,toggleMulti,setRangeMode,clearSel,tapDay,openMulti,saveMulti,clearMulti};
+  return {render,dashCard,checkIn,checkOut,stamp,openPage,openDay,pick,saveDay,clearDay,quick,nav,goToday,setScope,setField,pickLogo,removeLogo,clearMonth,toggleCo,toggleMulti,setRangeMode,clearSel,tapDay,openMulti,saveMulti,clearMulti};
 })();
 // My Locations photos live in IndexedDB; carry them through the app's existing backup/restore
 // (which only knows localStorage) without ever writing them into localStorage.
