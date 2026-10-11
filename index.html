@@ -4530,7 +4530,7 @@ body[data-workspace] .wdash-wrap .rpt-card{--rpt-accent:var(--ws-primary);--rpt-
 }
 .cst-empty-cta:active{transform:scale(.96)}
 
-/* ── Custody compact KPI strip (Site Custody screen only) — dedicated
+/* ── Custody compact KPI strip (My Job screen only) — dedicated
    classes so the existing shared .sc-kpi family (also used by Reports
    Dashboard) stays completely untouched. Deposited / Spent / Remaining
    sit as one equal-weight compact row, Remaining gets slightly more
@@ -8817,7 +8817,7 @@ button.cx-sh-tap{width:100%;background:none;border:0;font-family:inherit;color:i
 .cx-mv-amt.with{color:var(--red)}
 .cx-mv-amt .cx-mn small{color:inherit;opacity:.7}
 .cx-wrap .cst-empty-state{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:28px 18px}
-/* ── My Requests (استلاماتي) — a tab inside Site Custody ─────────────────────
+/* ── My Requests (استلاماتي) — a tab inside My Job ─────────────────────
    Same quiet language as .cx-*: hairline borders, no gradients/glow. Status is
    carried only by a 4px inline-start rule + the existing .cx-chip colours
    (green = received, gold = received with notes, red = not received). */
@@ -8962,7 +8962,7 @@ button.cx-sh-tap{width:100%;background:none;border:0;font-family:inherit;color:i
 [data-theme="dark"] .fin-qa-row .fin-qa-chip:nth-child(3){background:var(--surface2);border-color:var(--border-strong);color:var(--text)}
 [data-theme="dark"] .fin-qa-row .fin-qa-chip:nth-child(2) svg{color:var(--red)}
 [data-theme="dark"] .fin-qa-row .fin-qa-chip:nth-child(3) svg{color:var(--sub)}
-/* Site Custody */
+/* My Job */
 [data-theme="dark"] .cx-hero{box-shadow:none}
 [data-theme="dark"] .cx-act{border-color:var(--border-strong);background:transparent}
 [data-theme="dark"] .cx-act.dep{background:var(--green);border-color:var(--green);color:#fff}
@@ -10238,6 +10238,130 @@ html body .sc-header .sc-header-sub{padding-inline-start:12px;margin-top:4px;fon
 .prj-av.on{box-shadow:0 0 0 2px var(--green)}
 .prj-edlg{cursor:pointer}
 
+/* ── Projects sheet: cards, swipe-to-delete, logo-first edit panel ── */
+.prj-sheet{gap:14px}
+.prj-sec-title{display:flex;align-items:center;justify-content:space-between;padding:0 4px;margin-bottom:-4px;font-size:calc(12px*var(--app-text-scale,1));font-weight:800;color:var(--sub);letter-spacing:.3px}
+.prj-sec-title em{font-style:normal;min-width:22px;height:22px;padding:0 7px;border-radius:99px;background:var(--green-tint);color:var(--green);display:inline-flex;align-items:center;justify-content:center;font-size:calc(11px*var(--app-text-scale,1));font-weight:800}
+.prj-list{display:flex;flex-direction:column;gap:10px}
+.prj-sw{position:relative;overflow:hidden;border-radius:18px;touch-action:pan-y;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+.prj-card{position:relative;display:flex;align-items:center;gap:8px;padding:10px;padding-inline-start:12px;background:var(--surface);border:1.5px solid var(--border);border-radius:18px;box-shadow:0 1px 2px rgba(0,0,0,.04);transition:transform .22s cubic-bezier(.32,1,.32,1),border-color .15s,background .15s;will-change:transform}
+.prj-card.on{border-color:var(--green);background:color-mix(in srgb,var(--green) 6%,var(--surface))}
+.prj-sw.dragging .prj-card{transition:none}
+.prj-sw.open .prj-card{transform:translateX(-96px)}
+.prj-card .prj-pick{padding:2px 0;gap:12px}
+.prj-card .prj-av{width:48px;height:48px;border-radius:14px}
+.prj-card .prj-av .de-av{border-radius:14px}
+.prj-card .de-nm{font-size:calc(14.5px*var(--app-text-scale,1));font-weight:800;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.prj-card .de-ib{width:40px;height:40px;border-radius:12px;color:var(--sub)}
+/* right:0 is physical on purpose — swiping LEFT exposes it, in LTR and RTL alike */
+.prj-sw-del{position:absolute;top:0;bottom:0;right:0;width:96px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;border:0;background:var(--red);color:#fff;font-family:inherit;font-size:calc(12px*var(--app-text-scale,1));font-weight:800;cursor:pointer;visibility:hidden;transition:visibility 0s .22s}
+.prj-sw.open .prj-sw-del,.prj-sw.dragging .prj-sw-del{visibility:visible;transition-delay:0s}
+[data-theme="dark"] .prj-sw-del{color:#1A0B09}
+.prj-swipe-hint{text-align:center;font-size:calc(11px*var(--app-text-scale,1));font-weight:600;color:var(--muted);margin-top:-6px}
+.prj-edit{display:flex;flex-direction:column;gap:14px;padding:16px;border-radius:20px;border:1.5px solid color-mix(in srgb,var(--green) 40%,var(--border));background:color-mix(in srgb,var(--green) 5%,var(--surface))}
+.prj-edit-top{display:flex;align-items:center;gap:14px}
+.prj-logo-pick{position:relative;width:72px;height:72px;flex-shrink:0;cursor:pointer;display:block}
+.prj-logo-box{display:flex;width:72px;height:72px;box-sizing:border-box;border-radius:20px;overflow:hidden;align-items:center;justify-content:center;background:var(--surface);border:1.5px dashed var(--border-strong)}
+.prj-logo-box .de-av{border-radius:16px}
+.prj-logo-cam{position:absolute;bottom:-4px;inset-inline-end:-4px;width:28px;height:28px;border-radius:50%;background:var(--green);color:#fff;display:flex;align-items:center;justify-content:center;border:2px solid var(--surface);box-shadow:0 2px 6px rgba(0,0,0,.18)}
+.prj-edit-fields{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px}
+.prj-edit-lbl{font-size:calc(11px*var(--app-text-scale,1));font-weight:800;color:var(--sub);letter-spacing:.4px}
+.prj-edit .de-edit-inp{height:46px;width:100%;box-sizing:border-box;border-radius:12px}
+.prj-edit-tools{display:flex;flex-wrap:wrap;gap:8px}
+.prj-edit-tools .de-tool{cursor:pointer}
+.prj-edit-actions{display:flex;gap:10px}
+.prj-btn{flex:1;height:46px;border-radius:13px;border:1.5px solid var(--border);background:var(--surface);color:var(--text);font-family:inherit;font-size:calc(14px*var(--app-text-scale,1));font-weight:800;display:inline-flex;align-items:center;justify-content:center;gap:6px;cursor:pointer}
+.prj-btn:active{opacity:.85}
+.prj-btn.primary{flex:1.5;background:var(--green);border-color:var(--green);color:#fff}
+.prj-del-link{align-self:center;display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border:0;background:none;color:var(--red);font-family:inherit;font-size:calc(12.5px*var(--app-text-scale,1));font-weight:700;cursor:pointer}
+.prj-new .de-addrow{margin-bottom:12px}
+.prj-newlogo{display:flex;align-items:center;gap:10px;padding:10px;margin-bottom:14px;border:1.5px dashed var(--border-strong);border-radius:14px;background:var(--surface2)}
+.prj-newlogo .bnk-custom-logo-preview{width:48px;height:48px;flex-shrink:0}
+.prj-newlogo .bnk-custom-logo-btn{flex:1;height:44px;justify-content:center;background:var(--surface)}
+.prj-create{width:100%;height:48px;display:flex;align-items:center;justify-content:center;gap:6px;font-size:calc(14px*var(--app-text-scale,1))}
+
+/* ── Attendance page ── */
+.att-st-present{--c:var(--green)}.att-st-late{--c:var(--orange)}.att-st-absent{--c:var(--red)}.att-st-sick{--c:var(--purple)}
+.att-st-leave{--c:var(--blue)}.att-st-holiday{--c:var(--gold)}.att-st-off{--c:var(--muted)}
+.att-lbl{font-size:calc(11px*var(--app-text-scale,1));font-weight:800;color:var(--sub);letter-spacing:.3px}
+.att-co{display:flex;align-items:center;gap:12px}
+.att-co-ic{width:44px;height:44px;flex-shrink:0;border-radius:14px;background:var(--green-tint);color:var(--green);display:flex;align-items:center;justify-content:center}
+.att-co-f{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
+.att-co-f span{font-size:calc(11px*var(--app-text-scale,1));font-weight:800;color:var(--sub)}
+.att-co-f input{width:100%;box-sizing:border-box;height:42px;padding:0 12px;border:1px solid var(--border);border-radius:12px;background:var(--surface2);color:var(--text);font-family:inherit;font-size:calc(14.5px*var(--app-text-scale,1));font-weight:700}
+.att-co-f input:focus{outline:0;border-color:var(--green);box-shadow:0 0 0 3px color-mix(in srgb,var(--green) 18%,transparent)}
+.att-today-top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+.att-today-d{font-size:calc(15px*var(--app-text-scale,1));font-weight:800;color:var(--text);margin-top:2px}
+.att-pill{flex-shrink:0;padding:5px 12px;border-radius:99px;font-size:calc(12px*var(--app-text-scale,1));font-weight:800;color:var(--c);background:color-mix(in srgb,var(--c) 14%,var(--surface))}
+.att-pill.none{color:var(--muted);background:var(--surface2)}
+.att-quick{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.att-q{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;min-height:62px;padding:8px 4px;border:1.5px solid var(--border);border-radius:14px;background:var(--surface);color:var(--c);font-family:inherit;font-size:calc(11.5px*var(--app-text-scale,1));font-weight:800;cursor:pointer}
+.att-q:active{transform:scale(.97)}
+.att-q.on{background:var(--c);border-color:var(--c);color:#fff}
+.att-link{display:block;margin:12px auto 0;padding:4px 8px;border:0;background:none;color:var(--green);font-family:inherit;font-size:calc(12px*var(--app-text-scale,1));font-weight:800;cursor:pointer}
+.att-link.danger{color:var(--red);display:inline-flex;align-items:center;gap:6px;margin:0}
+.att-foot{text-align:center}
+.att-seg-row{display:flex;gap:6px;padding:4px;border-radius:14px;background:var(--surface2);margin-bottom:14px}
+.att-seg{flex:1;height:36px;border:0;border-radius:11px;background:none;color:var(--sub);font-family:inherit;font-size:calc(12.5px*var(--app-text-scale,1));font-weight:800;cursor:pointer}
+.att-seg.on{background:var(--surface);color:var(--green);box-shadow:var(--shadow-xs,0 1px 3px rgba(0,0,0,.1))}
+.att-sum-hd{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px;font-size:calc(14px*var(--app-text-scale,1));font-weight:800;color:var(--text)}
+.att-sum-hd em{font-style:normal;font-size:calc(11px*var(--app-text-scale,1));font-weight:700;color:var(--muted)}
+.att-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.att-stat{display:flex;flex-direction:column;align-items:center;gap:2px;padding:10px 4px;border-radius:14px;background:color-mix(in srgb,var(--c) 10%,var(--surface));border:1px solid color-mix(in srgb,var(--c) 22%,var(--border))}
+.att-stat-ic{color:var(--c);display:flex}
+.att-stat-n{font-size:calc(20px*var(--app-text-scale,1));font-weight:900;color:var(--c);line-height:1.1}
+.att-stat-l{font-size:calc(10.5px*var(--app-text-scale,1));font-weight:700;color:var(--sub);text-align:center}
+.att-rate{margin-top:14px;padding-top:12px;border-top:1px dashed var(--border)}
+.att-rate-top{display:flex;align-items:center;justify-content:space-between;font-size:calc(13px*var(--app-text-scale,1));font-weight:800;color:var(--text);margin-bottom:8px}
+.att-rate-top b{color:var(--green);font-size:calc(16px*var(--app-text-scale,1))}
+.att-track{height:8px;border-radius:99px;background:var(--surface2);overflow:hidden}
+.att-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--green),var(--gold));transition:width .3s}
+.att-rate-n{margin-top:8px;font-size:calc(10.5px*var(--app-text-scale,1));color:var(--muted);line-height:1.5}
+.att-nav{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px}
+.att-month{flex:1;height:38px;border:0;background:none;color:var(--text);font-family:inherit;font-size:calc(15px*var(--app-text-scale,1));font-weight:900;cursor:pointer}
+.att-chev{display:block;width:9px;height:9px;border-top:2px solid var(--text);border-inline-start:2px solid var(--text)}
+.att-chev.prev{transform:rotate(-45deg)}.att-chev.next{transform:rotate(135deg)}
+[dir="rtl"] .att-chev.prev{transform:rotate(135deg)}[dir="rtl"] .att-chev.next{transform:rotate(-45deg)}
+.att-cal{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.att-dn{text-align:center;font-size:calc(11px*var(--app-text-scale,1));font-weight:800;color:var(--muted);padding-bottom:2px}
+.att-day{position:relative;aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:0;border:1.5px solid var(--border);border-radius:12px;background:var(--surface);color:var(--text);font-family:inherit;font-size:calc(13px*var(--app-text-scale,1));cursor:pointer}
+.att-day b{font-weight:800}
+.att-day.empty{visibility:hidden;pointer-events:none}
+.att-day.has{background:color-mix(in srgb,var(--c) 14%,var(--surface));border-color:color-mix(in srgb,var(--c) 55%,var(--border));color:var(--c)}
+.att-day i{width:6px;height:6px;border-radius:50%;background:var(--c)}
+.att-day u{position:absolute;top:4px;inset-inline-end:4px;width:5px;height:5px;border-radius:50%;background:var(--text);opacity:.45;text-decoration:none}
+.att-day.today{box-shadow:0 0 0 2px var(--green)}
+.att-day:active{transform:scale(.95)}
+.att-legend{display:flex;flex-wrap:wrap;gap:6px 12px;margin-top:14px}
+.att-lg{display:inline-flex;align-items:center;gap:5px;font-size:calc(10.5px*var(--app-text-scale,1));font-weight:700;color:var(--sub)}
+.att-lg i{width:8px;height:8px;border-radius:50%;background:var(--c)}
+.att-hint{margin-top:10px;text-align:center;font-size:calc(11px*var(--app-text-scale,1));color:var(--muted)}
+.att-notes{display:flex;flex-direction:column;gap:8px}
+.att-note{display:flex;align-items:center;gap:12px;padding:8px 10px;border:1px solid var(--border);border-radius:12px;background:var(--surface);font-family:inherit;text-align:start;cursor:pointer;color:var(--text)}
+.att-note-d{width:34px;height:34px;flex-shrink:0;border-radius:10px;background:color-mix(in srgb,var(--c) 14%,var(--surface));color:var(--c);display:flex;align-items:center;justify-content:center;font-weight:900}
+.att-note-b{display:flex;flex-direction:column;min-width:0;font-size:calc(12.5px*var(--app-text-scale,1))}
+.att-note-b b{color:var(--c);font-weight:800;font-size:calc(11.5px*var(--app-text-scale,1))}
+.att-sheet{gap:14px}
+.att-chips{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.att-chip{display:flex;align-items:center;gap:8px;min-height:48px;padding:0 12px;border:1.5px solid var(--border);border-radius:13px;background:var(--surface);color:var(--c);font-family:inherit;font-size:calc(13px*var(--app-text-scale,1));font-weight:800;cursor:pointer;text-align:start}
+.att-chip.on{background:var(--c);border-color:var(--c);color:#fff}
+
+.att-co{flex-direction:column;align-items:stretch;gap:12px}
+.att-co-top{display:flex;align-items:center;gap:14px}
+.att-logo{position:relative;width:68px;height:68px;flex-shrink:0;cursor:pointer;display:flex;align-items:center;justify-content:center;border-radius:20px;background:var(--surface2);border:1.5px dashed var(--border-strong)}
+.att-logo>img,.att-logo .bl-img{border-radius:18px}
+.att-logo-ph{color:var(--green);display:flex}
+.att-logo-cam{position:absolute;bottom:-4px;inset-inline-end:-4px;width:26px;height:26px;border-radius:50%;background:var(--green);color:#fff;display:flex;align-items:center;justify-content:center;border:2px solid var(--surface);box-shadow:0 2px 6px rgba(0,0,0,.18)}
+.att-co-grid{display:grid;grid-template-columns:1fr;gap:10px}
+.att-co-f span{display:flex;align-items:center;gap:5px}
+.att-co-f span svg{color:var(--green)}
+.att-rmlogo{margin:-4px 0 0!important;align-self:flex-start}
+.att-logo-hint{margin:-4px 0 0;text-align:start}
+
+.att-map{display:flex;align-items:center;justify-content:center;gap:7px;height:46px;border-radius:13px;background:var(--green);color:#fff;font-size:calc(13.5px*var(--app-text-scale,1));font-weight:800;text-decoration:none}
+.att-map:active{opacity:.85}
+@media (prefers-reduced-motion:reduce){.prj-card{transition:none}}
+
 /* ── Data entry: calmer, aligned layout ── */
 .de-sheet .de-list{gap:0}
 .de-sheet .de-row{padding:12px 0;gap:12px;border-top:1px solid var(--border)}
@@ -11029,6 +11153,10 @@ function fpInitSmartHeader(){
               <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0zM12 13a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/></svg>
               <span data-i18n-en="Place History" data-i18n-ar="سجل الأماكن">Place History</span>
             </button>
+            <button class="hdr-more-item" onclick="hdrCloseMoreMenu();setView('attendance')">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              <span data-i18n-en="Attendance" data-i18n-ar="الحضور والغياب">Attendance</span>
+            </button>
             <div class="hdr-more-sep" role="separator"></div>
             <button class="hdr-more-item" onclick="hdrCloseMoreMenu();toggleTheme()">
               <span class="hdr-more-ico" id="themeToggleBtnHdr"></span>
@@ -11160,7 +11288,7 @@ function fpInitSmartHeader(){
       <span id="navBtn-Dashboard-label"></span>
     </button>
 
-    <button class="nav-btn" id="navBtn-SiteCustody" onclick="window._cxLand='requests';setView('expenses');navCloseAll()" title="Site Custody">
+    <button class="nav-btn" id="navBtn-SiteCustody" onclick="window._cxLand='requests';setView('expenses');navCloseAll()" title="My Job">
       <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v6c0 5-3 8.5-7 9-4-.5-7-4-7-9V6l7-3z"/><path d="M9 12l2 2 4-4"/></svg>
       <span id="navBtn-SiteCustody-label"></span>
     </button>
@@ -12778,7 +12906,7 @@ function gSearchUseRecent(q){
 let _gResultsFlat = []; // flat, index-addressable list of currently rendered results (avoids any HTML-attribute escaping issues)
 
 // Pages that already render their own in-page search field (Daily/
-// Transactions, and Site Custody — which covers both its Custody tab and the
+// Transactions, and My Job — which covers both its Custody tab and the
 // My Requests tab, since only one ".sc-search input" is on screen at a time)
 // get the header search bar wired straight to THAT field, so it searches
 // whatever's actually open instead of jumping to the separate "search
@@ -13077,7 +13205,7 @@ function updateNavLabels(){
     ['navBtn-Dashboard',   'Dashboard',    'لوحة المؤشرات'],
     ['navBtn-Banks',       'Accounts',     'الحسابات'],
     ['navBtn-Daily',       'Daily Spend',  'الإنفاق اليومي'],
-    ['navBtn-SiteCustody', 'Site Custody', 'عهدة الموقع'],
+    ['navBtn-SiteCustody', 'My Job', 'My Job'],
     ['navBtn-MySavings',   'My Finances',  'أموالي'],
   ];
   iconBtnTitles.forEach(([id,tEN,tAR])=>{
@@ -13720,6 +13848,7 @@ function renderView(preserveScroll){
     else if(currentView==='yearlyanalytics') _html=renderYearlyAnalytics();
     else if(currentView==='healthdash') _html=renderHealthDashboard();
     else if(currentView==='mylocations') _html=renderMyLocations();
+    else if(currentView==='attendance') _html=ATT.render();
     else if(currentView==='reportsdash') _html=renderReportsDashboard();
     c.innerHTML=_html;
     if(currentView==='wsdash') try{ DashboardLazy.observeAll(); }catch(e){_logErr('renderView:DashboardLazy',e);}
@@ -14956,7 +15085,7 @@ function renderCustodyDashboardCard(m){
     <div class="sc-card dash-hero-card" style="padding:0;overflow:hidden">
       <div class="dash-hero">
         <div class="dfp-card-head" style="position:relative;z-index:1;margin-bottom:0">
-          <span class="dash-hero-eyebrow">${ic('lock', 12, 'aria-hidden="true"')} ${L('Site Custody','عهدة الموقع')}</span>
+          <span class="dash-hero-eyebrow">${ic('lock', 12, 'aria-hidden="true"')} ${L('My Job','My Job')}</span>
         </div>
         <div class="dash-hero-main">
           <div class="dash-hero-main-lbl">${L('Remaining Custody','المتبقي من العهدة')}</div>
@@ -15256,7 +15385,7 @@ function renderSmartAlertsCard(m, sig){
   }
   if(custodyRemaining < 0){
     alerts.push({sev:'danger', icon:'lock',
-      title:L('Site Custody Overspent','تجاوز في عهدة الموقع'),
+      title:L('My Job Overspent','تجاوز في My Job'),
       desc:L('Site expenses exceeded deposited custody','مصروفات الموقع تجاوزت العهدة المودعة')});
   }
 
@@ -16204,7 +16333,7 @@ function renderWorkspaceDashboard(m){
   // Insights → Quick Actions) — same four cards as before, just Top Banks
   // moved ahead of Recent Activity/AI Insights instead of after them.
   // Those four still come first, so they're what a user sees without
-  // scrolling. Every other card (Site Custody, Monthly Comparison,
+  // scrolling. Every other card (My Job, Monthly Comparison,
   // Trends, Daily/Cumulative charts, Executive Summary, Top Categories)
   // still renders exactly as before, just pushed after the "More Analytics"
   // divider below — same id, gating (canFinance/canShow), drag/hide/color
@@ -16217,7 +16346,7 @@ function renderWorkspaceDashboard(m){
   if(canFinance) candidates.push({id:'activity', icon:'clock', label:L('Recent Activity','آخر العمليات'), body:dfpSafeCard(()=>renderRecentActivityDashCard(m)), foldable:true});
   if(canFinance){ const _pc=_dashPurchasesCollect().count; candidates.push({id:'purchases', icon:'shopping_bag', label:L('My Purchases','مشترياتي'), body:dfpSafeCard(()=>renderPurchasesDashCard()), foldable:true, summary:_pc?`${_cnt(_pc,'item','items','عنصر','عنصران','عناصر','عنصراً')}`:''}); }
   if(canFinance) candidates.push({id:'sysintel', icon:'sparkle', label:L('AI Insights','تحليلات ذكية'), body:renderSystemIntelligenceV3(m, sig), foldable:true});
-  if(canFinance) candidates.push({id:'site', icon:'lock', label:L('Site Custody','عهدة الموقع'), body:renderCustodyDashboardCard(m), foldable:true, summary:`${L('Remaining','المتبقي')}: ${sig.custodyRemaining<0?'-':''}${fmtEGP(Math.abs(sig.custodyRemaining))}`});
+  if(canFinance) candidates.push({id:'site', icon:'lock', label:L('My Job','My Job'), body:renderCustodyDashboardCard(m), foldable:true, summary:`${L('Remaining','المتبقي')}: ${sig.custodyRemaining<0?'-':''}${fmtEGP(Math.abs(sig.custodyRemaining))}`});
   if(canFinance) candidates.push({id:'comparison', icon:'chart', label:L('Monthly Comparison','مقارنة شهرية'), body:DashboardLazy.placeholder('monthlyComparison', ()=>dfpSafeCard(
     ()=>renderMonthlyComparisonCard(m, sig),
     ()=>!(sig && sig.prevStats),
@@ -16254,7 +16383,7 @@ function renderWorkspaceDashboard(m){
   // ── More Analytics divider — moved from after the 6th visible card to
   // after the 4th (Cash Flow, Top Banks, Recent Activity, AI Insights —
   // the "most important widgets" the home screen should lead with), so
-  // everything else (Site Custody, Monthly Comparison, Trends, Daily/
+  // everything else (My Job, Monthly Comparison, Trends, Daily/
   // Cumulative charts, Executive Summary, Top Lists, Project) reads as a
   // clearly secondary "Analytics" section below the fold. Still tied to
   // position, not a specific card id, so it still makes sense after a user
@@ -17823,6 +17952,78 @@ function _repairZeroOpeningBalances(){
   });
   return changed;
 }
+// ═════════════════════════════════════════════════════════════════
+// DATE → MONTH ROUTING
+// Any record saved with a date lives in the page (month) of that date, not
+// in whichever month happens to be open. If that month does not exist yet it
+// is created on the spot (plus any skipped months in between, so the
+// carry-forward chain never breaks) with opening balances carried forward.
+// Helpers below only add to the existing month machinery — nothing else
+// about how months, balances or closing work is changed.
+// ═════════════════════════════════════════════════════════════════
+function _monthKeyForDate(dateStr){
+  const m=/^(\d{4})-(\d{2})-\d{2}$/.exec(String(dateStr||'').trim());
+  if(!m) return null;
+  const mo=parseInt(m[2],10)-1;
+  if(mo<0||mo>11) return null;
+  return _ROLLOVER_ABBR[mo]+'-'+m[1];
+}
+function _createMonthFromKey(key){
+  const abbr=key.split('-')[0], year=parseInt(key.split('-')[1],10);
+  if(!MONTHS_ORDER.includes(key)) MONTHS_ORDER.push(key);
+  MONTHS_ORDER.sort((a,b)=>_monthKeyToOrdinal(a)-_monthKeyToOrdinal(b));
+  MONTH_NAMES[key]=abbr+' '+year;
+  const od=(typeof _deriveOpeningBalances==='function') ? _deriveOpeningBalances(key) : {ok:false};
+  const ib=od.ok ? od.balances : computeCarryForwardBalances(key);
+  const sm=od.ok ? {old_budget:od.oldBudget} : {};
+  DATA[key]={transactions:[],site_expenses:[],bank_movements:[],custody_deposits:[],income_outcome:[],summary:sm,name:abbr+' '+year,key:key,initial_balances:ib,status:'OPEN',daily_targets:{}};
+}
+// Makes the month that owns `date` the active one (creating it if needed).
+// Returns true when it is safe to write there, false when the save must stop
+// (target month is closed). opts.quiet suppresses the info toast (batch use).
+function _routeActiveMonthToDate(date, opts){
+  opts=opts||{};
+  const key=_monthKeyForDate(date);
+  if(!key || key===activeMonth) return true;
+  const ord=_monthKeyToOrdinal(key);
+  if(ord===null) return true;
+  let created=false;
+  if(MONTHS_ORDER.includes(key) && DATA[key]){
+    if(!canMutateMonth(key)){
+      let lbl=key; try{ lbl=_monthDisplayLabel(key); }catch(e){}
+      showToast(L('⚠️ '+lbl+' is closed — reopen it first','⚠️ شهر '+lbl+' مقفول — افتحه الأول عشان تسجل فيه'),'warn');
+      return false;
+    }
+  } else {
+    const ords=MONTHS_ORDER.map(_monthKeyToOrdinal).filter(o=>o!==null);
+    let from=ord, to=ord;
+    if(ords.length){
+      const mx=Math.max.apply(null,ords), mn=Math.min.apply(null,ords);
+      if(ord>mx) from=mx+1; else if(ord<mn) to=mn-1;
+    }
+    for(let o=from;o<=to;o++){
+      const k=_ordinalToMonthKey(o);
+      if(!MONTHS_ORDER.includes(k) || !DATA[k]){ _createMonthFromKey(k); created=true; }
+    }
+  }
+  activeMonth=key;
+  searchQ=''; txShowAll=false;
+  try{ renderMonthTabs(); }catch(e){ _logErr('routeMonth:tabs',e); }
+  if(created){
+    try{ persistMonths(); }catch(e){ _logErr('routeMonth:persistMonths',e); }
+    try{ persistData(); }catch(e){ _logErr('routeMonth:persistData',e); }
+  }
+  if(!opts.quiet){
+    let lbl=key; try{ lbl=_monthDisplayLabel(key); }catch(e){}
+    setTimeout(function(){ try{
+      showToast(created
+        ? L('📅 New month '+lbl+' created — saved there, balances carried forward','📅 اتعمل شهر '+lbl+' جديد وإتسجل فيه — والأرصدة اترحّلت')
+        : L('📅 Saved in '+lbl+' (by its date)','📅 اتسجل في شهر '+lbl+' (حسب التاريخ)'),'success');
+    }catch(e){} },900);
+  }
+  return true;
+}
+
 function _autoRolloverMonths(){
   try{ if(_repairZeroOpeningBalances()){ try{ persistData(); }catch(e){_logErr('repairOpeningBalances:persistData',e);} } }catch(e){_logErr('repairOpeningBalances',e);}
   if(!MONTHS_ORDER || !MONTHS_ORDER.length) return false;
@@ -27423,12 +27624,27 @@ function _bkExtrasCollect(){
   return out;
 }
 function _bkExtrasApply(extras){
-  let n=0;
+  let n=0; window._bkApplyFailed=[];
   if(!extras||typeof extras!=='object') return 0;
+  const failed=[];
   Object.keys(extras).forEach(k=>{
     if(_BK_SKIP.test(k)||typeof extras[k]!=='string') return;
-    try{ localStorage.setItem(k,extras[k]); n++; }catch(e){ _logErr('_bkExtrasApply:'+k,e); }
+    try{ localStorage.setItem(k,extras[k]); n++; }catch(e){ failed.push(k); _logErr('_bkExtrasApply:'+k,e); }
   });
+  // Exact restore: anything stored here that the backup does not contain (extra projects, newer
+  // pages' data…) is removed, so the app comes back exactly as it was when the backup was taken.
+  if(Object.keys(extras).length){
+    try{
+      const stale=[];
+      for(let i=0;i<localStorage.length;i++){ const k=localStorage.key(i); if(k&&!_BK_SKIP.test(k)&&!Object.prototype.hasOwnProperty.call(extras,k)) stale.push(k); }
+      stale.forEach(k=>{ try{ localStorage.removeItem(k); }catch(e){} });
+    }catch(e){ _logErr('_bkExtrasApply:stale',e); }
+  }
+  // Retry keys that did not fit the first time (space may have been freed above)
+  failed.slice().forEach(k=>{
+    try{ localStorage.setItem(k,extras[k]); n++; failed.splice(failed.indexOf(k),1); }catch(e){}
+  });
+  window._bkApplyFailed=failed;
   return n;
 }
 
@@ -27609,6 +27825,8 @@ function restoreData() {
                 [L('Custom Banks','بنوك مخصصة'),  bankCount],
                 [L('Bank logos','شعارات البنوك'), Object.keys(d.bankLogos||{}).length],
                 [L('Receipts','الاستلامات'), (()=>{ try{ return JSON.parse((d.extras||{})[_RQ_KEY]||'[]').length; }catch(e){ return 0; } })()],
+                [L('Attendance days','أيام الحضور'), (()=>{ try{ return Object.keys(JSON.parse((d.extras||{})['wdp_attendance_v1']||'{}').days||{}).length; }catch(e){ return 0; } })()],
+                [L('Place photos','صور الأماكن'), (()=>{ try{ return JSON.parse((d.extras||{})['wdp_myloc_photos_v1']||'[]').length; }catch(e){ return 0; } })()],
                 [L('Other saved items','عناصر محفوظة أخرى'), Object.keys(d.extras||{}).length],
               ].map(([k,v])=>`
                 <div style="font-size:calc(11px*var(--app-text-scale,1));color:var(--muted)">${k}</div>
@@ -27694,6 +27912,7 @@ function _doRestore() {
       // Start from whatever the extras restore just wrote, then lay the explicit copies on top
       try{ const _r=localStorage.getItem(BANK_CUSTOM_LOGOS_KEY); if(_r) bankCustomLogos=Object.assign({}, JSON.parse(_r), d.bankLogos||{}); }catch(e){}
       try{ const _r2=localStorage.getItem(_RQ_CO_LOGO_KEY); _rqCoLogos=Object.assign({}, _r2?JSON.parse(_r2):{}, (d.companyLogos&&typeof d.companyLogos==='object')?d.companyLogos:{}); }catch(e){}
+      window._restoreExtraFail = (window._bkApplyFailed||[]).length;
       window._restoreLogoFail = 0;
       if(!persistBankLogos()) window._restoreLogoFail++;
       if(!_rqPersistCoLogos()) window._restoreLogoFail++;
@@ -27710,9 +27929,10 @@ function _doRestore() {
     saveReminders(); savePlanner();
     if(typeof SoundManager!=='undefined') SoundManager.play(SoundManager.SOUND.DATA.RESTORE);
     showToast(L('✓ Data restored successfully','✓ تمت استعادة البيانات بنجاح'), 'success');
+    if(window._restoreExtraFail) setTimeout(()=>showToast(L('⚠️ '+window._restoreExtraFail+' saved item(s) could not be restored (storage full)','⚠️ تعذّرت استعادة '+window._restoreExtraFail+' عنصر (التخزين ممتلئ)'),'warn'),1500);
     if(window._restoreLogoFail) setTimeout(()=>showToast(L('⚠️ Some logos could not be stored (storage full)','⚠️ بعض الشعارات لم تُخزَّن (التخزين ممتلئ)'),'warn'),900);
     closeModal(); closeSettings();
-    setTimeout(() => location.reload(), 800);
+    Promise.resolve(window._mlPhotosRestore).catch(function(){}).then(function(){ setTimeout(() => location.reload(), window._restoreExtraFail?3500:800); });
   } catch(e) {
     showToast(L('Restore failed: ','فشلت الاستعادة: ') + e.message, 'warn');
   }
@@ -28267,6 +28487,7 @@ function addBankMove(bank){
   }
   const candidate = { bank, type: txTypes[bank]||'dep', amount: amtChk.value };
   const _doAddBankMove = () => {
+    if(!_routeActiveMonthToDate(today())) return;
     if(!canMutateMonth(activeMonth)) return;
     if(!DATA[activeMonth].bank_movements) DATA[activeMonth].bank_movements=[];
     const txType = txTypes[bank]||'dep';
@@ -28357,10 +28578,21 @@ function saveBankMoveEdit(bank,id){
   const m=DATA[activeMonth];
   const mv=(m.bank_movements||[]).find(x=>x.id===id);
   if(!mv) return;
+  const _newDate=(document.getElementById('bmEditDate').value||today());
+  const _bmOldM=activeMonth;
+  const _bmK=_monthKeyForDate(_newDate);
+  const _bmMoved=!!(_bmK && _bmK!==activeMonth);
+  if(_bmMoved && !_routeActiveMonthToDate(_newDate)) return;
   mv.type=(document.getElementById('bmEditType').value||'dep');
   mv.amount=amtChk.value;
-  mv.date=(document.getElementById('bmEditDate').value||today());
+  mv.date=_newDate;
   mv.note=(document.getElementById('bmEditNote').value||'').trim();
+  // Date → month: moved to the month that owns the new date.
+  if(_bmMoved){
+    DATA[_bmOldM].bank_movements=(DATA[_bmOldM].bank_movements||[]).filter(x=>x.id!==id);
+    if(!DATA[activeMonth].bank_movements) DATA[activeMonth].bank_movements=[];
+    DATA[activeMonth].bank_movements.push(mv);
+  }
   closeModal();
   persistData();
   _autoDropReadyToClose(activeMonth);
@@ -29079,7 +29311,7 @@ function smsCommitImport(id){
   if(amount<=0){ showToast('⚠️ '+L('Enter a valid amount','أدخل مبلغاً صحيحاً'),'warn'); return; }
   const date = document.getElementById('smsPrevDate')?.value || today();
   const note = document.getElementById('smsPrevNote')?.value || '';
-  if(!canMutateMonth(activeMonth)){ showToast('⚠️ '+L('This month is closed','هذا الشهر مغلق'),'warn'); return; }
+  if(!canMutateMonth(_monthKeyForDate(date)||activeMonth)){ showToast('⚠️ '+L('This month is closed','هذا الشهر مغلق'),'warn'); return; }
 
   // Recalculate the duplicate fingerprint right before commit (not just at
   // ingest time) and bail if another message already imported under the
@@ -29091,6 +29323,7 @@ function smsCommitImport(id){
   SMS_COMMIT_INFLIGHT.add(id);
   try{
 
+  if(!_routeActiveMonthToDate(date)) return;
   if(!DATA[activeMonth].bank_movements) DATA[activeMonth].bank_movements=[];
   // NOTE (Production Hardening Pass): this financial record intentionally
   // carries only bank/type/amount/date/note/id/fromSms — SMS-module-only
@@ -29622,6 +29855,8 @@ function smsRunBatchImport(eligible, blockedCount){
           id: Date.now().toString()+'r'+Math.random().toString(36).slice(2,6),
           fromSms: true,
         };
+        if(!_routeActiveMonthToDate(mv.date, {quiet:true})){ failedCount++; continue; }
+        if(!DATA[activeMonth].bank_movements) DATA[activeMonth].bank_movements=[];
         DATA[activeMonth].bank_movements.push(mv);
         smsRememberBankMatch(msg, msg.matchedBankKey);
         msg.imported = true;
@@ -31271,7 +31506,7 @@ function generateExpenseAIInsights(exps, groups){
 }
 
 // ── § SITE EXPENSES MODULE ────────────────────────────────────────────────────
-// Site Custody v2 (Sep 2026 redesign) — same data, same handlers, new layout:
+// My Job v2 (Sep 2026 redesign) — same data, same handlers, new layout:
 //   1. Hero: ONE custody-balance statement (remaining / over) with a limit gauge,
 //      a divided Deposited/Spent(/Withdrawn) row and two clear Deposit / Withdraw
 //      actions that open an inline entry panel (replaces the old hidden form).
@@ -31518,7 +31753,7 @@ function renderExpenses(m){
   </section>` : '';
 
   return `<div class="screen-wrap cx-wrap">
-  ${_pgHdr('Site','الموقع','Site Custody','عهدة الموقع','Receipts log and custody money','سجل الاستلامات وفلوس العهدة')}
+  ${_pgHdr('Site','الموقع','My Job','My Job','Receipts log and custody money','سجل الاستلامات وفلوس العهدة')}
   ${_prjBarHTML()}
   ${_cxTabsHTML()}
   ${heroHTML}
@@ -31529,14 +31764,14 @@ function renderExpenses(m){
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
-// MY REQUESTS (استلاماتي) — receipt/inspection log, a tab inside Site Custody
+// MY REQUESTS (استلاماتي) — receipt/inspection log, a tab inside My Job
 // Flat store (not month-scoped, like Notes): each record is one card with
 // company, handing-over engineer, date, receipt type, plot no., form/model and a
 // status of received / received with notes / not received (+ optional notes).
 // Persisted to its own localStorage key; touches no finance data.
 // ══════════════════════════════════════════════════════════════════════════════
 // ═════════════════════════════════════════════════════════════════════
-// PROJECTS — Site Custody is kept per project. The first project ("p0") owns everything saved
+// PROJECTS — My Job is kept per project. The first project ("p0") owns everything saved
 // before this feature existed (its storage keys are unchanged); every other project gets its own
 // receipts + entry lists, and its own custody deposits / site expenses (tagged with projectId).
 // Bank balances and the finance dashboards still add up all projects — that money is one wallet.
@@ -31571,40 +31806,163 @@ function _prjOpen(){
   document.getElementById('modalOverlay').style.display='flex';
 }
 function _prjRender(){
+  _pswOpen=null;
+  const n=_PRJ.list.length;
   const rows=_PRJ.list.map(p=>{
     const on=p.id===_PRJ.active;
+    const locked=p.id===_PRJ_DEFAULT;
     if(_prjEditId===p.id){
       const lg=_prjEditLogo!==undefined?_prjEditLogo:p.logo;
-      return `<div class="de-row editing"><label class="de-lg prj-edlg" id="prjEditPrev" title="${L('Change logo','تغيير الشعار')}">${_prjAv({...p,logo:lg},36)}<input type="file" accept="image/*" style="display:none" onchange="_prjEditPick(this)"></label>
-      <input type="text" class="de-edit-inp" id="prjEditName" dir="auto" autocomplete="off" value="${esc(_prjName(p))}" onkeydown="if(event.key==='Enter'){event.preventDefault();_prjRenameSave('${p.id}')}else if(event.key==='Escape'){_prjEditId=null;_prjRender()}">
-      ${lg?`<button type="button" class="de-ib" title="${L('Remove logo','حذف الشعار')}" onclick="_prjEditLogo='';_prjRender()">${ic('trash',14)}</button>`:''}
-      <button type="button" class="de-ib ok" title="${L('Save changes','حفظ التعديل')}" onclick="_prjRenameSave('${p.id}')">${ic('check',15)}</button>
-      <button type="button" class="de-ib" title="${L('Cancel','إلغاء')}" onclick="_prjEditId=null;_prjEditLogo=undefined;_prjRender()">${ic('close',14)}</button></div>`;
+      return `<div class="prj-edit">
+        <div class="prj-edit-top">
+          <label class="prj-logo-pick" id="prjEditPrev" title="${L('Change logo','تغيير الشعار')}">
+            <span class="prj-logo-box">${_prjAv({...p,logo:lg},66)}</span>
+            <span class="prj-logo-cam">${ic('photo',13)}</span>
+            <input type="file" accept="image/*" style="display:none" onchange="_prjEditPick(this)">
+          </label>
+          <div class="prj-edit-fields">
+            <span class="prj-edit-lbl">${L('Project name','اسم المشروع')}</span>
+            <input type="text" class="de-edit-inp" id="prjEditName" dir="auto" autocomplete="off" value="${esc(_prjName(p))}" onkeydown="if(event.key==='Enter'){event.preventDefault();_prjRenameSave('${p.id}')}else if(event.key==='Escape'){_prjEditId=null;_prjRender()}">
+          </div>
+        </div>
+        <div class="prj-edit-tools">
+          <label class="de-tool">${ic('upload',14)} <span>${lg?L('Change logo','تغيير الشعار'):L('Upload logo','رفع شعار')}</span><input type="file" accept="image/*" style="display:none" onchange="_prjEditPick(this)"></label>
+          ${lg?`<button type="button" class="de-tool del" onclick="_prjEditRemoveLogo()">${ic('trash',14)} <span>${L('Remove logo','حذف الشعار')}</span></button>`:''}
+        </div>
+        <div class="prj-edit-actions">
+          <button type="button" class="prj-btn" onclick="_prjEditId=null;_prjEditLogo=undefined;_prjRender()">${L('Cancel','إلغاء')}</button>
+          <button type="button" class="prj-btn primary" onclick="_prjRenameSave('${p.id}')">${ic('check',15)} ${L('Save changes','حفظ التعديل')}</button>
+        </div>
+        ${locked?'':`<button type="button" class="prj-del-link" onclick="_prjAskDelete('${p.id}')">${ic('trash',14)} ${L('Delete project','حذف المشروع')}</button>`}
+      </div>`;
     }
-    return `<div class="de-row prj-row${on?' on':''}"><button type="button" class="prj-pick" onclick="_prjSwitch('${p.id}')"><span class="prj-av${on?' on':''}">${_prjAv(p,36)}</span><span class="de-nm" dir="auto">${esc(_prjName(p))}</span>${on?`<span class="prj-now">${L('Current','الحالي')}</span>`:''}</button>
-      <button type="button" class="de-ib edit" title="${L('Edit','تعديل')}" onclick="_prjEditId='${p.id}';_prjEditLogo=undefined;_prjRender()">${ic('edit',15)}</button></div>`;
+    return `<div class="prj-sw${locked?' locked':''}" data-id="${p.id}">
+      ${locked?'':`<button type="button" class="prj-sw-del" onclick="_prjAskDelete('${p.id}')" aria-label="${L('Delete','حذف')}">${ic('trash',19)}<span>${L('Delete','حذف')}</span></button>`}
+      <div class="prj-card${on?' on':''}">
+        <button type="button" class="prj-pick" onclick="_prjSwitch('${p.id}')"><span class="prj-av${on?' on':''}">${_prjAv(p,48)}</span><span class="de-nm" dir="auto">${esc(_prjName(p))}</span>${on?`<span class="prj-now">${L('Current','الحالي')}</span>`:''}</button>
+        <button type="button" class="de-ib edit" title="${L('Edit','تعديل')}" aria-label="${L('Edit','تعديل')}" onclick="_prjEditId='${p.id}';_prjEditLogo=undefined;_prjRender()">${ic('edit',16)}</button>
+      </div>
+    </div>`;
   }).join('');
-  const html=`<div class="rq-modal de-sheet">
+  const html=`<div class="rq-modal de-sheet prj-sheet">
       <div class="modal-hdr">
         <div class="modal-hdr-icon" style="background:linear-gradient(135deg,#0f7a55,#0a5c40)">${ic('folder',22)}</div>
         <div style="flex:1;min-width:0"><div class="modal-hdr-title">${L('Projects','المشاريع')}</div>
         <div class="modal-hdr-sub">${L('Receipts, custody and entry lists are kept per project','الاستلامات والعهدة وقوائم الإدخال منفصلة لكل مشروع')}</div></div>
         <button type="button" class="sheet-close-btn sq" onclick="closeModal()" aria-label="${L('Close','إغلاق')}">${ic('close',16)}</button>
       </div>
-      <div class="rq-sec"><div class="de-list">${rows}</div></div>
-      <div class="rq-sec"><div class="rq-sec-hdr">${ic('plus',15)}<span>${L('Start a new project','ابدأ مشروعاً جديداً')}</span></div>
+      <div class="prj-sec-title"><span>${L('Your projects','مشاريعك')}</span><em>${n}</em></div>
+      <div class="prj-list">${rows}</div>
+      ${n>1&&!_prjEditId?`<div class="prj-swipe-hint">${L('Swipe a project left to delete it','اسحب أي مشروع لليسار لحذفه')}</div>`:''}
+      <div class="rq-sec prj-new"><div class="rq-sec-hdr">${ic('plus',15)}<span>${L('Start a new project','ابدأ مشروعاً جديداً')}</span></div>
         <div class="de-hint">${L('A new project starts empty: no receipts, no custody, no saved companies or plots.','المشروع الجديد يبدأ فارغاً: بدون استلامات أو عهدة أو شركات وقطع محفوظة.')}</div>
         <div class="de-addrow"><div class="field"><input type="text" id="prjNew" dir="auto" autocomplete="off" placeholder="${L('Project name','اسم المشروع')}" onkeydown="if(event.key==='Enter')_prjCreate()"></div></div>
-        <div class="de-cologo">
-          <div id="prjNewPrev" class="bnk-custom-logo-preview">${_prjNewLogo?bankLogoHTML(_prjNewLogo,36,{alt:''}):ic('photo',15)}</div>
+        <div class="prj-newlogo">
+          <div id="prjNewPrev" class="bnk-custom-logo-preview">${_prjNewLogo?bankLogoHTML(_prjNewLogo,40,{alt:''}):ic('photo',16)}</div>
           <label class="bnk-custom-logo-btn">${ic('upload',13)} ${L('Upload logo (optional)','رفع شعار (اختياري)')}<input type="file" accept="image/*" style="display:none" onchange="_prjNewPick(this)"></label>
-          <button type="button" class="de-addbtn" style="margin-inline-start:auto" onclick="_prjCreate()">${ic('plus',14)} ${L('Create','إنشاء')}</button>
-        </div></div>
+        </div>
+        <button type="button" class="de-addbtn prj-create" onclick="_prjCreate()">${ic('plus',15)} ${L('Create','إنشاء')}</button>
+      </div>
       <div class="modal-btns"><button class="mbtn save" onclick="closeModal()">${L('Done','تم')}</button></div></div>`;
   const keep=document.getElementById('prjNew')?.value||'';
   document.getElementById('modalContent').innerHTML=`<div class="modal-handle"></div>`+html;
   const nn=document.getElementById('prjNew'); if(nn&&keep) nn.value=keep;
+  _prjWireSwipe();
   if(_prjEditId){ const el=document.getElementById('prjEditName'); if(el){ try{ el.focus(); el.setSelectionRange(el.value.length,el.value.length); }catch(e){} } }
+}
+function _prjEditRemoveLogo(){
+  const typed=document.getElementById('prjEditName')?.value;
+  _prjEditLogo=''; _prjRender();
+  const el=document.getElementById('prjEditName'); if(el&&typed) el.value=typed;
+}
+// ── Swipe a project card LEFT to reveal Delete (same gesture as the Notes list) ──
+let _psw=null, _pswOpen=null, _pswSuppress=0;
+const _PSW_W=96;
+function _prjWireSwipe(){
+  const mc=document.getElementById('modalContent'); if(!mc||mc._pswWired) return;
+  mc._pswWired=true;
+  mc.addEventListener('pointerdown',_pswDown);
+  mc.addEventListener('pointermove',_pswMove);
+  mc.addEventListener('pointerup',_pswUp);
+  mc.addEventListener('pointercancel',_pswCancel);
+  mc.addEventListener('click',e=>{
+    const wrap=e.target.closest&&e.target.closest('.prj-sw');
+    if(!wrap) return;
+    if(Date.now()<_pswSuppress){ e.stopPropagation(); e.preventDefault(); return; }
+    if(e.target.closest('.prj-sw-del')) return;
+    if(_pswOpen){ _pswClose(); e.stopPropagation(); e.preventDefault(); }   // tap while a row is open just closes it
+  },true);
+}
+function _pswClose(){ if(_pswOpen){ _pswOpen.classList.remove('open'); _pswOpen=null; } }
+function _pswDown(e){
+  if(e.pointerType==='mouse'&&e.button!==0) return;
+  const wrap=e.target.closest&&e.target.closest('.prj-sw');
+  if(!wrap||wrap.classList.contains('locked')||e.target.closest('.prj-sw-del')) return;
+  const open=(wrap===_pswOpen);
+  _psw={wrap,row:wrap.querySelector('.prj-card'),pid:e.pointerId,x0:e.clientX,y0:e.clientY,base:open?-_PSW_W:0,dx:open?-_PSW_W:0,mode:''};
+}
+function _pswMove(e){
+  if(!_psw||e.pointerId!==_psw.pid) return;
+  const dx=e.clientX-_psw.x0, dy=e.clientY-_psw.y0;
+  if(!_psw.mode&&(Math.abs(dx)>8||Math.abs(dy)>8)){
+    if(_psw.row&&Math.abs(dx)>Math.abs(dy)+2){
+      _psw.mode='swipe';
+      if(_pswOpen&&_pswOpen!==_psw.wrap) _pswClose();
+      _psw.wrap.classList.add('dragging');
+    } else { _psw.mode='scroll'; }
+  }
+  if(_psw.mode==='swipe'){
+    const x=Math.max(-_PSW_W-24,Math.min(0,_psw.base+dx));
+    _psw.dx=x; _psw.row.style.transform=`translateX(${x}px)`;
+  }
+}
+function _pswUp(e){
+  if(!_psw||e.pointerId!==_psw.pid) return;
+  const s=_psw; _psw=null;
+  if(s.mode!=='swipe') return;
+  _pswSuppress=Date.now()+350;
+  s.wrap.classList.remove('dragging'); s.row.style.transform='';
+  if(s.dx<-_PSW_W/2){ s.wrap.classList.add('open'); _pswOpen=s.wrap; }
+  else { s.wrap.classList.remove('open'); if(_pswOpen===s.wrap) _pswOpen=null; }
+}
+function _pswCancel(){
+  if(!_psw) return;
+  const s=_psw; _psw=null;
+  if(s.mode==='swipe'){ s.wrap.classList.remove('dragging'); s.row.style.transform=''; }
+}
+function _prjAskDelete(id){
+  const p=_PRJ.list.find(x=>x.id===id); if(!p) return;
+  if(id===_PRJ_DEFAULT){ showToast(L('The main project cannot be deleted','المشروع الأساسي مينفعش يتحذف'),'warn'); return; }
+  const nm=_prjName(p);
+  showConfirm(
+    L(`Delete project "${nm}"? Its receipts, saved companies and plots will be removed. Its custody and site expenses move to the main project so bank balances stay the same.`,
+      `حذف مشروع "${nm}"؟ هيتمسح الاستلامات والشركات والقطع المحفوظة بتاعته. العهدة والمصروفات هتتنقل للمشروع الأساسي عشان أرصدة البنوك تفضل زي ما هي.`),
+    ()=>_prjDelete(id));
+}
+function _prjDelete(id){
+  if(id===_PRJ_DEFAULT) return;
+  const idx=_PRJ.list.findIndex(x=>x.id===id); if(idx<0) return;
+  const removed=_PRJ.list.splice(idx,1)[0];
+  const wasActive=_PRJ.active===id;
+  if(wasActive) _PRJ.active=_PRJ_DEFAULT;
+  if(!_prjSave()){ _PRJ.list.splice(idx,0,removed); if(wasActive) _PRJ.active=id; return; }
+  // 1) this project's own receipts / saved companies / plot models
+  try{ [_RQ_KEY,_RQ_CUSTOM_FIELDS_KEY,_RQ_PLOT_USER_KEY].forEach(b=>localStorage.removeItem(b+'__'+id)); }catch(e){ _logErr('_prjDelete:keys',e); }
+  // 2) money records stay (bank balances add up every project) — hand them to the main project
+  try{
+    let moved=false;
+    Object.keys(DATA||{}).forEach(m=>{
+      const d=DATA[m]; if(!d||typeof d!=='object') return;
+      ['custody_deposits','site_expenses'].forEach(k=>{
+        if(Array.isArray(d[k])) d[k].forEach(x=>{ if(x&&x.projectId===id){ x.projectId=_PRJ_DEFAULT; moved=true; } });
+      });
+    });
+    if(moved) persistData();
+  }catch(e){ _logErr('_prjDelete:data',e); }
+  if(wasActive){ _prjReloadScoped(); try{ _rqFilter='all'; searchQ=''; }catch(e){} }
+  try{ renderView(true); }catch(e){ _logErr('_prjDelete:render',e); }
+  showToast(L('Project deleted','تم حذف المشروع'),'success');
+  _prjOpen();
 }
 function _prjEditPick(input){
   const nameEl=document.getElementById('prjEditName'); const typed=nameEl?nameEl.value:'';
@@ -32596,7 +32954,7 @@ function renderMyRequests(){
 
   const shown=(q||_rqFilter!=='all'||typeFilter)?`${list.length} / ${all.length}`:String(all.length);
   return `<div class="screen-wrap cx-wrap">
-  ${_pgHdr('Site','الموقع','Site Custody','عهدة الموقع','Receipts log and custody money','سجل الاستلامات وفلوس العهدة')}
+  ${_pgHdr('Site','الموقع','My Job','My Job','Receipts log and custody money','سجل الاستلامات وفلوس العهدة')}
   ${_prjBarHTML()}
   ${_cxTabsHTML()}
   <section class="cx-sec">
@@ -34119,7 +34477,7 @@ function toggleNoteGroup(headerEl){
   if(chev) chev.classList.toggle('open',!isOpen);
 }
 
-// ── Site Custody v2 helpers (UI state only — no data writes) ───────────────
+// ── My Job v2 helpers (UI state only — no data writes) ───────────────
 // Which expense groups are open / whether the movements list is open survives
 // re-renders (edit, delete, save) instead of snapping back to a default.
 const _cxOpenGroups=new Set();
@@ -34314,7 +34672,7 @@ function _ngApplyCategory(btn){
     });
     const _cntEl=headerMeta.querySelector('.cx-cnt'), _totEl=headerMeta.querySelector('.cx-tot');
     if(_cntEl && _totEl){
-      // Site Custody v2 header: update count, total and share bar in place
+      // My Job v2 header: update count, total and share bar in place
       _cntEl.textContent = _cxItemsLabel(remainingChecks.length);
       _totEl.innerHTML = _cxMoney(sum);
       const _grand = parseFloat(group.closest('.cx-glist')?.dataset.total)||0;
@@ -34393,6 +34751,7 @@ function addCustodyDeposit(type='dep'){
   const amtChk = _valAmount(amtEl?.value, true);
   if (!amtChk.ok) { showToast('⚠️ ' + amtChk.err, 'warn'); if(amtEl){amtEl.style.borderColor='#dc4f4f';amtEl.style.boxShadow='0 0 0 2px #dc4f4f33';setTimeout(()=>{amtEl.style.borderColor='';amtEl.style.boxShadow='';},2000);} return; }
   const amt=amtChk.value;
+  if(!_routeActiveMonthToDate(dateEl?.value||today())) return;
   if(!canMutateMonth(activeMonth)) return;
   if(!DATA[activeMonth].custody_deposits) DATA[activeMonth].custody_deposits=[];
   const noteVal = noteEl ? (noteEl.tagName==='SELECT' ? (noteEl.value==='__custom__'?'':noteEl.value) : noteEl.value) : '';
@@ -34466,6 +34825,8 @@ function saveCustodyDeposit(){
   if(!canMutateMonth(activeMonth)) return;
   const noteEl = document.getElementById('editDepNote');
   const noteVal = noteEl ? (noteEl.tagName==='SELECT' ? (noteEl.value==='__custom__'?'':noteEl.value) : noteEl.value) : '';
+  const _depOldMonth = activeMonth, _depMoved = (()=>{ const k=_monthKeyForDate(dateVal||today()); return !!(k && k!==activeMonth); })();
+  if(_depMoved && !_routeActiveMonthToDate(dateVal||today())) return;
   deps[idx]={
     ...deps[idx],
     type: document.getElementById('editDepType').value,
@@ -34474,6 +34835,13 @@ function saveCustodyDeposit(){
     note: noteVal.trim()
   };
   const _savedDepType = deps[idx].type;
+  // Date → month: move the entry if its date now belongs to another month.
+  if(_depMoved){
+    const _rec=deps[idx];
+    deps.splice(idx,1);
+    if(!DATA[activeMonth].custody_deposits) DATA[activeMonth].custody_deposits=[];
+    DATA[activeMonth].custody_deposits.push(_rec);
+  }
   _editDepId=null;
   showToast('✓ Updated', 'success', undefined, _savedDepType);
   persistData();
@@ -38946,6 +39314,22 @@ function saveTx(){
   }
   if (!valid) return;
 
+  // Date → month: the entry lives in the month of its date (edits that change
+  // the date to another month are moved there).
+  let _movedRec = null;
+  if (editTarget) {
+    const _k = _monthKeyForDate(dateVal);
+    if (_k && _k !== activeMonth) {
+      if(!canMutateMonth(activeMonth)) return;
+      const _oldM = activeMonth, _oldIdx = editTarget.idx;
+      if(!_routeActiveMonthToDate(dateVal)) return;
+      _movedRec = (DATA[_oldM].transactions||[]).splice(_oldIdx,1)[0] || null;
+      editTarget = null;
+    }
+  } else {
+    if(!_routeActiveMonthToDate(dateVal)) return;
+  }
+
   // Target is no longer entered per-transaction — it's the day's target
   // (set once via the "Today's Target" card), looked up by date here.
   const dayTarget = getDailyTarget(activeMonth, dateVal);
@@ -38986,6 +39370,11 @@ function saveTx(){
       const t0 = txs[0]; t0._ts = baseTs;
       DATA[activeMonth].transactions[editTarget.idx]={...DATA[activeMonth].transactions[editTarget.idx],...t0};
       showToast(L('Updated ✓','تم التحديث ✓'), 'success', undefined, 'pay');
+    } else if(_movedRec){
+      const t0 = txs[0]; t0._ts = baseTs;
+      if(!DATA[activeMonth].transactions) DATA[activeMonth].transactions = [];
+      DATA[activeMonth].transactions.push({..._movedRec,...t0});
+      showToast(L('Updated ✓','تم التحديث ✓'), 'success', undefined, 'pay');
     } else {
       txs.forEach((t,i)=>{ t._ts = baseTs + i; DATA[activeMonth].transactions.push(t); });
       showToast(txs.length>1
@@ -38997,7 +39386,7 @@ function saveTx(){
 
   // Only check duplicates for new entries (not edits) — against transactions
   // that already exist, never against the other entries in this same sheet.
-  if (!editTarget) {
+  if (!editTarget && !_movedRec) {
     const existing = DATA[activeMonth].transactions || [];
     const isDup = txs.some(tx => existing.some(t =>
       t.payment === tx.payment && t.date === tx.date && (Date.now() - (t._ts || 0)) < 5*60*1000));
@@ -39026,6 +39415,25 @@ function saveExp(){
   if (!amtChk.ok) { if (valid) _valError('mAmount', amtChk.err); valid = false; }
 
   if (!valid) return;
+
+  // Date → month (see saveTx). A moved edit drops the old record and its
+  // linked bank movement from the old month, then re-adds in the new month.
+  if (editTarget) {
+    const _k = _monthKeyForDate(dateVal);
+    if (_k && _k !== activeMonth) {
+      if(!canMutateMonth(activeMonth)) return;
+      const _oldM = activeMonth, _oldIdx = editTarget.idx;
+      if(!_routeActiveMonthToDate(dateVal)) return;
+      const _oldRec = (DATA[_oldM].site_expenses||[])[_oldIdx];
+      if(_oldRec && _oldRec.linkedMoveId){
+        DATA[_oldM].bank_movements = (DATA[_oldM].bank_movements||[]).filter(mv=>mv.id!==_oldRec.linkedMoveId);
+      }
+      if(_oldRec) DATA[_oldM].site_expenses.splice(_oldIdx,1);
+      editTarget = null;
+    }
+  } else {
+    if(!_routeActiveMonthToDate(dateVal)) return;
+  }
 
   const linkedBank = document.getElementById('mLinkedBank')?.value || '';
   const notesEl = document.getElementById('mNotes');
@@ -39067,6 +39475,7 @@ function saveExp(){
 // instead of site_expenses. Used by AI Quick Entry when mode is 'tx'.
 // ══════════════════════════════════════════════════════════════════════════════
 function _commitTxRecord({date, notes='', payment=0, target=0}){
+  if(!_routeActiveMonthToDate(date)) return;
   if(!canMutateMonth(activeMonth)) return;
   if(!DATA[activeMonth].transactions) DATA[activeMonth].transactions = [];
   DATA[activeMonth].transactions.push({
@@ -39079,6 +39488,7 @@ function _commitTxRecord({date, notes='', payment=0, target=0}){
 }
 
 function _commitExpenseRecord({date, description, amount, category='', supplier='', image='', linkedBank='', smart=null}, editIdx=null){
+  if(editIdx==null && !_routeActiveMonthToDate(date)) return null;
   if(!canMutateMonth(activeMonth)) return null;
   if (!DATA[activeMonth].site_expenses) DATA[activeMonth].site_expenses = [];
   const all = DATA[activeMonth].site_expenses;
@@ -41835,7 +42245,7 @@ remCheckDue();
 
 // ═════════════════════════════════════════════════════════════════════
 // § DAILY RECEIPTS REPORT (تقرير استلامات اليوم) — built from My Requests
-// (Site Custody → استلاماتي). Every day from 4:30 PM the app drops today's
+// (My Job → استلاماتي). Every day from 4:30 PM the app drops today's
 // report into the Notification Center (with a one-tap Copy) and, if OS
 // notifications are allowed, a system notification whose body is the whole
 // report text. Like Reminders above, this is local-only (no push server): it
@@ -43518,7 +43928,9 @@ const MLOC = (function(){
       phLoaded=true; refresh();
     });
   }
-  function phEnsure(){ if(phStarted) return; phStarted=true; phLoad().catch(function(){}); }
+  let phReady=null;
+  function phEnsure(){ if(phStarted) return; phStarted=true; phReady=phLoad().catch(function(){}); }
+  function photosReady(){ phEnsure(); return phReady||Promise.resolve(); }
   function phPut(rec){ return phTx('readwrite',function(s){ return s.put(rec); }); }
   function phDel(id){ return phTx('readwrite',function(s){ return s.delete(id); }); }
   function phDropPlace(pid){ (photos[pid]||[]).forEach(function(r){ phDel(r.id).catch(function(){}); }); delete photos[pid]; }
@@ -43612,7 +44024,7 @@ const MLOC = (function(){
       .map(function(r){ return {id:r.id,pid:r.pid,data:r.data,ts:+r.ts||0}; });
     photos={}; ok.forEach(function(r){ (photos[r.pid]=photos[r.pid]||[]).push(r); });
     phLoaded=true; phStarted=true;
-    phTx('readwrite',function(s){ s.clear(); ok.forEach(function(r){ s.put(r); }); return null; }).catch(function(){});
+    return phTx('readwrite',function(s){ s.clear(); ok.forEach(function(r){ s.put(r); }); return null; }).catch(function(){});
   }
   function plainLabel(p){ return (p.name||p.geo||(L('Place','مكان')+' '+(p.n||'')))+(p.branch?' - '+p.branch:''); }
   function fmtDay(ts){
@@ -43706,9 +44118,232 @@ const MLOC = (function(){
     });
   }
   try{ phEnsure(); }catch(e){}
-  return {toggle,setMinutes,rename,remove,clearAll,render,boot,toggleForm,saveManual,addVisit,attachLoc,setRating,setFormRating,addPhoto,openPhoto,photosJSON,restorePhotos};
+  return {toggle,setMinutes,rename,remove,clearAll,render,boot,toggleForm,saveManual,addVisit,attachLoc,setRating,setFormRating,addPhoto,openPhoto,photosJSON,restorePhotos,photosReady};
 })();
 function renderMyLocations(){ return MLOC.render(); }
+
+// ═════════════════════════════════════════════════════════════════════
+// ATTENDANCE (الحضور والغياب) — personal attendance log: one status per day
+// (present / late / absent / sick / annual leave / public holiday / day off),
+// company name, and per-month / per-year / all-time counts.
+// Stored in localStorage ('wdp_attendance_v1'), so the app's backup picks it up automatically.
+// ═════════════════════════════════════════════════════════════════════
+const ATT=(function(){
+  const KEY='wdp_attendance_v1';
+  const ST=[
+    {k:'present',en:'Present',ar:'حضور',sEn:'Present',sAr:'حضور',ic:'check'},
+    {k:'late',en:'Late',ar:'تأخير',sEn:'Late',sAr:'تأخير',ic:'clock'},
+    {k:'absent',en:'Absent',ar:'غياب',sEn:'Absent',sAr:'غياب',ic:'close'},
+    {k:'sick',en:'Sick leave',ar:'إجازة مرضي',sEn:'Sick',sAr:'مرضي',ic:'sick'},
+    {k:'leave',en:'Annual leave',ar:'إجازة اعتيادية',sEn:'Leave',sAr:'اعتيادي',ic:'leave'},
+    {k:'holiday',en:'Public holiday',ar:'إجازة رسمية',sEn:'Holiday',sAr:'رسمية',ic:'holiday'},
+    {k:'off',en:'Day off',ar:'راحة',sEn:'Day off',sAr:'راحة',ic:'minus'}
+  ];
+  const QUICK=['present','late','absent','sick'];
+  const BY={}; ST.forEach(x=>{ BY[x.k]=x; });
+  let db=null;
+  const nowD=new Date();
+  let vy=nowD.getFullYear(), vm=nowD.getMonth(), scope='month', sel='';
+  const pad=n=>(n<10?'0':'')+n;
+  const dk=(y,m,d)=>y+'-'+pad(m+1)+'-'+pad(d);
+  const tk=()=>{ const t=new Date(); return dk(t.getFullYear(),t.getMonth(),t.getDate()); };
+  const loc=()=>L('en-US','ar-EG-u-nu-latn');
+  const stLbl=x=>L(x.en,x.ar);
+  function load(){
+    if(db) return db;
+    db={company:'',project:'',location:'',mapLink:'',logo:'',days:{}};
+    try{
+      const p=JSON.parse(localStorage.getItem(KEY)||'null');
+      if(p&&typeof p==='object'){ db.company=String(p.company||''); db.project=String(p.project||''); db.location=String(p.location||''); db.mapLink=String(p.mapLink||''); db.logo=String(p.logo||''); if(p.days&&typeof p.days==='object') db.days=p.days; }
+    }catch(e){ _logErr('ATT:load',e); }
+    return db;
+  }
+  function save(){
+    try{ localStorage.setItem(KEY,JSON.stringify(db)); return true; }
+    catch(e){ _logErr('ATT:save',e); try{ showToast(L('⚠️ Could not save (storage full)','⚠️ تعذّر الحفظ (التخزين ممتلئ)'),'warn'); }catch(_){} return false; }
+  }
+  function scopePrefix(){ return scope==='month'?(vy+'-'+pad(vm+1)):(scope==='year'?String(vy):''); }
+  function counts(){
+    const pre=scopePrefix(), c={}; ST.forEach(x=>{ c[x.k]=0; });
+    let total=0;
+    Object.keys(db.days).forEach(k=>{
+      if(pre&&k.indexOf(pre)!==0) return;
+      const r=db.days[k];
+      if(r&&c[r.s]!==undefined){ c[r.s]++; total++; }
+    });
+    return {c,total};
+  }
+  function monthLabel(){ return new Date(vy,vm,1).toLocaleDateString(loc(),{month:'long',year:'numeric'}); }
+  function scopeLabel(){ return scope==='month'?monthLabel():(scope==='year'?String(vy):L('All time','كل الفترات')); }
+  function render(){
+    load();
+    const {c,total}=counts();
+    const worked=c.present+c.late, due=worked+c.absent+c.sick+c.leave;
+    const rate=due?Math.round(worked/due*100):null;
+    const tkey=tk(), trec=db.days[tkey];
+    const stats=ST.map(x=>`<div class="att-stat att-st-${x.k}"><span class="att-stat-ic">${ic(x.ic,14)}</span><span class="att-stat-n">${c[x.k]}</span><span class="att-stat-l">${L(x.sEn,x.sAr)}</span></div>`).join('');
+    const quick=QUICK.map(k=>{ const x=BY[k]; return `<button type="button" class="att-q att-st-${k}${trec&&trec.s===k?' on':''}" onclick="ATT.quick('${k}')">${ic(x.ic,14)}<span>${stLbl(x)}</span></button>`; }).join('');
+    const tName=new Date().toLocaleDateString(loc(),{weekday:'long',day:'numeric',month:'long'});
+    // calendar for the viewed month
+    const first=(new Date(vy,vm,1).getDay()+1)%7;          // week starts on Saturday
+    const days=new Date(vy,vm+1,0).getDate();
+    const dn=[L('Sat','س'),L('Sun','ح'),L('Mon','ن'),L('Tue','ث'),L('Wed','ر'),L('Thu','خ'),L('Fri','ج')];
+    let cells=dn.map(x=>`<div class="att-dn">${x}</div>`).join('');
+    for(let i=0;i<first;i++) cells+='<div class="att-day empty"></div>';
+    for(let d=1;d<=days;d++){
+      const key=dk(vy,vm,d), r=db.days[key], x=r&&BY[r.s];
+      cells+=`<button type="button" class="att-day${x?' att-st-'+x.k+' has':''}${key===tkey?' today':''}" onclick="ATT.openDay('${key}')" aria-label="${key}${x?' — '+esc(stLbl(x)):''}"><b>${d}</b>${x?`<i></i>`:''}${r&&r.n?'<u></u>':''}</button>`;
+    }
+    const legend=ST.map(x=>`<span class="att-lg att-st-${x.k}"><i></i>${stLbl(x)}</span>`).join('');
+    // notes of the viewed month
+    const pre=vy+'-'+pad(vm+1);
+    const notes=Object.keys(db.days).filter(k=>k.indexOf(pre)===0&&db.days[k]&&db.days[k].n).sort().map(k=>{
+      const r=db.days[k], x=BY[r.s];
+      return `<button type="button" class="att-note att-st-${r.s}" onclick="ATT.openDay('${k}')"><span class="att-note-d">${parseInt(k.slice(8),10)}</span><span class="att-note-b"><b>${x?esc(stLbl(x)):''}</b><span dir="auto">${esc(r.n)}</span></span></button>`;
+    }).join('');
+    const sc=(k,en,ar)=>`<button type="button" class="att-seg${scope===k?' on':''}" aria-pressed="${scope===k}" onclick="ATT.setScope('${k}')">${L(en,ar)}</button>`;
+    return `<div class="screen-wrap att">
+      <div class="sc-header">
+        <div class="sc-header-eyebrow">${L('My work','شغلي')}</div>
+        <div class="sc-header-title">${L('Attendance','الحضور والغياب')}</div>
+        <div class="sc-header-sub" dir="auto">${[db.company,db.project,db.location].filter(Boolean).map(esc).join(' · ')||L('Track your attendance, absence and leave','تابع حضورك وغيابك وإجازاتك')}</div>
+      </div>
+      <div class="sc-card att-co">
+        <div class="att-co-top">
+          <label class="att-logo" title="${L('Company logo','لوجو الشركة')}">
+            ${db.logo?bankLogoHTML(db.logo,64,{alt:''}):`<span class="att-logo-ph">${ic('building',26)}</span>`}
+            <span class="att-logo-cam">${ic('photo',12)}</span>
+            <input type="file" accept="image/*" style="display:none" onchange="ATT.pickLogo(this)">
+          </label>
+          <label class="att-co-f"><span>${L('Company name','اسم الشركة')}</span>
+            <input type="text" id="attCo" dir="auto" autocomplete="off" maxlength="80" value="${esc(db.company)}" placeholder="${L('Enter your company name','اكتب اسم الشركة')}" onchange="ATT.setField('company',this.value)"></label>
+        </div>
+        ${db.logo?`<button type="button" class="att-link danger att-rmlogo" onclick="ATT.removeLogo()">${ic('trash',13)} ${L('Remove logo','حذف اللوجو')}</button>`:`<div class="att-hint att-logo-hint">${L('Tap the icon to add the company logo','اضغط على الأيقونة لإضافة لوجو الشركة')}</div>`}
+        <div class="att-co-grid">
+          <label class="att-co-f"><span>${ic('briefcase',12)} ${L('Project name','اسم المشروع')}</span>
+            <input type="text" dir="auto" autocomplete="off" maxlength="80" value="${esc(db.project)}" placeholder="${L('Project you work on','المشروع اللي شغال عليه')}" onchange="ATT.setField('project',this.value)"></label>
+          <label class="att-co-f"><span>${ic('pin',12)} ${L('Location','اللوكيشن')}</span>
+            <input type="text" dir="auto" autocomplete="off" maxlength="100" value="${esc(db.location)}" placeholder="${L('Site or city','الموقع أو المدينة')}" onchange="ATT.setField('location',this.value)"></label>
+          <label class="att-co-f"><span>${ic('link',12)} ${L('Map link','رابط الخريطة')}</span>
+            <input type="url" dir="ltr" inputmode="url" autocomplete="off" autocapitalize="off" maxlength="500" value="${esc(db.mapLink)}" placeholder="https://maps.google.com/..." onchange="ATT.setField('mapLink',this.value)"></label>
+          ${mapUrl()?`<a class="att-map" href="${esc(mapUrl())}" target="_blank" rel="noopener">${ic('pin',15)} ${L('Open on map','فتح على الخريطة')}</a>`:''}
+        </div>
+      </div>
+      <div class="sc-card att-today">
+        <div class="att-today-top"><div><div class="att-lbl">${L('Today','النهاردة')}</div><div class="att-today-d">${tName}</div></div>
+          ${trec&&BY[trec.s]?`<span class="att-pill att-st-${trec.s}">${stLbl(BY[trec.s])}</span>`:`<span class="att-pill none">${L('Not recorded','لسه متسجلش')}</span>`}</div>
+        <div class="att-quick">${quick}</div>
+        <button type="button" class="att-link" onclick="ATT.openDay('${tkey}')">${L('More options / add a note','خيارات أكتر / إضافة ملاحظة')}</button>
+      </div>
+      <div class="sc-card att-sum">
+        <div class="att-seg-row">${sc('month','Month','الشهر')}${sc('year','Year','السنة')}${sc('all','All','الكل')}</div>
+        <div class="att-sum-hd"><span>${esc(scopeLabel())}</span><em>${total} ${L('days recorded','يوم مسجّل')}</em></div>
+        <div class="att-stats">${stats}</div>
+        <div class="att-rate"><div class="att-rate-top"><span>${L('Attendance rate','نسبة الحضور')}</span><b>${rate===null?'—':rate+'%'}</b></div>
+          <div class="att-track"><div class="att-fill" style="width:${rate===null?0:rate}%"></div></div>
+          <div class="att-rate-n">${L('Present + late out of working days (leave days included, holidays and days off excluded)','الحضور + التأخير من أيام العمل (الإجازات محسوبة، والرسمي والراحة مش محسوبين)')}</div></div>
+      </div>
+      <div class="sc-card att-cal-card">
+        <div class="att-nav">
+          <button type="button" class="icon-btn" onclick="ATT.nav(-1)" aria-label="${L('Previous month','الشهر السابق')}"><span class="att-chev prev"></span></button>
+          <button type="button" class="att-month" onclick="ATT.goToday()">${esc(monthLabel())}</button>
+          <button type="button" class="icon-btn" onclick="ATT.nav(1)" aria-label="${L('Next month','الشهر التالي')}"><span class="att-chev next"></span></button>
+        </div>
+        <div class="att-cal">${cells}</div>
+        <div class="att-legend">${legend}</div>
+        <div class="att-hint">${L('Tap a day to set its status','اضغط على أي يوم لتحديد حالته')}</div>
+      </div>
+      ${notes?`<div class="sc-card att-notes"><div class="att-lbl">${L('Notes this month','ملاحظات الشهر')}</div>${notes}</div>`:''}
+      <div class="att-foot"><button type="button" class="att-link danger" onclick="ATT.clearMonth()">${ic('trash',13)} ${L('Clear this month','مسح بيانات الشهر')}</button></div>
+    </div>`;
+  }
+  function openDay(key){
+    load();
+    const r=db.days[key]||null; sel=r?r.s:'';
+    const y=+key.slice(0,4), m=+key.slice(5,7)-1, d=+key.slice(8,10);
+    const title=new Date(y,m,d).toLocaleDateString(loc(),{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+    const chips=ST.map(x=>`<button type="button" class="att-chip att-st-${x.k}${sel===x.k?' on':''}" data-k="${x.k}" onclick="ATT.pick('${x.k}')">${ic(x.ic,16)}<span>${stLbl(x)}</span></button>`).join('');
+    document.getElementById('modalContent').innerHTML=`<div class="modal-handle"></div>
+      <div class="rq-modal att-sheet">
+        <div class="modal-hdr">
+          <div class="modal-hdr-icon" style="background:linear-gradient(135deg,#0f7a55,#0a5c40)">${ic('attendance',22)}</div>
+          <div style="flex:1;min-width:0"><div class="modal-hdr-title">${L('Day status','حالة اليوم')}</div><div class="modal-hdr-sub">${esc(title)}</div></div>
+          <button type="button" class="sheet-close-btn sq" onclick="closeModal()" aria-label="${L('Close','إغلاق')}">${ic('close',16)}</button>
+        </div>
+        <div class="att-chips">${chips}</div>
+        <div class="field"><label>${L('Note (optional)','ملاحظة (اختياري)')}</label>
+          <input type="text" id="attNote" dir="auto" autocomplete="off" maxlength="200" value="${esc(r&&r.n?r.n:'')}" placeholder="${L('e.g. doctor visit, site visit…','مثال: كشف عند دكتور، زيارة موقع…')}"></div>
+        <div class="modal-btns">
+          <button class="mbtn save" onclick="ATT.saveDay('${key}')">${L('Save','حفظ')}</button>
+          ${r?`<button class="mbtn danger" onclick="ATT.clearDay('${key}')">${L('Clear day','مسح اليوم')}</button>`:''}
+          <button class="mbtn cancel" onclick="closeModal()">${L('Cancel','إلغاء')}</button>
+        </div>
+      </div>`;
+    document.getElementById('modalOverlay').style.display='flex';
+  }
+  function pick(k){
+    sel=(sel===k)?'':k;
+    document.querySelectorAll('.att-chip').forEach(b=>b.classList.toggle('on',b.dataset.k===sel));
+  }
+  function saveDay(key){
+    load();
+    const note=(document.getElementById('attNote')?.value||'').trim().slice(0,200);
+    if(!sel){
+      if(note){ showToast(L('Choose a status first','اختار الحالة الأول'),'warn'); return; }
+      delete db.days[key];
+    } else db.days[key]={s:sel,n:note};
+    if(!save()) return;
+    closeModal(); try{ renderView(true); }catch(e){}
+    showToast(L('Saved','تم الحفظ'),'success');
+  }
+  function clearDay(key){
+    load(); delete db.days[key]; if(!save()) return;
+    closeModal(); try{ renderView(true); }catch(e){}
+  }
+  function quick(k){
+    load();
+    const key=tk(), prev=db.days[key];
+    db.days[key]={s:k,n:prev&&prev.n?prev.n:''};
+    if(!save()) return;
+    try{ renderView(true); }catch(e){}
+    showToast(L('Today: ','النهاردة: ')+stLbl(BY[k]),'success');
+  }
+  function nav(dm){
+    vm+=dm; if(vm<0){ vm=11; vy--; } else if(vm>11){ vm=0; vy++; }
+    try{ renderView(true); }catch(e){}
+  }
+  function goToday(){ const t=new Date(); vy=t.getFullYear(); vm=t.getMonth(); try{ renderView(true); }catch(e){} }
+  function setScope(k){ scope=k; try{ renderView(true); }catch(e){} }
+  // the saved map link wins; otherwise search the typed location on Google Maps
+  function mapUrl(){
+    if(db.mapLink&&/^https?:\/\//i.test(db.mapLink)) return db.mapLink;
+    if(db.location) return 'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(db.location);
+    return '';
+  }
+  function setField(f,v){
+    load(); if(['company','project','location','mapLink'].indexOf(f)<0) return;
+    v=String(v||'').replace(/\s+/g,' ').trim();
+    if(f==='mapLink'&&v&&!/^https?:\/\//i.test(v)) v='https://'+v;
+    db[f]=v.slice(0,f==='mapLink'?500:(f==='location'?100:80));
+    if(save()){ try{ renderView(true); }catch(e){} }
+  }
+  function pickLogo(input){
+    load();
+    _deReadLogo(input,url=>{ db.logo=url; if(save()){ try{ renderView(true); }catch(e){} } });
+  }
+  function removeLogo(){ load(); db.logo=''; if(save()){ try{ renderView(true); }catch(e){} } }
+  function clearMonth(){
+    load();
+    const pre=vy+'-'+pad(vm+1);
+    const keys=Object.keys(db.days).filter(k=>k.indexOf(pre)===0);
+    if(!keys.length){ showToast(L('Nothing to clear this month','مفيش بيانات في الشهر ده'),'warn'); return; }
+    showConfirm(L('Clear all attendance records for '+monthLabel()+'?','مسح كل سجلات الحضور لشهر '+monthLabel()+'؟'),()=>{
+      keys.forEach(k=>{ delete db.days[k]; });
+      if(save()){ try{ renderView(true); }catch(e){} showToast(L('Month cleared','تم مسح الشهر'),'success'); }
+    });
+  }
+  return {render,openDay,pick,saveDay,clearDay,quick,nav,goToday,setScope,setField,pickLogo,removeLogo,clearMonth};
+})();
 // My Locations photos live in IndexedDB; carry them through the app's existing backup/restore
 // (which only knows localStorage) without ever writing them into localStorage.
 try{
@@ -43725,12 +44360,22 @@ try{
     _bkExtrasApply=function(ex){
       if(ex && typeof ex==='object' && typeof ex['wdp_myloc_photos_v1']==='string'){
         const rest=Object.assign({},ex), j=rest['wdp_myloc_photos_v1']; delete rest['wdp_myloc_photos_v1'];
-        try{ MLOC.restorePhotos(j); }catch(e){}
+        try{ window._mlPhotosRestore=MLOC.restorePhotos(j); }catch(e){}
         return _mlOa.call(this,rest);
       }
       return _mlOa.apply(this,arguments);
     };
   }
+}catch(e){}
+
+// Export waits (max 4s) until the place photos have been read from IndexedDB, so a backup taken right
+// after launch can never silently leave them out.
+try{
+  const _ebOrig=exportBackup;
+  exportBackup=async function(){
+    try{ await Promise.race([MLOC.photosReady(),new Promise(function(r){ setTimeout(r,4000); })]); }catch(e){}
+    return _ebOrig.apply(this,arguments);
+  };
 }catch(e){}
 
 if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',function(){ MLOC.boot(); });
@@ -44197,10 +44842,10 @@ const TOUR_STEPS = [
     descEn:'Log your daily spending and track it against your daily target.',
     descAr:'سجّل مصروفاتك اليومية وتابعها مقابل المستهدف اليومي.'
   },
-  { // 6 — Site Custody
+  { // 6 — My Job
     view:'expenses', target:'#navBtn-SiteCustody',
     icon:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15a8 8 0 0 1 16 0"/><path d="M2 15h20"/><path d="M2 15v1.5a1.5 1.5 0 0 0 1.5 1.5h17a1.5 1.5 0 0 0 1.5-1.5V15"/><path d="M12 15V9"/></svg>',
-    titleEn:'Site Custody', titleAr:'Site Custody — عهدة الموقع',
+    titleEn:'My Job', titleAr:'My Job',
     descEn:'Track deposited, spent and remaining custody amounts.',
     descAr:'تابع المبالغ المودعة، المصروفات والمتبقي من العُهدة.'
   },
@@ -44239,7 +44884,7 @@ const TOUR_STEPS = [
 // already stores the exact setView() argument in `view`, so this is
 // just documentation, not a lookup table:
 //   wsdash → Dashboard, banks → Banks, transactions → Daily,
-//   expenses → Site Custody, savings → My Savings
+//   expenses → My Job, savings → My Savings
 
 function tourHasSeen(){ return obHasSeen(); }
 function tourMarkSeen(){ obMarkSeen(); }
@@ -48364,7 +49009,7 @@ const MIORA_PAGE_HELP = {
     ]
   },
   sitecustody: {
-    titleEn:'Site Custody', titleAr:'Site Custody — عهدة الموقع',
+    titleEn:'My Job', titleAr:'My Job',
     purposeEn:'Track money handed to you as custody: what was deposited, spent, and what remains.',
     purposeAr:'تابع أموال العُهدة التي معك: ما أُودع، وما صُرف، وما تبقّى.',
     suggestions:[
@@ -48462,8 +49107,8 @@ add_expense:{ scope:['daily'], kEn:['add','expense','log','record'], kAr:['اض�
     en:'Remaining = what was deposited into your custody, minus what you\'ve already spent from it.',
     ar:'Remaining = ما أُودع في العُهدة، ناقص ما صرفته منها حتى الآن.' },
   custody_expense:{ scope:['sitecustody'], kEn:['log','site','expense','record'], kAr:['اسجل','مصروف','موقع'],
-    en:'Open Site Custody, tap Add Expense, then enter the amount, a short description of what it was for, and the date.',
-    ar:'افتح Site Custody، اضغط Add Expense، واكتب المبلغ، ووصفاً قصيراً للمصروف، والتاريخ.' },
+    en:'Open My Job, tap Add Expense, then enter the amount, a short description of what it was for, and the date.',
+    ar:'افتح My Job، اضغط Add Expense، واكتب المبلغ، ووصفاً قصيراً للمصروف، والتاريخ.' },
   custody_expense_fields:{ scope:['sitecustody'], kEn:['fields','write','expense'], kAr:['اكتب','خانة','مصروف'],
     en:'Write what the money was actually spent on (materials, transport, labor...) — not a personal expense and not a transfer between accounts.',
     ar:'اكتب على ماذا صُرف المصروف فعلاً (مواد، مواصلات، عمالة...) — ليس مصروفاً شخصياً وليس تحويلاً بين حسابات.' },
