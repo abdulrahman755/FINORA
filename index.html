@@ -9642,6 +9642,41 @@ body .screen-wrap .sc-header.sav-plain-header.sav-plain-header::after{display:no
 .rpt-item.st-notes .rpt-plot{color:var(--text)}
 .rpt-item.st-rejected .rpt-plot{color:var(--red)}
 .rpt-item .rpt-sub:first-of-type{font-weight:700;color:var(--text)}
+
+/* My Receipts hero */
+.rq-hero{display:flex;align-items:center;gap:16px;padding:14px;border-radius:20px;background:var(--surface);border:1px solid var(--border);box-shadow:var(--shadow-xs)}
+.rq-ring{flex:none;width:92px;height:92px;border-radius:50%;display:grid;place-items:center}
+.rq-ring>div{width:68px;height:68px;border-radius:50%;background:var(--surface);display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.1}
+.rq-ring b{font-size:calc(20px*var(--app-text-scale,1));font-weight:900;letter-spacing:-.02em;font-variant-numeric:tabular-nums;color:var(--text)}
+.rq-ring small{font-size:calc(10px*var(--app-text-scale,1));font-weight:700;color:var(--muted)}
+.rq-hs-grid{flex:1;min-width:0;display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.rq-hs{display:flex;align-items:center;gap:7px;padding:8px 10px;border-radius:12px;border:1px solid transparent;background:var(--surface2);color:var(--text);font-family:inherit;cursor:pointer;text-align:start;min-width:0;transition:transform .12s,background-color .15s}
+.rq-hs:active{transform:scale(.97)}
+.rq-hs i{flex:none;width:8px;height:8px;border-radius:50%;background:var(--muted)}
+.rq-hs.ok i{background:var(--green)}.rq-hs.low i{background:var(--gold)}.rq-hs.over i{background:var(--red)}
+.rq-hs b{font-size:calc(17px*var(--app-text-scale,1));font-weight:900;font-variant-numeric:tabular-nums}
+.rq-hs span{font-size:calc(11.5px*var(--app-text-scale,1));font-weight:700;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rq-hs.zero{opacity:.55}
+.rq-hs.on{background:var(--surface);border-color:var(--text);box-shadow:var(--shadow-sm)}
+.rq-hero+.rq-types-wrap{margin-top:12px}
+/* My Finances — calmer sections + compact rows */
+.fin-sec-hd{display:flex;align-items:center;gap:10px;margin:0;padding:14px 14px 4px}
+.sc-card .tx-rows{gap:0;padding-top:6px}
+.fin-sec-ic{flex:none;width:32px;height:32px;border-radius:10px;display:grid;place-items:center;color:var(--sc);background:color-mix(in srgb,var(--sc) 14%,transparent)}
+.fin-sec-t{font-size:calc(15px*var(--app-text-scale,1));font-weight:800;color:var(--text);letter-spacing:-.01em;min-width:0}
+.fin-sec-t small{display:block;font-size:calc(11px*var(--app-text-scale,1));font-weight:600;color:var(--muted);margin-top:1px}
+.fin-sec-n{margin-inline-start:auto;font-size:calc(12px*var(--app-text-scale,1));font-weight:800;color:var(--muted);font-variant-numeric:tabular-nums}
+.fin-sec-add{flex:none;width:34px;height:34px;border-radius:50%;border:1.5px solid color-mix(in srgb,var(--sc) 45%,transparent);background:transparent;color:var(--sc);display:grid;place-items:center;cursor:pointer;padding:0}
+.fin-sec-add:active{background:color-mix(in srgb,var(--sc) 14%,transparent);transform:scale(.94)}
+.sav-row:not(.asset-card){display:flex;flex-direction:row;align-items:center;gap:6px;padding:10px 4px 10px 0;background:transparent;border:0;border-radius:0;box-shadow:none;border-top:1px solid var(--border)}
+.tx-rows>.sav-row:not(.asset-card):first-child{border-top:0}
+.sav-row:not(.asset-card) .sav-row-main{flex:1;min-width:0}
+.sav-row:not(.asset-card) .sav-row-actions{flex:none;padding:0;border:0;gap:0}
+.sav-row:not(.asset-card) .sav-row-actions .tx-edit-btn{display:none}
+.sav-row:not(.asset-card) .sav-row-title{font-size:calc(14px*var(--app-text-scale,1))}
+.sav-row:not(.asset-card) .sav-row-amount{font-size:calc(14px*var(--app-text-scale,1))}
+.sav-row:not(.asset-card) .sav-row-icon{border-radius:12px}
+
 .rpt-day{margin-top:14px}
 .rpt-day:first-child{margin-top:6px}
 .rpt-day-h{position:sticky;top:-6px;z-index:2;display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 -14px;padding:9px 16px;background:color-mix(in srgb,var(--surface2) 92%,transparent);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);font-size:calc(12px*var(--app-text-scale,1));font-weight:800;letter-spacing:.5px;color:var(--text2)}
@@ -20334,33 +20369,41 @@ function renderSavings(){
     </span></div>
 
     <div class="sc-card">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px">
-        <div class="sc-card-label" style="padding:0">${ic('cash',15)} ${L('Income','الدخل')}</div>
-        <button onclick="savAddIncome()" class="card-add-btn green">+ ${L('Add','إضافة')}</button>
+      <div class="fin-sec-hd" style="--sc:var(--fin-income)">
+        <span class="fin-sec-ic">${ic('cash',16)}</span>
+        <span class="fin-sec-t">${L('Income','الدخل')}</span>
+        <span class="fin-sec-n">${visIncomes.length}</span>
+        <button type="button" onclick="savAddIncome()" class="fin-sec-add" aria-label="${L('Add','إضافة')}">${ic('plus',15)}</button>
       </div>
       <div class="tx-rows">${incomeRows}</div>
     </div>
 
     <div class="sc-card">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px">
-        <div class="sc-card-label" style="padding:0">${ic('trend_down',15)} ${L('Expenses','المصروفات')}</div>
-        <button onclick="savAddOutcome()" class="card-add-btn green">+ ${L('Add','إضافة')}</button>
+      <div class="fin-sec-hd" style="--sc:var(--fin-outcome)">
+        <span class="fin-sec-ic">${ic('trend_down',16)}</span>
+        <span class="fin-sec-t">${L('Expenses','المصروفات')}</span>
+        <span class="fin-sec-n">${visOutcomes.length}</span>
+        <button type="button" onclick="savAddOutcome()" class="fin-sec-add" aria-label="${L('Add','إضافة')}">${ic('plus',15)}</button>
       </div>
       <div class="tx-rows">${outcomeRows}</div>
     </div>
 
     <div class="sc-card">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px">
-        <div class="sc-card-label" style="padding:0">${ic('gem',15)} ${L('Assets','الأصول')} <span style="color:var(--muted);font-weight:600">(${L('gold, real estate, car…','ذهب، عقار، سيارة…')})</span></div>
-        <button onclick="savAddAsset()" class="card-add-btn green">+ ${L('Add','إضافة')}</button>
+      <div class="fin-sec-hd" style="--sc:var(--fin-assets)">
+        <span class="fin-sec-ic">${ic('gem',16)}</span>
+        <span class="fin-sec-t">${L('Assets','الأصول')} <small>${L('gold, real estate, car…','ذهب، عقار، سيارة…')}</small></span>
+        <span class="fin-sec-n">${visAssets.length}</span>
+        <button type="button" onclick="savAddAsset()" class="fin-sec-add" aria-label="${L('Add','إضافة')}">${ic('plus',15)}</button>
       </div>
       <div class="tx-rows asset-card-grid">${assetRows}</div>
     </div>
 
     <div class="sc-card">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px">
-        <div class="sc-card-label" style="padding:0">${ic('scale',15)} ${L('Debts','المديونيات')}</div>
-        <button onclick="savAddDebt()" class="card-add-btn green">+ ${L('Add','إضافة')}</button>
+      <div class="fin-sec-hd" style="--sc:#b45309">
+        <span class="fin-sec-ic">${ic('scale',16)}</span>
+        <span class="fin-sec-t">${L('Debts','المديونيات')}</span>
+        <span class="fin-sec-n">${visDebts.length}</span>
+        <button type="button" onclick="savAddDebt()" class="fin-sec-add" aria-label="${L('Add','إضافة')}">${ic('plus',15)}</button>
       </div>
       ${debtSummaryHtml}
       <div class="tx-rows">${debtRows}</div>
@@ -33293,11 +33336,20 @@ function renderMyRequests(){
     const pct=Math.max(6,Math.round(t.n*100/Math.max(1,byStatus.length)));
     return `<button type="button" class="rq-tchip${on?' on':''}" style="--rq-tc:${_rqTypeColor(t.r)}" data-k="${esc(t.k)}" aria-pressed="${on?'true':'false'}" onclick="_rqSetTypeFilter(this.dataset.k)"><i></i><span class="rq-tc-l">${esc(label)}</span><b>${t.n}</b></button>`;
   }).join('');
-  const statsHTML=(all.length?`<div class="rq-stats">
-    ${stat('all','all',all.length,L('All','الكل'))}
-    ${stat('received','ok',counts.received,_rqStatusLabel('received'))}
-    ${stat('notes','low',counts.notes,L('With notes','بملاحظات'))}
-    ${stat('rejected','over',counts.rejected,_rqStatusLabel('rejected'))}
+  const _tot=Math.max(1,all.length);
+  const _pc=n=>Math.round(n*1000/_tot)/10;
+  const _a=_pc(counts.received), _b=_a+_pc(counts.notes);
+  const _ring=all.length?`conic-gradient(var(--green) 0 ${_a}%,var(--gold) ${_a}% ${_b}%,var(--red) ${_b}% 100%)`:'var(--border)';
+  const _hs=(f,k,n,lbl)=>`<button type="button" class="rq-hs ${k}${n===0?' zero':''}${_rqFilter===f?' on':''}" aria-pressed="${_rqFilter===f?'true':'false'}" onclick="_rqSetFilter('${f}')"><i></i><b>${n}</b><span>${lbl}</span></button>`;
+  const rate=all.length?Math.round(counts.received*100/all.length):0;
+  const statsHTML=(all.length?`<div class="rq-hero">
+    <div class="rq-ring" style="background:${_ring}" aria-hidden="true"><div><b>${rate}%</b><small>${L('received','مستلم')}</small></div></div>
+    <div class="rq-hs-grid">
+      ${_hs('all','all',all.length,L('All','الكل'))}
+      ${_hs('received','ok',counts.received,_rqStatusLabel('received'))}
+      ${_hs('notes','low',counts.notes,L('With notes','بملاحظات'))}
+      ${_hs('rejected','over',counts.rejected,_rqStatusLabel('rejected'))}
+    </div>
   </div>`:'')+(typeChips?`<div class="rq-types-wrap"><div class="rq-types-h">${L('By type','حسب النوع')}</div><div class="rq-types">${typeChips}</div></div>`:'');
 
   const cardsHTML=_rqView==='list'?list.map(_rqRowHTML).join('')
