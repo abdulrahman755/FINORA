@@ -9659,6 +9659,29 @@ body .screen-wrap .sc-header.sav-plain-header.sav-plain-header::after{display:no
 .rq-hs.zero{opacity:.55}
 .rq-hs.on{background:var(--surface);border-color:var(--text);box-shadow:var(--shadow-sm)}
 .rq-hero+.rq-types-wrap{margin-top:12px}
+/* ── Calm pass: day groups, headings, projects ── */
+.rq-day{grid-column:1/-1;display:flex;align-items:center;gap:8px;padding:10px 2px 2px;font-size:calc(13px*var(--app-text-scale,1));color:var(--text2)}
+.rq-day:first-child{padding-top:2px}
+.rq-day b{font-weight:800;color:var(--text);white-space:nowrap}
+.rq-day::after{content:'';order:1;flex:1;height:1px;background:var(--border)}
+.rq-day span{order:2;font-weight:800;font-size:calc(11.5px*var(--app-text-scale,1));color:var(--muted);background:var(--surface2);padding:1px 8px;border-radius:99px;font-variant-numeric:tabular-nums}
+.rq-list.rq-v-cards .rq-day{padding-top:0}
+/* Headings stand out across pages */
+.cx-sh-t{font-size:calc(22px*var(--app-text-scale,1))!important;font-weight:900!important;letter-spacing:-.02em;padding-inline-start:11px;border-inline-start:4px solid var(--green);line-height:1.15}
+.cx-sh-s{padding-inline-start:15px}
+.cx-sh-l{display:flex;flex-direction:column;gap:3px}
+.sc-header-title{font-size:calc(24px*var(--app-text-scale,1))!important;font-weight:900!important;letter-spacing:-.02em}
+.sc-card-label{font-size:calc(14px*var(--app-text-scale,1));font-weight:800;color:var(--text)}
+.sc-card-label svg{color:var(--green)}
+/* Projects sheet: quieter */
+.prj-new{border:0!important;background:transparent!important;box-shadow:none!important;padding:0!important}
+.prj-new-sum{list-style:none;cursor:pointer;display:flex;align-items:center;gap:10px;padding:13px 14px;border:1.5px dashed var(--border-strong,var(--border));border-radius:16px;font-weight:800;color:var(--green-dark,var(--green))}
+.prj-new-sum::-webkit-details-marker{display:none}
+.prj-new[open] .prj-new-sum{border-style:solid;margin-bottom:12px}
+.prj-new .de-hint{display:none}
+.prj-new .prj-newlogo{display:flex;align-items:center;gap:10px;margin-bottom:12px;padding:0;border:0;background:none}
+.prj-newlogo .bnk-custom-logo-btn{flex:1}
+
 /* My Finances — calmer sections + compact rows */
 .fin-sec-hd{display:flex;align-items:center;gap:10px;margin:0;padding:14px 14px 4px}
 .sc-card .tx-rows{gap:0;padding-top:6px}
@@ -32196,7 +32219,7 @@ function _prjRender(){
       <div class="prj-sec-title"><span>${L('Your projects','مشاريعك')}</span><em>${n}</em></div>
       <div class="prj-list">${rows}</div>
       ${n>1&&!_prjEditId?`<div class="prj-swipe-hint">${L('Swipe a project left to delete it','اسحب أي مشروع لليسار لحذفه')}</div>`:''}
-      <div class="rq-sec prj-new"><div class="rq-sec-hdr">${ic('plus',15)}<span>${L('Start a new project','ابدأ مشروعاً جديداً')}</span></div>
+      <details class="rq-sec prj-new"${_prjNewLogo?' open':''}><summary class="rq-sec-hdr prj-new-sum">${ic('plus',15)}<span>${L('Start a new project','ابدأ مشروعاً جديداً')}</span></summary>
         <div class="de-hint">${L('A new project starts empty: no receipts, no custody, no saved companies or plots.','المشروع الجديد يبدأ فارغاً: بدون استلامات أو عهدة أو شركات وقطع محفوظة.')}</div>
         <div class="de-addrow"><div class="field"><input type="text" id="prjNew" dir="auto" autocomplete="off" placeholder="${L('Project name','اسم المشروع')}" onkeydown="if(event.key==='Enter')_prjCreate()"></div></div>
         <div class="prj-newlogo">
@@ -32204,7 +32227,7 @@ function _prjRender(){
           <label class="bnk-custom-logo-btn">${ic('upload',13)} ${L('Upload logo (optional)','رفع شعار (اختياري)')}<input type="file" accept="image/*" style="display:none" onchange="_prjNewPick(this)"></label>
         </div>
         <button type="button" class="de-addbtn prj-create" onclick="_prjCreate()">${ic('plus',15)} ${L('Create','إنشاء')}</button>
-      </div>
+      </details>
       <div class="modal-btns"><button class="mbtn save" onclick="closeModal()">${L('Done','تم')}</button></div></div>`;
   const keep=document.getElementById('prjNew')?.value||'';
   document.getElementById('modalContent').innerHTML=`<div class="modal-handle"></div>`+html;
@@ -33352,8 +33375,22 @@ function renderMyRequests(){
     </div>
   </div>`:'')+(typeChips?`<div class="rq-types-wrap"><div class="rq-types-h">${L('By type','حسب النوع')}</div><div class="rq-types">${typeChips}</div></div>`:'');
 
-  const cardsHTML=_rqView==='list'?list.map(_rqRowHTML).join('')
-    :_rqView==='grid'?list.map(_rqTileHTML).join('')
+  const _dayLabel=iso=>{
+    if(!iso) return L('No date','بدون تاريخ');
+    if(iso===today()) return L('Today','اليوم');
+    const y=new Date(); y.setDate(y.getDate()-1);
+    const yi=y.getFullYear()+'-'+String(y.getMonth()+1).padStart(2,'0')+'-'+String(y.getDate()).padStart(2,'0');
+    if(iso===yi) return L('Yesterday','أمس');
+    try{ return new Date(iso+'T00:00:00').toLocaleDateString(typeof _dtLocale==='function'?_dtLocale():undefined,{weekday:'short',day:'numeric',month:'short'}); }catch(e){ return iso; }
+  };
+  const _grouped=fn=>{
+    let out='',cur=null,n=0,idx=[];
+    const groups=[];
+    list.forEach(r=>{ const d=String(r.date||''); if(!groups.length||groups[groups.length-1].d!==d) groups.push({d,items:[]}); groups[groups.length-1].items.push(r); });
+    return groups.map(g=>`<div class="rq-day"><b>${esc(_dayLabel(g.d))}</b><span>${g.items.length}</span></div>`+g.items.map(fn).join('')).join('');
+  };
+  const cardsHTML=_rqView==='list'?_grouped(_rqRowHTML)
+    :_rqView==='grid'?_grouped(_rqTileHTML)
     :list.map(_rqCardHTML).join('');
 
   const emptyHTML=all.length===0
