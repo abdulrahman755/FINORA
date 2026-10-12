@@ -9636,6 +9636,12 @@ body .screen-wrap .sc-header.sav-plain-header.sav-plain-header::after{display:no
 .rpt-plot{font-size:calc(16px*var(--app-text-scale,1));font-weight:900}
 .rpt-plot i{display:none}
 .rpt-paper .rpt-sub{padding-inline-start:0;margin-top:3px;font-size:calc(13px*var(--app-text-scale,1));color:var(--text2)}
+/* Receipt title emphasis (report items) */
+.rpt-item .rpt-plot{display:block;text-decoration:underline;text-decoration-color:var(--green);text-decoration-thickness:3px;text-underline-offset:6px;font-size:calc(19px*var(--app-text-scale,1));font-weight:900;line-height:1.25;letter-spacing:-.2px;color:var(--text);padding-bottom:2px;margin-bottom:10px}
+.rpt-item.st-received .rpt-plot{color:var(--text)}
+.rpt-item.st-notes .rpt-plot{color:var(--text)}
+.rpt-item.st-rejected .rpt-plot{color:var(--red)}
+.rpt-item .rpt-sub:first-of-type{font-weight:700;color:var(--text)}
 .rpt-day{margin-top:14px}
 .rpt-day:first-child{margin-top:6px}
 .rpt-day-h{position:sticky;top:-6px;z-index:2;display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 -14px;padding:9px 16px;background:color-mix(in srgb,var(--surface2) 92%,transparent);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);font-size:calc(12px*var(--app-text-scale,1));font-weight:800;letter-spacing:.5px;color:var(--text2)}
@@ -10800,6 +10806,24 @@ html body .sc-header .sc-header-sub{padding-inline-start:12px;margin-top:4px;fon
 [dir="rtl"] .wdash-tile::after{transform:translateY(-50%) rotate(-45deg)}
 .wdash-wrap.dv3-dark-v2 .fp-qa-row{margin-bottom:18px}
 .wdash-showall{margin-top:14px}
+
+/* Suggested comments — grouped under a heading per receipt type (foldable) */
+.rq-sugg-panel-body{max-height:min(54vh,430px);gap:8px;padding:10px 8px}
+.rq-cmt-sec{border:1px solid var(--border);border-radius:14px;background:var(--surface);overflow:hidden;flex:none}
+.rq-cmt-sec.cur{border-color:color-mix(in srgb,var(--green) 45%,var(--border))}
+.rq-cmt-sec.recent{border-color:color-mix(in srgb,var(--gold,#c9992b) 45%,var(--border));background:color-mix(in srgb,var(--gold,#c9992b) 6%,var(--surface))}
+.rq-cmt-sec-hd{display:flex;align-items:center;gap:8px;width:100%;min-height:44px;padding:8px 12px;border:0;background:none;font-family:inherit;text-align:start;color:var(--text);cursor:pointer;-webkit-tap-highlight-color:transparent}
+.rq-cmt-sec-t{flex:1;min-width:0;display:flex;align-items:center;gap:7px}
+.rq-cmt-sec-t svg{flex:none;color:var(--green)}
+.rq-cmt-sec.recent .rq-cmt-sec-t svg{color:var(--gold-dark,#a16207)}
+.rq-cmt-sec-t b{font-size:calc(13px*var(--app-text-scale,1));font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rq-cmt-sec-hd em{flex:none;font-style:normal;min-width:22px;text-align:center;padding:2px 8px;border-radius:99px;background:var(--surface2);color:var(--sub);font-size:calc(11px*var(--app-text-scale,1));font-weight:800}
+.rq-cmt-sec.cur .rq-cmt-sec-hd em{background:var(--green-tint);color:var(--green)}
+.rq-cmt-chev{flex:none;width:8px;height:8px;border-inline-end:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:rotate(45deg);margin-inline-end:3px;margin-top:-3px;transition:transform .15s}
+.rq-cmt-sec.open>.rq-cmt-sec-hd .rq-cmt-chev,.searching .rq-cmt-chev{transform:rotate(-135deg);margin-top:3px}
+.rq-cmt-sec-bd{display:none;flex-direction:column;gap:6px;padding:0 8px 10px}
+.rq-cmt-sec.open>.rq-cmt-sec-bd,.searching .rq-cmt-sec-bd{display:flex}
+.rq-cmt-n{margin-inline-start:8px;padding:1px 7px;border-radius:99px;background:color-mix(in srgb,var(--gold,#c9992b) 18%,var(--surface));color:var(--gold-dark,#a16207);font-size:calc(10.5px*var(--app-text-scale,1));font-weight:800;white-space:nowrap}
 </style>
 <script>
 // Suppress cross-origin Script errors (in-app browsers like TikTok/Instagram)
@@ -33508,31 +33532,99 @@ function _rqPickIrSubtype(v){
 // Receipt type field changes. Picking an option appends it as a new bullet
 // line in Notes (same auto-bullet punctuation/formatting as manual typing),
 // then the dropdown resets to its placeholder so it's ready to pick again.
+// ── Comment suggestions: every comment, grouped under a heading per receipt (work) type ──
+// Order: Most used (counted from the Notes of saved receipts) · Key comments · the receipt type
+// being filled in · all the other types · the person's own comments. Headings fold open/closed.
+let _rqCmtOpen={};
+function _rqMostUsedComments(limit){
+  const cnt=new Map();
+  _rqLoad().forEach(r=>{
+    const ts=(+r.createdAt||0)||Date.parse(r.date||'')||0;
+    _rqExtractNotesLines(r.notes).forEach(line=>{
+      const n=_rqNormCmt(line); if(!n) return;
+      const e=cnt.get(n)||{n:0,t:0,text:line};
+      e.n++; if(ts>=e.t){ e.t=ts; e.text=line; }
+      cnt.set(n,e);
+    });
+  });
+  return [...cnt.values()].sort((a,b)=>b.n-a.n||b.t-a.t).slice(0,limit||8);
+}
+function _rqCmtSections(typeVal,irTypeVal){
+  const dedupe=arr=>{ const seen=new Set(),out=[]; arr.forEach(v=>{ const k=_rqNormCmt(v); if(!k||seen.has(k)) return; seen.add(k); out.push(v); }); return out; };
+  const selSub=_rqIrSubtypeKeyFromLabel(irTypeVal);
+  const selType=String(typeVal||'').trim().toLowerCase();
+  const secs=[];
+  secs.push({id:'key',icon:'bulb',title:L('Key comments','تعليقات أساسية'),items:dedupe(_RQ_MOST_IMPORTANT_COMMENTS),pri:1,open:true});
+  _RQ_IR_SUBTYPE_QUICK.forEach((o,i)=>{
+    const items=dedupe([...(_RQ_IR_SUBTYPE_COMMENTS[o.key]||[]),...(_rqCustomSugg['ir:'+o.key]||[])]);
+    if(items.length) secs.push({id:'ir:'+o.key,icon:'clipboard',title:L(o.en,o.ar),items,pri:o.key===selSub?0:10+i,cur:o.key===selSub});
+  });
+  const typeGroups=new Map();
+  Object.keys(_RQ_COMMENT_SUGGESTIONS).forEach(k=>{
+    const items=dedupe([...(_RQ_COMMENT_SUGGESTIONS[k]||[]),...(_rqCustomSugg[k]||[])]);
+    if(!items.length) return;
+    const sig=items.map(_rqNormCmt).join('|');
+    if(!typeGroups.has(sig)) typeGroups.set(sig,{keys:[],items});
+    typeGroups.get(sig).keys.push(k);
+  });
+  typeGroups.forEach(g=>{ secs.push({id:'t:'+g.keys.join(','),icon:'clipboard',title:g.keys.map(k=>k.toUpperCase()).join(' / '),items:g.items,pri:g.keys.includes(selType)?0:200,cur:g.keys.includes(selType)}); });
+  const mine=[];
+  Object.keys(_rqCustomSugg).forEach(k=>{
+    if(_RQ_IR_SUBTYPE_QUICK.some(o=>'ir:'+o.key===k)||_RQ_COMMENT_SUGGESTIONS[k]) return;
+    mine.push(...(_rqCustomSugg[k]||[]));
+  });
+  const mineItems=dedupe(mine);
+  if(mineItems.length) secs.push({id:'mine',icon:'note',title:L('My comments','كومنتاتي'),items:mineItems,pri:300});
+  secs.sort((a,b)=>a.pri-b.pri);
+  return secs;
+}
 function _rqRenderCommentSuggestions(){
   const host=document.getElementById('rqCommentSugg');
   if(!host) return;
   const typeVal=document.getElementById('rqType')?.value||'';
   const irTypeVal=document.getElementById('rqIrType')?.value||'';
-  const list=_rqCommentSuggestionsFor(typeVal,irTypeVal);
-  if(!list.length){ host.innerHTML=''; return; }
+  const secs=_rqCmtSections(typeVal,irTypeVal);
+  // canonical text per comment, so "most used" chips match the written-out list
+  const canon=new Map();
+  secs.forEach(sc=>sc.items.forEach(v=>{ const k=_rqNormCmt(v); if(!canon.has(k)) canon.set(k,v); }));
+  const used=_rqMostUsedComments(8).map(e=>({text:canon.get(_rqNormCmt(e.text))||(e.text.charAt(0).toUpperCase()+e.text.slice(1)),n:e.n}));
+  if(used.length) secs.unshift({id:'recent',icon:'clock',title:L('Recent · most used','الأحدث · الأكثر استخداماً'),items:used.map(u=>u.text),counts:used.map(u=>u.n),pri:-1,open:true,recent:true});
   const sk=_rqIrSubtypeKeyFromLabel(irTypeVal);
   const hit=sk?_RQ_IR_SUBTYPE_QUICK.find(o=>o.key===sk):null;
   const ctx=hit?L(hit.en,hit.ar):typeVal;
   const cset=_rqCustomSet();
   const bset=new Set([..._RQ_MOST_IMPORTANT_COMMENTS,...Object.values(_RQ_COMMENT_SUGGESTIONS).flat(),...Object.values(_RQ_IR_SUBTYPE_COMMENTS).flat()].map(_rqNormCmt));
-  const chips=list.map((c,i)=>{
-    const n=_rqNormCmt(c);
-    const del=(cset.has(n)&&!bset.has(n))?`<button type="button" class="rq-sugg-chip" style="padding:0 9px" title="${L('Remove from memory','حذف من الذاكرة')}" onclick="_rqDelLearned(${i})">${ic('close',12)}</button>`:'';
-    return `<span class="rq-cmt-wrap" data-i="${i}" style="display:inline-flex;align-items:center;gap:2px;max-width:100%"><button type="button" class="rq-sugg-chip rq-cmt-chip" data-i="${i}" onclick="_rqTapComment(this)">${esc(c)}</button>${del}</span>`;
+  const flat=[]; const uniq=new Set();
+  const secHTML=secs.map(sc=>{
+    const isOpen=(_rqCmtOpen[sc.id]!==undefined)?_rqCmtOpen[sc.id]:!!(sc.open||sc.cur);
+    const chips=sc.items.map((c,j)=>{
+      const i=flat.length; flat.push(c);
+      if(!sc.recent) uniq.add(_rqNormCmt(c));
+      const n=_rqNormCmt(c);
+      const del=(!sc.recent&&cset.has(n)&&!bset.has(n))?`<button type="button" class="rq-sugg-chip" style="padding:0 9px" title="${L('Remove from memory','حذف من الذاكرة')}" onclick="_rqDelLearned(${i})">${ic('close',12)}</button>`:'';
+      const badge=(sc.counts&&sc.counts[j]>1)?`<small class="rq-cmt-n">×${sc.counts[j]}</small>`:'';
+      return `<span class="rq-cmt-wrap" data-i="${i}" style="display:inline-flex;align-items:center;gap:2px;max-width:100%"><button type="button" class="rq-sugg-chip rq-cmt-chip" data-i="${i}" onclick="_rqTapComment(this)">${esc(c)}${badge}</button>${del}</span>`;
+    }).join('');
+    return `<section class="rq-cmt-sec${isOpen?' open':''}${sc.cur?' cur':''}${sc.recent?' recent':''}" data-id="${esc(sc.id)}">
+      <button type="button" class="rq-cmt-sec-hd" aria-expanded="${isOpen}" onclick="_rqToggleCmtSec(this)"><span class="rq-cmt-sec-t">${ic(sc.icon,13)}<b dir="auto">${esc(sc.title)}</b></span><em>${sc.items.length}</em><i class="rq-cmt-chev"></i></button>
+      <div class="rq-cmt-sec-bd">${chips}</div>
+    </section>`;
   }).join('');
-  const search=list.length>6?`<div class="sc-search cx-search" style="padding:0;margin:6px 0"><span class="cx-sbox">${ic('search',16)}<input type="text" dir="auto" autocomplete="off" oninput="_rqFilterComments(this.value)" placeholder="${L('Search comments (Arabic or English)…','ابحث في الكومنتات (عربي أو إنجليزي)…')}"></span></div>`:'';
+  const search=`<div class="sc-search cx-search" style="padding:0;margin:6px 0"><span class="cx-sbox">${ic('search',16)}<input type="text" dir="auto" autocomplete="off" oninput="_rqFilterComments(this.value)" placeholder="${L('Search comments (Arabic or English)…','ابحث في الكومنتات (عربي أو إنجليزي)…')}"></span></div>`;
   host.innerHTML=`<div class="rq-sugg-panel">
-    <div class="rq-sugg-panel-hdr"><span>${ic('note',13)} ${L('Suggested comments','كومنتات مقترحة')}${ctx?` · <b>${esc(ctx)}</b>`:''}</span><em>${list.length}</em></div>
-    ${search}<div class="rq-sugg-panel-body">${chips}</div>
+    <div class="rq-sugg-panel-hdr"><span>${ic('note',13)} ${L('Suggested comments','كومنتات مقترحة')}${ctx?` · <b>${esc(ctx)}</b>`:''}</span><em>${uniq.size}</em></div>
+    ${search}<div class="rq-sugg-panel-body">${secHTML}</div>
     <div class="rq-sugg-hint">${L('Tap to add · tap again to remove','اضغط للإضافة · اضغط مرة أخرى للإزالة')}</div>
   </div>`;
-  host._list=list;
+  host._list=flat;
   _rqMarkAddedComments();
+}
+function _rqToggleCmtSec(btn){
+  const sec=btn.closest('.rq-cmt-sec'); if(!sec) return;
+  const open=!sec.classList.contains('open');
+  sec.classList.toggle('open',open);
+  btn.setAttribute('aria-expanded',open?'true':'false');
+  _rqCmtOpen[sec.dataset.id]=open;
 }
 function _rqDelLearned(i){
   const host=document.getElementById('rqCommentSugg');
@@ -33555,6 +33647,12 @@ function _rqFilterComments(q){
     let ok=!q||tl.includes(en);
     if(!ok&&hasAr) ok=(rev[tl]||[]).some(k=>k.includes(arN))||gw.some(x=>tl.includes(x.slice(0,6)));
     w.style.display=ok?'':'none';
+  });
+  // while searching: every heading with a match is shown open, headings without one are hidden
+  const panel=host.querySelector('.rq-sugg-panel'); if(panel) panel.classList.toggle('searching',!!q);
+  host.querySelectorAll('.rq-cmt-sec').forEach(sec=>{
+    const vis=Array.from(sec.querySelectorAll('.rq-cmt-wrap')).filter(w=>w.style.display!=='none').length;
+    sec.style.display=(q&&!vis)?'none':'';
   });
 }
 function _rqTapComment(btn){
