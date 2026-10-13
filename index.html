@@ -33480,16 +33480,16 @@ function _rqViewBarHTML(){
   </span>`;
 }
 
-let _rqAllMonths=false; // false = only receipts dated in the active month
+let _rqAllMonths=false; // STRICT: always false — receipts live only in their own month. false = only receipts dated in the active month
 function _rqInActiveMonth(r){
   const k=_monthKeyForDate(r&&r.date);
   return !k || k===activeMonth; // undated / odd dates stay visible
 }
-function _rqSetScope(allMonths){ _rqAllMonths=!!allMonths; _rqFilter='all'; _rqTypeFilter=''; renderView(true); }
+function _rqSetScope(allMonths){ _rqAllMonths=false; _rqFilter='all'; _rqTypeFilter=''; renderView(true); }
 function _rqScopeBarHTML(total,inMonth){
   let lbl=activeMonth; try{ lbl=_monthDisplayLabel(activeMonth); }catch(e){}
   const b=(on,txt,n,fn)=>`<button type="button" class="rq-scope-b${on?' on':''}" aria-pressed="${on}" onclick="${fn}">${txt}<em>${n}</em></button>`;
-  return `<div class="rq-scope" role="group">${b(!_rqAllMonths,esc(lbl),inMonth,'_rqSetScope(false)')}${b(_rqAllMonths,L('All months','كل الشهور'),total,'_rqSetScope(true)')}</div>`;
+  return `<div class="rq-scope" role="group">${b(true,esc(lbl),inMonth,'_rqSetScope(false)')}</div>`;
 }
 function renderMyRequests(){
   const _everything=_rqLoad();
