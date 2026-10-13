@@ -12131,7 +12131,6 @@ function persistMonths(){
 }
 function persistData(){
   try{ _enforceDateMonthIntegrity(); }catch(e){ try{ _logErr('dateMonthIntegrity',e); }catch(_){} }
-  try{ _syncBankCarryForward(); }catch(e){ try{ _logErr('bankCarryForward',e); }catch(_){} }
   // Use encrypted storage when crypto is initialized, fallback to plain
   let p;
   if (_encEnabled && _cryptoKey) {
@@ -14221,7 +14220,6 @@ let _wdpNavSkeletonPending = false; // set true by setView() right before a real
 function renderView(preserveScroll){
   try{
   try{ if(_enforceDateMonthIntegrity()) persistData(); }catch(e){}
-  try{ if(_syncBankCarryForward()) persistData(); }catch(e){}
   // Regression fix: the Dashboard V2 memoization caches (fdFinanceStats /
   // fdDashboardSignals) were documented as "cache layer only, per render
   // pass" but were never actually cleared anywhere, so once a month's stats
@@ -18412,40 +18410,6 @@ function _repairZeroOpeningBalances(){
     changed=true;
   });
   return changed;
-}
-// ── BANK CARRY-FORWARD SYNC ──────────────────────────────────────────────
-// A month's opening bank balance must be EXACTLY the calendar-previous month's
-// final total balance (its own opening + its own movements) — nothing else, and
-// never re-summing older months. Openings are snapshots taken at month creation,
-// so later edits to an earlier month (new/edited/deleted movement, backdated
-// entry) left them stale. This re-derives each OPEN month's opening from the
-// previous month, in chronological order so changes cascade (OCT→NOV→DEC...).
-// Closed months and the first month on record are never touched.
-let _cfBusy=false;
-function _syncBankCarryForward(){
-  if(_cfBusy || typeof DATA==='undefined' || !DATA || !MONTHS_ORDER) return 0;
-  _cfBusy=true; let fixed=0;
-  try{
-    const banks=getAllBanks();
-    const keys=MONTHS_ORDER.filter(k=>_monthKeyToOrdinal(k)!==null && DATA[k])
-      .sort((a,b)=>_monthKeyToOrdinal(a)-_monthKeyToOrdinal(b));
-    keys.forEach(function(k){
-      const m=DATA[k];
-      if(m.status==='CLOSED' || m.closingSnapshot) return;
-      const pk=_calendarPrevMonthKey(k);
-      const prev=pk?DATA[pk]:null;
-      if(!prev) return;
-      if(!m.initial_balances) m.initial_balances={};
-      banks.forEach(function(b){
-        const want=_getBankBalanceCompute(prev,b.key);
-        if((m.initial_balances[b.key]||0)!==want){
-          m.initial_balances[b.key]=want; fixed++;
-          try{ _getBankBalanceCache.delete(m); }catch(_){}
-        }
-      });
-    });
-  }finally{ _cfBusy=false; }
-  return fixed;
 }
 // ═════════════════════════════════════════════════════════════════
 // DATE → MONTH ROUTING
@@ -33516,16 +33480,16 @@ function _rqViewBarHTML(){
   </span>`;
 }
 
-let _rqAllMonths=false; // STRICT: always false — receipts live only in their own month. false = only receipts dated in the active month
+let _rqAllMonths=false; // false = only receipts dated in the active month
 function _rqInActiveMonth(r){
   const k=_monthKeyForDate(r&&r.date);
   return !k || k===activeMonth; // undated / odd dates stay visible
 }
-function _rqSetScope(allMonths){ _rqAllMonths=false; _rqFilter='all'; _rqTypeFilter=''; renderView(true); }
+function _rqSetScope(allMonths){ _rqAllMonths=!!allMonths; _rqFilter='all'; _rqTypeFilter=''; renderView(true); }
 function _rqScopeBarHTML(total,inMonth){
   let lbl=activeMonth; try{ lbl=_monthDisplayLabel(activeMonth); }catch(e){}
   const b=(on,txt,n,fn)=>`<button type="button" class="rq-scope-b${on?' on':''}" aria-pressed="${on}" onclick="${fn}">${txt}<em>${n}</em></button>`;
-  return `<div class="rq-scope" role="group">${b(true,esc(lbl),inMonth,'_rqSetScope(false)')}</div>`;
+  return `<div class="rq-scope" role="group">${b(!_rqAllMonths,esc(lbl),inMonth,'_rqSetScope(false)')}${b(_rqAllMonths,L('All months','كل الشهور'),total,'_rqSetScope(true)')}</div>`;
 }
 function renderMyRequests(){
   const _everything=_rqLoad();
