@@ -9363,6 +9363,67 @@ html body .sc-header .sc-header-sub{padding-inline-start:12px;margin-top:4px;fon
 .bs-footer button[data-attf="cancel"]:nth-child(2){grid-column:1/-1}
 .bs-footer button[data-attf="danger"],.bs-footer button[data-attf="cancel"]{min-height:46px;height:46px;box-shadow:none;font-size:calc(13.5px*var(--app-text-scale,1))}
 .bs-footer button[data-attf="danger"]{background:var(--red-tint)!important;background-image:none!important;color:var(--red)!important;border:1.5px solid color-mix(in srgb,var(--red) 28%,transparent)!important}
+/* ══ Day status sheet v2 (.atd) — neutral until selected, grouped statuses, ticket-style time card ══ */
+.att-sheet.atd{gap:18px}
+.atd-date{width:48px;height:52px;flex:none;border-radius:14px;background:var(--green);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1;gap:3px}
+.atd-date b{font-size:calc(21px*var(--app-text-scale,1));font-weight:900;font-variant-numeric:tabular-nums}
+.atd-date small{font-size:calc(10px*var(--app-text-scale,1));font-weight:800;text-transform:uppercase;opacity:.82}
+.atd-sub{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.atd-today{display:inline-flex;align-items:center;height:20px;padding:0 8px;border-radius:999px;background:var(--green-tint);color:var(--green);font-size:calc(10.5px*var(--app-text-scale,1));font-weight:800}
+.atd-lbl{display:block;margin:0 2px 8px;font-size:calc(11.5px*var(--app-text-scale,1));font-weight:800;color:var(--muted)}
+:lang(en) .atd-lbl{letter-spacing:.6px;text-transform:uppercase}
+.atd-grp{display:flex;flex-direction:column}
+.atd-main{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.atd-more{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.atd-st{position:relative;display:flex;align-items:center;gap:10px;min-width:0;border:1.5px solid var(--border);background:var(--surface);color:var(--text);font-family:inherit;text-align:start;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background .16s,border-color .16s,color .16s,transform .1s}
+.atd-st:active{transform:scale(.97)}
+.atd-st .atd-ico{flex:none;display:flex;align-items:center;justify-content:center;background:color-mix(in srgb,var(--c) 13%,transparent);color:var(--c);transition:background .16s,color .16s}
+.atd-st .atd-tx{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1}
+.atd-st .atd-tx b{font-size:calc(13.5px*var(--app-text-scale,1));font-weight:800;line-height:1.25;overflow-wrap:anywhere}
+.atd-st .atd-tx small{font-size:calc(11px*var(--app-text-scale,1));font-weight:600;color:var(--muted);line-height:1.2;transition:color .16s}
+.atd-st .atd-ok{position:absolute;top:8px;inset-inline-end:8px;width:17px;height:17px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.26);color:#fff;opacity:0;transform:scale(.6);transition:opacity .16s,transform .16s}
+.atd-st.sm .atd-ok{display:none}
+.atd-st.big{min-height:64px;padding:0 12px;border-radius:16px}
+.atd-st.big .atd-ico{width:38px;height:38px;border-radius:12px}
+.atd-st.sm{min-height:46px;padding:5px 11px;border-radius:14px}
+.atd-st.sm .atd-ico{width:30px;height:30px;border-radius:10px}
+.atd-st.sm:last-child:nth-child(odd){grid-column:1/-1}
+.atd-st.on{background:var(--c);border-color:var(--c);color:#fff}
+.atd-st.on .atd-ico{background:rgba(255,255,255,.22);color:#fff}
+.atd-st.on .atd-tx small{color:rgba(255,255,255,.82)}
+.atd-st.on .atd-ok{opacity:1;transform:none}
+.atd-time{border:1px solid var(--border);border-radius:18px;background:var(--surface);overflow:hidden;animation:atdIn .22s ease}
+.atd-time[hidden]{display:none}
+@keyframes atdIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+.atd-time-hd{display:flex;align-items:center;gap:8px;padding:11px 14px;background:color-mix(in srgb,var(--surface2) 55%,var(--surface));border-bottom:1px solid var(--border);font-size:calc(12.5px*var(--app-text-scale,1));font-weight:800;color:var(--sub)}
+.atd-time-hd svg{color:var(--green)}
+.atd-dur{margin-inline-start:auto;display:inline-flex;align-items:center;height:24px;padding:0 10px;border-radius:999px;background:var(--green-tint);color:var(--green);font-size:calc(12px*var(--app-text-scale,1));font-weight:800;font-variant-numeric:tabular-nums}
+.atd-dur[hidden]{display:none}
+.atd-time-grid{display:grid;grid-template-columns:1fr 1fr}
+.atd-tbox{display:flex;flex-direction:column;min-width:0;padding:12px 12px 12px}
+.atd-tbox+.atd-tbox{border-inline-start:1px solid var(--border)}
+.atd-tpick{position:relative;display:flex;flex-direction:column;gap:6px;padding:2px 2px 10px;border-radius:12px}
+.atd-tl{display:flex;align-items:center;gap:6px;font-size:calc(12px*var(--app-text-scale,1));font-weight:700;color:var(--muted)}
+.atd-tl svg{color:var(--green)}
+.atd-tbox.out .atd-tl svg{color:var(--gold)}
+.atd-tv{font-size:calc(24px*var(--app-text-scale,1));font-weight:900;color:var(--text);font-variant-numeric:tabular-nums;line-height:1.15;letter-spacing:-.3px;white-space:nowrap}
+.atd-tbox:not(.has) .atd-tv{color:var(--border-strong);font-weight:800}
+.atd-tpick input[type=time]{position:absolute;inset:0;width:100%;height:100%;opacity:0;border:0;padding:0;margin:0;font-size:16px;cursor:pointer;-webkit-appearance:none;appearance:none}
+.atd-tact{display:flex;gap:6px}
+.atd-now{flex:1;height:36px;border:1px solid color-mix(in srgb,var(--green) 28%,transparent);border-radius:11px;background:var(--green-tint);color:var(--green);font-family:inherit;font-size:calc(12.5px*var(--app-text-scale,1));font-weight:800;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.atd-now:active{transform:scale(.96)}
+.atd-x{flex:none;width:36px;height:36px;border:1px solid var(--border);border-radius:11px;background:var(--surface);color:var(--muted);display:none;align-items:center;justify-content:center;cursor:pointer}
+.atd-tbox.has .atd-x{display:flex}
+.atd-note{position:relative}
+.atd-note>svg{position:absolute;inset-inline-start:14px;top:15px;color:var(--muted);pointer-events:none}
+.atd-note input{width:100%;box-sizing:border-box;height:48px;padding:0 14px;padding-inline-start:40px;border:1px solid var(--border);border-radius:14px;background:color-mix(in srgb,var(--surface2) 50%,var(--surface));color:var(--text);font-family:inherit;font-size:calc(14px*var(--app-text-scale,1));font-weight:600}
+.atd-note input::placeholder{color:var(--muted);font-weight:500}
+.atd-note input:focus{outline:0;border-color:var(--green);box-shadow:0 0 0 3px var(--green-glow);background:var(--surface)}
+.atd-qn{display:flex;gap:8px;overflow-x:auto;margin:10px calc(var(--sp5,20px)*-1) 0;padding:0 var(--sp5,20px);scrollbar-width:none}
+.atd-qn::-webkit-scrollbar{display:none}
+.atd-qn button{flex:none;height:32px;padding:0 12px;border:1px solid var(--border);border-radius:999px;background:var(--surface);color:var(--sub);font-family:inherit;font-size:calc(12px*var(--app-text-scale,1));font-weight:700;cursor:pointer;white-space:nowrap;-webkit-tap-highlight-color:transparent}
+.atd-qn button.on{background:var(--green-tint);border-color:color-mix(in srgb,var(--green) 40%,transparent);color:var(--green)}
+.bs-footer button[data-attf="danger"]{display:inline-flex;align-items:center;justify-content:center;gap:6px}
 /* dashboard card */
 .att-dash{display:flex;flex-direction:column;gap:12px;padding:16px!important;margin:0 0 12px}
 .att-dash-hd{display:flex;align-items:center;gap:10px}
@@ -9547,6 +9608,43 @@ html body .sc-header .sc-header-sub{padding-inline-start:12px;margin-top:4px;fon
 .cx-wrap .rq-hub-tx b{font-size:calc(15.5px*var(--app-text-scale,1))}
 .cx-wrap .rq-hub-tx small{font-size:calc(12px*var(--app-text-scale,1))}
 .cx-wrap .rq-hub-btn{min-height:48px;font-size:calc(13px*var(--app-text-scale,1));font-weight:700}
+
+/* ══ My Receipts v3 — one summary card, slim report row, tools behind ⋯ ══ */
+.cx-wrap .cx-sec:has(.rq-hub){gap:12px}
+.rq-more{flex:none;width:40px;height:40px;border:1px solid var(--border);border-radius:12px;background:var(--surface);color:var(--sub);display:flex;align-items:center;justify-content:center;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.rq-more:active{background:var(--surface2)}
+.rq-sum{padding:16px 16px 14px;border-radius:20px;background:var(--surface);border:1px solid var(--border);display:flex;flex-direction:column;gap:12px}
+.rq-sum-top{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+.rq-sum-rate{display:flex;align-items:baseline;gap:7px}
+.rq-sum-rate b{font-size:calc(30px*var(--app-text-scale,1));font-weight:900;letter-spacing:-.03em;line-height:1;font-variant-numeric:tabular-nums;color:var(--text)}
+.rq-sum-rate small{font-size:calc(13px*var(--app-text-scale,1));font-weight:700;color:var(--muted)}
+.rq-sum-of{font-size:calc(12.5px*var(--app-text-scale,1));font-weight:700;color:var(--muted);font-variant-numeric:tabular-nums}
+.rq-sum-bar{display:flex;gap:3px;height:8px}
+.rq-sum-bar i{display:block;height:100%;min-width:6px;border-radius:99px;background:var(--muted)}
+.rq-sum-bar i.ok{background:var(--green)}.rq-sum-bar i.low{background:var(--gold)}.rq-sum-bar i.over{background:var(--red)}
+.rq-sum-fl{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.rq-sf{display:flex;flex-direction:column;align-items:flex-start;gap:6px;min-width:0;padding:10px 10px 10px 12px;border:1.5px solid transparent;border-radius:14px;background:var(--surface2);color:var(--text);font-family:inherit;text-align:start;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background .15s,border-color .15s,transform .1s}
+.rq-sf:active{transform:scale(.97)}
+.rq-sf b{display:flex;align-items:center;gap:7px;font-size:calc(20px*var(--app-text-scale,1));font-weight:900;line-height:1;font-variant-numeric:tabular-nums}
+.rq-sf b i{flex:none;width:7px;height:7px;border-radius:50%;background:var(--muted)}
+.rq-sf span{max-width:100%;font-size:calc(11px*var(--app-text-scale,1));font-weight:700;color:var(--sub);line-height:1.2;white-space:nowrap}
+.rq-sf.ok b i{background:var(--green)}.rq-sf.low b i{background:var(--gold)}.rq-sf.over b i{background:var(--red)}
+.rq-sf.zero{opacity:.55}
+.rq-sf.on{background:var(--surface);border-color:var(--text)}
+.rq-sum-types{margin:0 -4px;padding-top:12px;border-top:1px solid var(--border)}
+.rq-sum-types .rq-types{padding:0 4px}
+.cx-wrap .rq-hub{margin:0;border-radius:16px;box-shadow:none}
+.cx-wrap .rq-hub-top{padding:11px 14px}
+.cx-wrap .rq-hub-ic{width:34px;height:34px}
+.rq-more-list{display:flex;flex-direction:column;gap:8px}
+.rq-more-row{display:flex;align-items:center;gap:12px;width:100%;padding:12px 14px;border:1px solid var(--border);border-radius:16px;background:var(--surface);color:var(--text);font-family:inherit;text-align:start;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.rq-more-row:active{background:var(--surface2)}
+.rq-more-ic{flex:none;width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;background:var(--green-tint);color:var(--green)}
+.rq-more-tx{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.rq-more-tx b{font-size:calc(14.5px*var(--app-text-scale,1));font-weight:800}
+.rq-more-tx small{font-size:calc(12px*var(--app-text-scale,1));font-weight:600;color:var(--muted)}
+.rq-more-chev{flex:none;width:8px;height:8px;border-top:2px solid var(--muted);border-right:2px solid var(--muted);transform:rotate(45deg)}
+[dir="rtl"] .rq-more-chev{transform:rotate(-135deg)}
 
 /* ══ Buttons v4 — one simple, flat system (solid primary · outlined secondary · soft danger) ══
    Overrides the older gradient/glow/ripple variants app-wide. Heights, radius and weight are uniform. */
@@ -32053,6 +32151,29 @@ function _rqScopeBarHTML(total,inMonth){
   const b=(on,txt,n,fn)=>`<button type="button" class="rq-scope-b${on?' on':''}" aria-pressed="${on}" onclick="${fn}">${txt}<em>${n}</em></button>`;
   return `<div class="rq-scope" role="group">${b(true,esc(lbl),inMonth,'_rqSetScope(false)')}</div>`;
 }
+function _rqMonthLbl(){ try{ return _monthDisplayLabel(activeMonth); }catch(e){ return String(activeMonth||''); } }
+// ⋯ sheet: the occasional tools (import / export / data entry) live here so the page itself stays calm
+function rqMoreOpen(){
+  const row=(k,icn,t,d)=>`<button type="button" class="rq-more-row" onclick="rqMoreGo('${k}')"><span class="rq-more-ic">${ic(icn,19)}</span><span class="rq-more-tx"><b>${t}</b><small>${d}</small></span><span class="rq-more-chev"></span></button>`;
+  document.getElementById('modalContent').innerHTML=`<div class="modal-handle"></div>
+    <div class="rq-modal rq-more-sheet">
+      <div class="modal-hdr">
+        <div style="flex:1;min-width:0"><div class="modal-hdr-title">${L('Receipt tools','أدوات الاستلامات')}</div><div class="modal-hdr-sub">${L('My Receipts','استلاماتي')}</div></div>
+        <button type="button" class="sheet-close-btn sq" onclick="closeModal()" aria-label="${L('Close','إغلاق')}">${ic('close',16)}</button>
+      </div>
+      <div class="rq-more-list">
+        ${row('entry','edit',L('Data entry','إدخال البيانات'),L('Companies, plots, floors and levels','الشركات والقطع والأدوار والمناسيب'))}
+        ${row('import','upload',L('Import','استيراد'),L('Bring receipts in from an Excel file','استيراد استلامات من ملف إكسيل'))}
+        ${row('export','download',L('Export','تصدير'),L('Save receipts as an Excel file','حفظ الاستلامات في ملف إكسيل'))}
+      </div>
+    </div>`;
+  document.getElementById('modalOverlay').style.display='flex';
+}
+function rqMoreGo(k){
+  if(k==='entry'){ rqDataEntryOpen(); return; } // replaces this sheet's content in place
+  closeModal();
+  if(k==='import') rqImportPick(); else if(k==='export') rqExportExcel();
+}
 function renderMyRequests(){
   const _everything=_rqLoad();
   const all=_rqAllMonths?_everything:_everything.filter(_rqInActiveMonth);
@@ -32072,7 +32193,6 @@ function renderMyRequests(){
   if(q) list=list.filter(r=>_rqMatchSearch(r,q));
   list.sort((a,b)=>String(b.date||'').localeCompare(String(a.date||''))||((b.createdAt||0)-(a.createdAt||0)));
 
-  const stat=(f,cls,n,lbl)=>`<button type="button" class="rq-stat ${cls}${n===0?' zero':''}${_rqFilter===f?' on':''}" aria-pressed="${_rqFilter===f?'true':'false'}" onclick="_rqSetFilter('${f}')"><b>${n}</b><span>${lbl}</span></button>`;
   const typeChips=[...typeMap.values()].sort((a,b)=>b.n-a.n||a.k.localeCompare(b.k)).map(t=>{
     const raw=String(t.r.type||'').trim();
     const label=t.k==='__none'?L('No type','بدون نوع'):(_rqIsCodeType(raw)?raw.toUpperCase():_rqDisplayValue(t.r,'type'));
@@ -32080,21 +32200,19 @@ function renderMyRequests(){
     const pct=Math.max(6,Math.round(t.n*100/Math.max(1,byStatus.length)));
     return `<button type="button" class="rq-tchip${on?' on':''}" style="--rq-tc:${_rqTypeColor(t.r)}" data-k="${esc(t.k)}" aria-pressed="${on?'true':'false'}" onclick="_rqSetTypeFilter(this.dataset.k)"><i></i><span class="rq-tc-l">${esc(label)}</span><b>${t.n}</b></button>`;
   }).join('');
-  const _tot=Math.max(1,all.length);
-  const _pc=n=>Math.round(n*1000/_tot)/10;
-  const _a=_pc(counts.received), _b=_a+_pc(counts.notes);
-  const _ring=all.length?`conic-gradient(var(--green) 0 ${_a}%,var(--gold) ${_a}% ${_b}%,var(--red) ${_b}% 100%)`:'var(--border)';
-  const _hs=(f,k,n,lbl)=>`<button type="button" class="rq-hs ${k}${n===0?' zero':''}${_rqFilter===f?' on':''}" aria-pressed="${_rqFilter===f?'true':'false'}" onclick="_rqSetFilter('${f}')"><i></i><b>${n}</b><span>${lbl}</span></button>`;
   const rate=all.length?Math.round(counts.received*100/all.length):0;
-  const statsHTML=(all.length?`<div class="rq-hero">
-    <div class="rq-ring" style="background:${_ring}" aria-hidden="true"><div><b>${rate}%</b><small>${L('received','مستلم')}</small></div></div>
-    <div class="rq-hs-grid">
-      ${_hs('all','all',all.length,L('All','الكل'))}
-      ${_hs('received','ok',counts.received,_rqStatusLabel('received'))}
-      ${_hs('notes','low',counts.notes,L('With notes','بملاحظات'))}
-      ${_hs('rejected','over',counts.rejected,_rqStatusLabel('rejected'))}
+  const _seg=(k,n)=>n>0?`<i class="${k}" style="flex:${n}"></i>`:'';
+  const _sf=(f,k,n,lbl)=>`<button type="button" class="rq-sf ${k}${n===0?' zero':''}${_rqFilter===f?' on':''}" aria-pressed="${_rqFilter===f?'true':'false'}" onclick="_rqSetFilter(_rqFilter==='${f}'?'all':'${f}')"><b><i></i>${n}</b><span>${lbl}</span></button>`;
+  const statsHTML=all.length?`<div class="rq-sum">
+    <div class="rq-sum-top"><span class="rq-sum-rate"><b>${rate}%</b><small>${L('received','مستلم')}</small></span><span class="rq-sum-of">${counts.received} / ${all.length}</span></div>
+    <div class="rq-sum-bar" aria-hidden="true">${_seg('ok',counts.received)}${_seg('low',counts.notes)}${_seg('over',counts.rejected)}</div>
+    <div class="rq-sum-fl">
+      ${_sf('received','ok',counts.received,_rqStatusLabel('received'))}
+      ${_sf('notes','low',counts.notes,L('With notes','بملاحظات'))}
+      ${_sf('rejected','over',counts.rejected,_rqStatusLabel('rejected'))}
     </div>
-  </div>`:'')+(typeChips?`<div class="rq-types-wrap"><div class="rq-types-h">${L('By type','حسب النوع')}</div><div class="rq-types">${typeChips}</div></div>`:'');
+    ${(typeChips&&(typeMap.size>1||typeFilter))?`<div class="rq-sum-types"><div class="rq-types">${typeChips}</div></div>`:''}
+  </div>`:'';
 
   const _dayLabel=iso=>{
     if(!iso) return L('No date','بدون تاريخ');
@@ -32130,9 +32248,9 @@ function renderMyRequests(){
   ${_cxTabsHTML()}
   <section class="cx-sec">
     <div class="cx-sh">
-      <span class="cx-sh-l"><span class="cx-sh-t">${L('My Receipts','استلاماتي')}</span><span class="cx-sh-s">${shown} ${L('receipts','استلامة')}</span></span>
+      <span class="cx-sh-l"><span class="cx-sh-t">${L('My Receipts','استلاماتي')}</span><span class="cx-sh-s">${esc(_rqMonthLbl())} · ${shown} ${L('receipts','استلامة')}</span></span>
+      <button type="button" class="rq-more" onclick="rqMoreOpen()" aria-label="${L('More','المزيد')}"><svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg></button>
     </div>
-    ${_everything.length?_rqScopeBarHTML(_everything.length,_everything.filter(_rqInActiveMonth).length):''}
     ${statsHTML}
     ${rqReportBarHTML()}
     ${all.length?`<div class="sc-search cx-search"><span class="cx-sbox">
@@ -41923,14 +42041,9 @@ function rqReportBarHTML(){
   return `<div class="rq-hub">
   <button type="button" class="rq-hub-top" onclick="_rqRptDate='';_rqRptLang='';_rqSelMode=false;_rqSel.clear();rqReportOpen()">
     <span class="rq-hub-ic">${ic('clipboard',18)}</span>
-    <span class="rq-hub-tx"><b>${L('My Report','تقريري')}</b><small>${n?L(n+' receipt(s) today',n+' استلام اليوم'):L('No receipts yet today','لا استلامات اليوم')}<i class="rq-hub-dot${on?' on':''}"></i>${on?rqReportTimeLabel():L('Off','معطّل')}</small></span>
+    <span class="rq-hub-tx"><b>${L('My Report','تقريري')}</b><small>${n?L(n+' today',n+' استلام اليوم'):L('None today','لا استلامات اليوم')}<i class="rq-hub-dot${on?' on':''}"></i>${on?rqReportTimeLabel():L('Off','معطّل')}</small></span>
     <span class="rq-hub-go">${L('Open','فتح')}</span>
   </button>
-  <div class="rq-hub-tools">
-    <button type="button" class="rq-hub-btn" onclick="rqImportPick()">${ic('upload',16)}<span>${L('Import','استيراد')}</span></button>
-    <button type="button" class="rq-hub-btn" onclick="rqExportExcel()">${ic('download',16)}<span>${L('Export','تصدير')}</span></button>
-    <button type="button" class="rq-hub-btn" onclick="rqDataEntryOpen()">${ic('edit',16)}<span>${L('Data entry','إدخال البيانات')}</span></button>
-  </div>
 </div>`;
 }
 
@@ -43577,37 +43690,80 @@ const ATT=(function(){
     load();
     const r=db.days[key]||null; sel=r?r.s:'';
     const y=+key.slice(0,4), m=+key.slice(5,7)-1, d=+key.slice(8,10);
-    const title=new Date(y,m,d).toLocaleDateString(loc(),{weekday:'long',day:'numeric',month:'long',year:'numeric'});
-    const chips=ST.map(x=>`<button type="button" class="att-chip att-st-${x.k}${sel===x.k?' on':''}" data-k="${x.k}" onclick="ATT.pick('${x.k}')">${ic(x.ic,16)}<span>${stLbl(x)}</span></button>`).join('');
-    const timesEdit=`<div class="att-times-edit" id="attTimes"${WORKING(sel)?'':' hidden'}>
-          <label class="att-tf"><span>${ic('login',13)} ${L('Check-in','وقت الحضور')}</span><div class="att-tf-row"><input type="time" id="attIn" value="${esc(r&&r.i?r.i:'')}"><button type="button" class="att-now" onclick="ATT.stamp('attIn')">${L('Now','الآن')}</button></div></label>
-          <label class="att-tf"><span>${ic('logout',13)} ${L('Check-out','وقت الانصراف')}</span><div class="att-tf-row"><input type="time" id="attOut" value="${esc(r&&r.o?r.o:'')}"><button type="button" class="att-now" onclick="ATT.stamp('attOut')">${L('Now','الآن')}</button></div></label>
+    const dt=new Date(y,m,d);
+    const title=dt.toLocaleDateString(loc(),{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+    const monS=dt.toLocaleDateString(loc(),{month:'short'});
+    const SUB={present:['On time','في الميعاد'],late:['Arrived late','وصلت متأخر']};
+    const stBtn=(x,cls)=>`<button type="button" class="atd-st ${cls} att-st-${x.k}${sel===x.k?' on':''}" data-k="${x.k}" onclick="ATT.pick('${x.k}')"><span class="atd-ico">${ic(x.ic,cls==='big'?19:16)}</span><span class="atd-tx"><b>${stLbl(x)}</b>${SUB[x.k]?`<small>${L(SUB[x.k][0],SUB[x.k][1])}</small>`:''}</span><span class="atd-ok">${ic('check',11)}</span></button>`;
+    const main=ST.filter(x=>WORKING(x.k)).map(x=>stBtn(x,'big')).join('');
+    const more=ST.filter(x=>!WORKING(x.k)).map(x=>stBtn(x,'sm')).join('');
+    const tbox=(kind,id,val)=>`<div class="atd-tbox ${kind}${val?' has':''}" data-t="${id}">
+            <div class="atd-tpick"><span class="atd-tl">${ic(kind==='in'?'login':'logout',14)} ${kind==='in'?L('Check-in','وقت الحضور'):L('Check-out','وقت الانصراف')}</span><span class="atd-tv" id="${id}V">${val?esc(fmtT(val)):'--:--'}</span><input type="time" id="${id}" value="${esc(val||'')}" oninput="ATT.tUpd()" onchange="ATT.tUpd()" aria-label="${kind==='in'?L('Check-in','وقت الحضور'):L('Check-out','وقت الانصراف')}"></div>
+            <div class="atd-tact"><button type="button" class="atd-now" onclick="ATT.stamp('${id}')">${L('Now','الآن')}</button><button type="button" class="atd-x" onclick="ATT.clearT('${id}')" aria-label="${L('Clear','مسح')}">${ic('close',14)}</button></div>
+          </div>`;
+    const timesEdit=`<div class="atd-time" id="attTimes"${WORKING(sel)?'':' hidden'}>
+          <div class="atd-time-hd">${ic('clock',15)}<span>${L('Working hours','ساعات العمل')}</span><span class="atd-dur" id="attDur" hidden></span></div>
+          <div class="atd-time-grid">${tbox('in','attIn',r&&r.i?r.i:'')}${tbox('out','attOut',r&&r.o?r.o:'')}</div>
         </div>`;
+    const NOTES=[['Site visit','زيارة موقع'],['Doctor visit','كشف دكتور'],['Overtime','أوفر تايم'],['Mission','مأمورية']];
+    const curNote=(r&&r.n)||'';
+    const qn=NOTES.map(n=>{ const t=L(n[0],n[1]); return `<button type="button" data-v="${esc(t)}" class="${curNote.split(' · ').includes(t)?'on':''}" onclick="ATT.noteChip(this)">${esc(t)}</button>`; }).join('');
     document.getElementById('modalContent').innerHTML=`<div class="modal-handle"></div>
-      <div class="rq-modal att-sheet">
+      <div class="rq-modal att-sheet atd">
         <div class="modal-hdr">
-          <div class="modal-hdr-icon" style="background:linear-gradient(135deg,#0f7a55,#0a5c40)">${ic('attendance',22)}</div>
-          <div style="flex:1;min-width:0"><div class="modal-hdr-title">${L('Day status','حالة اليوم')}</div><div class="modal-hdr-sub">${esc(title)}</div></div>
+          <div class="atd-date"><b>${d}</b><small>${esc(monS)}</small></div>
+          <div style="flex:1;min-width:0"><div class="modal-hdr-title">${L('Day status','حالة اليوم')}</div><div class="modal-hdr-sub atd-sub"><span>${esc(title)}</span>${key===tk()?`<span class="atd-today">${L('Today','النهاردة')}</span>`:''}</div></div>
           <button type="button" class="sheet-close-btn sq" onclick="closeModal()" aria-label="${L('Close','إغلاق')}">${ic('close',16)}</button>
         </div>
-        <div class="att-chips">${chips}</div>
+        <div class="atd-grp"><span class="atd-lbl">${L('Attendance','الحضور')}</span><div class="atd-main">${main}</div></div>
+        <div class="atd-grp"><span class="atd-lbl">${L('Absence & days off','الغياب والإجازات')}</span><div class="atd-more">${more}</div></div>
         ${timesEdit}
-        <div class="field"><label>${L('Note (optional)','ملاحظة (اختياري)')}</label>
-          <input type="text" id="attNote" dir="auto" autocomplete="off" maxlength="200" value="${esc(r&&r.n?r.n:'')}" placeholder="${L('e.g. doctor visit, site visit…','مثال: كشف عند دكتور، زيارة موقع…')}"></div>
+        <div class="atd-grp"><label class="atd-lbl" for="attNote">${L('Note (optional)','ملاحظة (اختياري)')}</label>
+          <div class="atd-note">${ic('note',16)}<input type="text" id="attNote" dir="auto" autocomplete="off" maxlength="200" value="${esc(curNote)}" placeholder="${L('e.g. doctor visit, site visit…','مثال: كشف عند دكتور، زيارة موقع…')}"></div>
+          <div class="atd-qn">${qn}</div>
+        </div>
         <div class="modal-btns">
           <button class="mbtn save" data-attf="save" onclick="ATT.saveDay('${key}')">${L('Save','حفظ')}</button>
-          ${r?`<button class="mbtn danger" data-attf="danger" onclick="ATT.clearDay('${key}')">${L('Clear day','مسح اليوم')}</button>`:''}
+          ${r?`<button class="mbtn danger" data-attf="danger" onclick="ATT.clearDay('${key}')">${ic('trash',15)} ${L('Clear day','مسح اليوم')}</button>`:''}
           <button class="mbtn cancel" data-attf="cancel" onclick="closeModal()">${L('Cancel','إلغاء')}</button>
         </div>
       </div>`;
     document.getElementById('modalOverlay').style.display='flex';
+    tUpd();
   }
   function pick(k){
     sel=(sel===k)?'':k;
-    document.querySelectorAll('.att-chip').forEach(b=>b.classList.toggle('on',b.dataset.k===sel));
+    document.querySelectorAll('.atd-st').forEach(b=>b.classList.toggle('on',b.dataset.k===sel));
     const tb=document.getElementById('attTimes'); if(tb) tb.hidden=!WORKING(sel);
+    if(tb&&!tb.hidden) tUpd();
   }
-  function stamp(id){ const el=document.getElementById(id); if(el) el.value=nowT(); }
+  // keeps the big time read-outs, the has-value state and the worked-hours chip in sync with the two time inputs
+  function tUpd(){
+    const iEl=document.getElementById('attIn'), oEl=document.getElementById('attOut'); if(!iEl||!oEl) return;
+    [['attIn',iEl],['attOut',oEl]].forEach(([id,el])=>{
+      const v=validT(el.value), v2=document.getElementById(id+'V'), box=el.closest('.atd-tbox');
+      if(v2) v2.textContent=v?fmtT(v):'--:--';
+      if(box) box.classList.toggle('has',!!v);
+    });
+    const dur=document.getElementById('attDur'); if(!dur) return;
+    const a=validT(iEl.value), b=validT(oEl.value);
+    if(a&&b){
+      const tm=t=>(+t.slice(0,2))*60+(+t.slice(3,5));
+      const mins=tm(b)-tm(a);
+      if(mins>0){ const h=Math.floor(mins/60), mm=mins%60; dur.textContent=L(h+'h'+(mm?' '+mm+'m':''),h+' س'+(mm?' '+mm+' د':'')); dur.hidden=false; return; }
+    }
+    dur.hidden=true;
+  }
+  function clearT(id){ const el=document.getElementById(id); if(el){ el.value=''; tUpd(); } }
+  function noteChip(btn){
+    const inp=document.getElementById('attNote'); if(!inp||!btn) return;
+    const v=btn.dataset.v||'';
+    let parts=inp.value.split(' · ').map(x=>x.trim()).filter(Boolean);
+    parts=parts.includes(v)?parts.filter(x=>x!==v):parts.concat(v);
+    inp.value=parts.join(' · ').slice(0,200);
+    document.querySelectorAll('.atd-qn button').forEach(b=>b.classList.toggle('on',parts.includes(b.dataset.v)));
+  }
+  function stamp(id){ const el=document.getElementById(id); if(el){ el.value=nowT(); tUpd(); } }
   function saveDay(key){
     load();
     const note=(document.getElementById('attNote')?.value||'').trim().slice(0,200);
@@ -43811,7 +43967,7 @@ const ATT=(function(){
       if(save()){ try{ renderView(true); }catch(e){} showToast(L('Month cleared','تم مسح الشهر'),'success'); }
     });
   }
-  return {render,dashCard,dashSummary,checkIn,checkOut,stamp,openPage,openDay,pick,saveDay,clearDay,quick,nav,goToday,setScope,setField,pickLogo,removeLogo,clearMonth,toggleCo,toggleMulti,setRangeMode,clearSel,tapDay,openMulti,saveMulti,clearMulti};
+  return {render,dashCard,dashSummary,checkIn,checkOut,stamp,tUpd,clearT,noteChip,openPage,openDay,pick,saveDay,clearDay,quick,nav,goToday,setScope,setField,pickLogo,removeLogo,clearMonth,toggleCo,toggleMulti,setRangeMode,clearSel,tapDay,openMulti,saveMulti,clearMulti};
 })();
 // My Locations photos live in IndexedDB; carry them through the app's existing backup/restore
 // (which only knows localStorage) without ever writing them into localStorage.
