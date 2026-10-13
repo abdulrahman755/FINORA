@@ -9180,7 +9180,7 @@ html body .sc-header .sc-header-sub{padding-inline-start:12px;margin-top:4px;fon
 .att-rate-n{margin-top:8px;font-size:calc(10.5px*var(--app-text-scale,1));color:var(--muted);line-height:1.5}
 .att-nav{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px}
 .att-month{flex:1;height:38px;border:0;background:none;color:var(--text);font-family:inherit;font-size:calc(15px*var(--app-text-scale,1));font-weight:900;cursor:pointer}
-.att-chev{display:block;width:9px;height:9px;border-top:2px solid var(--text);border-inline-start:2px solid var(--text)}
+.att-chev{display:block;width:9px;height:9px;border-top:2px solid var(--text);border-left:2px solid var(--text)}
 .att-chev.prev{transform:rotate(-45deg)}.att-chev.next{transform:rotate(135deg)}
 [dir="rtl"] .att-chev.prev{transform:rotate(135deg)}[dir="rtl"] .att-chev.next{transform:rotate(-45deg)}
 .att-cal{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
@@ -9645,6 +9645,72 @@ html body .sc-header .sc-header-sub{padding-inline-start:12px;margin-top:4px;fon
 .rq-more-tx small{font-size:calc(12px*var(--app-text-scale,1));font-weight:600;color:var(--muted)}
 .rq-more-chev{flex:none;width:8px;height:8px;border-top:2px solid var(--muted);border-right:2px solid var(--muted);transform:rotate(45deg)}
 [dir="rtl"] .rq-more-chev{transform:rotate(-135deg)}
+
+/* ══ Attendance page v2 (.att.atp) — flat hairline cards, segmented status, one distribution bar, quiet calendar ══ */
+.att.atp{--atp-r:20px}
+.atp .sc-card{border-radius:var(--atp-r);box-shadow:none}
+/* today */
+.atp-today{display:flex;flex-direction:column;gap:14px;padding:18px 16px 14px!important}
+.atp-th{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.atp-d{margin-top:3px;font-size:calc(18px*var(--app-text-scale,1));font-weight:900;letter-spacing:-.02em;line-height:1.2;color:var(--text)}
+[dir="rtl"] .atp-d{letter-spacing:0}
+.atp-today .att-times{margin:0;gap:10px}
+.atp-today .att-time{border:1px solid var(--border);border-style:solid;border-radius:16px;background:var(--surface);padding:12px}
+.atp-today .att-time.set{border-color:color-mix(in srgb,var(--c) 40%,var(--border));background:color-mix(in srgb,var(--c) 6%,var(--surface))}
+.atp-today .att-time-ic{width:36px;height:36px;border-radius:11px}
+.atp-today .att-dur{margin:0}
+.atp-seg{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;padding:4px;border-radius:16px;background:var(--surface2)}
+.atp-sb{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;min-height:58px;padding:6px 2px;border:0;border-radius:12px;background:transparent;color:var(--sub);font-family:inherit;font-size:calc(11.5px*var(--app-text-scale,1));font-weight:700;line-height:1.15;text-align:center;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background .16s,color .16s,transform .1s}
+.atp-sb svg{color:var(--c)}
+.atp-sb:active{transform:scale(.96)}
+.atp-sb.on{background:var(--c);color:#fff}
+.atp-sb.on svg{color:#fff}
+.atp-more{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;min-height:38px;border:0;background:none;color:var(--green);font-family:inherit;font-size:calc(12.5px*var(--app-text-scale,1));font-weight:800;cursor:pointer}
+.atp-chev{width:7px;height:7px;border-top:2px solid currentColor;border-right:2px solid currentColor;transform:rotate(45deg)}
+[dir="rtl"] .atp-chev{transform:rotate(-135deg)}
+/* summary */
+.atp-sum{display:flex;flex-direction:column;gap:16px;padding:16px!important}
+.atp-sum .att-seg-row{margin:0}
+.atp-hero{display:flex;align-items:flex-end;justify-content:space-between;gap:12px}
+.atp-rate{display:flex;flex-direction:column;gap:5px;min-width:0}
+.atp-rate b{font-size:calc(46px*var(--app-text-scale,1));font-weight:900;letter-spacing:-.04em;line-height:1;color:var(--text);font-variant-numeric:tabular-nums}
+.atp-rate b small{font-size:.48em;font-weight:800;margin-inline-start:2px;color:var(--muted);letter-spacing:0}
+.atp-rate span{font-size:calc(12.5px*var(--app-text-scale,1));font-weight:700;color:var(--muted)}
+.atp-of{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex:none;padding-bottom:2px}
+.atp-of b{font-size:calc(20px*var(--app-text-scale,1));font-weight:900;line-height:1;font-variant-numeric:tabular-nums;color:var(--text)}
+.atp-of b em{font-style:normal;font-weight:700;color:var(--muted)}
+.atp-of span{font-size:calc(11.5px*var(--app-text-scale,1));font-weight:700;color:var(--muted)}
+.atp-bar{display:flex;gap:3px;height:10px}
+.atp-bar i{display:block;height:100%;min-width:6px;border-radius:99px;background:var(--c)}
+.atp-bar.empty{border-radius:99px;background:var(--surface2)}
+.atp-rows{display:grid;grid-template-columns:1fr 1fr;gap:0 22px}
+.atp-row{display:flex;align-items:center;gap:9px;min-height:40px;border-bottom:1px solid var(--border);font-size:calc(13px*var(--app-text-scale,1));font-weight:700;color:var(--text2,var(--text))}
+.atp-row i{flex:none;width:8px;height:8px;border-radius:50%;background:var(--c)}
+.atp-row span{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.atp-row b{font-size:calc(15px*var(--app-text-scale,1));font-weight:900;font-variant-numeric:tabular-nums;color:var(--text)}
+.atp-row.zero{opacity:.5}
+.atp-row.zero b{font-weight:700}
+.atp-sum .att-hours{display:grid;grid-template-columns:1fr 1fr;gap:0;border:1px solid var(--border);border-radius:16px;overflow:hidden}
+.atp-sum .att-hours>span{border-radius:0;background:transparent;padding:12px 14px}
+.atp-sum .att-hours>span+span{border-inline-start:1px solid var(--border)}
+.atp-note{margin:-4px 0 0;font-size:calc(11.5px*var(--app-text-scale,1));font-weight:500;line-height:1.5;color:var(--muted)}
+/* calendar: quiet by default, colour only where a status exists */
+.atp .att-cal-card{padding:16px!important}
+.atp .att-cal{gap:4px}
+.atp .att-dn{font-weight:700;letter-spacing:.4px}
+.atp .att-day{border:0;border-radius:13px;background:transparent;color:var(--text)}
+.atp .att-day b{font-weight:700}
+.atp .att-day.has{background:color-mix(in srgb,var(--c) 15%,transparent);color:var(--c)}
+.atp .att-day.has b{font-weight:900}
+.atp .att-day.wk:not(.has){opacity:.55}
+.atp .att-day.fut:not(.has){opacity:.8}
+.atp .att-day.today{border:0;box-shadow:inset 0 0 0 2px var(--text)}
+.atp .att-day.today b{color:var(--text)}
+.atp .att-day.has.today b{color:var(--c)}
+.atp .att-day.sel{border:0;background:color-mix(in srgb,var(--green) 20%,transparent);box-shadow:inset 0 0 0 2px var(--green)}
+.atp .att-cal-card .att-legend{border-top:1px solid var(--border);gap:6px 14px}
+.atp .att-multi-bar .att-mini-main{background:transparent;color:var(--sub);border-color:var(--border);font-weight:700}
+.atp .att-month{font-size:calc(16px*var(--app-text-scale,1));font-weight:800}
 
 /* ══ Buttons v4 — one simple, flat system (solid primary · outlined secondary · soft danger) ══
    Overrides the older gradient/glow/ripple variants app-wide. Heights, radius and weight are uniform. */
@@ -43586,6 +43652,11 @@ const ATT=(function(){
     const stats=ST.map(x=>`<div class="att-stat att-st-${x.k}"><span class="att-stat-ic">${ic(x.ic,14)}</span><span class="att-stat-n">${c[x.k]}</span><span class="att-stat-l">${L(x.sEn,x.sAr)}</span></div>`).join('');
     const quick=QUICK.map(k=>{ const x=BY[k]; return `<button type="button" class="att-q att-st-${k}${trec&&trec.s===k?' on':''}" onclick="ATT.quick('${k}')">${ic(x.ic,14)}<span>${stLbl(x)}</span></button>`; }).join('');
     const tName=new Date().toLocaleDateString(loc(),{weekday:'long',day:'numeric',month:'long'});
+    const twork=!!(trec&&WORKING(trec.s)), tIn=twork&&trec.i?trec.i:'', tOut=twork&&trec.o?trec.o:'';
+    const segBtns=QUICK.map(k=>{ const x=BY[k]; return `<button type="button" class="atp-sb att-st-${k}${trec&&trec.s===k?' on':''}" aria-pressed="${!!(trec&&trec.s===k)}" onclick="ATT.quick('${k}')">${ic(x.ic,15)}<span>${stLbl(x)}</span></button>`; }).join('');
+    const _worked=c.present+c.late, _due=_worked+c.absent+c.sick+c.leave;
+    const distBar=ST.map(x=>c[x.k]>0?`<i class="att-st-${x.k}" style="flex:${c[x.k]}"></i>`:'').join('');
+    const distRows=ST.map(x=>`<div class="atp-row att-st-${x.k}${c[x.k]?'':' zero'}"><i></i><span>${stLbl(x)}</span><b>${c[x.k]}</b></div>`).join('');
     // calendar for the viewed month
     const first=(new Date(vy,vm,1).getDay()+1)%7;          // week starts on Saturday
     const days=new Date(vy,vm+1,0).getDate();
@@ -43607,7 +43678,7 @@ const ATT=(function(){
     const isOpen = coOpen===null ? !db.company : coOpen;
     const subLine = [db.project,db.location].filter(Boolean).map(esc).join(' · ');
     const tiles = stats + `<div class="att-stat att-st-rec"><span class="att-stat-ic">${ic('calendar',14)}</span><span class="att-stat-n">${total}</span><span class="att-stat-l">${L('Recorded','المسجّل')}</span></div>`;
-    return `<div class="screen-wrap cx-wrap att">
+    return `<div class="screen-wrap cx-wrap att atp">
       <div class="sc-header">
         <div class="sc-header-eyebrow">${L('Site','الموقع')}</div>
         <div class="sc-header-title">${L('My Job','My Job')}</div>
@@ -43615,25 +43686,25 @@ const ATT=(function(){
       </div>
       ${typeof _cxTabsHTML==='function'?_cxTabsHTML():''}
 
-      <div class="sc-card att-today">
-        <div class="att-today-top"><div><div class="att-lbl">${L('Today','النهاردة')}</div><div class="att-today-d">${tName}</div></div>
+      <div class="sc-card atp-today">
+        <div class="atp-th"><div><div class="att-lbl">${L('Today','النهاردة')}</div><div class="atp-d">${tName}</div></div>
           ${trec&&BY[trec.s]?`<span class="att-pill att-st-${trec.s}">${ic(BY[trec.s].ic,12)} ${stLbl(BY[trec.s])}</span>`:`<span class="att-pill none">${L('Not recorded','لسه متسجلش')}</span>`}</div>
-        <div class="att-quick">${quick}</div>
-        <button type="button" class="att-link" onclick="ATT.openDay('${tkey}')">${L('More options / add a note','خيارات أكتر / إضافة ملاحظة')}</button>
+        <div class="att-times atp-times">${timeTile('in',tIn,tkey)}${timeTile('out',tOut,tkey)}</div>
+        ${durHTML(twork?trec:null)}
+        <div class="atp-seg" role="group" aria-label="${L('Today status','حالة النهاردة')}">${segBtns}</div>
+        <button type="button" class="atp-more" onclick="ATT.openDay('${tkey}')"><span>${L('More options / add a note','خيارات أكتر / إضافة ملاحظة')}</span><i class="atp-chev"></i></button>
       </div>
 
-      <div class="sc-card att-sum">
+      <div class="sc-card atp-sum">
         <div class="att-seg-row">${sc('month','Month','الشهر')}${sc('year','Year','السنة')}${sc('all','All','الكل')}</div>
-        <div class="att-sum-top">
-          <div class="att-ring" style="--p:${rate===null?0:rate}" role="img" aria-label="${L('Attendance rate','معدل الحضور')} ${rate===null?'—':rate+'%'}"><b>${rate===null?'—':rate+'%'}</b></div>
-          <div class="att-sum-txt">
-            <div class="att-sum-title">${L('Attendance rate','معدل الحضور')}</div>
-            <div class="att-sum-sc">${esc(scopeLabel())}</div>
-            <div class="att-rate-n">${L('Present + late out of working days. Holidays and days off are excluded.','الحضور + التأخير من أيام العمل. الرسمي والراحة مش محسوبين.')}</div>
-          </div>
+        <div class="atp-hero">
+          <div class="atp-rate" role="img" aria-label="${L('Attendance rate','معدل الحضور')} ${rate===null?'—':rate+'%'}"><b>${rate===null?'—':rate}${rate===null?'':'<small>%</small>'}</b><span>${L('Attendance rate','معدل الحضور')} · ${esc(scopeLabel())}</span></div>
+          ${_due?`<div class="atp-of"><b>${_worked}<em>/${_due}</em></b><span>${L('working days','يوم عمل')}</span></div>`:''}
         </div>
-        <div class="att-stats">${tiles}</div>
+        ${distBar?`<div class="atp-bar" aria-hidden="true">${distBar}</div>`:`<div class="atp-bar empty" aria-hidden="true"></div>`}
+        <div class="atp-rows">${distRows}</div>
         ${hoursHTML(mins,hdays)}
+        <p class="atp-note">${L('Present + late out of working days. Holidays and days off are excluded.','الحضور + التأخير من أيام العمل. الرسمي والراحة مش محسوبين.')}</p>
       </div>
 
       <div class="sc-card att-cal-card">
