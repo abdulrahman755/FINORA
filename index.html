@@ -9659,6 +9659,22 @@ body .screen-wrap .sc-header.sav-plain-header.sav-plain-header::after{display:no
 .rq-hs.zero{opacity:.55}
 .rq-hs.on{background:var(--surface);border-color:var(--text);box-shadow:var(--shadow-sm)}
 .rq-hero+.rq-types-wrap{margin-top:12px}
+.rq-hs span{white-space:normal!important;overflow:visible!important;text-overflow:clip!important;line-height:1.15;font-size:calc(11px*var(--app-text-scale,1))!important}
+.rq-hs{align-items:center;padding:8px 9px;gap:6px}
+.rq-scope{display:flex;gap:4px;padding:4px;border-radius:14px;background:var(--surface2);margin:2px 0 12px}
+.rq-scope-b{flex:1;appearance:none;font:inherit;border:0;background:transparent;color:var(--sub);height:38px;border-radius:11px;font-weight:800;font-size:calc(13px*var(--app-text-scale,1));cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px}
+.rq-scope-b em{font-style:normal;font-variant-numeric:tabular-nums;color:var(--muted);font-weight:800}
+.rq-scope-b.on{background:var(--surface);color:var(--text);box-shadow:var(--shadow-xs)}
+.rq-scope-b.on em{color:var(--green)}
+
+.bs-save-btn,.bs-cancel-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px}
+/* ── Small-screen text: wrap instead of "Today's T…" ── */
+.kpi3-sec-label{white-space:normal!important;overflow:visible!important;text-overflow:clip!important;line-height:1.25}
+.kpi3-sec-val.is-empty{white-space:normal!important;line-height:1.25}
+.kpi3-saved-mode-btn{align-self:flex-start}
+.wdash-wrap.dv3-dark-v2 .dv3h-stat-lbl{white-space:normal!important;overflow:visible!important;text-overflow:clip!important;line-height:1.25}
+.att-dash-ttl small{white-space:normal!important;overflow:visible!important;text-overflow:clip!important}
+
 /* ── Touch targets: keep the look, enlarge the hit area ── */
 .fp-hero-toggle{min-width:40px;min-height:40px}
 .cst-empty-cta,.dfp-card-btn{min-height:40px}
@@ -12114,6 +12130,8 @@ function persistMonths(){
   }
 }
 function persistData(){
+  try{ _enforceDateMonthIntegrity(); }catch(e){ try{ _logErr('dateMonthIntegrity',e); }catch(_){} }
+  try{ _syncBankCarryForward(); }catch(e){ try{ _logErr('bankCarryForward',e); }catch(_){} }
   // Use encrypted storage when crypto is initialized, fallback to plain
   let p;
   if (_encEnabled && _cryptoKey) {
@@ -14202,6 +14220,8 @@ function renderHeaderExtraActions(){
 let _wdpNavSkeletonPending = false; // set true by setView() right before a real screen navigation; consumed once by renderView()
 function renderView(preserveScroll){
   try{
+  try{ if(_enforceDateMonthIntegrity()) persistData(); }catch(e){}
+  try{ if(_syncBankCarryForward()) persistData(); }catch(e){}
   // Regression fix: the Dashboard V2 memoization caches (fdFinanceStats /
   // fdDashboardSignals) were documented as "cache layer only, per render
   // pass" but were never actually cleared anywhere, so once a month's stats
@@ -18393,6 +18413,40 @@ function _repairZeroOpeningBalances(){
   });
   return changed;
 }
+// ── BANK CARRY-FORWARD SYNC ──────────────────────────────────────────────
+// A month's opening bank balance must be EXACTLY the calendar-previous month's
+// final total balance (its own opening + its own movements) — nothing else, and
+// never re-summing older months. Openings are snapshots taken at month creation,
+// so later edits to an earlier month (new/edited/deleted movement, backdated
+// entry) left them stale. This re-derives each OPEN month's opening from the
+// previous month, in chronological order so changes cascade (OCT→NOV→DEC...).
+// Closed months and the first month on record are never touched.
+let _cfBusy=false;
+function _syncBankCarryForward(){
+  if(_cfBusy || typeof DATA==='undefined' || !DATA || !MONTHS_ORDER) return 0;
+  _cfBusy=true; let fixed=0;
+  try{
+    const banks=getAllBanks();
+    const keys=MONTHS_ORDER.filter(k=>_monthKeyToOrdinal(k)!==null && DATA[k])
+      .sort((a,b)=>_monthKeyToOrdinal(a)-_monthKeyToOrdinal(b));
+    keys.forEach(function(k){
+      const m=DATA[k];
+      if(m.status==='CLOSED' || m.closingSnapshot) return;
+      const pk=_calendarPrevMonthKey(k);
+      const prev=pk?DATA[pk]:null;
+      if(!prev) return;
+      if(!m.initial_balances) m.initial_balances={};
+      banks.forEach(function(b){
+        const want=_getBankBalanceCompute(prev,b.key);
+        if((m.initial_balances[b.key]||0)!==want){
+          m.initial_balances[b.key]=want; fixed++;
+          try{ _getBankBalanceCache.delete(m); }catch(_){}
+        }
+      });
+    });
+  }finally{ _cfBusy=false; }
+  return fixed;
+}
 // ═════════════════════════════════════════════════════════════════
 // DATE → MONTH ROUTING
 // Any record saved with a date lives in the page (month) of that date, not
@@ -18408,6 +18462,50 @@ function _monthKeyForDate(dateStr){
   const mo=parseInt(m[2],10)-1;
   if(mo<0||mo>11) return null;
   return _ROLLOVER_ABBR[mo]+'-'+m[1];
+}
+
+// ── STRICT DATE → MONTH RULE ─────────────────────────────────────────────
+// A record dated in month M may live in month M (or carry forward to a LATER
+// month), but must NEVER sit in a month BEFORE its own date — e.g. an October
+// entry must never show up in January. Runs on every save (persistData), so it
+// also catches edits that change a date, imports and old misfiled data.
+// Closed months are never touched (neither source nor target).
+let _dmiBusy=false;
+function _enforceDateMonthIntegrity(){
+  if(_dmiBusy || typeof DATA==='undefined' || !DATA || !MONTHS_ORDER) return 0;
+  _dmiBusy=true; let moved=0;
+  try{
+    const FIELDS=['transactions','site_expenses','custody_deposits','bank_movements'];
+    const keys=MONTHS_ORDER.slice();
+    keys.forEach(function(mk){
+      const m=DATA[mk]; if(!m || m.status==='CLOSED') return;
+      const mo=_monthKeyToOrdinal(mk); if(mo===null) return;
+      FIELDS.forEach(function(f){
+        const arr=m[f]; if(!Array.isArray(arr) || !arr.length) return;
+        for(let i=arr.length-1;i>=0;i--){
+          const it=arr[i]; if(!it || !it.date) continue;
+          const tk=_monthKeyForDate(it.date); if(!tk || tk===mk) continue;
+          const to=_monthKeyToOrdinal(tk); if(to===null || to<=mo) continue; // later months are fine
+          // target month must exist (create like the router does) and be open
+          if(!(MONTHS_ORDER.includes(tk) && DATA[tk])){
+            const ords=MONTHS_ORDER.map(_monthKeyToOrdinal).filter(function(o){return o!==null;});
+            const mx=ords.length?Math.max.apply(null,ords):to;
+            const from=to>mx?mx+1:to;
+            for(let o=from;o<=to;o++){ const k=_ordinalToMonthKey(o); if(!MONTHS_ORDER.includes(k)||!DATA[k]) _createMonthFromKey(k); }
+          }
+          const tm=DATA[tk]; if(!tm || tm.status==='CLOSED') continue;
+          if(!Array.isArray(tm[f])) tm[f]=[];
+          arr.splice(i,1); tm[f].push(it); moved++;
+        }
+      });
+    });
+    if(moved){
+      try{ persistMonths(); }catch(e){}
+      try{ renderMonthTabs(); }catch(e){}
+      setTimeout(function(){ try{ showToast(L('📅 '+moved+' entr'+(moved>1?'ies':'y')+' moved to the month of its date','📅 تم نقل '+moved+' سجل إلى شهر تاريخه'),'info'); }catch(e){} },600);
+    }
+  }catch(e){ try{ _logErr('dateMonthIntegrity',e); }catch(_){} }
+  _dmiBusy=false; return moved;
 }
 function _createMonthFromKey(key){
   const abbr=key.split('-')[0], year=parseInt(key.split('-')[1],10);
@@ -31813,7 +31911,7 @@ ${_pgHdr('Finance','المالية','Daily Spend','الإنفاق اليومي',
       <div class="kpi3-sec kpi3-sec-today" role="button" tabindex="0" style="cursor:pointer" onclick="openDailyTargetModal()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}" aria-label="${L("Today's Target",'تارجت اليوم')} ${_todayTarget>0?fmtEGP(_todayTarget):L('not set','غير محدد')}">
         <div class="kpi3-sec-label">${L("Today's Target",'تارجت اليوم')}</div>
         <div class="kpi3-sec-val${_todayTarget>0?'':' is-empty'}" style="color:var(--blue)">${_todayTarget>0?fmtEGP(_todayTarget):L('Tap to set','اضغط للتحديد')}</div>
-        <span class="kpi3-sec-edit">${_todayTarget>0?L('Edit','تعديل'):L('Set','حدد')}</span>
+        ${_todayTarget>0?`<span class="kpi3-sec-edit">${L('Edit','تعديل')}</span>`:''}
       </div>
       <div class="kpi3-sec" role="button" tabindex="0" style="cursor:pointer" onclick="openBudgetModal(activeMonth)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}" aria-label="${L('Remaining','المتبقي')} ${_kpiHasTarget?fmtEGP(_kpiRemaining):L('not available','غير متاح')}">
         <div class="kpi3-sec-label">${L('Remaining','المتبقي')}</div>
@@ -33418,8 +33516,20 @@ function _rqViewBarHTML(){
   </span>`;
 }
 
+let _rqAllMonths=false; // STRICT: always false — receipts live only in their own month. false = only receipts dated in the active month
+function _rqInActiveMonth(r){
+  const k=_monthKeyForDate(r&&r.date);
+  return !k || k===activeMonth; // undated / odd dates stay visible
+}
+function _rqSetScope(allMonths){ _rqAllMonths=false; _rqFilter='all'; _rqTypeFilter=''; renderView(true); }
+function _rqScopeBarHTML(total,inMonth){
+  let lbl=activeMonth; try{ lbl=_monthDisplayLabel(activeMonth); }catch(e){}
+  const b=(on,txt,n,fn)=>`<button type="button" class="rq-scope-b${on?' on':''}" aria-pressed="${on}" onclick="${fn}">${txt}<em>${n}</em></button>`;
+  return `<div class="rq-scope" role="group">${b(true,esc(lbl),inMonth,'_rqSetScope(false)')}</div>`;
+}
 function renderMyRequests(){
-  const all=_rqLoad();
+  const _everything=_rqLoad();
+  const all=_rqAllMonths?_everything:_everything.filter(_rqInActiveMonth);
   const counts={received:0,notes:0,rejected:0};
   all.forEach(r=>{ if(counts[r.status]!==undefined) counts[r.status]++; });
   const q=(searchQ||'').trim().toLowerCase();
@@ -33481,7 +33591,7 @@ function renderMyRequests(){
   const emptyHTML=all.length===0
     ? `<div class="cst-empty-state">
          <div class="cst-empty-icon">${ic('clipboard',26)}</div>
-         <div class="cst-empty-title">${L('No receipts logged yet','لا توجد استلامات بعد')}</div>
+         <div class="cst-empty-title">${_everything.length?L('No receipts in this month','لا توجد استلامات في هذا الشهر'):L('No receipts logged yet','لا توجد استلامات بعد')}</div>
          <div class="cst-empty-sub">${L('Log each receipt you take from a company: company, engineer, type, plot and form.','سجّل كل استلامة تستلمها من الشركات: الشركة، المهندس، نوع الاستلامة، رقم القطعة والنموذج.')}</div>
          <button type="button" class="cst-empty-cta" onclick="openRequestModal(null)">${ic('plus',13)} ${L('New receipt','استلامة جديدة')}</button>
        </div>`
@@ -33496,6 +33606,7 @@ function renderMyRequests(){
     <div class="cx-sh">
       <span class="cx-sh-l"><span class="cx-sh-t">${L('My Receipts','استلاماتي')}</span><span class="cx-sh-s">${shown} ${L('receipts','استلامة')}</span></span>
     </div>
+    ${_everything.length?_rqScopeBarHTML(_everything.length,_everything.filter(_rqInActiveMonth).length):''}
     ${statsHTML}
     ${rqReportBarHTML()}
     ${all.length?`<div class="sc-search cx-search"><span class="cx-sbox">
@@ -33938,6 +34049,7 @@ function saveRequest(){
   }
   _rqSave(list);
   _rqEditId=null;
+  try{ _routeActiveMonthToDate(rec.date,{quiet:true}); }catch(e){} // the receipt belongs to the month of its date
   showToast(editing?L('Updated ✓','تم التحديث ✓'):L('Added ✓','تمت الإضافة ✓'),'success');
   closeModal(); renderView();
 }
