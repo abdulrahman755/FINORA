@@ -28363,6 +28363,9 @@ function restoreData() {
           <button class="mbtn save" style="background:#dc4f4f" onclick="_doRestore()">
             ${L('Yes, Restore','نعم، استعادة')}
           </button>
+          <button class="mbtn save" onclick="_doRestoreBanksOnly()">
+            ${L('Restore Banks Only','استعادة البنوك فقط')}
+          </button>
           <button class="mbtn cancel" onclick="closeModal()">${L('Cancel','إلغاء')}</button>
         </div>`;
       document.getElementById('modalOverlay').style.display = 'flex';
@@ -28446,6 +28449,50 @@ function _doRestore() {
     Promise.resolve(window._mlPhotosRestore).catch(function(){}).then(function(){ setTimeout(() => location.reload(), window._restoreExtraFail?3500:800); });
   } catch(e) {
     showToast(L('Restore failed: ','فشلت الاستعادة: ') + e.message, 'warn');
+  }
+}
+
+// ── Restore ONLY banks data (does not touch transactions, savings, settings, etc.) ──
+function _doRestoreBanksOnly() {
+  const result = window._pendingRestore;
+  window._pendingRestore = null;
+  if (!result || result.version !== '2.0') {
+    showToast(L('Banks-only restore needs a v2.x backup file','استعادة البنوك فقط تحتاج ملف نسخة احتياطية حديث'), 'warn');
+    return;
+  }
+  try {
+    const d = result.payload.data;
+    const clone = o => JSON.parse(JSON.stringify(o));
+    // 1) Bank definitions, appearance and settings
+    CUSTOM_BANKS         = clone(d.customBanks || []);
+    hiddenDefaultBanks   = clone(d.hiddenBanks || []);
+    bankCustomColors     = clone(d.bankColors || {});
+    bankCustomLogos      = clone(d.bankLogos || {});
+    banksOrder           = d.banksOrder ? clone(d.banksOrder) : null;
+    bankInterestSettings = clone(d.bankInterestSettings || {});
+    bankAccountNumbers   = clone(d.bankAccountNumbers || {});
+    bankIbans            = clone(d.bankIbans || {});
+    bankFeeOverrides     = clone(d.bankFeeOverrides || {});
+    // 2) Per-month bank movements + opening balances (only for months that already exist)
+    let months = 0, moves = 0;
+    Object.keys(d.finance || {}).forEach(mk => {
+      const src = d.finance[mk], dst = DATA[mk];
+      if (!src || !dst) return;
+      dst.bank_movements   = clone(src.bank_movements || []);
+      dst.initial_balances = clone(src.initial_balances || {});
+      months++; moves += dst.bank_movements.length;
+    });
+    persistData(); persistBanks(); persistHiddenBanks(); persistBankColors();
+    persistBanksOrder(); persistBankInterest(); persistBankFeeOverrides();
+    persistBankAcctNums(); persistBankIbans();
+    const okLogos = persistBankLogos();
+    if(typeof SoundManager!=='undefined') SoundManager.play(SoundManager.SOUND.DATA.RESTORE);
+    showToast(L('✓ Banks restored ('+CUSTOM_BANKS.length+' banks, '+moves+' movements)','✓ تمت استعادة البنوك ('+CUSTOM_BANKS.length+' بنوك، '+moves+' حركة)'), 'success');
+    if(!okLogos) setTimeout(()=>showToast(L('⚠️ Some logos could not be stored (storage full)','⚠️ بعض الشعارات لم تُخزَّن (التخزين ممتلئ)'),'warn'),900);
+    closeModal(); closeSettings();
+    setTimeout(() => location.reload(), 800);
+  } catch(e) {
+    showToast(L('Banks restore failed: ','فشلت استعادة البنوك: ') + e.message, 'warn');
   }
 }
 // ══════════════════════════════════════════════════════════════════════════════
