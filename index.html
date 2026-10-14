@@ -2980,40 +2980,66 @@ tbody tr:hover{background:var(--surface2)}
    its own duration, then animates out and removes itself. Multiple toasts
    queue vertically instead of one replacing another mid-animation. */
 .toast{
-  position:fixed;top:80px;left:50%;
+  position:fixed;left:50%;
+  top:calc(env(safe-area-inset-top,0px) + 62px);   /* sits just under the app header, notch-safe */
   transform:translateX(-50%);
   z-index:9999;
-  display:flex;flex-direction:column;align-items:center;gap:8px;
-  pointer-events:none;max-width:92vw;
+  display:flex;flex-direction:column;align-items:center;gap:10px;
+  pointer-events:none;width:max-content;max-width:min(92vw,420px);
 }
+/* Card-style toast: calm surface + tinted icon badge (the semantic colour lives in --tc) */
 .toast-item{
-  background:var(--green);color:#fff;
-  padding:11px 18px 11px 14px;
-  border-radius:var(--radius-pill);
-  font-size:calc(12px*var(--app-text-scale,1));font-weight:700;
-  opacity:0;transform:translateY(-12px) scale(.92);
-  transition:opacity .22s cubic-bezier(.32,1,.32,1),transform .22s cubic-bezier(.32,1,.32,1);
-  letter-spacing:.2px;
-  box-shadow:var(--shadow-md);
-  display:flex;align-items:center;gap:var(--sp2);
-  max-width:92vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
-  position:relative;
+  --tc:var(--green);
+  position:relative;display:flex;align-items:center;gap:12px;
+  min-width:min(240px,92vw);max-width:100%;box-sizing:border-box;
+  padding:11px 18px 13px 12px;
+  background:color-mix(in srgb,var(--surface) 96%,transparent);
+  -webkit-backdrop-filter:saturate(1.4) blur(14px);backdrop-filter:saturate(1.4) blur(14px);
+  color:var(--text);
+  border:1px solid color-mix(in srgb,var(--tc) 22%,var(--border));
+  border-radius:18px;
+  box-shadow:0 14px 34px rgba(18,36,28,.14),0 2px 6px rgba(18,36,28,.06);
+  font-family:var(--font);font-size:calc(13px*var(--app-text-scale,1));font-weight:700;line-height:1.4;letter-spacing:.1px;
+  overflow:hidden;
+  opacity:0;transform:translateY(-14px) scale(.96);
+  transition:opacity .26s cubic-bezier(.22,1,.36,1),transform .34s cubic-bezier(.22,1,.36,1);
 }
-.toast-icon{font-size:calc(14px*var(--app-text-scale,1));flex-shrink:0;line-height:1;display:inline-flex}
-.toast-text{overflow:hidden;text-overflow:ellipsis}
 .toast-item.show{opacity:1;transform:translateY(0) scale(1)}
-.toast-item.toast-error{background:var(--red)}
-.toast-item.toast-warn{background:var(--yellow);color:#fff}
-.toast-item.toast-info{background:var(--blue)}
-/* Progress sliver — shrinks over the toast's own visible duration so a
-   queued toast never feels like it vanished at random. */
+.toast-item.toast-success{--tc:var(--green)}
+.toast-item.toast-error{--tc:var(--red)}
+.toast-item.toast-warn{--tc:var(--gold)}
+.toast-item.toast-info{--tc:var(--blue)}
+.toast-icon{
+  flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;
+  width:30px;height:30px;border-radius:50%;line-height:1;
+  color:var(--tc);background:color-mix(in srgb,var(--tc) 13%,transparent);
+  box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--tc) 20%,transparent);
+}
+.toast-icon svg{width:16px;height:16px}
+.toast-text{
+  flex:1 1 auto;min-width:0;overflow:hidden;
+  display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;   /* wrap instead of cutting with "..." */
+  overflow-wrap:anywhere;
+}
+/* Progress: a slim inset track that drains over the toast's own lifetime */
 .toast-progress{
-  position:absolute;left:0;bottom:0;height:2px;width:100%;
-  background:rgba(255,255,255,.55);
+  position:absolute;left:14px;right:14px;bottom:5px;height:2px;border-radius:2px;
+  background:color-mix(in srgb,var(--tc) 38%,transparent);
   transform-origin:left;
   animation-name:toastShrink;animation-timing-function:linear;animation-fill-mode:forwards;
 }
+[dir="rtl"] .toast-progress{transform-origin:right}
 @keyframes toastShrink{from{transform:scaleX(1)}to{transform:scaleX(0)}}
+/* Dark surface: elevated charcoal card + lifted accents (the light-mode tones are too dim on black) */
+[data-theme="dark"] .toast-item{
+  background:color-mix(in srgb,var(--surface2) 94%,transparent);
+  border-color:color-mix(in srgb,var(--tc) 30%,var(--border-strong));
+  box-shadow:0 18px 44px rgba(0,0,0,.55),0 2px 8px rgba(0,0,0,.35);
+}
+[data-theme="dark"] .toast-item.toast-success,[data-theme="dark"] .toast-item{--tc:#3DBE86}
+[data-theme="dark"] .toast-item.toast-error{--tc:#EF8A80}
+[data-theme="dark"] .toast-item.toast-warn{--tc:#E3B04E}
+[data-theme="dark"] .toast-item.toast-info{--tc:#7FB0EE}
 @media (prefers-reduced-motion: reduce){
   .toast-item{transition:opacity .01s linear;transform:none!important}
   .toast-progress{animation:none;display:none}
@@ -10308,6 +10334,7 @@ document.addEventListener('DOMContentLoaded',function(){
     `</div>`;
   fpInitSmartHeader();
   fpInitSmartNav();
+  fpInitSwipeNav();
 });
 
 // ── Final Polish Sprint: Smart sticky header ────────────────────────────────
@@ -10355,6 +10382,133 @@ function fpInitSmartNav(){
   }, {passive:true});
   // Switching screens resets the scroll position, so make sure the bar is back.
   window.addEventListener('hashchange', function(){ setHidden(false); });
+}
+// Swipe navigation between the five main tabs (X / LinkedIn / Facebook style).
+// Finger-follow while dragging, then a slide-out / slide-in on commit. Order and direction
+// mirror the bottom nav (and flip automatically in RTL). Stays out of the way of every
+// existing gesture: row swipes, drag handles, FAB, notes tab, charts, inputs, horizontal scrollers,
+// open sheets/modals and the pull-to-refresh.
+function fpInitSwipeNav(){
+  const ORDER = ['transactions','banks','wsdash','expenses','savings'];
+  const host  = document.getElementById('mainContent');
+  if(!host) return;
+  const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const EDGE = 16;            // px dead-zone at both screen edges (OS back gesture / notes edge tab)
+  const LOCK_PX = 10;         // movement before we decide horizontal vs vertical
+  const H_RATIO = 1.4;        // |dx| must beat |dy| by this much to count as a horizontal swipe
+  let st = null;              // active gesture
+  let busy = false;           // an animated switch is running
+
+  const isRTL = () => (document.documentElement.dir || document.body.dir || getComputedStyle(document.body).direction) === 'rtl';
+  const idx   = () => ORDER.indexOf(currentView);
+
+  function blockedByUI(){
+    const ov = document.getElementById('modalOverlay');
+    if(ov && ov.style.display === 'flex') return true;
+    if(document.getElementById('fabPicker') || document.getElementById('sttOverlay') || document.getElementById('sttSheet')) return true;
+    if(document.querySelector('.miora-panel.open, #mioraPanel.open, .notif-panel.open, #notifPanel.open')) return true;
+    return false;
+  }
+  function blockedTarget(t){
+    if(!t || !t.closest) return true;
+    if(t.closest('input,textarea,select,canvas,[contenteditable="true"],#fabBtn,#fabPicker,#notesEdgeTab,.bottom-nav,[data-no-swipe],[ontouchstart],[class*="drag"],[class*="slider"],input[type="range"]')) return true;
+    for(let el=t; el && el!==document.body; el=el.parentElement){
+      if(el.scrollWidth > el.clientWidth + 2){
+        const ox = getComputedStyle(el).overflowX;
+        if(ox === 'auto' || ox === 'scroll') return true;   // chips rows, wide tables, carousels...
+      }
+    }
+    return false;
+  }
+  function targetFor(dx){
+    const i = idx(); if(i < 0) return null;
+    const step = (dx < 0 ? 1 : -1) * (isRTL() ? -1 : 1);
+    const j = i + step;
+    return (j >= 0 && j < ORDER.length) ? ORDER[j] : null;
+  }
+  function clear(){
+    host.style.translate = '';
+    host.style.opacity = '';
+    host.style.transition = '';
+    host.style.willChange = '';
+  }
+  function goTo(view){
+    if(view === 'expenses') window._cxLand = 'requests';   // same landing as the nav button
+    setView(view);
+  }
+
+  document.addEventListener('touchstart', function(e){
+    st = null;
+    if(busy || e.touches.length !== 1 || idx() < 0 || blockedByUI()) return;
+    const t = e.touches[0];
+    if(t.clientX < EDGE || t.clientX > window.innerWidth - EDGE) return;
+    if(blockedTarget(e.target)) return;
+    st = {x:t.clientX, y:t.clientY, dx:0, locked:null, target:null, t0:Date.now(), samples:[{x:t.clientX,t:Date.now()}]};
+  }, {passive:true});
+
+  // capture phase + stopImmediatePropagation once locked: keeps pull-to-refresh from also reacting
+  document.addEventListener('touchmove', function(e){
+    if(!st || busy) return;
+    const t = e.touches[0];
+    const dx = t.clientX - st.x, dy = t.clientY - st.y;
+    if(st.locked === null){
+      if(Math.hypot(dx,dy) < LOCK_PX) return;
+      st.locked = (Math.abs(dx) > Math.abs(dy) * H_RATIO) ? 'h' : 'v';
+      if(st.locked === 'h'){ host.style.willChange = 'translate, opacity'; host.style.transition = 'none'; }
+    }
+    if(st.locked !== 'h'){ if(st.locked === 'v') st = null; return; }
+    if(e.cancelable) e.preventDefault();
+    e.stopImmediatePropagation();
+    st.dx = dx;
+    st.target = targetFor(dx);
+    const W = window.innerWidth;
+    // finger-follow; at the first/last tab there is nothing beyond, so resist (rubber-band)
+    const shown = st.target ? dx : Math.sign(dx) * Math.min(28, Math.abs(dx) * 0.22);
+    host.style.translate = shown + 'px 0';
+    host.style.opacity = String(1 - Math.min(0.35, Math.abs(shown) / W * 0.6));
+    const now = Date.now();
+    st.samples.push({x:t.clientX, t:now});
+    while(st.samples.length > 2 && now - st.samples[0].t > 90) st.samples.shift();
+  }, {passive:false, capture:true});
+
+  function finish(cancelled){
+    if(!st) return;
+    const g = st; st = null;
+    if(g.locked !== 'h'){ return; }
+    const W = window.innerWidth;
+    const a = g.samples[0], b = g.samples[g.samples.length-1];
+    const v = (b.t - a.t) > 0 ? (b.x - a.x) / (b.t - a.t) : 0;           // px per ms
+    const commit = !cancelled && g.target && (Math.abs(g.dx) > W * 0.28 || (Math.abs(v) > 0.32 && Math.abs(g.dx) > 40));
+    if(!commit){
+      host.style.transition = 'translate .28s cubic-bezier(.22,1,.36,1), opacity .28s ease-out';
+      host.style.translate = '0px 0';
+      host.style.opacity = '1';
+      setTimeout(clear, 300);
+      return;
+    }
+    busy = true;
+    const dir = g.dx < 0 ? -1 : 1;                                       // direction the page leaves in
+    if(reduceMotion){ clear(); goTo(g.target); busy = false; return; }
+    if(navigator.vibrate) try{ navigator.vibrate(6); }catch(_){}
+    // 1) finish sliding the current page out
+    host.style.transition = 'translate .16s cubic-bezier(.4,0,1,1), opacity .16s ease-in';
+    host.style.translate = (dir * W * 0.55) + 'px 0';
+    host.style.opacity = '0';
+    setTimeout(function(){
+      // 2) swap content, park the new page on the opposite side, then glide it in
+      host.style.transition = 'none';
+      host.style.translate = (-dir * W * 0.32) + 'px 0';
+      host.style.opacity = '0';
+      try{ goTo(g.target); }catch(err){ try{ _logErr('swipeNav:goTo', err); }catch(_){} }
+      void host.offsetWidth;                                             // commit start position
+      host.style.transition = 'translate .36s cubic-bezier(.22,1,.36,1), opacity .30s ease-out';
+      host.style.translate = '0px 0';
+      host.style.opacity = '1';
+      setTimeout(function(){ clear(); busy = false; }, 380);
+    }, 165);
+  }
+  document.addEventListener('touchend',    function(){ finish(false); }, {passive:true});
+  document.addEventListener('touchcancel', function(){ finish(true);  }, {passive:true});
 }
 function fpInitSmartHeader(){
   const header = document.querySelector('.app-header');
@@ -41429,6 +41583,7 @@ function playWarningSound(){ SoundManager.play(SoundManager.SOUND.UI.WARNING); }
 function showToast(msg,type,dur,sound){
   const container=document.getElementById('toast');
   if(!container) return;
+  if(!container.hasAttribute('aria-live')){ container.setAttribute('aria-live','polite'); container.setAttribute('aria-atomic','false'); }
   // Detect type from message content if not provided (moved ahead of sound
   // selection below so the auto-detected add/delete sounds can use it).
   if(!type){
@@ -41485,11 +41640,14 @@ function showToast(msg,type,dur,sound){
   if(m){const key=m[1].trim().replace(/\uFE0F$/,'');icon=iconMap[key]?ic(iconMap[key],15):'';text=msg.slice(m[0].length);}
   // Sprint W5: when the message carries no emoji, fall back to a sensible
   // default icon per resolved type, so every toast still reads at a glance.
-  if(!icon){ icon = ic(type==='error'?'close':type==='warn'?'warning':type==='info'?'info':'check', 15); }
+  if(!icon){ icon = ic(type==='error'?'close':type==='warn'?'warning':type==='info'?'info':'check', 16); }
+  // A trailing check mark in the message ("Asset saved \u2714") would double up with the icon badge
+  text = String(text).replace(/\s*[\u2713\u2714\u2705]\uFE0F?\s*$/u,'');
   const duration = dur||2400;
   const el = document.createElement('div');
   el.id = 'toastItem'+(++_toastSeq);
-  el.className = 'toast-item'+(type==='error'?' toast-error':type==='warn'?' toast-warn':type==='info'?' toast-info':'');
+  el.className = 'toast-item'+(type==='error'?' toast-error':type==='warn'?' toast-warn':type==='info'?' toast-info':' toast-success');
+  el.setAttribute('role', type==='error' ? 'alert' : 'status');
   el.innerHTML = `<span class="toast-icon">${icon}</span><span class="toast-text">${esc(text)}</span><span class="toast-progress" style="animation-duration:${duration}ms"></span>`;
   container.appendChild(el);
   // Queue support: never let more than 4 toasts stack at once — the oldest
