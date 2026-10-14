@@ -7101,6 +7101,14 @@ html.wdash-sheet-lock,html.wdash-sheet-lock body{overflow:hidden}
   transition:transform var(--dur-slow) var(--ease-standard);
 }
 .app-header.fp-header-hidden{--fp-hdr-shift:-100%}
+/* Smart bottom nav: slides away on scroll-down, returns on scroll-up (see fpInitSmartNav).
+   The FAB and floating action bar glide down with it so nothing is left hovering. */
+.bottom-nav{transition:transform .28s cubic-bezier(.4,0,.2,1)}
+.bottom-nav.fp-nav-hidden{transform:translate3d(0,calc(100% + 40px),0)}
+body .fab{transition:box-shadow .18s,transform .22s cubic-bezier(.34,1.56,.64,1),background .2s ease,translate .28s cubic-bezier(.4,0,.2,1)}
+.sc-bottom{transition:translate .28s cubic-bezier(.4,0,.2,1)}
+body.fp-nav-away .fab,body.fp-nav-away .sc-bottom{translate:0 calc(var(--bottom-nav-h,80px) - 44px)}
+@media (prefers-reduced-motion:reduce){.bottom-nav,body .fab,.sc-bottom{transition:none}}
 /* Never hide the header while any dropdown/menu anchored to it is open,
    or mid-scroll inside a modal/sheet — those already stopPropagation their
    own scroll, this is just an extra safety class the script can add. */
@@ -10249,6 +10257,7 @@ document.addEventListener('DOMContentLoaded',function(){
       `<div class="lock-credit-sub">${L('© All rights reserved','جميع الحقوق محفوظة')}</div>`+
     `</div>`;
   fpInitSmartHeader();
+  fpInitSmartNav();
 });
 
 // ── Final Polish Sprint: Smart sticky header ────────────────────────────────
@@ -10257,6 +10266,37 @@ document.addEventListener('DOMContentLoaded',function(){
 // window scroll listener. No existing scroll logic (tables, sheets, drag
 // lists) is touched — this only ever reads window.scrollY and toggles a
 // class on .app-header.
+// Smart bottom nav (X / Twitter / LinkedIn style): hides while scrolling down, reappears the moment
+// you scroll up. Always visible near the top, at the very bottom, and while any sheet/menu is open.
+function fpInitSmartNav(){
+  const nav = document.querySelector('.bottom-nav');
+  if(!nav) return;
+  let lastY = window.scrollY || 0;
+  let ticking = false;
+  const TOP_GUARD = 80;   // never hide near the top of the page
+  const THRESHOLD = 8;    // ignore jitter
+  function setHidden(h){
+    nav.classList.toggle('fp-nav-hidden', h);
+    document.body.classList.toggle('fp-nav-away', h);
+  }
+  function apply(){
+    ticking = false;
+    const y = window.scrollY || 0;
+    const modalOverlay = document.getElementById('modalOverlay');
+    const pinned = (modalOverlay && modalOverlay.style.display==='flex')
+      || !!document.querySelector('.nav-drop[style*="block"], .hdr-more-menu[style*="block"]');
+    const maxY = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+    if(pinned || y <= TOP_GUARD || y >= maxY - 2){ setHidden(false); lastY = y; return; } // also ignores iOS rubber-band
+    const d = y - lastY;
+    if(d > THRESHOLD){ setHidden(true); lastY = y; }
+    else if(d < -THRESHOLD){ setHidden(false); lastY = y; }
+  }
+  window.addEventListener('scroll', function(){
+    if(!ticking){ ticking = true; requestAnimationFrame(apply); }
+  }, {passive:true});
+  // Switching screens resets the scroll position, so make sure the bar is back.
+  window.addEventListener('hashchange', function(){ setHidden(false); });
+}
 function fpInitSmartHeader(){
   const header = document.querySelector('.app-header');
   if(!header) return;
@@ -30653,6 +30693,12 @@ function renderTransactions(m){
   // arbitrary dates.
   const _todayStr = today();
   const _todayTarget = getDailyTarget(activeMonth, _todayStr);
+  // Remaining = Today's Target minus what was actually spent TODAY (not the whole month).
+  const _todaySpent = all.reduce((sm,t)=> t.date===_todayStr ? sm+(parseFloat(t.payment)||0) : sm, 0);
+  const _todayHasTarget = _todayTarget>0;
+  const _todayRemaining = Math.max(0, _todayTarget-_todaySpent); // never negative
+  const _todayRemPct = _todayHasTarget ? ((_todayTarget-_todaySpent)/_todayTarget)*100 : 0;
+  const _todayRemColor = _todayRemPct<10 ? 'var(--danger)' : _todayRemPct<=30 ? 'var(--warning)' : 'var(--success)';
   const todaysTargetCardHTML = `
   <div class="sc-card txlg-target-card" onclick="openDailyTargetModal()" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}">
     <div class="txlg-target-left">
@@ -30696,9 +30742,9 @@ ${_pgHdr('Finance','المالية','Daily Spend','الإنفاق اليومي',
         <div class="kpi3-sec-val${_todayTarget>0?'':' is-empty'}" style="color:var(--blue)">${_todayTarget>0?fmtEGP(_todayTarget):L('Tap to set','اضغط للتحديد')}</div>
         ${_todayTarget>0?`<span class="kpi3-sec-edit">${L('Edit','تعديل')}</span>`:''}
       </div>
-      <div class="kpi3-sec" role="button" tabindex="0" style="cursor:pointer" onclick="openBudgetModal(activeMonth)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}" aria-label="${L('Remaining','المتبقي')} ${_kpiHasTarget?fmtEGP(_kpiRemaining):L('not available','غير متاح')}">
+      <div class="kpi3-sec" role="button" tabindex="0" style="cursor:pointer" onclick="openDailyTargetModal()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}" aria-label="${L('Remaining','المتبقي')} ${_todayHasTarget?fmtEGP(_todayRemaining):L('not available','غير متاح')}">
         <div class="kpi3-sec-label">${L('Remaining','المتبقي')}</div>
-        <div class="kpi3-sec-val${_kpiHasTarget?'':' is-empty'}" style="color:${_kpiHasTarget?_kpiZoneColor:'var(--muted)'}">${_kpiHasTarget?fmtEGP(_kpiRemaining):L('Tap to set','اضغط للتحديد')}</div>
+        <div class="kpi3-sec-val${_todayHasTarget?'':' is-empty'}" style="color:${_todayHasTarget?_todayRemColor:'var(--muted)'}">${_todayHasTarget?fmtEGP(_todayRemaining):L('Tap to set','اضغط للتحديد')}</div>
       </div>
       <div class="kpi3-sec" aria-label="${L('Saved','التوفير')} ${_kpiSavedHasData?(_kpiSaved>=0?'+':'-')+fmtEGP(Math.abs(_kpiSaved)):L('not available','غير متاح')}">
         <div class="kpi3-sec-label">${L('Saved','التوفير')}</div>
@@ -32254,6 +32300,9 @@ function renderMyRequests(){
     if(!typeMap.has(k)) typeMap.set(k,{k,n:0,r});
     typeMap.get(k).n++;
   });
+  // Type chip counts (IR / CPP ...) show the grand total across ALL months, not just the active one
+  const _typeTotals=new Map();
+  _everything.forEach(r=>{ const k=_rqTypeKey(r); _typeTotals.set(k,(_typeTotals.get(k)||0)+1); });
   const typeFilter=typeMap.has(_rqTypeFilter)?_rqTypeFilter:'';
   let list=typeFilter?byStatus.filter(r=>_rqTypeKey(r)===typeFilter):byStatus;
   if(q) list=list.filter(r=>_rqMatchSearch(r,q));
@@ -32264,7 +32313,7 @@ function renderMyRequests(){
     const label=t.k==='__none'?L('No type','بدون نوع'):(_rqIsCodeType(raw)?raw.toUpperCase():_rqDisplayValue(t.r,'type'));
     const on=typeFilter===t.k;
     const pct=Math.max(6,Math.round(t.n*100/Math.max(1,byStatus.length)));
-    return `<button type="button" class="rq-tchip${on?' on':''}" style="--rq-tc:${_rqTypeColor(t.r)}" data-k="${esc(t.k)}" aria-pressed="${on?'true':'false'}" onclick="_rqSetTypeFilter(this.dataset.k)"><i></i><span class="rq-tc-l">${esc(label)}</span><b>${t.n}</b></button>`;
+    return `<button type="button" class="rq-tchip${on?' on':''}" style="--rq-tc:${_rqTypeColor(t.r)}" data-k="${esc(t.k)}" aria-pressed="${on?'true':'false'}" onclick="_rqSetTypeFilter(this.dataset.k)"><i></i><span class="rq-tc-l">${esc(label)}</span><b>${_typeTotals.get(t.k)||t.n}</b></button>`;
   }).join('');
   const rate=all.length?Math.round(counts.received*100/all.length):0;
   const _seg=(k,n)=>n>0?`<i class="${k}" style="flex:${n}"></i>`:'';
