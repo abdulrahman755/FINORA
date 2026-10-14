@@ -9811,6 +9811,23 @@ html body .sc-header .sc-header-sub{padding-inline-start:12px;margin-top:4px;fon
 .mbtn.save:hover,.bs-save-btn:hover,.ds-btn-primary:not(:disabled):hover,.rpt-cta:hover,.att-cta:hover{box-shadow:none;background:var(--green)}
 .mbtn.save:active,.bs-save-btn:active,.sc-btn.primary:active,.ds-btn-primary:active,.wm-save-btn:active,.rpt-cta:active,.f-action-btn.primary:active,.att-cta:active{background:var(--green-dark);box-shadow:none;transform:scale(.98)}
 .att-cta.out{background:var(--green-dark);background-image:none}
+/* ── Dashboard quick check-in/out strip ── */
+.att-quick{display:flex;align-items:center;gap:var(--sp3,12px);padding:var(--sp3,12px);margin:0 0 18px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius,16px);box-shadow:var(--shadow-sm)}
+.att-quick-main{flex:1 1 auto;min-width:0;display:flex;align-items:center;gap:11px;padding:0;border:0;background:none;color:inherit;font:inherit;text-align:start;cursor:pointer;-webkit-tap-highlight-color:transparent;border-radius:12px}
+.att-quick-ic{position:relative;width:42px;height:42px;flex:none;border-radius:13px;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--green),var(--green-dark));color:#fff}
+.att-quick-live{position:absolute;top:-3px;inset-inline-end:-3px;width:11px;height:11px;border-radius:50%;background:var(--green-light);border:2px solid var(--surface);animation:attLive 2s ease-out infinite}
+@keyframes attLive{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--green-light) 55%,transparent)}100%{box-shadow:0 0 0 9px transparent}}
+.att-quick-tx{display:flex;flex-direction:column;gap:2px;min-width:0}
+.att-quick-tx b{font-size:calc(14.5px*var(--app-text-scale,1));font-weight:800;color:var(--text);line-height:1.25}
+.att-quick-tx small{font-size:calc(12px*var(--app-text-scale,1));font-weight:600;color:color-mix(in srgb,var(--text) 64%,var(--surface));line-height:1.3;overflow:hidden;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;font-variant-numeric:tabular-nums}
+.att-quick-btn{flex:none;display:inline-flex;align-items:center;justify-content:center;gap:7px;min-width:118px;height:46px;padding:0 16px;border:0;border-radius:14px;background:var(--green);color:#fff;font-family:inherit;font-size:calc(14px*var(--app-text-scale,1));font-weight:800;letter-spacing:.1px;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:transform .12s ease,filter .2s}
+.att-quick-btn:active{transform:scale(.95);filter:brightness(.95)}
+.att-quick-btn.out{background:var(--gold-light,#D4AF37);color:#1a1a1a}
+.att-quick-btn.done{background:color-mix(in srgb,var(--green) 13%,var(--surface));color:var(--green);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--green) 26%,transparent)}
+[data-theme="dark"] .att-quick-btn.done{color:var(--green-light)}
+.att-quick-btn:focus-visible,.att-quick-main:focus-visible{outline:2px solid var(--green-light);outline-offset:2px}
+@media (max-width:350px){.att-quick-btn{min-width:98px;padding:0 12px}.att-quick-tx small{display:none}}
+@media (prefers-reduced-motion:reduce){.att-quick-live{animation:none}.att-quick-btn{transition:none}}
 /* no ripple */
 .bs-save-btn::after,.mbtn.save::after{display:none!important}
 /* secondary: white with a thin border */
@@ -10384,23 +10401,29 @@ function fpInitSmartNav(){
   window.addEventListener('hashchange', function(){ setHidden(false); });
 }
 // Swipe navigation between the five main tabs (X / LinkedIn / Facebook style).
-// Finger-follow while dragging, then a slide-out / slide-in on commit. Order and direction
-// mirror the bottom nav (and flip automatically in RTL). Stays out of the way of every
-// existing gesture: row swipes, drag handles, FAB, notes tab, charts, inputs, horizontal scrollers,
-// open sheets/modals and the pull-to-refresh.
+//  - Dragging: the page follows the finger 1:1 (transform only, batched in rAF, GPU-composited).
+//  - Release: a TWO-PAGE carousel. The current page is pinned in place as a fixed "ghost" (its DOM is left
+//    untouched, so nothing re-animates or flashes), the next page is rendered into a fresh container, and both
+//    glide together on the compositor (Web Animations, transform only) \u2014 no blank gap, no fade, no layout work.
+//  - Order and direction mirror the bottom nav (flipped automatically in RTL). Stays out of the way of every
+//    existing gesture: row swipes, drag handles, FAB, notes tab, charts, inputs, horizontal scrollers,
+//    open sheets/modals and pull-to-refresh.
 function fpInitSwipeNav(){
   const ORDER = ['transactions','banks','wsdash','expenses','savings'];
-  const host  = document.getElementById('mainContent');
-  if(!host) return;
+  if(!document.getElementById('mainContent')) return;
   const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const EDGE = 16;            // px dead-zone at both screen edges (OS back gesture / notes edge tab)
-  const LOCK_PX = 10;         // movement before we decide horizontal vs vertical
-  const H_RATIO = 1.4;        // |dx| must beat |dy| by this much to count as a horizontal swipe
+  const LOCK_PX = 8;          // movement before we decide horizontal vs vertical
+  const H_RATIO = 1.35;       // |dx| must beat |dy| by this much to count as a horizontal swipe
+  const EASE = 'cubic-bezier(.3,.6,.3,1)';     // starts at roughly the finger's own speed, then a long soft landing
   let st = null;              // active gesture
   let busy = false;           // an animated switch is running
+  let raf = 0, pendingX = 0;
 
+  const getHost = () => document.getElementById('mainContent');
   const isRTL = () => (document.documentElement.dir || document.body.dir || getComputedStyle(document.body).direction) === 'rtl';
   const idx   = () => ORDER.indexOf(currentView);
+  const tx    = x => 'translate3d(' + x + 'px,0,0)';
 
   function blockedByUI(){
     const ov = document.getElementById('modalOverlay');
@@ -10426,15 +10449,10 @@ function fpInitSwipeNav(){
     const j = i + step;
     return (j >= 0 && j < ORDER.length) ? ORDER[j] : null;
   }
-  function clear(){
-    host.style.translate = '';
-    host.style.opacity = '';
-    host.style.transition = '';
-    host.style.willChange = '';
-  }
   function goTo(view){
     if(view === 'expenses') window._cxLand = 'requests';   // same landing as the nav button
-    setView(view);
+    window._wdpNoNavSkeleton = true;                       // we mask render time ourselves; no skeleton flash mid-slide
+    try{ setView(view); } finally { window._wdpNoNavSkeleton = false; }
   }
 
   document.addEventListener('touchstart', function(e){
@@ -10443,7 +10461,7 @@ function fpInitSwipeNav(){
     const t = e.touches[0];
     if(t.clientX < EDGE || t.clientX > window.innerWidth - EDGE) return;
     if(blockedTarget(e.target)) return;
-    st = {x:t.clientX, y:t.clientY, dx:0, locked:null, target:null, t0:Date.now(), samples:[{x:t.clientX,t:Date.now()}]};
+    st = {x:t.clientX, y:t.clientY, dx:0, shown:0, locked:null, target:null, host:null, samples:[{x:t.clientX,t:performance.now()}]};
   }, {passive:true});
 
   // capture phase + stopImmediatePropagation once locked: keeps pull-to-refresh from also reacting
@@ -10454,58 +10472,89 @@ function fpInitSwipeNav(){
     if(st.locked === null){
       if(Math.hypot(dx,dy) < LOCK_PX) return;
       st.locked = (Math.abs(dx) > Math.abs(dy) * H_RATIO) ? 'h' : 'v';
-      if(st.locked === 'h'){ host.style.willChange = 'translate, opacity'; host.style.transition = 'none'; }
+      if(st.locked === 'h'){
+        st.host = getHost();
+        st.host.style.animation = 'none';          // the boot-time screenIn animation would otherwise pin transform
+        st.host.style.willChange = 'transform';    // promote to its own compositor layer for the drag
+      }
     }
     if(st.locked !== 'h'){ if(st.locked === 'v') st = null; return; }
     if(e.cancelable) e.preventDefault();
     e.stopImmediatePropagation();
     st.dx = dx;
     st.target = targetFor(dx);
-    const W = window.innerWidth;
-    // finger-follow; at the first/last tab there is nothing beyond, so resist (rubber-band)
-    const shown = st.target ? dx : Math.sign(dx) * Math.min(28, Math.abs(dx) * 0.22);
-    host.style.translate = shown + 'px 0';
-    host.style.opacity = String(1 - Math.min(0.35, Math.abs(shown) / W * 0.6));
-    const now = Date.now();
+    // at the first/last tab there is nothing beyond, so resist (rubber-band)
+    st.shown = st.target ? dx : Math.sign(dx) * Math.min(28, Math.abs(dx) * 0.22);
+    pendingX = st.shown;
+    if(!raf) raf = requestAnimationFrame(function(){           // one style write per frame, no matter how fast events arrive
+      raf = 0;
+      if(st && st.host) st.host.style.transform = tx(pendingX);
+    });
+    const now = performance.now();
     st.samples.push({x:t.clientX, t:now});
     while(st.samples.length > 2 && now - st.samples[0].t > 90) st.samples.shift();
   }, {passive:false, capture:true});
 
+  function springBack(g){
+    const host = g.host; busy = true;
+    host.style.transform = tx(0);
+    const a = host.animate([{transform:tx(g.shown)},{transform:tx(0)}], {duration:240, easing:EASE, fill:'forwards'});
+    let done = false;
+    const end = function(){ if(done) return; done = true; host.style.transform = ''; host.style.willChange = ''; try{ a.cancel(); }catch(_){} busy = false; };
+    a.onfinish = end; setTimeout(end, 380);
+  }
+
+  function commit(g, v){
+    const W = window.innerWidth;
+    const old = g.host;
+    const dir = g.dx < 0 ? -1 : 1;                                  // direction the current page leaves in
+    if(reduceMotion){ old.style.transform = ''; old.style.willChange = ''; goTo(g.target); return; }
+    busy = true;
+    const rect = old.getBoundingClientRect();
+    // 1) pin the current page exactly where the user sees it. Same DOM nodes, so no animation restarts / flashes.
+    const fresh = document.createElement('div');
+    fresh.className = old.className;
+    fresh.style.cssText = 'animation:none;will-change:transform;transform:' + tx(g.shown - dir*W);   // parked off-screen
+    old.id = 'mainContentOld';
+    Object.assign(old.style, {position:'fixed', top:rect.top+'px', left:rect.left+'px', width:rect.width+'px', height:rect.height+'px',
+                              margin:'0', zIndex:'50', pointerEvents:'none', transform:tx(g.shown)});
+    old.setAttribute('aria-hidden','true'); try{ old.inert = true; }catch(_){}
+    old.parentNode.insertBefore(fresh, old);                         // before: its ids win any getElementById lookup
+    fresh.id = 'mainContent';
+    try{ window.scrollTo({top:0, left:0, behavior:'instant'}); }catch(_){ window.scrollTo(0,0); }
+    // 2) glide both pages together \u2014 compositor-only (transform), so main-thread work can't stutter it
+    // initial slope of EASE is 2, so duration = 2*distance/velocity makes the page leave at the speed the finger had
+    const remaining = W - Math.abs(g.shown);
+    const dur = Math.round(Math.max(230, Math.min(340, 2 * remaining / Math.max(Math.abs(v), 0.5))));
+    const a1 = old.animate([{transform:tx(g.shown)},{transform:tx(dir*W)}], {duration:dur, easing:EASE, fill:'forwards'});
+    const a2 = fresh.animate([{transform:tx(g.shown - dir*W)},{transform:tx(0)}], {duration:dur, easing:EASE, fill:'forwards'});
+    if(navigator.vibrate) try{ navigator.vibrate(6); }catch(_){}
+    let done = false;
+    const end = function(){
+      if(done) return; done = true;
+      fresh.style.transform = ''; fresh.style.willChange = '';
+      try{ a2.cancel(); }catch(_){} try{ a1.cancel(); }catch(_){}
+      old.remove();
+      busy = false;
+    };
+    a2.onfinish = end; setTimeout(end, dur + 250);
+    // 3) render the next page AFTER the compositor has taken over the animation (two frames later): the slide is
+    //    already running on its own thread, so this main-thread work cannot freeze or stutter it.
+    requestAnimationFrame(function(){ requestAnimationFrame(function(){
+      try{ goTo(g.target); }catch(err){ try{ _logErr('swipeNav:goTo', err); }catch(_){} }
+    }); });
+  }
+
   function finish(cancelled){
     if(!st) return;
     const g = st; st = null;
-    if(g.locked !== 'h'){ return; }
+    if(g.locked !== 'h' || !g.host) return;
+    if(raf){ cancelAnimationFrame(raf); raf = 0; g.host.style.transform = tx(g.shown); }
     const W = window.innerWidth;
     const a = g.samples[0], b = g.samples[g.samples.length-1];
     const v = (b.t - a.t) > 0 ? (b.x - a.x) / (b.t - a.t) : 0;           // px per ms
-    const commit = !cancelled && g.target && (Math.abs(g.dx) > W * 0.28 || (Math.abs(v) > 0.32 && Math.abs(g.dx) > 40));
-    if(!commit){
-      host.style.transition = 'translate .28s cubic-bezier(.22,1,.36,1), opacity .28s ease-out';
-      host.style.translate = '0px 0';
-      host.style.opacity = '1';
-      setTimeout(clear, 300);
-      return;
-    }
-    busy = true;
-    const dir = g.dx < 0 ? -1 : 1;                                       // direction the page leaves in
-    if(reduceMotion){ clear(); goTo(g.target); busy = false; return; }
-    if(navigator.vibrate) try{ navigator.vibrate(6); }catch(_){}
-    // 1) finish sliding the current page out
-    host.style.transition = 'translate .16s cubic-bezier(.4,0,1,1), opacity .16s ease-in';
-    host.style.translate = (dir * W * 0.55) + 'px 0';
-    host.style.opacity = '0';
-    setTimeout(function(){
-      // 2) swap content, park the new page on the opposite side, then glide it in
-      host.style.transition = 'none';
-      host.style.translate = (-dir * W * 0.32) + 'px 0';
-      host.style.opacity = '0';
-      try{ goTo(g.target); }catch(err){ try{ _logErr('swipeNav:goTo', err); }catch(_){} }
-      void host.offsetWidth;                                             // commit start position
-      host.style.transition = 'translate .36s cubic-bezier(.22,1,.36,1), opacity .30s ease-out';
-      host.style.translate = '0px 0';
-      host.style.opacity = '1';
-      setTimeout(function(){ clear(); busy = false; }, 380);
-    }, 165);
+    const go = !cancelled && g.target && (Math.abs(g.dx) > W * 0.25 || (Math.abs(v) > 0.3 && Math.abs(g.dx) > 40));
+    if(go) commit(g, v); else springBack(g);
   }
   document.addEventListener('touchend',    function(){ finish(false); }, {passive:true});
   document.addEventListener('touchcancel', function(){ finish(true);  }, {passive:true});
@@ -13465,7 +13514,7 @@ function renderView(preserveScroll){
   // directly without navigating — these should update instantly with no flash.
   const _isNav = _wdpNavSkeletonPending;
   _wdpNavSkeletonPending = false;
-  if(_isNav && heavyViews.includes(currentView)){
+  if(_isNav && heavyViews.includes(currentView) && !window._wdpNoNavSkeleton){
     // Paint the matching skeleton on its own frame before the (heavier) real render
     c.innerHTML=wdpSkeletonFor(currentView);
     requestAnimationFrame(function(){ requestAnimationFrame(renderNow); });
@@ -16170,6 +16219,9 @@ function renderWorkspaceDashboard(m){
     : '';
 
   const quickActionsHtml = canFinance ? fpRenderQuickActionsStrip() : '';
+  // Attendance quick check-in/out: shown whenever the Attendance card is (a card hidden via Customize Dashboard hides this too)
+  let attQuickHtml = '';
+  try{ if(canFinance && visible.some(c=>c.id==='attendance')) attQuickHtml = ATT.quickStrip(); }catch(e){ _logErr('wdash:attQuick',e); }
   // Show-all toggle (presentation-only): the first WDASH_VISIBLE_TILES visible tiles
   // are shown; the rest stay in the DOM (same order / hidden prefs) and are only
   // hidden by CSS until "Show all" is tapped.
@@ -16178,7 +16230,7 @@ function renderWorkspaceDashboard(m){
     ? `<button type="button" class="wdash-showall" id="wdashShowAllBtn" aria-expanded="${_wdashShowAll?'true':'false'}" onclick="wdashToggleAll()">${_wdashShowAll ? L('Show less','عرض أقل') : L('Show all','عرض الكل')+' ('+visible.length+')'}</button>`
     : '';
   const appsHtml = tiles ? `<div class="wdash-apps-title">${L('Dashboards','الأقسام')}</div><div class="wdash-apps${_wdashCollapsible && !_wdashShowAll ? ' is-collapsed' : ''}" id="wdashApps" role="group" aria-label="${L('Dashboards','الأقسام')}">${tiles}</div>${_wdashToggleHtml}` : '';
-  return `<div class="wdash-wrap dv3-dark-v2">${manageBar}${heroHtml}${quickActionsHtml}${appsHtml}<div class="wdash-vault" aria-hidden="true" inert>${body}</div></div>`;
+  return `<div class="wdash-wrap dv3-dark-v2">${manageBar}${heroHtml}${quickActionsHtml}${attQuickHtml}${appsHtml}<div class="wdash-vault" aria-hidden="true" inert>${body}</div></div>`;
 }
 
 // -- Dashboard tiles: collapsed to the first N, "Show all" expands (presentation-only) --
@@ -44210,6 +44262,39 @@ const ATT=(function(){
       ${hoursHTML(mins,hdays)}
     </div>`;
   }
+  // \u2500\u2500 Dashboard quick strip: ONE big button that is always the next thing you need today
+  //    (Check in \u2192 Check out \u2192 Done). One tap, no sheet to open first.
+  function quickSub(state,rec){
+    if(state==='out')  return L('Since ','\u0645\u0646\u0630 ')+fmtT(rec.i)+' \xb7 '+fmtDur(durMin(rec.i,nowT()));
+    if(state==='done') { const m=durMin(rec.i,rec.o); return fmtT(rec.i)+(lang==='ar'?' \u2190 ':' \u2192 ')+fmtT(rec.o)+(m>0?' \xb7 '+fmtDur(m):''); }
+    const x=rec&&BY[rec.s];
+    return x&&!WORKING(rec.s) ? stLbl(x) : L('Not checked in yet',"\u0644\u0633\u0647 \u0645\u0627 \u0633\u062c\u0651\u0644\u062a\u0634");
+  }
+  function quickStrip(){
+    load();
+    const tkey=tk(), rec=db.days[tkey]||null, work=!!(rec&&WORKING(rec.s));
+    const tIn=work&&rec.i?rec.i:'', tOut=work&&rec.o?rec.o:'';
+    const state=!tIn?'in':(!tOut?'out':'done');
+    const btn = state==='in'
+      ? `<button type="button" class="att-quick-btn in" onclick="ATT.checkIn()">${ic('login',18)}<span>${L('Check in',"\u0633\u062c\u0651\u0644 \u062d\u0636\u0648\u0631")}</span></button>`
+      : state==='out'
+      ? `<button type="button" class="att-quick-btn out" onclick="ATT.checkOut()">${ic('logout',18)}<span>${L('Check out',"\u0633\u062c\u0651\u0644 \u0627\u0646\u0635\u0631\u0627\u0641")}</span></button>`
+      : `<button type="button" class="att-quick-btn done" onclick="ATT.openDay('${tkey}')" aria-label="${L('Done today \u2014 tap to edit',"\u062a\u0645 \u062a\u0633\u062c\u064a\u0644 \u0627\u0644\u064a\u0648\u0645 \u2014 \u0627\u0636\u063a\u0637 \u0644\u0644\u062a\u0639\u062f\u064a\u0644")}">${ic('check',18)}<span>${L('Done',"\u062a\u0645")}</span></button>`;
+    return `<section class="att-quick" data-state="${state}" aria-label="${L('Attendance quick check-in',"\u062a\u0633\u062c\u064a\u0644 \u0627\u0644\u062d\u0636\u0648\u0631 \u0627\u0644\u0633\u0631\u064a\u0639")}">
+      <button type="button" class="att-quick-main" onclick="ATT.openPage()">
+        <span class="att-quick-ic">${ic('attendance',20)}${state==='out'?'<i class="att-quick-live" aria-hidden="true"></i>':''}</span>
+        <span class="att-quick-tx"><b>${state==='out'?L('Checked in',"\u062a\u0645 \u0627\u0644\u062d\u0636\u0648\u0631"):L('Attendance',"\u0627\u0644\u062d\u0636\u0648\u0631")}</b><small>${esc(quickSub(state,rec||{}))}</small></span>
+      </button>
+      ${btn}
+    </section>`;
+  }
+  // keep the "in progress" duration fresh while the dashboard stays open
+  setInterval(function(){
+    try{
+      const el=document.querySelector('.att-quick[data-state="out"] .att-quick-tx small'); if(!el) return;
+      load(); const rec=db.days[tk()]; if(rec&&WORKING(rec.s)&&rec.i&&!rec.o) el.textContent=quickSub('out',rec);
+    }catch(e){}
+  },30000);
   function nav(dm){
     vm+=dm; if(vm<0){ vm=11; vy--; } else if(vm>11){ vm=0; vy++; }
     try{ renderView(true); }catch(e){}
@@ -44314,7 +44399,7 @@ const ATT=(function(){
       if(save()){ try{ renderView(true); }catch(e){} showToast(L('Month cleared','تم مسح الشهر'),'success'); }
     });
   }
-  return {render,dashCard,dashSummary,checkIn,checkOut,stamp,tUpd,clearT,noteChip,openPage,openDay,pick,saveDay,clearDay,quick,nav,goToday,setScope,setField,pickLogo,removeLogo,clearMonth,toggleCo,toggleMulti,setRangeMode,clearSel,tapDay,openMulti,saveMulti,clearMulti};
+  return {render,dashCard,dashSummary,quickStrip,checkIn,checkOut,stamp,tUpd,clearT,noteChip,openPage,openDay,pick,saveDay,clearDay,quick,nav,goToday,setScope,setField,pickLogo,removeLogo,clearMonth,toggleCo,toggleMulti,setRangeMode,clearSel,tapDay,openMulti,saveMulti,clearMulti};
 })();
 // My Locations photos live in IndexedDB; carry them through the app's existing backup/restore
 // (which only knows localStorage) without ever writing them into localStorage.
