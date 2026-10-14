@@ -275,7 +275,7 @@ html.ls-skip #lockScreen{display:none!important}
 
   /* Text — pure white primary, muted-gray secondary/tertiary. No warm
      ivory/sage tint. */
-  --text:#F5F5F5;--text2:#E0E0E2;--sub:#A7A7AA;--muted:#737579;
+  --text:#F5F5F5;--text2:#E0E0E2;--sub:#B0B1B5;--muted:#8E9196;
   --desc-color:#E0E0E2;
 
   /* Shadows — neutral black, kept light since surfaces are now true black. */
@@ -284,8 +284,46 @@ html.ls-skip #lockScreen{display:none!important}
   --shadow-md:0 8px 24px rgba(0,0,0,.28);
   --shadow-lg:0 24px 58px rgba(0,0,0,.46);
   --shadow-xl:0 32px 80px rgba(0,0,0,.54);
+  /* Finance accents: the light-mode jewel tones are 3:1 on black, so they get lifted for text/icons */
+  --fin-income:#3DBE86;--fin-outcome:#E0877D;--fin-assets:#B79BF2;--fin-networth:#7FA7D6;
+  --fin-income-tint:rgba(61,190,134,.14);--fin-outcome-tint:rgba(224,135,125,.14);
+  --fin-assets-tint:rgba(183,155,242,.14);--fin-networth-tint:rgba(127,167,214,.14);
+  --success:#3DBE86;
 }
 [data-theme="dark"] body{background-blend-mode:normal;background-image:none;}
+
+/* ── Dark Mode Polish: brand-green / accent TEXT must use the light variants (>=4.5:1) ──
+   --green (#0F7A55) is a fill colour; as text on #18191B it is only ~3:1. */
+[data-theme="dark"] .sc-main-title,
+[data-theme="dark"] .kpi3-saved-mode-btn,
+[data-theme="dark"] .txlg-wrap .txlg-aiinsight-link,
+[data-theme="dark"] .txlg-aiinsight-link,
+[data-theme="dark"] .field label .f-badge{color:var(--green-light)}
+/* Accent-coloured empty-state eyebrow/buttons: lift whatever accent they carry toward white */
+[data-theme="dark"] .empty-hero-eyebrow,
+[data-theme="dark"] .empty-hero-btn{color:color-mix(in srgb,var(--accent,var(--green-light)) 60%,#fff)!important}
+/* Wordmark: the green end of the gradient vanished on black — use the light brand pair */
+[data-theme="dark"] .app-brand .logo-text{background:linear-gradient(135deg,var(--green-light),var(--gold-light,#E3B04E));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+/* Dashboard tiles + quick-action icons: light-mode jewel tones (#0f7a55/#4338ca/#a16207…) are dim on black */
+[data-theme="dark"] .wdash-wrap .wdash-tile .wdash-tile-ico:not([style*="gradient"]){color:color-mix(in srgb,var(--tc,var(--tc-d,var(--green))) 66%,#fff)!important}
+/* hero captions sit on the lightest surface (#26272A): step them up one level */
+html[data-theme="dark"] body .wdash-wrap .dash-hero-eyebrow,html[data-theme="dark"] body .wdash-wrap .dash-hero-main-lbl,html[data-theme="dark"] body .wdash-wrap .dv3h-stat-lbl,html[data-theme="dark"] body .wdash-wrap .dfp-kpi3-lbl{color:var(--sub)}
+[data-theme="dark"] .fp-qa-btn svg{color:var(--green-light)}
+/* Sheets & modals: remaining brand-green / gold TEXT that was 2.4-3.3:1 on dark surfaces */
+[data-theme="dark"] .bnk-country-chip.active,
+[data-theme="dark"] .rq-lvl-btn,
+[data-theme="dark"] .rq-stbtn.ok.on,
+[data-theme="dark"] .rq-sugg-panel-hdr em,
+[data-theme="dark"] .aiq-example-body{color:var(--green-light)}
+/* inline-coloured semantic text (confidence %, section labels): lift without changing its hue */
+[data-theme="dark"] .txlg-ai-badge,
+[data-theme="dark"] .ds-title-sm > span{filter:brightness(1.3)}
+html[data-theme="dark"] body .stt-trail-val{color:var(--sub)}
+html[data-theme="dark"] body .stt-app-info-ver{color:var(--muted)}
+[data-theme="dark"] .stt-row-trail .stt-trail-val[style*="border-radius:99px"]{color:var(--sub)!important}
+.bnk-card-tile,.wlt-card-tile{min-width:0}
+/* decorative separator dots were 1.5:1 — invisible */
+[data-theme="dark"] .txlg-ai-sep{color:rgba(255,255,255,.30)}
 
 
 /* ── Dark Mode, X-style: everyday action buttons/chips/badges become a
@@ -2672,7 +2710,7 @@ tbody tr:hover{background:var(--surface2)}
 
 /* ── Bank presets: mini bank-card tiles ── */
 .bnk-card-grid{
-  display:grid;grid-template-columns:repeat(2,1fr);gap:9px;
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;
   max-height:300px;overflow-y:auto;padding:4px;margin-top:2px;
   overscroll-behavior:contain;-webkit-overflow-scrolling:touch;
 }
@@ -2715,7 +2753,7 @@ tbody tr:hover{background:var(--surface2)}
    button at top, flat brand color, badge flips to a checkmark) — same
    grammar as the bank cards above, so the two lists read as one family. ── */
 .wlt-card-grid{
-  display:grid;grid-template-columns:repeat(2,1fr);gap:9px;
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;
   max-height:300px;overflow-y:auto;padding:4px;margin-top:2px;
   overscroll-behavior:contain;-webkit-overflow-scrolling:touch;
 }
@@ -7101,14 +7139,26 @@ html.wdash-sheet-lock,html.wdash-sheet-lock body{overflow:hidden}
   transition:transform var(--dur-slow) var(--ease-standard);
 }
 .app-header.fp-header-hidden{--fp-hdr-shift:-100%}
-/* Smart bottom nav: slides away on scroll-down, returns on scroll-up (see fpInitSmartNav).
-   The FAB and floating action bar glide down with it so nothing is left hovering. */
-.bottom-nav{transition:transform .28s cubic-bezier(.4,0,.2,1)}
-.bottom-nav.fp-nav-hidden{transform:translate3d(0,calc(100% + 40px),0)}
-body .fab{transition:box-shadow .18s,transform .22s cubic-bezier(.34,1.56,.64,1),background .2s ease,translate .28s cubic-bezier(.4,0,.2,1)}
-.sc-bottom{transition:translate .28s cubic-bezier(.4,0,.2,1)}
+/* Smart bottom nav: slides away on scroll-down, comes back ONLY when you scroll up (see fpInitSmartNav).
+   Easing is asymmetric like native apps: a quick clean exit, a softer decelerating return.
+   The FAB and floating action bar glide down/up in sync so nothing is left hovering. */
+.bottom-nav{
+  transition:transform .42s cubic-bezier(.22,1,.36,1), opacity .30s ease-out;
+  backface-visibility:hidden;-webkit-backface-visibility:hidden;
+}
+.bottom-nav.fp-nav-hidden{
+  transform:translate3d(0,calc(100% + 40px),0);
+  opacity:0;
+  pointer-events:none;
+  transition:transform .30s cubic-bezier(.4,0,.2,1), opacity .22s ease-in;
+}
+body .fab{transition:box-shadow .18s,transform .22s cubic-bezier(.34,1.56,.64,1),background .2s ease,translate .42s cubic-bezier(.22,1,.36,1)}
+.sc-bottom{transition:translate .42s cubic-bezier(.22,1,.36,1)}
+body.fp-nav-away .fab{transition:box-shadow .18s,transform .22s cubic-bezier(.34,1.56,.64,1),background .2s ease,translate .30s cubic-bezier(.4,0,.2,1)}
+body.fp-nav-away .sc-bottom{transition:translate .30s cubic-bezier(.4,0,.2,1)}
+body.fp-nav-away .fab.dragging{transition:none}
 body.fp-nav-away .fab,body.fp-nav-away .sc-bottom{translate:0 calc(var(--bottom-nav-h,80px) - 44px)}
-@media (prefers-reduced-motion:reduce){.bottom-nav,body .fab,.sc-bottom{transition:none}}
+@media (prefers-reduced-motion:reduce){.bottom-nav,.bottom-nav.fp-nav-hidden,body .fab,body.fp-nav-away .fab,.sc-bottom,body.fp-nav-away .sc-bottom{transition:none}}
 /* Never hide the header while any dropdown/menu anchored to it is open,
    or mid-scroll inside a modal/sheet — those already stopPropagation their
    own scroll, this is just an extra safety class the script can add. */
@@ -10271,25 +10321,34 @@ document.addEventListener('DOMContentLoaded',function(){
 function fpInitSmartNav(){
   const nav = document.querySelector('.bottom-nav');
   if(!nav) return;
-  let lastY = window.scrollY || 0;
+  let lastY = Math.max(0, window.scrollY || 0);
   let ticking = false;
-  const TOP_GUARD = 80;   // never hide near the top of the page
-  const THRESHOLD = 8;    // ignore jitter
+  const TOP_GUARD = 80;    // always visible near the top of the page
+  const HIDE_DELTA = 8;    // scroll down this far (px) before hiding
+  const SHOW_DELTA = 4;    // scroll up just this far to bring it back: reacts almost instantly
   function setHidden(h){
+    if(nav.classList.contains('fp-nav-hidden') === h) return;
     nav.classList.toggle('fp-nav-hidden', h);
     document.body.classList.toggle('fp-nav-away', h);
   }
   function apply(){
     ticking = false;
-    const y = window.scrollY || 0;
+    const maxY = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+    // clamp: iOS rubber-band overscroll (y < 0 or y > maxY) must never look like a scroll direction
+    const y = Math.min(maxY, Math.max(0, window.scrollY || 0));
     const modalOverlay = document.getElementById('modalOverlay');
     const pinned = (modalOverlay && modalOverlay.style.display==='flex')
       || !!document.querySelector('.nav-drop[style*="block"], .hdr-more-menu[style*="block"]');
-    const maxY = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
-    if(pinned || y <= TOP_GUARD || y >= maxY - 2){ setHidden(false); lastY = y; return; } // also ignores iOS rubber-band
+    if(pinned || y <= TOP_GUARD){ setHidden(false); lastY = y; return; }
     const d = y - lastY;
-    if(d > THRESHOLD){ setHidden(true); lastY = y; }
-    else if(d < -THRESHOLD){ setHidden(false); lastY = y; }
+    if(d > HIDE_DELTA){ setHidden(true); lastY = y; }
+    else if(d < -SHOW_DELTA){ setHidden(false); lastY = y; }
+    else{
+      // moving against the current state (e.g. down while already hidden): re-anchor so the next
+      // reversal is measured from this extreme point, not from stale history
+      const hidden = nav.classList.contains('fp-nav-hidden');
+      if((d > 0 && hidden) || (d < 0 && !hidden)) lastY = y;
+    }
   }
   window.addEventListener('scroll', function(){
     if(!ticking){ ticking = true; requestAnimationFrame(apply); }
@@ -24755,6 +24814,16 @@ function _bnkLuminance(hex){
   const r=(num>>16)&255, g=(num>>8)&255, b=num&255;
   return (0.299*r+0.587*g+0.114*b)/255;
 }
+// Picks white or near-black, whichever has the higher WCAG contrast on the given brand colour
+// (the old perceived-luminance cut-off left white on orange/yellow/cyan at 1.3-2.5:1).
+function _bnkBestFg(hex){
+  hex=(hex||'').replace('#','');
+  if(hex.length===3) hex=hex.split('').map(c=>c+c).join('');
+  const n=parseInt(hex,16); if(isNaN(n)) return '#ffffff';
+  const f=v=>{v/=255;return v<=0.03928?v/12.92:Math.pow((v+0.055)/1.055,2.4)};
+  const Y=0.2126*f((n>>16)&255)+0.7152*f((n>>8)&255)+0.0722*f(n&255);
+  return (1.05/(Y+0.05)) >= ((Y+0.05)/0.0603) ? '#ffffff' : '#1a1a1a';
+}
 function _bnkReadableTextColor(hex){
   const lum=_bnkLuminance(hex);
   return lum===null ? null : (lum>0.6 ? '#1a1a1a' : '#ffffff');
@@ -25506,9 +25575,9 @@ function openAddBank(){
               <div class="bnk-card-chip-base"></div>
               <div class="bnk-card-chip-check">${ic('check',9)}</div>
             </div>
-            <div class="bnk-card-mono">${esc(p.initials)}</div>
+            <div class="bnk-card-mono" style="color:${_bnkBestFg(p.color)}">${esc(p.initials)}</div>
           </div>
-          <div class="bnk-card-name">${esc(L(p.label, BANK_NAME_AR[p.label]||p.label))}</div>
+          <div class="bnk-card-name" style="color:${_bnkBestFg(p.color)}">${esc(L(p.label, BANK_NAME_AR[p.label]||p.label))}</div>
         </div>`).join('')}
       </div>
       <div id="bankNoResults" class="bnk-no-results" style="display:none">${ic('search',18)}<span>${L('No banks found','لا توجد بنوك مطابقة')}</span></div>
@@ -25620,9 +25689,9 @@ function openAddWallet(){
               <div class="wlt-card-badge-base">${ic('wallet',10)}</div>
               <div class="wlt-card-badge-check">${ic('check',9)}</div>
             </div>
-            <div class="wlt-card-mono">${esc(p.initials)}</div>
+            <div class="wlt-card-mono" style="color:${_bnkBestFg(p.color||p.bg)}">${esc(p.initials)}</div>
           </div>
-          <div class="wlt-card-name">${esc(p.label)}</div>
+          <div class="wlt-card-name" style="color:${_bnkBestFg(p.color||p.bg)}">${esc(p.label)}</div>
         </div>`).join('')}
       </div>
       <div id="walletNoResults" class="bnk-no-results" style="display:none">${ic('search',18)}<span>${L('No wallets found','لا توجد محافظ مطابقة')}</span></div>
