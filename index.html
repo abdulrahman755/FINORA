@@ -8271,10 +8271,11 @@ body .screen-wrap .sc-header.sav-plain-header.sav-plain-header::after{display:no
 .txlg-wrap .kpi3-sec:nth-child(2)::before{display:none}
 .txlg-wrap .kpi3-sec-dup+.kpi3-sec{padding-inline-start:18px}
 /* ══ Daily summary — Today (daily target, blue) and This Month (monthly target, green) ══ */
-.txlg-wrap .dsum-day{order:1}
-.txlg-wrap .dsum-month{order:2}
-.dsum-card{--dsum-acc:var(--blue);position:relative;overflow:hidden;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px 0;box-shadow:var(--shadow-sm)}
-.dsum-card::before{content:'';position:absolute;inset-block:0;inset-inline-start:0;width:4px;background:var(--dsum-acc)}
+.txlg-wrap .dsum-merged{order:1}
+.dsum-card{position:relative;overflow:hidden;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow-sm)}
+.dsum-sec{--dsum-acc:var(--blue);position:relative;padding:14px 16px 0}
+.dsum-sec::before{content:'';position:absolute;inset-block:0;inset-inline-start:0;width:4px;background:var(--dsum-acc)}
+.dsum-sec+.dsum-sec{border-top:1px solid var(--border-strong,var(--border));background:color-mix(in srgb,var(--dsum-acc) 4%,var(--surface))}
 .dsum-month{--dsum-acc:var(--green)}
 [data-theme="dark"] .dsum-month{--dsum-acc:var(--green-light)}
 .dsum-hd{display:flex;align-items:center;gap:10px}
@@ -10045,13 +10046,14 @@ html body .sc-header .sc-header-sub{padding-inline-start:12px;margin-top:4px;fon
 .rq-tile .rq-dot{position:absolute;top:5px;inset-inline-end:5px;width:6px;height:6px}
 /* tile: the company logo fills the square; plot no. + date sit on a tinted strip at the bottom */
 .rq-tile{display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;gap:0;padding:0;overflow:hidden;text-align:center;aspect-ratio:auto}
-.rq-tile-logo{position:relative;flex:1 1 auto;min-height:54px;width:100%;display:flex;align-items:center;justify-content:center;background:#fff;color:var(--rq-tc);overflow:hidden}
+.rq-tile-logo{position:relative;flex:none;height:60px;width:100%;display:flex;align-items:center;justify-content:center;background:#fff;color:var(--rq-tc);overflow:hidden}
 .rq-tile-logo .bl-img,.rq-tile-logo img{width:100%!important;height:100%!important;object-fit:contain!important;border-radius:0!important;box-shadow:none!important;box-sizing:border-box;padding:0;background:transparent!important;transform:scale(1.14);transform-origin:center}
 .rq-tile-logo>svg{opacity:.75}
-.rq-tile-meta{flex:none;display:flex;align-items:center;justify-content:center;min-height:26px;padding:3px 5px;background:color-mix(in srgb,var(--rq-tc) 16%,var(--surface));border-top:1px solid color-mix(in srgb,var(--rq-tc) 30%,var(--border))}
+.rq-tile-meta{flex:none;height:38px;box-sizing:border-box;display:flex;flex-wrap:wrap;align-items:center;justify-content:center;align-content:center;column-gap:4px;row-gap:0;padding:2px 4px;background:color-mix(in srgb,var(--rq-tc) 16%,var(--surface));border-top:1px solid color-mix(in srgb,var(--rq-tc) 30%,var(--border))}
+.rq-tile-meta .rq-tl-pre{flex:none;font-size:calc(9.5px*var(--app-text-scale,1));font-weight:800;letter-spacing:.2px;color:var(--rq-tc);opacity:.78;line-height:1.1}
 .rq-tile-meta b{max-width:100%;font-size:calc(15px*var(--app-text-scale,1));font-weight:900;line-height:1.15;text-align:center;color:var(--rq-tc);font-variant-numeric:tabular-nums;white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:anywhere;word-break:break-word}
 .rq-tile-meta.rq-tl-s b{font-size:calc(12.5px*var(--app-text-scale,1))}
-.rq-tile-meta.rq-tl-xs b{font-size:calc(10.5px*var(--app-text-scale,1))}
+.rq-tile-meta.rq-tl-xs b{font-size:calc(9.5px*var(--app-text-scale,1));line-height:1.1;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow:hidden}
 .rq-tile-meta small{flex:none;font-size:calc(8.5px*var(--app-text-scale,1));font-weight:700;line-height:1;color:var(--sub);white-space:nowrap}
 .rq-tile .rq-dot{z-index:1;top:4px;inset-inline-end:4px;width:7px;height:7px;box-shadow:0 0 0 1.5px #fff}
 @media (max-width:340px){.rq-list.rq-v-grid{grid-template-columns:repeat(4,1fr)}}
@@ -31243,7 +31245,7 @@ function renderTransactions(m){
   const _dsDayPct=_todayHasTarget?Math.round(_todaySpent/_todayTarget*100):0;
   const _dsDayOver=_todayHasTarget&&_todaySpent>_todayTarget;
   const _dsDayCard=`
-    <section class="dsum-card dsum-day" aria-label="${L('Today','اليوم')}">
+    <div class="dsum-sec dsum-day" role="group" aria-label="${L('Today','اليوم')}">
       <header class="dsum-hd">
         <span class="dsum-chip">${ic('sun',17)}</span>
         <span class="dsum-ttl"><b>${L('Today','اليوم')}</b><small>${esc(_dsDateLbl)}</small></span>
@@ -31267,13 +31269,13 @@ function renderTransactions(m){
           <b class="dsum-cv${_todayHasTarget?'':' is-empty'}" style="color:${_todayHasTarget?_todayRemColor:'var(--muted)'}">${_todayHasTarget?fmtEGP(_todayRemaining):'—'}</b>
         </div>
       </div>
-    </section>`;
+    </div>`;
 
   const _dsMonthPct=_kpiHasTarget?Math.round(totalAll/totalTargetAll*100):0;
   const _dsMonthOver=_kpiHasTarget&&totalAll>totalTargetAll;
   const _dsSavedTxt=_kpiSavedHasData?((_kpiSaved>=0?'+':'-')+fmtEGP(Math.abs(_kpiSaved))):'—';
   const _dsMonthCard=`
-    <section class="dsum-card dsum-month" aria-label="${L('This Month','الشهر')}">
+    <div class="dsum-sec dsum-month" role="group" aria-label="${L('This Month','الشهر')}">
       <header class="dsum-hd">
         <span class="dsum-chip">${ic('calendar',17)}</span>
         <span class="dsum-ttl"><b>${L('This Month','الشهر')}</b><small>${esc(_dsMonthLbl)}</small></span>
@@ -31298,8 +31300,8 @@ function renderTransactions(m){
           <button type="button" class="dsum-mode" onclick="event.stopPropagation();kpiToggleSavedMode()" aria-label="${L('Switch Saved calculation method','تغيير طريقة حساب التوفير')}">${_kpiSavedMode==='income'?L('↺ Target','↺ التارجت'):L('↺ Income','↺ الدخل')}</button>
         </div>
       </div>
-    </section>`;
-  const dsumHTML=_dsDayCard+_dsMonthCard;
+    </div>`;
+  const dsumHTML=`<section class="dsum-card dsum-merged" aria-label="${L('Spending summary','ملخص المصروف')}">${_dsMonthCard}${_dsDayCard}</section>`;
 
   return `<div class="screen-wrap txlg-wrap" style="padding-bottom:160px">
 ${_pgHdr('Finance','المالية','Daily Spend','الإنفاق اليومي','Log what you spend each day against your target','سجّل مصروفك كل يوم مقابل المستهدف')}
@@ -32784,7 +32786,7 @@ function _rqTileHTML(r){
   return `<button type="button" class="rq-tile rq-t ${st.cls}" style="--rq-tc:${_rqTypeColor(r)}" onclick="rqOpenCard('${r.id}')" aria-label="${esc(L('Plot','قطعة'))} ${esc(plot)}">
     <i class="rq-dot ${st.cls}" title="${esc(_rqStatusLabel(r.status))}"></i>
     <span class="rq-tile-logo">${_rqCoLogoSrc(r.company)?bankLogoHTML(_rqCoLogoSrc(r.company),40,{alt:esc(_rqDisplayValue(r,'company'))}):ic('building',24)}</span>
-    <span class="rq-tile-meta ${(plot||'').length>12?'rq-tl-xs':(plot||'').length>6?'rq-tl-s':''}"><b dir="auto">${esc(plot||'—')}</b></span>
+    <span class="rq-tile-meta ${/^[\d\s\-–—\/.,]+$/.test(plot||'')?((plot||'').length>4?'rq-tl-s':''):((plot||'').length>12?'rq-tl-xs':(plot||'').length>6?'rq-tl-s':'')}">${/^[\d\s\-–—\/.,]+$/.test(plot||'')?`<small class="rq-tl-pre">${L('Plot','قطعة')}</small>`:''}<b dir="auto">${esc(plot||'—')}</b></span>
   </button>`;
 }
 // tap a row / tile → the full card in a sheet (edit and delete work from there)
