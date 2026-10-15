@@ -8268,9 +8268,43 @@ body .screen-wrap .sc-header.sav-plain-header.sav-plain-header::after{display:no
 .banks-v2 .bnk-card-balance .sig-cur{font-size:.46em}
 .banks-v2 .bnk-hero-total .sig-num{font-size:1em}
 /* Daily: one Target only (Today's Target row); Remaining opens the budget modal */
-.txlg-wrap .kpi3-sec-dup{display:none}
 .txlg-wrap .kpi3-sec:nth-child(2)::before{display:none}
 .txlg-wrap .kpi3-sec-dup+.kpi3-sec{padding-inline-start:18px}
+/* ══ Daily summary — Today (daily target, blue) and This Month (monthly target, green) ══ */
+.txlg-wrap .dsum-day{order:1}
+.txlg-wrap .dsum-month{order:2}
+.dsum-card{--dsum-acc:var(--blue);position:relative;overflow:hidden;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px 0;box-shadow:var(--shadow-sm)}
+.dsum-card::before{content:'';position:absolute;inset-block:0;inset-inline-start:0;width:4px;background:var(--dsum-acc)}
+.dsum-month{--dsum-acc:var(--green)}
+[data-theme="dark"] .dsum-month{--dsum-acc:var(--green-light)}
+.dsum-hd{display:flex;align-items:center;gap:10px}
+.dsum-chip{flex:none;width:34px;height:34px;border-radius:11px;display:flex;align-items:center;justify-content:center;color:var(--dsum-acc);background:color-mix(in srgb,var(--dsum-acc) 14%,var(--surface))}
+.dsum-ttl{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
+.dsum-ttl b{font-size:calc(15px*var(--app-text-scale,1));font-weight:800;line-height:1.2;color:var(--text)}
+.dsum-ttl small{font-size:calc(11px*var(--app-text-scale,1));font-weight:600;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dsum-tag{flex:none;font-size:calc(9.5px*var(--app-text-scale,1));font-weight:800;letter-spacing:.8px;padding:3px 9px;border-radius:99px;color:var(--dsum-acc);background:color-mix(in srgb,var(--dsum-acc) 12%,var(--surface));border:1px solid color-mix(in srgb,var(--dsum-acc) 28%,transparent)}
+.dsum-main{margin-top:12px;cursor:pointer}
+.dsum-lbl{font-size:calc(10.5px*var(--app-text-scale,1));font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--muted)}
+.dsum-num{margin-top:3px;font-size:calc(34px*var(--app-text-scale,1));line-height:1.05}
+.dsum-bar{margin-top:12px;height:6px;border-radius:99px;overflow:hidden;background:color-mix(in srgb,var(--dsum-hue) 14%,var(--border))}
+.dsum-bar i{display:block;height:100%;border-radius:99px;background:var(--dsum-hue);transition:width .5s ease}
+.dsum-bar.is-warn i{background:var(--warning)}
+.dsum-bar.is-over i{background:var(--red)}
+.dsum-meta{display:flex;justify-content:space-between;gap:8px;margin-top:6px;font-size:calc(11px*var(--app-text-scale,1));font-weight:600;color:var(--muted)}
+.dsum-pct{font-weight:800;color:var(--text)}
+.dsum-set{margin-top:12px;display:inline-flex;align-items:center;gap:6px;padding:8px 12px;border-radius:10px;border:1px dashed color-mix(in srgb,var(--dsum-acc) 45%,transparent);background:color-mix(in srgb,var(--dsum-acc) 8%,var(--surface));color:var(--dsum-acc);font-family:inherit;font-size:calc(12.5px*var(--app-text-scale,1));font-weight:800;cursor:pointer}
+.dsum-foot{display:grid;grid-template-columns:1fr 1fr;margin:14px -16px 0;border-top:1px solid var(--border)}
+.dsum-cell{position:relative;min-width:0;display:flex;flex-direction:column;align-items:flex-start;gap:2px;padding:10px 16px}
+.dsum-cell+.dsum-cell{border-inline-start:1px solid var(--border)}
+.dsum-cl{font-size:calc(10.5px*var(--app-text-scale,1));font-weight:700;color:var(--muted);line-height:1.25}
+.dsum-cv{max-width:100%;font-size:calc(15px*var(--app-text-scale,1));font-weight:800;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dsum-cv.is-empty{color:var(--muted)!important}
+.dsum-edit,.dsum-mode{font-size:calc(11px*var(--app-text-scale,1));font-weight:800;color:var(--dsum-acc)}
+.dsum-mode{border:0;background:none;padding:0;font-family:inherit;cursor:pointer;position:relative}
+.dsum-mode::after{content:'';position:absolute;inset:-10px -8px}
+.dsum-main:focus-visible,.dsum-cell:focus-visible,.dsum-set:focus-visible{outline:2px solid var(--dsum-acc);outline-offset:2px;border-radius:8px}
+
+
 
 /* ══ DAILY PAGE — SIMPLIFICATION PASS (scoped to .txlg-wrap; same data, fewer boxes) ══
    A · page header becomes a plain title block; Target moves into the summary row (one surface)
@@ -9933,6 +9967,27 @@ html body .sc-header .sc-header-sub{padding-inline-start:12px;margin-top:4px;fon
 .att-quick-btn:focus-visible,.att-quick-main:focus-visible{outline:2px solid var(--green-light);outline-offset:2px}
 @media (max-width:350px){.att-quick-btn{min-width:98px;padding:0 12px}.att-quick-tx small{display:none}}
 @media (prefers-reduced-motion:reduce){.att-quick-live{animation:none}.att-quick-btn{transition:none}}
+/* ── Attendance: fingerprint button (check in / out / done) ── */
+.att-fp{flex:none;display:flex;flex-direction:column;align-items:center;gap:7px;padding:2px 6px 0;border:0;background:none;font-family:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent;--fp:var(--green);--fp2:var(--green-dark);--fp-ink:#fff}
+.att-fp.out{--fp:var(--gold-light,#D4AF37);--fp2:#B8932A;--fp-ink:#1a1a1a}
+.att-fp.done{--fp-ink:var(--green)}
+[data-theme="dark"] .att-fp.done{--fp-ink:var(--green-light)}
+.att-fp-disc{position:relative;width:64px;height:64px;display:block}
+.att-fp-core{position:absolute;inset:0;border-radius:50%;display:flex;align-items:center;justify-content:center;overflow:hidden;color:var(--fp-ink);background:radial-gradient(circle at 30% 22%,color-mix(in srgb,var(--fp) 78%,#fff),var(--fp) 55%,var(--fp2));box-shadow:0 7px 16px color-mix(in srgb,var(--fp) 38%,transparent),inset 0 1.5px 0 rgba(255,255,255,.4),inset 0 0 0 1px color-mix(in srgb,var(--fp2) 55%,transparent);transition:transform .15s,box-shadow .15s}
+.att-fp-core svg{position:relative;z-index:1;width:34px;height:34px}
+.att-fp.done .att-fp-core{background:color-mix(in srgb,var(--green) 13%,var(--surface));box-shadow:inset 0 0 0 1.5px color-mix(in srgb,var(--green) 35%,transparent)}
+.att-fp-ring{position:absolute;inset:0;border-radius:50%;border:2px solid var(--fp);opacity:0;pointer-events:none;animation:attFpRing 2.6s ease-out infinite}
+.att-fp-ring.r2{animation-delay:1.3s}
+.att-fp-scan{position:absolute;z-index:2;left:14%;right:14%;top:14%;height:2px;border-radius:2px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.95),transparent);box-shadow:0 0 8px rgba(255,255,255,.85);animation:attFpScan 2.4s ease-in-out infinite}
+.att-fp.done .att-fp-ring,.att-fp.done .att-fp-scan{display:none}
+.att-fp-ok{position:absolute;bottom:-2px;inset-inline-end:-2px;width:21px;height:21px;border-radius:50%;background:var(--green);color:#fff;display:flex;align-items:center;justify-content:center;border:2px solid var(--surface);font-style:normal}
+.att-fp-lb{font-size:calc(11.5px*var(--app-text-scale,1));font-weight:800;line-height:1.1;color:var(--text);white-space:nowrap}
+.att-fp:active .att-fp-core{transform:scale(.91);box-shadow:0 2px 6px color-mix(in srgb,var(--fp) 35%,transparent),inset 0 0 0 1px color-mix(in srgb,var(--fp2) 55%,transparent)}
+.att-fp:focus-visible{outline:2px solid var(--green-light);outline-offset:3px;border-radius:16px}
+@keyframes attFpRing{0%{transform:scale(1);opacity:.5}100%{transform:scale(1.6);opacity:0}}
+@keyframes attFpScan{0%{top:14%;opacity:0}12%{opacity:1}50%{top:84%;opacity:1}88%{opacity:1}100%{top:14%;opacity:0}}
+@media (prefers-reduced-motion:reduce){.att-fp-ring,.att-fp-scan{animation:none}.att-fp-ring{display:none}.att-fp-core{transition:none}}
+
 /* no ripple */
 .bs-save-btn::after,.mbtn.save::after{display:none!important}
 /* secondary: white with a thin border */
@@ -9989,12 +10044,14 @@ html body .sc-header .sc-header-sub{padding-inline-start:12px;margin-top:4px;fon
 .rq-tile small{font-size:calc(9px*var(--app-text-scale,1));font-weight:700;color:var(--muted)}
 .rq-tile .rq-dot{position:absolute;top:5px;inset-inline-end:5px;width:6px;height:6px}
 /* tile: the company logo fills the square; plot no. + date sit on a tinted strip at the bottom */
-.rq-tile{display:block;gap:0;padding:0;overflow:hidden;text-align:start;aspect-ratio:1/1.1}
-.rq-tile-logo{position:absolute;inset:0 0 24px 0;display:flex;align-items:center;justify-content:center;background:#fff;color:var(--rq-tc);overflow:hidden}
+.rq-tile{display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;gap:0;padding:0;overflow:hidden;text-align:center;aspect-ratio:auto}
+.rq-tile-logo{position:relative;flex:1 1 auto;min-height:54px;width:100%;display:flex;align-items:center;justify-content:center;background:#fff;color:var(--rq-tc);overflow:hidden}
 .rq-tile-logo .bl-img,.rq-tile-logo img{width:100%!important;height:100%!important;object-fit:contain!important;border-radius:0!important;box-shadow:none!important;box-sizing:border-box;padding:0;background:transparent!important;transform:scale(1.14);transform-origin:center}
 .rq-tile-logo>svg{opacity:.75}
-.rq-tile-meta{position:absolute;inset:auto 0 0 0;height:24px;display:flex;align-items:center;justify-content:space-between;gap:3px;padding:0 5px;background:color-mix(in srgb,var(--rq-tc) 16%,var(--surface));border-top:1px solid color-mix(in srgb,var(--rq-tc) 30%,var(--border))}
-.rq-tile-meta b{min-width:0;flex:0 1 auto;font-size:calc(14px*var(--app-text-scale,1));font-weight:900;line-height:1;color:var(--rq-tc);font-variant-numeric:tabular-nums;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rq-tile-meta{flex:none;display:flex;align-items:center;justify-content:center;min-height:26px;padding:3px 5px;background:color-mix(in srgb,var(--rq-tc) 16%,var(--surface));border-top:1px solid color-mix(in srgb,var(--rq-tc) 30%,var(--border))}
+.rq-tile-meta b{max-width:100%;font-size:calc(15px*var(--app-text-scale,1));font-weight:900;line-height:1.15;text-align:center;color:var(--rq-tc);font-variant-numeric:tabular-nums;white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:anywhere;word-break:break-word}
+.rq-tile-meta.rq-tl-s b{font-size:calc(12.5px*var(--app-text-scale,1))}
+.rq-tile-meta.rq-tl-xs b{font-size:calc(10.5px*var(--app-text-scale,1))}
 .rq-tile-meta small{flex:none;font-size:calc(8.5px*var(--app-text-scale,1));font-weight:700;line-height:1;color:var(--sub);white-space:nowrap}
 .rq-tile .rq-dot{z-index:1;top:4px;inset-inline-end:4px;width:7px;height:7px;box-shadow:0 0 0 1.5px #fff}
 @media (max-width:340px){.rq-list.rq-v-grid{grid-template-columns:repeat(4,1fr)}}
@@ -31168,6 +31225,82 @@ function renderTransactions(m){
     <span class="txlg-target-edit">${_todayTarget>0?L('Edit','تعديل'):L('Set','حدد')}</span>
   </div>`;
 
+
+  // ── Daily summary: TWO clearly separate sections ─────────────────────────
+  // TODAY (blue)  = today's spending vs the DAILY target  → Remaining today
+  // THIS MONTH (green) = the month's spending vs the MONTHLY target → Saved
+  const _dsNow=new Date();
+  const _dsMp=String(activeMonth).split('-');
+  const _dsMi=['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'].indexOf(_dsMp[0]);
+  const _dsYr=parseInt(_dsMp[1])||_dsNow.getFullYear();
+  const _dsDim=_dsMi>=0?new Date(_dsYr,_dsMi+1,0).getDate():30;
+  const _dsIsCur=_dsMi===_dsNow.getMonth()&&_dsYr===_dsNow.getFullYear();
+  let _dsDateLbl=_todayStr;
+  try{ _dsDateLbl=_dsNow.toLocaleDateString(lang==='ar'?'ar-EG':'en-GB',{weekday:'long',day:'numeric',month:'short'}); }catch(e){}
+  const _dsMonthLbl=MONTH_NAMES[activeMonth]||activeMonth;
+  const _dsBar=(pct,over,hue)=>`<div class="dsum-bar${over?' is-over':(pct>=85?' is-warn':'')}" style="--dsum-hue:${hue}"><i style="width:${Math.min(100,Math.max(0,pct))}%"></i></div>`;
+
+  const _dsDayPct=_todayHasTarget?Math.round(_todaySpent/_todayTarget*100):0;
+  const _dsDayOver=_todayHasTarget&&_todaySpent>_todayTarget;
+  const _dsDayCard=`
+    <section class="dsum-card dsum-day" aria-label="${L('Today','اليوم')}">
+      <header class="dsum-hd">
+        <span class="dsum-chip">${ic('sun',17)}</span>
+        <span class="dsum-ttl"><b>${L('Today','اليوم')}</b><small>${esc(_dsDateLbl)}</small></span>
+        <span class="dsum-tag">${L('DAILY','يومي')}</span>
+      </header>
+      <div class="dsum-main" role="button" tabindex="0" onclick="document.getElementById('txlgTimelineAnchor')?.scrollIntoView({behavior:'smooth',block:'start'})">
+        <div class="dsum-lbl">${L('Spent today','مصروف اليوم')}</div>
+        <div class="dsum-num">${sigNumHTML(_todaySpent,{tone:_dsDayOver?'neg':'orange'})}</div>
+      </div>
+      ${_todayHasTarget
+        ? `${_dsBar(_dsDayPct,_dsDayOver,'var(--blue)')}<div class="dsum-meta"><span class="dsum-pct">${_dsDayPct}%</span><span>${_dsDayOver?L('Over by ','عدّيت بـ ')+fmtEGP(_todaySpent-_todayTarget):L(fmtEGP(_todayTarget-_todaySpent)+' left','فاضل '+fmtEGP(_todayTarget-_todaySpent))}</span></div>`
+        : `<button type="button" class="dsum-set" onclick="openDailyTargetModal()">${ic('target',14)} ${L("Set today's target",'حدد تارجت اليوم')}</button>`}
+      <div class="dsum-foot">
+        <div class="dsum-cell" role="button" tabindex="0" style="cursor:pointer" onclick="openDailyTargetModal()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}" aria-label="${L("Today's Target",'تارجت اليوم')} ${_todayHasTarget?fmtEGP(_todayTarget):L('not set','غير محدد')}">
+          <span class="dsum-cl">${L("Today's Target",'تارجت اليوم')}</span>
+          <b class="dsum-cv${_todayHasTarget?'':' is-empty'}" style="color:var(--blue)">${_todayHasTarget?fmtEGP(_todayTarget):'—'}</b>
+          <span class="dsum-edit">${_todayHasTarget?L('Edit','تعديل'):L('Set','حدد')}</span>
+        </div>
+        <div class="dsum-cell" aria-label="${L('Remaining today','المتبقي اليوم')}">
+          <span class="dsum-cl">${L('Remaining today','المتبقي اليوم')}</span>
+          <b class="dsum-cv${_todayHasTarget?'':' is-empty'}" style="color:${_todayHasTarget?_todayRemColor:'var(--muted)'}">${_todayHasTarget?fmtEGP(_todayRemaining):'—'}</b>
+        </div>
+      </div>
+    </section>`;
+
+  const _dsMonthPct=_kpiHasTarget?Math.round(totalAll/totalTargetAll*100):0;
+  const _dsMonthOver=_kpiHasTarget&&totalAll>totalTargetAll;
+  const _dsSavedTxt=_kpiSavedHasData?((_kpiSaved>=0?'+':'-')+fmtEGP(Math.abs(_kpiSaved))):'—';
+  const _dsMonthCard=`
+    <section class="dsum-card dsum-month" aria-label="${L('This Month','الشهر')}">
+      <header class="dsum-hd">
+        <span class="dsum-chip">${ic('calendar',17)}</span>
+        <span class="dsum-ttl"><b>${L('This Month','الشهر')}</b><small>${esc(_dsMonthLbl)}</small></span>
+        <span class="dsum-tag">${L('MONTHLY','شهري')}</span>
+      </header>
+      <div class="dsum-main" role="button" tabindex="0" onclick="document.getElementById('txlgTimelineAnchor')?.scrollIntoView({behavior:'smooth',block:'start'})">
+        <div class="dsum-lbl">${L('Spent this month','مصروف الشهر')}</div>
+        <div class="dsum-num">${sigNumHTML(totalAll,{tone:_dsMonthOver?'neg':'orange'})}</div>
+      </div>
+      ${_kpiHasTarget
+        ? `${_dsBar(_dsMonthPct,_dsMonthOver,'var(--green)')}<div class="dsum-meta"><span class="dsum-pct">${_dsMonthPct}%</span><span>${_dsMonthOver?L('Over by ','عدّيت بـ ')+fmtEGP(totalAll-totalTargetAll):(_dsIsCur?L('Day '+_dsNow.getDate()+' of '+_dsDim,'يوم '+_dsNow.getDate()+' من '+_dsDim):'')}</span></div>`
+        : `<button type="button" class="dsum-set" onclick="openBudgetModal(activeMonth)">${ic('target',14)} ${L('Set monthly target','حدد تارجت الشهر')}</button>`}
+      <div class="dsum-foot">
+        <div class="dsum-cell" role="button" tabindex="0" style="cursor:pointer" onclick="openBudgetModal(activeMonth)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}" aria-label="${L('Monthly Target','تارجت الشهر')} ${_kpiHasTarget?fmtEGP(totalTargetAll):L('not set','غير محدد')}">
+          <span class="dsum-cl">${L('Monthly Target','تارجت الشهر')}</span>
+          <b class="dsum-cv${_kpiHasTarget?'':' is-empty'}" style="color:var(--dsum-acc)">${_kpiHasTarget?fmtEGP(totalTargetAll):'—'}</b>
+          <span class="dsum-edit">${_kpiHasTarget?L('Edit','تعديل'):L('Set','حدد')}</span>
+        </div>
+        <div class="dsum-cell" aria-label="${L('Saved','التوفير')} ${_dsSavedTxt}">
+          <span class="dsum-cl">${_kpiSavedMode==='income'?L('Saved (income − spent)','التوفير (الدخل − المصروف)'):L('Saved from target','وفّرت من التارجت')}</span>
+          <b class="dsum-cv${_kpiSavedHasData?'':' is-empty'}" style="color:${_kpiSavedHasData?_kpiSavedColor:'var(--muted)'}">${_dsSavedTxt}</b>
+          <button type="button" class="dsum-mode" onclick="event.stopPropagation();kpiToggleSavedMode()" aria-label="${L('Switch Saved calculation method','تغيير طريقة حساب التوفير')}">${_kpiSavedMode==='income'?L('↺ Target','↺ التارجت'):L('↺ Income','↺ الدخل')}</button>
+        </div>
+      </div>
+    </section>`;
+  const dsumHTML=_dsDayCard+_dsMonthCard;
+
   return `<div class="screen-wrap txlg-wrap" style="padding-bottom:160px">
 ${_pgHdr('Finance','المالية','Daily Spend','الإنفاق اليومي','Log what you spend each day against your target','سجّل مصروفك كل يوم مقابل المستهدف')}
 
@@ -31179,37 +31312,7 @@ ${_pgHdr('Finance','المالية','Daily Spend','الإنفاق اليومي',
        weighting changed. .kpi3-card is kept on every tap target (primary
        and each secondary cell) purely so MIORA_SELECTABLE_SEL, which still
        looks for that class, keeps finding them unchanged. -->
-  <div class="txlg-sticky kpi3-hero">
-    <div class="kpi3-card kpi3-primary" role="button" tabindex="0" style="cursor:pointer" onclick="document.getElementById('txlgTimelineAnchor')?.scrollIntoView({behavior:'smooth',block:'start'})" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}" aria-label="${L('Spent','المصروف')} ${fmtEGP(totalAll)}">
-      <div class="kpi3-primary-label">${totalAll===0?L('No spending yet','لا توجد مصروفات بعد'):L("Today's Spending",'مصروف اليوم')}</div>
-      <div class="kpi3-primary-val" style="color:var(--orange)">${kpi3ValHTML(fmtEGP(totalAll), totalAll>0 && _todayTarget>0 && totalAll>_todayTarget ? 'neg' : 'orange', totalAll)}</div>
-      ${_todayTarget>0?(()=>{
-        const _dp=Math.round((totalAll/_todayTarget)*100), _dover=totalAll>_todayTarget;
-        const _dmsg=_dover?L('Over by '+fmtEGP(totalAll-_todayTarget),'عدّيت المستهدف بـ '+fmtEGP(totalAll-_todayTarget)):L(fmtEGP(_todayTarget-totalAll)+' left','فاضل '+fmtEGP(_todayTarget-totalAll));
-        return `<div class="kpi3-prog${_dover?' is-over':''}"><div class="kpi3-prog-track"><i style="width:${Math.min(100,Math.max(0,_dp))}%"></i></div><div class="kpi3-prog-meta"><span class="kpi3-prog-pct">${_dp}%</span><span>${_dmsg}</span></div></div>`;
-      })():''}
-    </div>
-    <div class="kpi3-secondary-row">
-      <div class="kpi3-sec kpi3-sec-dup" role="button" tabindex="0" onclick="openBudgetModal(activeMonth)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}" aria-label="${L('Target','المستهدف')} ${_kpiHasTarget?fmtEGP(totalTargetAll):L('not set','غير محدد')}">
-        <div class="kpi3-sec-label">${L('Target','المستهدف')}</div>
-        <div class="kpi3-sec-val${_kpiHasTarget?'':' is-empty'}" style="color:var(--blue)">${_kpiHasTarget?fmtEGP(totalTargetAll):L('Tap to set','اضغط للتحديد')}</div>
-      </div>
-      <div class="kpi3-sec kpi3-sec-today" role="button" tabindex="0" style="cursor:pointer" onclick="openDailyTargetModal()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}" aria-label="${L("Today's Target",'تارجت اليوم')} ${_todayTarget>0?fmtEGP(_todayTarget):L('not set','غير محدد')}">
-        <div class="kpi3-sec-label">${L("Today's Target",'تارجت اليوم')}</div>
-        <div class="kpi3-sec-val${_todayTarget>0?'':' is-empty'}" style="color:var(--blue)">${_todayTarget>0?fmtEGP(_todayTarget):L('Tap to set','اضغط للتحديد')}</div>
-        ${_todayTarget>0?`<span class="kpi3-sec-edit">${L('Edit','تعديل')}</span>`:''}
-      </div>
-      <div class="kpi3-sec" role="button" tabindex="0" style="cursor:pointer" onclick="openDailyTargetModal()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}" aria-label="${L('Remaining','المتبقي')} ${_todayHasTarget?fmtEGP(_todayRemaining):L('not available','غير متاح')}">
-        <div class="kpi3-sec-label">${L('Remaining','المتبقي')}</div>
-        <div class="kpi3-sec-val${_todayHasTarget?'':' is-empty'}" style="color:${_todayHasTarget?_todayRemColor:'var(--muted)'}">${_todayHasTarget?fmtEGP(_todayRemaining):L('Tap to set','اضغط للتحديد')}</div>
-      </div>
-      <div class="kpi3-sec" aria-label="${L('Saved','التوفير')} ${_kpiSavedHasData?(_kpiSaved>=0?'+':'-')+fmtEGP(Math.abs(_kpiSaved)):L('not available','غير متاح')}">
-        <div class="kpi3-sec-label">${L('Saved','التوفير')}</div>
-        <div class="kpi3-sec-val${_kpiSavedHasData?'':' is-empty'}" style="color:${_kpiSavedColor}">${_kpiSavedHasData?(_kpiSaved>=0?'+':'-')+fmtEGP(Math.abs(_kpiSaved)):'—'}</div>
-        <button type="button" onclick="event.stopPropagation();kpiToggleSavedMode()" class="kpi3-saved-mode-btn" aria-label="${L('Switch Saved calculation method','تغيير طريقة حساب التوفير')}">${_kpiSavedMode==='income'?L('↺ Budget','↺ الميزانية'):L('↺ Income','↺ الدخل')}</button>
-      </div>
-    </div>
-  </div>
+  <div class="txlg-sticky kpi3-hero dsum">${dsumHTML}</div>
 
   ${all.length===0 ? emptyAllState : `
 
@@ -32681,7 +32784,7 @@ function _rqTileHTML(r){
   return `<button type="button" class="rq-tile rq-t ${st.cls}" style="--rq-tc:${_rqTypeColor(r)}" onclick="rqOpenCard('${r.id}')" aria-label="${esc(L('Plot','قطعة'))} ${esc(plot)}">
     <i class="rq-dot ${st.cls}" title="${esc(_rqStatusLabel(r.status))}"></i>
     <span class="rq-tile-logo">${_rqCoLogoSrc(r.company)?bankLogoHTML(_rqCoLogoSrc(r.company),40,{alt:esc(_rqDisplayValue(r,'company'))}):ic('building',24)}</span>
-    <span class="rq-tile-meta"><b dir="auto">${esc(plot||'—')}</b><small dir="ltr">${esc(_purFmtDate(r.date))}</small></span>
+    <span class="rq-tile-meta ${(plot||'').length>12?'rq-tl-xs':(plot||'').length>6?'rq-tl-s':''}"><b dir="auto">${esc(plot||'—')}</b></span>
   </button>`;
 }
 // tap a row / tile → the full card in a sheet (edit and delete work from there)
@@ -44582,11 +44685,13 @@ const ATT=(function(){
     const tkey=tk(), rec=db.days[tkey]||null, work=!!(rec&&WORKING(rec.s));
     const tIn=work&&rec.i?rec.i:'', tOut=work&&rec.o?rec.o:'';
     const state=!tIn?'in':(!tOut?'out':'done');
+    const FP='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 10a2 2 0 0 0-2 2c0 1.02-.1 2.51-.26 4"/><path d="M14 13.12c0 2.38 0 6.38-1 8.88"/><path d="M17.29 21.02c.12-.6.43-2.3.5-3.02"/><path d="M2 12a10 10 0 0 1 18-6"/><path d="M2 16h.01"/><path d="M21.8 16c.2-2 .131-5.354 0-6"/><path d="M5 19.5C5.5 18 6 15 6 12a6 6 0 0 1 .34-2"/><path d="M8.65 22c.21-.66.45-1.32.57-2"/><path d="M9 6.8a6 6 0 0 1 9 5.2v2"/></svg>';
+    const fpBtn=(cls,act,label,aria)=>`<button type="button" class="att-fp ${cls}" onclick="try{navigator.vibrate&&navigator.vibrate(20)}catch(e){}${act}" aria-label="${aria}"><span class="att-fp-disc"><i class="att-fp-ring" aria-hidden="true"></i><i class="att-fp-ring r2" aria-hidden="true"></i><span class="att-fp-core">${FP}<i class="att-fp-scan" aria-hidden="true"></i></span>${cls==='done'?'<em class="att-fp-ok" aria-hidden="true">'+ic('check',11)+'</em>':''}</span><span class="att-fp-lb">${label}</span></button>`;
     const btn = state==='in'
-      ? `<button type="button" class="att-quick-btn in" onclick="ATT.checkIn()">${ic('login',18)}<span>${L('Check in',"\u0633\u062c\u0651\u0644 \u062d\u0636\u0648\u0631")}</span></button>`
+      ? fpBtn('in','ATT.checkIn()',L('Check in','سجّل حضور'),L('Check in','سجّل حضور'))
       : state==='out'
-      ? `<button type="button" class="att-quick-btn out" onclick="ATT.checkOut()">${ic('logout',18)}<span>${L('Check out',"\u0633\u062c\u0651\u0644 \u0627\u0646\u0635\u0631\u0627\u0641")}</span></button>`
-      : `<button type="button" class="att-quick-btn done" onclick="ATT.openDay('${tkey}')" aria-label="${L('Done today \u2014 tap to edit',"\u062a\u0645 \u062a\u0633\u062c\u064a\u0644 \u0627\u0644\u064a\u0648\u0645 \u2014 \u0627\u0636\u063a\u0637 \u0644\u0644\u062a\u0639\u062f\u064a\u0644")}">${ic('check',18)}<span>${L('Done',"\u062a\u0645")}</span></button>`;
+      ? fpBtn('out','ATT.checkOut()',L('Check out','سجّل انصراف'),L('Check out','سجّل انصراف'))
+      : fpBtn('done',"ATT.openDay('"+tkey+"')",L('Done','تم'),L('Done today — tap to edit','تم تسجيل اليوم — اضغط للتعديل'));
     return `<section class="att-quick" data-state="${state}" aria-label="${L('Attendance quick check-in',"\u062a\u0633\u062c\u064a\u0644 \u0627\u0644\u062d\u0636\u0648\u0631 \u0627\u0644\u0633\u0631\u064a\u0639")}">
       <button type="button" class="att-quick-main" onclick="ATT.openPage()">
         <span class="att-quick-ic">${ic('attendance',20)}${state==='out'?'<i class="att-quick-live" aria-hidden="true"></i>':''}</span>
