@@ -9281,6 +9281,8 @@ body .screen-wrap .sc-header.sav-plain-header.sav-plain-header::after{display:no
 .rpt-paper{max-height:none}
 .rpt-paper .rpt-title{font-size:calc(15px*var(--app-text-scale,1));letter-spacing:.08em;margin:14px 2px 2px}
 .rpt-paper .rpt-title::before{width:8px;height:8px}
+.rpt-paper .rpt-title{font-size:calc(26px*var(--app-text-scale,1));font-weight:900;letter-spacing:0;text-transform:none;line-height:1.2;margin:16px 2px 8px}
+.rpt-paper .rpt-title::before{display:none}
 
 /* My Report: .rpt-ib uses all:unset, which dropped position:relative and let its
    ::after hit-area stretch over the whole sheet, swallowing taps on the chips,
@@ -42543,18 +42545,16 @@ function _rqReportTail(r){
 function _rqReportBlock(r){
   const ar=(typeof lang!=='undefined'&&lang==='ar');
   let plot=String(r.plot||'').trim();
-  if(plot && /^[0-9٠-٩]+$/.test(plot)) plot=(ar?'عمارة ':'Plot ')+plot;
-  const zone=String(r.zone||'').trim();
+  if(plot && /^[\d٠-٩\s\-–—\/.,]+$/.test(plot)) plot='Plot '+plot; // same "Plot N" wording in both languages
+  const zone=String(r.zone||'').trim().toUpperCase();
   const model=String(r.model||'').trim();
   const tail=_rqReportTail(r);
   const company=String(_rqDisplayValue(r,'company')||r.company||'').trim();
-  const head=plot||zone||company;
-  const lines=[head];
-  if(plot && zone) lines.push(zone);
-  if(company && company!==head) lines.push(company);
+  // Order: Plot → company → zone → (model, English only) → work description
+  const lines=[plot,company,zone];
   if(model && !ar) lines.push('Model '+model); // Arabic report format leaves the model out
-  if(tail) lines.push(tail);
-  return lines;
+  lines.push(tail);
+  return lines.filter((x,i,arr)=>x && arr.indexOf(x)===i);
 }
 function _rqReportGroupsRaw(dateISO){
   const ar=(typeof lang!=='undefined'&&lang==='ar');
@@ -42568,7 +42568,7 @@ function _rqReportGroupsRaw(dateISO){
   defs.forEach(([k,title,sts])=>{
     const rows=day.filter(r=>sts.includes(r.status||'received'));
     if(!rows.length) return;
-    out.push({k,title,items:rows.map(r=>{
+    out.push({k,title:title+' :',items:rows.map(r=>{
       const lines=_rqReportBlock(r);
       if(k==='notes'){
         const n=String(_rqDisplayValue(r,'notes')||'').trim().split('\n').map(x=>x.replace(/^[•\s-]+/,'').trim()).filter(Boolean)[0];
@@ -42583,7 +42583,7 @@ function _rqBuildDailyReportRaw(dateISO,withDate){
   const groups=_rqReportGroupsRaw(dateISO);
   if(!groups.length) return '';
   return groups.map((g,i)=>{
-    const head=['• '+g.title]; if(i===0 && (lang!=='ar' || withDate)) head.push(_rqReportDateLabel(dateISO));
+    const head=['*'+g.title+'*']; if(i===0 && (lang!=='ar' || withDate)) head.push(_rqReportDateLabel(dateISO));
     return head.join('\n')+'\n'+g.items.map(it=>it.lines.join('\n')).join('\n\n');
   }).join('\n\n');
 }
@@ -42675,7 +42675,7 @@ function _rqBuildSelectedText(){
       let first=true;
       _rqReportGroupsRaw(h.d).forEach(g=>{
         const items=g.items.filter(it=>_rqSel.has(it.id)); if(!items.length) return;
-        const head=['• '+g.title];
+        const head=['*'+g.title+'*'];
         if(first && lang!=='ar') head.push(_rqReportDateLabel(h.d));
         first=false;
         out.push(head.join('\n')+'\n'+items.map(it=>it.lines.join('\n')).join('\n\n'));
@@ -42723,7 +42723,7 @@ function rqReportCopyItem(id){
     const g=_rqReportGroupsRaw(r.date||'').find(gr=>gr.items.some(it=>it.id===id));
     if(!g) return '';
     const it=g.items.find(i=>i.id===id);
-    return '• '+g.title+'\n'+(lang==='ar'?'':_rqReportDateLabel(r.date)+'\n')+it.lines.join('\n');
+    return '*'+g.title+'*\n'+(lang==='ar'?'':_rqReportDateLabel(r.date)+'\n')+it.lines.join('\n');
   });
   if(!text) return;
   const done=()=>showToast(L('Card copied ✓','تم نسخ البطاقة ✓'),'success');
