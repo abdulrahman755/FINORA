@@ -2001,35 +2001,101 @@ tbody tr:hover{background:var(--surface2)}
    reminder/warning now renders as a dismissible card in this list instead of
    interrupting the screen. Reuses the app's existing bottom-sheet chrome. ══ */
 .notif-panel-body{display:flex;flex-direction:column;gap:var(--sp3);padding:2px 0 6px}
+.notif-bar{display:flex;align-items:center;justify-content:space-between;padding:0 2px;font-size:calc(12px*var(--app-text-scale,1));font-weight:700;color:color-mix(in srgb,var(--text) 60%,var(--surface))}
+.notif-clear{border:0;background:none;color:var(--green);font:800 calc(12px*var(--app-text-scale,1))/1 inherit;font-family:inherit;cursor:pointer;padding:8px 6px;border-radius:8px}
+[data-theme="dark"] .notif-clear{color:var(--green-light)}
+/* Notification card: calm surface, a tone-coloured edge, clear hierarchy (eyebrow \u2192 title \u2192 sentence \u2192 actions) */
 .notif-card{
-  display:flex;gap:12px;align-items:flex-start;
-  background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);
-  padding:13px 14px;animation:notifCardIn .28s cubic-bezier(.34,1.4,.64,1) both;
+  --nc:var(--green);
+  position:relative;display:flex;gap:13px;align-items:flex-start;
+  background:var(--surface);border:1px solid var(--border);border-inline-start:4px solid var(--nc);
+  border-radius:18px;padding:14px 14px 14px 12px;box-shadow:var(--shadow-sm);
+  animation:notifCardIn .28s cubic-bezier(.34,1.4,.64,1) both;
 }
+.notif-card.tone-danger{--nc:var(--red)}
+.notif-card.tone-warn{--nc:var(--gold-light,#D4AF37)}
+.notif-card.tone-info{--nc:var(--blue)}
+.notif-card.tone-ok{--nc:var(--green)}
+.notif-card.tone-muted{--nc:var(--muted)}
 @keyframes notifCardIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 .notif-card-icon{
-  width:36px;height:36px;border-radius:var(--radius-sm);flex-shrink:0;
+  width:42px;height:42px;border-radius:14px;flex-shrink:0;
   display:flex;align-items:center;justify-content:center;color:#fff;
-  box-shadow:0 4px 12px rgba(18,36,28,.14);
+  box-shadow:0 6px 16px color-mix(in srgb,var(--nc) 32%,transparent),inset 0 1px 0 rgba(255,255,255,.22);
 }
 .notif-card-body{flex:1;min-width:0}
-.notif-card-title{font-size:calc(var(--fs-body)*var(--app-text-scale,1));font-weight:800;color:var(--text)}
-.notif-card-sub{font-size:calc(10.5px*var(--app-text-scale,1));color:var(--muted);font-weight:700;margin-top:1px}
-.notif-card-text{font-size:calc(11.5px*var(--app-text-scale,1));color:var(--sub);line-height:1.5;margin-top:5px}
-.notif-card-actions{display:flex;gap:8px;margin-top:10px}
-.notif-btn-primary{
-  padding:8px 14px;border:none;border-radius:var(--radius-xs);cursor:pointer;
-  background:linear-gradient(135deg,var(--green-dark),var(--green));
-  color:#fff;font-size:calc(11.5px*var(--app-text-scale,1));font-weight:800;font-family:inherit;
+.notif-card-eyebrow{font-size:calc(10.5px*var(--app-text-scale,1));font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:color-mix(in srgb,var(--nc) 70%,var(--text));margin-bottom:3px}
+.notif-card-title{font-size:calc(15px*var(--app-text-scale,1));font-weight:800;line-height:1.3;color:var(--text);overflow-wrap:anywhere}
+.notif-card-sub{font-size:calc(12px*var(--app-text-scale,1));color:color-mix(in srgb,var(--text) 60%,var(--surface));font-weight:700;margin-top:3px;line-height:1.45}
+.notif-card-text{font-size:calc(12px*var(--app-text-scale,1));color:var(--sub);line-height:1.55;margin-top:6px}
+.notif-card-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.notif-btn-primary,.notif-btn-extra,.notif-btn-secondary{
+  height:38px;padding:0 15px;border-radius:12px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  font-size:calc(12.5px*var(--app-text-scale,1));font-weight:800;font-family:inherit;transition:transform .12s ease;-webkit-tap-highlight-color:transparent;
 }
-.notif-btn-secondary{
-  padding:8px 14px;border:none;border-radius:var(--radius-xs);cursor:pointer;
-  background:var(--surface3);color:var(--muted);font-size:calc(11.5px*var(--app-text-scale,1));font-weight:700;font-family:inherit;
-}
+.notif-btn-primary:active,.notif-btn-extra:active,.notif-btn-secondary:active{transform:scale(.96)}
+.notif-btn-primary{border:none;background:linear-gradient(135deg,var(--green-dark),var(--green));color:#fff;box-shadow:0 4px 12px color-mix(in srgb,var(--green) 28%,transparent)}
+.notif-btn-extra{border:1.5px solid color-mix(in srgb,var(--green) 34%,var(--border));background:transparent;color:var(--green)}
+[data-theme="dark"] .notif-btn-extra{color:var(--green-light)}
+.notif-btn-secondary{border:none;background:transparent;color:color-mix(in srgb,var(--text) 55%,var(--surface));font-weight:700}
 .notif-empty{
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;
   gap:8px;padding:38px 10px;color:var(--muted);font-size:calc(12.5px*var(--app-text-scale,1));font-weight:700;
 }
+.notif-empty b{font-size:calc(14.5px*var(--app-text-scale,1));font-weight:800;color:var(--text)}
+.notif-empty small{max-width:260px;line-height:1.5;font-weight:600;font-size:calc(12.5px*var(--app-text-scale,1))}
+.notif-empty-ic{width:58px;height:58px;border-radius:19px;display:flex;align-items:center;justify-content:center;margin-bottom:4px;background:color-mix(in srgb,var(--green) 10%,var(--surface));color:var(--green);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--green) 20%,transparent)}
+[data-theme="dark"] .notif-empty-ic{color:var(--green-light)}
+
+/* \u2500\u2500 Reminders sheet \u2500\u2500 */
+.rem-add{display:flex;flex-direction:column;gap:14px;background:var(--surface2);border:1px solid var(--border);border-radius:20px;padding:14px;margin-bottom:12px}
+.rem-field{display:flex;flex-direction:column;gap:8px;min-width:0}
+.rem-lbl{font-size:calc(12.5px*var(--app-text-scale,1));font-weight:800;color:color-mix(in srgb,var(--text) 68%,var(--surface))}
+.fin-inp.rem-inp{height:46px;padding:0 14px;border-radius:14px;font-size:calc(14px*var(--app-text-scale,1));font-family:inherit;width:100%;box-sizing:border-box}
+.rem-chips{display:flex;flex-wrap:wrap;gap:7px}
+.rem-chip{height:34px;padding:0 14px;border-radius:999px;border:1.5px solid var(--border);background:var(--surface);color:var(--text);font-family:inherit;font-size:calc(12.5px*var(--app-text-scale,1));font-weight:700;cursor:pointer;transition:background .15s,border-color .15s,transform .1s;-webkit-tap-highlight-color:transparent}
+.rem-chip:active{transform:scale(.96)}
+.rem-chip.on{background:var(--green);border-color:var(--green);color:#fff}
+.rem-preview{display:flex;gap:8px;align-items:flex-start;padding:10px 12px;border-radius:12px;font-size:calc(12.5px*var(--app-text-scale,1));line-height:1.5;font-weight:600;color:color-mix(in srgb,var(--text) 62%,var(--surface));background:color-mix(in srgb,var(--text) 4%,transparent)}
+.rem-preview svg{flex:none;margin-top:3px}
+.rem-preview.ok{background:color-mix(in srgb,var(--green) 9%,var(--surface));color:var(--text)}
+.rem-preview.ok svg{color:var(--green)}
+[data-theme="dark"] .rem-preview.ok svg{color:var(--green-light)}
+.rem-preview b{font-weight:900}
+.rem-submit{height:48px;border:0;border-radius:14px;background:var(--green);color:#fff;font-family:inherit;font-size:calc(14.5px*var(--app-text-scale,1));font-weight:800;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;transition:transform .12s ease,background .2s}
+.rem-submit:active{transform:scale(.98);background:var(--green-dark)}
+.rem-os{display:flex;align-items:center;gap:12px;padding:12px 14px;border:1px solid var(--border);border-radius:16px;background:var(--surface)}
+.rem-os-ic{width:36px;height:36px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex:none;background:var(--surface2);color:color-mix(in srgb,var(--text) 55%,var(--surface))}
+.rem-os.on .rem-os-ic{background:color-mix(in srgb,var(--green) 14%,var(--surface));color:var(--green)}
+[data-theme="dark"] .rem-os.on .rem-os-ic{color:var(--green-light)}
+.rem-os-tx{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.rem-os-tx b{font-size:calc(13px*var(--app-text-scale,1));font-weight:800;color:var(--text)}
+.rem-os-tx small{font-size:calc(11.5px*var(--app-text-scale,1));line-height:1.45;font-weight:600;color:color-mix(in srgb,var(--text) 58%,var(--surface))}
+.rem-os-btn{flex:none;height:36px;padding:0 14px;border:0;border-radius:11px;background:var(--green);color:#fff;font-family:inherit;font-size:calc(12.5px*var(--app-text-scale,1));font-weight:800;cursor:pointer}
+.rem-sec{display:flex;align-items:center;justify-content:space-between;margin:18px 2px 8px;font-size:calc(11.5px*var(--app-text-scale,1));font-weight:900;letter-spacing:.06em;text-transform:uppercase;color:color-mix(in srgb,var(--text) 58%,var(--surface))}
+.rem-sec em{font-style:normal;min-width:22px;height:22px;padding:0 7px;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;background:var(--surface3);color:var(--text);font-size:calc(11px*var(--app-text-scale,1))}
+.rem-sec.attn{color:color-mix(in srgb,var(--gold) 78%,var(--text))}
+.rem-item{--tc:var(--blue);display:flex;align-items:center;gap:12px;padding:11px 12px;margin-bottom:8px;background:var(--surface);border:1px solid var(--border);border-radius:16px}
+.rem-item.tone-danger{--tc:var(--red)}
+.rem-item.tone-warn{--tc:var(--gold)}
+.rem-item.tone-info{--tc:var(--blue)}
+.rem-item.tone-muted{--tc:var(--muted)}
+.rem-date{width:48px;height:52px;flex:none;border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;background:color-mix(in srgb,var(--tc) 12%,var(--surface));box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--tc) 28%,transparent);color:color-mix(in srgb,var(--tc) 78%,var(--text))}
+.rem-date small{font-size:calc(10px*var(--app-text-scale,1));font-weight:900;text-transform:uppercase;letter-spacing:.06em;line-height:1}
+.rem-date b{font-size:calc(20px*var(--app-text-scale,1));font-weight:900;line-height:1.1;font-variant-numeric:tabular-nums}
+.rem-main{flex:1;min-width:0}
+.rem-title{font-size:calc(14px*var(--app-text-scale,1));font-weight:800;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rem-sub{display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin-top:4px;font-size:calc(11.5px*var(--app-text-scale,1));font-weight:600;color:color-mix(in srgb,var(--text) 58%,var(--surface))}
+.rem-pill{padding:2px 9px;border-radius:999px;font-size:calc(11px*var(--app-text-scale,1));font-weight:800;background:color-mix(in srgb,var(--tc) 13%,var(--surface));color:color-mix(in srgb,var(--tc) 72%,var(--text))}
+.rem-alert{display:flex;align-items:center;gap:5px;margin-top:5px;font-size:calc(11px*var(--app-text-scale,1));font-weight:600;color:color-mix(in srgb,var(--text) 50%,var(--surface))}
+.rem-acts{display:flex;gap:6px;flex:none}
+.rem-act{width:38px;height:38px;border-radius:12px;border:1px solid var(--border);background:var(--surface2);color:color-mix(in srgb,var(--text) 55%,var(--surface));display:flex;align-items:center;justify-content:center;cursor:pointer;transition:transform .1s;-webkit-tap-highlight-color:transparent}
+.rem-act:active{transform:scale(.92)}
+.rem-act.ok{color:var(--green);background:color-mix(in srgb,var(--green) 10%,var(--surface));border-color:color-mix(in srgb,var(--green) 28%,var(--border))}
+[data-theme="dark"] .rem-act.ok{color:var(--green-light)}
+.rem-act.del:hover{color:var(--red)}
+.rem-item.is-done{opacity:.74}
+.rem-item.is-done .rem-title{text-decoration:line-through;text-decoration-color:color-mix(in srgb,var(--text) 35%,transparent)}
 
 .modal{
   background:var(--surface);
@@ -3239,13 +3305,52 @@ tbody tr:hover{background:var(--surface2)}
 .sav-row.asset-card:hover .asset-card-price{transform:scale(1.03)}
 .asset-card-price .num{font-size:calc(26px*var(--app-text-scale,1));font-weight:900;color:var(--text);line-height:1;letter-spacing:-.01em}
 .asset-card-price .cur{font-size:calc(10.5px*var(--app-text-scale,1));font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
-@media (max-width:420px){
-  .asset-card-grid{grid-template-columns:1fr}
-}
 @media (prefers-reduced-motion:reduce){
   .sav-row.asset-card,.asset-icon-wrap,.asset-card-price{transition:none!important}
   .sav-row.asset-card:hover{transform:none}
 }
+/* ── Asset TILES: same square-tile language as the Receipts (Requests) tiles ── */
+.sc-card .tx-rows.asset-card-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;padding:var(--sp3) var(--sp3) var(--sp4)}
+.sav-row.asset-card.asset-tile{
+  position:relative;display:block;aspect-ratio:1/1.1;min-height:0;min-width:0;padding:0;overflow:hidden;
+  background:color-mix(in srgb,var(--accent) 12%,var(--surface));
+  border:1.5px solid color-mix(in srgb,var(--accent) 38%,var(--border));
+  border-radius:14px;box-shadow:none;cursor:pointer;text-align:start;
+  transition:transform .12s ease,border-color .2s ease;-webkit-tap-highlight-color:transparent;
+}
+.sav-row.asset-card.asset-tile::before{content:none}
+.sav-row.asset-card.asset-tile:hover{transform:none;box-shadow:none;border-color:color-mix(in srgb,var(--accent) 55%,var(--border))}
+.sav-row.asset-card.asset-tile:active{transform:scale(.96)}
+.sav-row.asset-card.asset-tile:focus-visible{outline:2px solid var(--green-light);outline-offset:2px}
+.sav-row.asset-card.asset-tile.drag-dragging{opacity:.95;scale:1.05;z-index:50;box-shadow:var(--shadow-md);transition:none!important}
+.asset-tile-art{position:absolute;inset:0 0 42px 0;display:flex;align-items:center;justify-content:center;color:color-mix(in srgb,var(--accent) 80%,var(--text));overflow:hidden}
+.asset-tile-art svg{width:38px;height:38px}
+.asset-tile-art img{width:100%;height:100%;object-fit:cover;display:block}
+.asset-tile-flag{position:absolute;top:6px;inset-inline-end:6px;width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#8A6410;background:color-mix(in srgb,#D4AF37 26%,var(--surface));box-shadow:0 0 0 1px color-mix(in srgb,#D4AF37 45%,transparent)}
+[data-theme="dark"] .asset-tile-flag{color:#E3B04E}
+.asset-tile-grip{position:absolute;top:3px;inset-inline-start:3px;z-index:2;width:30px;height:30px;margin:0;display:flex;align-items:center;justify-content:center;border-radius:10px;color:color-mix(in srgb,var(--accent) 60%,var(--text));background:color-mix(in srgb,var(--surface) 50%,transparent);touch-action:none;cursor:grab}
+.asset-tile-grip svg{width:11px;height:16px}
+.asset-tile-meta{position:absolute;inset:auto 0 0 0;height:42px;display:flex;flex-direction:column;justify-content:center;gap:2px;padding:0 8px;background:color-mix(in srgb,var(--accent) 16%,var(--surface));border-top:1px solid color-mix(in srgb,var(--accent) 30%,var(--border))}
+.asset-tile-meta b{font-size:calc(12px*var(--app-text-scale,1));font-weight:800;line-height:1.15;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.asset-tile-meta small{display:flex;align-items:baseline;gap:3px;min-width:0;overflow:hidden;font-size:calc(11.5px*var(--app-text-scale,1));font-weight:900;line-height:1.1;color:color-mix(in srgb,var(--accent) 60%,var(--text));font-variant-numeric:tabular-nums;white-space:nowrap}
+.asset-tile-meta small span{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis}
+.asset-tile-meta small em{flex:0 100 auto;min-width:0;overflow:hidden;font-style:normal;font-size:calc(8.5px*var(--app-text-scale,1));font-weight:800;letter-spacing:.03em;opacity:.8}   /* the currency yields space first */
+@media (max-width:340px){.sc-card .tx-rows.asset-card-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+/* a tile being dragged may leave the card without being clipped at its edge */
+.sc-card:has(.asset-tile.drag-dragging){overflow:visible}
+@media (prefers-reduced-motion:reduce){.sav-row.asset-card.asset-tile{transition:none}}
+/* details sheet opened by tapping a tile */
+/* the sheet header/buttons are hoisted by the modal system, so scope by our own classes, not by .ast-sheet */
+.modal-hdr-icon.ast-sheet-ic{background:color-mix(in srgb,var(--accent) 18%,var(--surface2));color:color-mix(in srgb,var(--accent) 80%,var(--text));box-shadow:0 0 0 1px color-mix(in srgb,var(--accent) 24%,transparent);overflow:hidden}
+.ast-sheet-ic img{width:100%;height:100%;object-fit:cover;display:block}
+.ast-sheet-value{display:flex;align-items:baseline;gap:6px;margin:8px 0 4px}
+.ast-sheet-value .num{font-size:calc(30px*var(--app-text-scale,1));font-weight:900;color:var(--text);line-height:1;letter-spacing:-.01em;font-variant-numeric:tabular-nums}
+.ast-sheet-value .cur{font-size:calc(11px*var(--app-text-scale,1));font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.ast-sheet-rows{display:flex;flex-direction:column;margin:12px 0 6px;border:1px solid var(--border);border-radius:14px;overflow:hidden;background:var(--surface)}
+.ast-sheet-row{display:flex;justify-content:space-between;gap:14px;padding:11px 14px;font-size:calc(13px*var(--app-text-scale,1))}
+.ast-sheet-row+.ast-sheet-row{border-top:1px solid var(--border)}
+.ast-sheet-row span{color:color-mix(in srgb,var(--text) 62%,var(--surface));font-weight:600}
+.ast-sheet-row b{font-weight:800;color:var(--text);text-align:end;min-width:0;overflow-wrap:anywhere}
 /* ── Debts card — scoped additions only, shared .sav-row/.sav-row-meta
    rules above stay untouched so Income/Outcome/Assets rows are unaffected ── */
 .sav-debt-summary{display:flex;flex-wrap:wrap;gap:8px;margin:2px 0 12px}
@@ -19761,25 +19866,15 @@ function renderSavings(){
           ? `<img src="${x.iconOverride.img}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:var(--radius-sm)">`
           : ic(x.iconOverride.icon,34))
       : ic(meta.icon,34);
-    return `<div class="sav-row asset-card" id="savrow-asset-${idx}" data-savtype="asset" data-savidx="${idx}" style="--accent:${meta.color}">
-      <div class="asset-card-top">
-        <div class="sav-drag-handle" data-savtype="asset" title="${L('Hold to reorder','اسحب لإعادة الترتيب')}">${_SAV_DRAG_DOTS}</div>
-        <span class="asset-cat-badge">${meta.catLabel}</span>
-        <div class="asset-quick-actions">
-          <button class="asset-icon-btn" onclick="savEditAsset(${idx});event.stopPropagation()" title="${L('Edit','تعديل')}">${ic('edit',14)}</button>
-          <button class="asset-icon-btn danger" onclick="savDeleteAsset(${idx});event.stopPropagation()" title="${L('Delete','حذف')}">${ic('trash',14)}</button>
-        </div>
-      </div>
-      <div class="asset-card-body" onclick="savEditAsset(${idx})">
-        <div class="asset-icon-wrap">${_assetIconHTML}</div>
-        <div class="asset-card-name" dir="auto">${esc(x.name||L(t.en,t.ar))}</div>
-        ${meta.brandLabel?`<div class="asset-card-brand">${esc(meta.brandLabel)}</div>`:''}
-        <div class="asset-card-meta" dir="auto">${subMetaBits.join(' · ')}</div>
-        ${metaBadges?`<div class="asset-pill-row">${metaBadges}</div>`:''}
-        <div class="asset-card-bottom">
-          <div class="asset-card-price"><span class="num">${fmt(x.value||0)}</span><span class="cur">${curLabel()}</span></div>
-        </div>
-      </div>
+    const _tileIcon = x.iconOverride
+      ? (x.iconOverride.mode==='custom' ? `<img src="${x.iconOverride.img}" alt="">` : ic(x.iconOverride.icon,38))
+      : ic(meta.icon,38);
+    const _tileName = x.name||L(t.en,t.ar);
+    return `<div class="sav-row asset-card asset-tile" id="savrow-asset-${idx}" data-savtype="asset" data-savidx="${idx}" style="--accent:${meta.color}" role="button" tabindex="0" onclick="savOpenAssetCard(${idx})" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();savOpenAssetCard(${idx});}" aria-label="${esc(_tileName)} ${fmt(x.value||0)} ${curLabel()}">
+      <span class="asset-tile-art">${_tileIcon}</span>
+      ${meta.isHighValue?`<span class="asset-tile-flag" title="${L('High Value',"\u0642\u064a\u0645\u0629 \u0639\u0627\u0644\u064a\u0629")}">${ic('star',11)}</span>`:''}
+      <span class="sav-drag-handle asset-tile-grip" data-savtype="asset" onclick="event.stopPropagation()" title="${L('Hold to reorder',"\u0627\u0633\u062d\u0628 \u0644\u0625\u0639\u0627\u062f\u0629 \u0627\u0644\u062a\u0631\u062a\u064a\u0628")}">${_SAV_DRAG_DOTS}</span>
+      <span class="asset-tile-meta"><b dir="auto">${esc(_tileName)}</b><small dir="ltr"><span>${fmt(x.value||0)}</span><em>${curLabel()}</em></small></span>
     </div>`;
   }).join('') : _savEmptyState('assets');
 
@@ -20194,6 +20289,47 @@ function savDeleteOutcome(idx){
 
 // ── Asset modal ──────────────────────────────────────────────────────────────
 function savAddAsset(){ _savAssetModal(null); }
+// Tap on an asset tile: details + Edit / Delete (same idea as the Receipts tiles opening their card sheet)
+function savOpenAssetCard(idx){
+  const x=SAVINGS.assets[idx]; if(!x) return;
+  const t=SAV_ASSET_TYPES[x.type]||SAV_ASSET_TYPES.other;
+  const meta=savAssetCardMeta(x);
+  const name=x.name||L(t.en,t.ar);
+  const icon = x.iconOverride
+    ? (x.iconOverride.mode==='custom' ? `<img src="${x.iconOverride.img}" alt="">` : ic(x.iconOverride.icon,26))
+    : ic(meta.icon,26);
+  const pills=[
+    meta.isNew       ? `<span class="asset-pill" style="--pc:#2BC48C">${ic('sparkle',10)} ${L('New',"\u062c\u062f\u064a\u062f")}</span>` : '',
+    meta.isHighValue ? `<span class="asset-pill" style="--pc:#D4AF37">${ic('star',10)} ${L('High Value',"\u0642\u064a\u0645\u0629 \u0639\u0627\u0644\u064a\u0629")}</span>` : '',
+    meta.hasWarranty ? `<span class="asset-pill" style="--pc:#3D6FA3">${ic('check',10)} ${L('Warranty',"\u0636\u0645\u0627\u0646")}</span>` : '',
+  ].join('');
+  const row=(k,v)=> v ? `<div class="ast-sheet-row"><span>${k}</span><b dir="auto">${v}</b></div>` : '';
+  const qty = x.qty ? (x.type==='gold' ? esc(x.qty)+' '+L('g',"\u062c\u0645") : esc(x.qty)) : '';
+  const rows =
+      row(L('Category',"\u0627\u0644\u062a\u0635\u0646\u064a\u0641"), esc(meta.catLabel))
+    + row(L('Brand',"\u0627\u0644\u0645\u0627\u0631\u0643\u0629"), meta.brandLabel?esc(meta.brandLabel):'')
+    + row(x.type==='gold'?L('Weight',"\u0627\u0644\u0648\u0632\u0646"):L('Quantity',"\u0627\u0644\u0643\u0645\u064a\u0629"), qty)
+    + row(L('Price / gram',"\u0633\u0639\u0631 \u0627\u0644\u062c\u0631\u0627\u0645"), (x.type==='gold' && x.goldPricePerGram) ? fmt(x.goldPricePerGram)+' '+curLabel() : '')
+    + row(L('Purchase date',"\u062a\u0627\u0631\u064a\u062e \u0627\u0644\u0634\u0631\u0627\u0621"), x.purchaseDate?esc(x.purchaseDate):'')
+    + row(L('Notes',"\u0645\u0644\u0627\u062d\u0638\u0627\u062a"), x.note?esc(x.note):'');
+  document.getElementById('modalContent').innerHTML=`<div class="modal-handle"></div>
+    <div class="ast-sheet" style="--accent:${meta.color}">
+      <div class="modal-hdr">
+        <div class="modal-hdr-icon ast-sheet-ic" style="--accent:${meta.color}">${icon}</div>
+        <div style="flex:1;min-width:0"><div class="modal-hdr-title" dir="auto">${esc(name)}</div><div class="modal-hdr-sub">${esc(meta.catLabel)}</div></div>
+        <button type="button" class="sheet-close-btn sq" onclick="closeModal()" aria-label="${L('Close',"\u0625\u063a\u0644\u0627\u0642")}">${ic('close',16)}</button>
+      </div>
+      <div class="ast-sheet-value"><span class="num">${fmt(x.value||0)}</span><span class="cur">${curLabel()}</span></div>
+      ${pills?`<div class="asset-pill-row">${pills}</div>`:''}
+      ${rows?`<div class="ast-sheet-rows">${rows}</div>`:''}
+      <div class="modal-btns">
+        <button class="mbtn save" onclick="savEditAsset(${idx})">${ic('edit',15)} ${L('Edit',"\u062a\u0639\u062f\u064a\u0644")}</button>
+        <button class="mbtn danger" onclick="savDeleteAsset(${idx})">${ic('trash',15)} ${L('Delete',"\u062d\u0630\u0641")}</button>
+        <button class="mbtn cancel" onclick="closeModal()">${L('Close',"\u0625\u063a\u0644\u0627\u0642")}</button>
+      </div>
+    </div>`;
+  document.getElementById('modalOverlay').style.display='flex';
+}
 function savEditAsset(idx){ _savAssetModal(idx); }
 function _savAssetModal(editIdx){
   const x = editIdx!=null ? (SAVINGS.assets[editIdx]||{}) : { type:'gold' };
@@ -20597,6 +20733,7 @@ function savInitDrag(){
     handle.addEventListener('pointerdown', _savDragStart, {passive:false});
   });
 }
+var _savDragStartX=0;
 function _savDragStart(e){
   if(e.pointerType==='mouse' && e.button!==0) return;
   const handle=e.currentTarget;
@@ -20614,6 +20751,7 @@ function _savDragStart(e){
   _savDragPointerId=e.pointerId;
   try{ handle.setPointerCapture(e.pointerId); }catch(err){}
   _savDragStartY=e.clientY;
+  _savDragStartX=e.clientX;
   _savDragCurrentY=0;
   _savDragRows=Array.from(document.querySelectorAll(`.sav-row[data-savtype="${_savDragType}"]`));
   _savDragEl.classList.add('drag-dragging');
@@ -20625,9 +20763,53 @@ function _savDragStart(e){
   window.addEventListener('pointerup', _savDragEnd);
   window.addEventListener('pointercancel', _savDragEnd);
 }
+// Asset tiles live in a grid: reorder in 2D (the list logic below only knows about the vertical axis)
+function _savDragMoveGrid(e){
+  const el=_savDragEl;
+  const dx=e.clientX-_savDragStartX, dy=e.clientY-_savDragStartY;
+  el.style.transform='translate('+dx+'px,'+dy+'px)';
+  const px=e.clientX, py=e.clientY;
+  let target=null;
+  for(const row of _savDragRows){
+    if(row===el) continue;
+    const r=row.getBoundingClientRect();
+    if(px>=r.left && px<=r.right && py>=r.top && py<=r.bottom){ target=row; break; }
+  }
+  if(!target) return;
+  const tr=target.getBoundingClientRect();
+  const rtl=(document.documentElement.dir||getComputedStyle(document.body).direction)==='rtl';
+  const onLaterHalf = rtl ? px < tr.left+tr.width/2 : px > tr.left+tr.width/2;
+  const before = !onLaterHalf;
+  if(before ? el.nextElementSibling===target : el.previousElementSibling===target) return;   // already in that slot
+  const first=new Map();
+  _savDragRows.forEach(r=>{ if(r!==el) first.set(r, r.getBoundingClientRect()); });
+  const vis=el.getBoundingClientRect();                          // where the dragged tile is on screen right now
+  const parent=el.parentNode;
+  if(before) parent.insertBefore(el,target); else parent.insertBefore(el,target.nextSibling);
+  el.style.transform='none';
+  const slot=el.getBoundingClientRect();
+  const tx=vis.left-slot.left, ty=vis.top-slot.top;              // keep it exactly under the finger
+  el.style.transform='translate('+tx+'px,'+ty+'px)';
+  _savDragStartX=e.clientX-tx; _savDragStartY=e.clientY-ty;
+  first.forEach((b4,r)=>{                                        // FLIP: the others glide to their new slots
+    const af=r.getBoundingClientRect();
+    const fx=b4.left-af.left, fy=b4.top-af.top;
+    if(fx||fy){
+      clearTimeout(r._dragFlipTimer);
+      r.style.transition='none';
+      r.style.transform='translate('+fx+'px,'+fy+'px)';
+      requestAnimationFrame(()=>{
+        r.style.transition='transform .2s var(--ease-standard,ease)';
+        r.style.transform='';
+        r._dragFlipTimer=setTimeout(()=>{ r.style.transition=''; },220);
+      });
+    }
+  });
+}
 function _savDragMove(e){
   if(!_savDragEl || e.pointerId!==_savDragPointerId) return;
   e.preventDefault();
+  if(_savDragType==='asset') return _savDragMoveGrid(e);
   const y=e.clientY;
 
   _savDragCurrentY = y - _savDragStartY;
@@ -41747,26 +41929,35 @@ function notifUpdateBadge(){
   b.style.display = n>0 ? 'flex' : 'none';
 }
 function notifCardHTML(item){
+  const tone=item.tone?' tone-'+item.tone:'';
   return `
-  <div class="notif-card" id="notifCard_${item.id}">
+  <div class="notif-card${tone}" id="notifCard_${item.id}">
     <div class="notif-card-icon" style="background:${item.iconBg||'linear-gradient(135deg,var(--green-dark),var(--green))'}">${item.icon}</div>
     <div class="notif-card-body">
-      <div class="notif-card-title">${item.title}</div>
+      ${item.eyebrow?`<div class="notif-card-eyebrow">${item.eyebrow}</div>`:''}
+      <div class="notif-card-title" dir="auto">${item.title}</div>
       ${item.sub?`<div class="notif-card-sub">${item.sub}</div>`:''}
       ${item.body?`<div class="notif-card-text">${item.body}</div>`:''}
       <div class="notif-card-actions">
         ${item.primaryLabel?`<button class="notif-btn-primary" onclick="${item.primaryFn}">${item.primaryLabel}</button>`:''}
-        <button class="notif-btn-secondary" onclick="${item.secondaryFn||`notifDismiss('${item.id}')`}">${item.secondaryLabel||L('Dismiss','إخفاء')}</button>
+        ${item.extraLabel?`<button class="notif-btn-extra" onclick="${item.extraFn}">${item.extraLabel}</button>`:''}
+        <button class="notif-btn-secondary" onclick="${item.secondaryFn||`notifDismiss('${item.id}')`}">${item.secondaryLabel||L('Dismiss',"\u0625\u062e\u0641\u0627\u0621")}</button>
       </div>
     </div>
   </div>`;
 }
+function notifClearAll(){
+  NOTIF_ITEMS = [];
+  notifUpdateBadge();
+  notifRenderList();
+}
 function notifRenderList(){
   const body=document.getElementById('notifPanelBody');
-  if(!body) return; // panel not open — nothing to refresh right now
-  body.innerHTML = NOTIF_ITEMS.length
-    ? NOTIF_ITEMS.map(notifCardHTML).join('')
-    : `<div class="notif-empty">${ic('bell',26)}<div>${L('No new notifications','لا توجد إشعارات جديدة')}</div></div>`;
+  if(!body) return; // panel not open \u2014 nothing to refresh right now
+  const n=NOTIF_ITEMS.length;
+  body.innerHTML = n
+    ? (n>1?`<div class="notif-bar"><span>${L(`${n} notifications`,`${n} \u0625\u0634\u0639\u0627\u0631\u0627\u062a`)}</span><button type="button" class="notif-clear" onclick="notifClearAll()">${L('Clear all',"\u0645\u0633\u062d \u0627\u0644\u0643\u0644")}</button></div>`:'')+NOTIF_ITEMS.map(notifCardHTML).join('')
+    : `<div class="notif-empty"><span class="notif-empty-ic">${ic('bell',26)}</span><b>${L('You are all caught up',"\u0643\u0644 \u0634\u064a\u0621 \u062a\u0645\u0627\u0645")}</b><small>${L('New reminders and alerts will show up here.',"\u0627\u0644\u062a\u0630\u0643\u064a\u0631\u0627\u062a \u0648\u0627\u0644\u062a\u0646\u0628\u064a\u0647\u0627\u062a \u0627\u0644\u062c\u062f\u064a\u062f\u0629 \u0647\u062a\u0638\u0647\u0631 \u0647\u0646\u0627.")}</small></div>`;
 }
 function openNotifPanel(){
   document.getElementById('modalContent').innerHTML = `
@@ -41809,43 +42000,70 @@ function remDaysUntil(dateISO){
   const due=new Date(dateISO+'T00:00:00');
   return Math.round((due-today)/86400000);
 }
-function remDueLabel(diffDays){
-  if(diffDays<0) return L('Passed','انقضى موعده');
-  if(diffDays===0) return L('Today','اليوم');
-  if(diffDays===1) return L('Tomorrow','غداً');
-  return L(`In ${diffDays} days`,`بعد ${diffDays} يوم`);
+// \u2500\u2500 Wording / dates (Latin digits in both languages, like the rest of the app) \u2500\u2500
+function _remLocale(){ return lang==='ar' ? 'ar-EG-u-nu-latn' : 'en-GB'; }
+function remFmt(dateISO,opts){ try{ return new Intl.DateTimeFormat(_remLocale(),opts).format(new Date(dateISO+'T00:00:00')); }catch(e){ return dateISO; } }
+function remDateLong(dateISO){ return remFmt(dateISO,{weekday:'long',day:'numeric',month:'long',year:'numeric'}); }
+function remDateMid(dateISO){ return remFmt(dateISO,{weekday:'short',day:'numeric',month:'short'}); }
+function remDueLabel(diffDays){                 // short chip text
+  if(diffDays<0) return L('Passed',"\u0627\u0646\u0642\u0636\u0649 \u0645\u0648\u0639\u062f\u0647");
+  if(diffDays===0) return L('Today',"\u0627\u0644\u064a\u0648\u0645");
+  if(diffDays===1) return L('Tomorrow',"\u063a\u062f\u0627\u064b");
+  return L(`In ${diffDays} days`,`\u0628\u0639\u062f ${diffDays} \u064a\u0648\u0645`);
 }
+function _remArDays(n){ return n===1?'\u064a\u0648\u0645':n===2?'\u064a\u0648\u0645\u064a\u0646':n<=10?n+' \u0623\u064a\u0627\u0645':n+' \u064a\u0648\u0645\u0627\u064b'; }
+function remDueText(d){                         // full sentence
+  if(d<0){ const n=-d; return L(`Overdue by ${n} day${n>1?'s':''}`, n===1?'\u0641\u0627\u062a \u0645\u0648\u0639\u062f\u0647 \u0628\u064a\u0648\u0645':n===2?'\u0641\u0627\u062a \u0645\u0648\u0639\u062f\u0647 \u0628\u064a\u0648\u0645\u064a\u0646':'\u0641\u0627\u062a \u0645\u0648\u0639\u062f\u0647 \u0628\u0640 '+_remArDays(n)); }
+  if(d===0) return L('Due today',"\u0645\u0648\u0639\u062f\u0647 \u0627\u0644\u064a\u0648\u0645");
+  if(d===1) return L('Due tomorrow',"\u0645\u0648\u0639\u062f\u0647 \u063a\u062f\u0627\u064b");
+  return L(`Due in ${d} days`,'\u0645\u0648\u0639\u062f\u0647 \u0628\u0639\u062f '+_remArDays(d));
+}
+function remAlertLabel(n){                      // "3 days before"
+  n=+n||0;
+  if(n===0) return L('On the day',"\u0641\u064a \u0646\u0641\u0633 \u0627\u0644\u064a\u0648\u0645");
+  if(n===1) return L('1 day before',"\u0642\u0628\u0644\u0647\u0627 \u0628\u064a\u0648\u0645");
+  if(n===7) return L('1 week before',"\u0642\u0628\u0644\u0647\u0627 \u0623\u0633\u0628\u0648\u0639");
+  if(n===14) return L('2 weeks before',"\u0642\u0628\u0644\u0647\u0627 \u0623\u0633\u0628\u0648\u0639\u064a\u0646");
+  return L(`${n} days before`,'\u0642\u0628\u0644\u0647\u0627 '+_remArDays(n));
+}
+function remTone(d,notifyDays){ return d<0?'muted':d===0?'danger':d<=Math.min(3,Math.max(1,notifyDays||3))?'warn':'info'; }
+const _REM_TONE_BG={ danger:'linear-gradient(135deg,#B42318,#DC2626)', warn:'linear-gradient(135deg,#A97C1F,#D4AF37)', info:'linear-gradient(135deg,#2E5E8E,#3D6FA3)', muted:'linear-gradient(135deg,#6B7A71,#8C9790)' };
 
 function remOsOptedIn(){ try{ return localStorage.getItem(REM_OS_OPTIN_KEY)==='1'; }catch(e){ return false; } }
 function remEnableOsNotify(){
   if(!('Notification' in window)){
-    showToast(L('This browser does not support notifications','هذا المتصفح لا يدعم الإشعارات'),'warn');
+    showToast(L('This browser does not support notifications',"\u0647\u0630\u0627 \u0627\u0644\u0645\u062a\u0635\u0641\u062d \u0644\u0627 \u064a\u062f\u0639\u0645 \u0627\u0644\u0625\u0634\u0639\u0627\u0631\u0627\u062a"),'warn');
     return;
   }
   Notification.requestPermission().then(p=>{
     if(p==='granted'){
       try{ localStorage.setItem(REM_OS_OPTIN_KEY,'1'); }catch(e){ console.warn('[wdp-storage]', e); }
-      showToast(L('✓ OS notifications enabled — works while the app is open','✓ تم تفعيل إشعارات النظام — تشتغل والتطبيق مفتوح'),'success');
+      showToast(L('Phone alerts are on \u2014 they work while the app is open',"\u062a\u0645 \u062a\u0641\u0639\u064a\u0644 \u062a\u0646\u0628\u064a\u0647\u0627\u062a \u0627\u0644\u0645\u0648\u0628\u0627\u064a\u0644 \u2014 \u062a\u0634\u062a\u063a\u0644 \u0648\u0627\u0644\u062a\u0637\u0628\u064a\u0642 \u0645\u0641\u062a\u0648\u062d"),'success');
       renderRemindersPanel();
       remCheckDue(); // re-check immediately so anything already due fires now
     } else {
-      showToast(L('Permission not granted','الإذن لم يُمنح'),'warn');
+      showToast(L('Permission not granted',"\u0627\u0644\u0625\u0630\u0646 \u0644\u0645 \u064a\u064f\u0645\u0646\u062d"),'warn');
+      renderRemindersPanel();
     }
   });
 }
 
+// OS banner. iOS shows: title, the app name ("from FINORA"), then this body, so the body carries everything useful.
 function remTryOsNotify(r, diffDays){
   if(!remOsOptedIn()) return;
   if(!('Notification' in window) || Notification.permission!=='granted') return;
   const key=r.id+'|'+r.date;
   if(_remOsNotified.has(key)) return;
   _remOsNotified.add(key);
-  const body=diffDays===0?L('is due today','موعده اليوم'):diffDays===1?L('is due tomorrow','موعده غداً'):L(`is due in ${diffDays} days`,`موعده بعد ${diffDays} يوم`);
+  const title=(diffDays<=1?'\u23f0 ':'\ud83d\udcc5 ')+r.title;
+  const body=remDueText(diffDays)+' \u00b7 '+remDateLong(r.date)+'\n'+L('Tap to open FINORA',"\u0627\u0636\u063a\u0637 \u0644\u0641\u062a\u062d FINORA");
+  const opts={body,icon:'icons/icon-192.png',badge:'icons/icon-192.png',tag:key,lang:lang==='ar'?'ar':'en',dir:'auto',timestamp:Date.now(),
+              data:{type:'reminder',id:r.id,url:'./?open=reminders'}};
   try{
     if(navigator.serviceWorker&&navigator.serviceWorker.ready){
-      navigator.serviceWorker.ready.then(reg=>reg.showNotification(r.title,{body,icon:'icons/icon-192.png',tag:key}));
+      navigator.serviceWorker.ready.then(reg=>reg.showNotification(title,opts));
     } else {
-      new Notification(r.title,{body});
+      new Notification(title,opts);
     }
   }catch(e){_logErr('remTryOsNotify',e);}
 }
@@ -41854,36 +42072,78 @@ function remTryOsNotify(r, diffDays){
 // the shared Notification Center so it shows up the moment the app opens.
 function remCheckDue(){
   REMINDERS.forEach(r=>{
+    if(r.done) return;
     const diffDays=remDaysUntil(r.date);
     if(diffDays<0||diffDays>r.notifyDays) return;
+    const tone=remTone(diffDays,r.notifyDays);
     notifPush({
       id:'reminder_'+r.id,
-      icon:ic('clock',18),
-      iconBg:'linear-gradient(135deg,#0891b2,#06b6d4)',
-      title:r.title,
-      sub:remDueLabel(diffDays),
-      primaryLabel:L('View','عرض'),
-      primaryFn:'openRemindersPanel()',
-      secondaryLabel:L('Dismiss','إخفاء'),
+      tone,
+      icon:ic('clock',20),
+      iconBg:_REM_TONE_BG[tone],
+      eyebrow:L('Reminder',"\u062a\u0630\u0643\u064a\u0631"),
+      title:esc(r.title),
+      sub:remDueText(diffDays)+' \u00b7 '+esc(remDateLong(r.date)),
+      primaryLabel:`${ic('check',13)} ${L('Done',"\u062a\u0645")}`,
+      primaryFn:`remMarkDone('${r.id}')`,
+      extraLabel:L('View all',"\u0643\u0644 \u0627\u0644\u062a\u0630\u0643\u064a\u0631\u0627\u062a"),
+      extraFn:'openRemindersPanel()',
+      secondaryLabel:L('Later',"\u0644\u0627\u062d\u0642\u0627\u064b"),
       secondaryFn:`notifDismiss('reminder_${r.id}')`
     });
     remTryOsNotify(r, diffDays);
   });
 }
 
+function _remISO(offsetDays){
+  const d=new Date(); d.setHours(0,0,0,0); d.setDate(d.getDate()+offsetDays);
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+function remQuickDate(off,btn){
+  const inp=document.getElementById('remDateInput'); if(!inp) return;
+  inp.value=_remISO(off);
+  document.querySelectorAll('#remDateChips .rem-chip').forEach(b=>b.classList.toggle('on',b===btn));
+  remUpdatePreview();
+}
+function remDateTyped(){
+  document.querySelectorAll('#remDateChips .rem-chip').forEach(b=>b.classList.remove('on'));
+  remUpdatePreview();
+}
+function remPickNotify(val,btn){
+  const inp=document.getElementById('remNotifyDaysInput'); if(inp) inp.value=String(val);
+  document.querySelectorAll('#remNotifyChips .rem-chip').forEach(b=>b.classList.toggle('on',b===btn));
+  remUpdatePreview();
+}
+// live sentence under the form: tells you exactly WHEN you will be alerted
+function remUpdatePreview(){
+  const el=document.getElementById('remPreview'); if(!el) return;
+  const date=document.getElementById('remDateInput')?.value||'';
+  const n=parseInt(document.getElementById('remNotifyDaysInput')?.value||'3',10);
+  if(!date){ el.innerHTML=`${ic('info',13)} <span>${L('Pick a date and we will show you when you will be alerted.',"\u0627\u062e\u062a\u0627\u0631 \u0627\u0644\u062a\u0627\u0631\u064a\u062e \u0648\u0647\u0646\u0642\u0648\u0644\u0643 \u0647\u062a\u062a\u0646\u0628\u0651\u0647 \u0625\u0645\u062a\u0649.")}</span>`; el.classList.remove('ok'); return; }
+  const d=new Date(date+'T00:00:00'); d.setDate(d.getDate()-n);
+  const alertISO=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+  const past=remDaysUntil(alertISO)<0;
+  el.classList.add('ok');
+  el.innerHTML=`${ic('bell',13)} <span>${past
+    ? L('The alert window already started \u2014 you will see it right away.',"\u0641\u062a\u0631\u0629 \u0627\u0644\u062a\u0646\u0628\u064a\u0647 \u0628\u062f\u0623\u062a \u0628\u0627\u0644\u0641\u0639\u0644 \u2014 \u0647\u062a\u0634\u0648\u0641\u0647 \u062d\u0627\u0644\u0627\u064b.")
+    : L('You will be alerted on ','\u0647\u062a\u062a\u0646\u0628\u0651\u0647 \u064a\u0648\u0645 ')+'<b>'+esc(remDateMid(alertISO))+'</b>'+(n>0?' ('+esc(remAlertLabel(n))+')':'')}</span>`;
+}
+
 function remSubmitAdd(){
   const title=(document.getElementById('remTitleInput')?.value||'').trim();
   const date=document.getElementById('remDateInput')?.value||'';
   const notifyDays=parseInt(document.getElementById('remNotifyDaysInput')?.value||'3',10);
-  if(!title){ showToast(L('Please enter a title','من فضلك اكتب عنوان'),'warn'); return; }
-  if(!date){ showToast(L('Please pick a date','من فضلك اختر تاريخ'),'warn'); return; }
+  if(!title){ showToast(L('Please enter a title',"\u0645\u0646 \u0641\u0636\u0644\u0643 \u0627\u0643\u062a\u0628 \u0639\u0646\u0648\u0627\u0646"),'warn'); document.getElementById('remTitleInput')?.focus(); return; }
+  if(!date){ showToast(L('Please pick a date',"\u0645\u0646 \u0641\u0636\u0644\u0643 \u0627\u062e\u062a\u0631 \u062a\u0627\u0631\u064a\u062e"),'warn'); return; }
   REMINDERS.push({id:'rem_'+Date.now()+'_'+Math.random().toString(36).slice(2,7),title,date,notifyDays,createdAt:new Date().toISOString()});
   saveReminders();
   document.getElementById('remTitleInput').value='';
   document.getElementById('remDateInput').value='';
+  document.querySelectorAll('#remDateChips .rem-chip').forEach(b=>b.classList.remove('on'));
   renderRemindersPanel();
+  remUpdatePreview();
   remCheckDue();
-  showToast(L('✓ Reminder added','✓ تمت إضافة التذكير'),'success');
+  showToast(L('Reminder added',"\u062a\u0645\u062a \u0625\u0636\u0627\u0641\u0629 \u0627\u0644\u062a\u0630\u0643\u064a\u0631"),'success');
 }
 function remDelete(id){
   REMINDERS=REMINDERS.filter(r=>r.id!==id);
@@ -41894,67 +42154,114 @@ function remDelete(id){
 function remDeleteConfirm(id){
   const r=REMINDERS.find(x=>x.id===id);
   if(!r) return;
-  showConfirm(L(`Delete reminder "${r.title}"?`,`تحذف تذكير "${r.title}"؟`), ()=>{
+  showConfirm(L(`Delete reminder "${r.title}"?`,`\u062a\u062d\u0630\u0641 \u062a\u0630\u0643\u064a\u0631 "${r.title}"\u061f`), ()=>{
     remDelete(id);
     closeModal();
-    showToast(L('Deleted ✓','تم الحذف ✓'),'info');
+    showToast(L('Deleted',"\u062a\u0645 \u0627\u0644\u062d\u0630\u0641"),'info');
   });
+}
+// "Done" keeps the reminder (greyed, under Completed) instead of destroying it; tap again to restore.
+function remMarkDone(id){
+  const r=REMINDERS.find(x=>x.id===id); if(!r) return;
+  r.done=true; r.doneAt=new Date().toISOString();
+  saveReminders();
+  notifDismiss('reminder_'+id);
+  renderRemindersPanel();
+  showToast(L('Marked as done',"\u062a\u0645 \u062a\u0633\u062c\u064a\u0644\u0647 \u0643\u0645\u0646\u062c\u0632"),'success');
+}
+function remRestore(id){
+  const r=REMINDERS.find(x=>x.id===id); if(!r) return;
+  delete r.done; delete r.doneAt;
+  saveReminders();
+  renderRemindersPanel();
+  remCheckDue();
 }
 
 function remCardHTML(r){
-  const diffDays=remDaysUntil(r.date);
-  const label=remDueLabel(diffDays);
-  const isSoon=diffDays>=0&&diffDays<=r.notifyDays;
-  const color=diffDays<0?'var(--muted)':diffDays===0?'#dc2626':isSoon?'#d97706':'var(--sub)';
-  return `<div style="display:flex;align-items:center;gap:var(--sp3);padding:10px 2px;border-top:1px solid var(--border)">
-    <div style="width:34px;height:34px;border-radius:var(--icon-r-2);flex-shrink:0;display:flex;align-items:center;justify-content:center;background:${isSoon?'#d9770622':'var(--surface2)'};color:${isSoon?'#d97706':'var(--muted)'}">${ic('clock',16)}</div>
-    <div style="flex:1;min-width:0">
-      <div style="font-size:calc(13px*var(--app-text-scale,1));font-weight:800;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap" dir="auto">${esc(r.title)}</div>
-      <div style="font-size:calc(11px*var(--app-text-scale,1));color:var(--muted);margin-top:2px">${esc(r.date)}</div>
+  const d=remDaysUntil(r.date);
+  const done=!!r.done;
+  const tone=done?'muted':remTone(d,r.notifyDays);
+  const dt=new Date(r.date+'T00:00:00');
+  const mon=remFmt(r.date,{month:'short'}), day=dt.getDate();
+  const act = done
+    ? `<button type="button" class="rem-act" onclick="remRestore('${r.id}')" title="${L('Restore',"\u0627\u0633\u062a\u0639\u0627\u062f\u0629")}" aria-label="${L('Restore',"\u0627\u0633\u062a\u0639\u0627\u062f\u0629")}">${ic('undo',16)}</button>`
+    : `<button type="button" class="rem-act ok" onclick="remMarkDone('${r.id}')" title="${L('Mark as done',"\u062a\u0645 \u062a\u0633\u062c\u064a\u0644\u0647 \u0643\u0645\u0646\u062c\u0632")}" aria-label="${L('Mark as done',"\u062a\u0645 \u062a\u0633\u062c\u064a\u0644\u0647 \u0643\u0645\u0646\u062c\u0632")}">${ic('check',16)}</button>`;
+  return `<div class="rem-item tone-${tone}${done?' is-done':''}">
+    <div class="rem-date" aria-hidden="true"><small>${esc(mon)}</small><b>${day}</b></div>
+    <div class="rem-main">
+      <div class="rem-title" dir="auto">${esc(r.title)}</div>
+      <div class="rem-sub">
+        <span class="rem-pill">${done?L('Done',"\u062a\u0645"):esc(remDueText(d))}</span>
+        <span>${esc(remDateMid(r.date))}</span>
+      </div>
+      ${done?'':`<div class="rem-alert">${ic('bell',11)} ${esc(remAlertLabel(r.notifyDays))}</div>`}
     </div>
-    <span style="font-size:calc(11px*var(--app-text-scale,1));font-weight:800;color:${color};white-space:nowrap">${label}</span>
-    <button onclick="remDeleteConfirm('${r.id}')" class="del-btn" title="${L('Delete','حذف')}">${ic('trash',14)}</button>
+    <div class="rem-acts">${act}<button type="button" onclick="remDeleteConfirm('${r.id}')" class="rem-act del" title="${L('Delete',"\u062d\u0630\u0641")}" aria-label="${L('Delete',"\u062d\u0630\u0641")}">${ic('trash',15)}</button></div>
   </div>`;
 }
 function renderRemindersPanel(){
   const body=document.getElementById('remListBody');
   if(!body) return; // panel not open right now
-  const sorted=[...REMINDERS].sort((a,b)=>a.date.localeCompare(b.date));
-  body.innerHTML = sorted.length
-    ? sorted.map(remCardHTML).join('')
-    : `<div class="notif-empty">${ic('clock',26)}<div>${L('No reminders yet — add your first one above','لا توجد تذكيرات بعد — أضف أول تذكير بالأعلى')}</div></div>`;
+  const byDate=(a,b)=>a.date.localeCompare(b.date);
+  const active=REMINDERS.filter(r=>!r.done), done=REMINDERS.filter(r=>r.done).sort((a,b)=>b.date.localeCompare(a.date));
+  const soon=active.filter(r=>{const d=remDaysUntil(r.date);return d>=0&&d<=r.notifyDays;}).sort(byDate);
+  const later=active.filter(r=>remDaysUntil(r.date)>r.notifyDays).sort(byDate);
+  const passed=active.filter(r=>remDaysUntil(r.date)<0).sort((a,b)=>b.date.localeCompare(a.date));
+  const sec=(title,list,cls)=>list.length?`<div class="rem-sec ${cls||''}"><span>${title}</span><em>${list.length}</em></div>${list.map(remCardHTML).join('')}`:'';
+  const html=sec(L('Needs your attention',"\u064a\u062d\u062a\u0627\u062c \u0627\u0646\u062a\u0628\u0627\u0647\u0643"),soon,'attn')+sec(L('Coming up',"\u0642\u0627\u062f\u0645"),later)+sec(L('Passed',"\u0627\u0646\u0642\u0636\u0649 \u0645\u0648\u0639\u062f\u0647"),passed)+sec(L('Completed',"\u0645\u0646\u062c\u0632"),done);
+  body.innerHTML = html || `<div class="notif-empty rem-empty"><span class="notif-empty-ic">${ic('calendar',26)}</span><b>${L('No reminders yet',"\u0644\u0627 \u062a\u0648\u062c\u062f \u062a\u0630\u0643\u064a\u0631\u0627\u062a \u0628\u0639\u062f")}</b><small>${L('Add an important date above and we will remind you before it arrives.',"\u0623\u0636\u0641 \u0645\u0648\u0639\u062f\u0627\u064b \u0645\u0647\u0645\u0627\u064b \u0628\u0627\u0644\u0623\u0639\u0644\u0649 \u0648\u0647\u0646\u0630\u0643\u0651\u0631\u0643 \u0642\u0628\u0644 \u0645\u0627 \u064a\u0648\u0635\u0644.")}</small></div>`;
+}
+function _remOsRowHTML(){
+  const supported='Notification' in window;
+  const perm=supported?Notification.permission:'unsupported';
+  const on=remOsOptedIn() && perm==='granted';
+  let title,sub,btn='';
+  if(on){ title=L('Phone alerts are on',"\u062a\u0646\u0628\u064a\u0647\u0627\u062a \u0627\u0644\u0645\u0648\u0628\u0627\u064a\u0644 \u0634\u063a\u0627\u0644\u0629"); sub=L('A banner appears when a date is near, while the app is open.',"\u0647\u064a\u0638\u0647\u0631 \u0625\u0634\u0639\u0627\u0631 \u0644\u0645\u0627 \u0645\u0648\u0639\u062f \u064a\u0642\u0631\u0628\u060c \u0648\u0627\u0644\u062a\u0637\u0628\u064a\u0642 \u0645\u0641\u062a\u0648\u062d."); }
+  else if(perm==='denied'){ title=L('Phone alerts are blocked',"\u062a\u0646\u0628\u064a\u0647\u0627\u062a \u0627\u0644\u0645\u0648\u0628\u0627\u064a\u0644 \u0645\u062d\u0638\u0648\u0631\u0629"); sub=L('Allow notifications for FINORA in your phone settings.',"\u0627\u0633\u0645\u062d \u0628\u0627\u0644\u0625\u0634\u0639\u0627\u0631\u0627\u062a \u0644\u0640 FINORA \u0645\u0646 \u0625\u0639\u062f\u0627\u062f\u0627\u062a \u0627\u0644\u0645\u0648\u0628\u0627\u064a\u0644."); }
+  else if(!supported){ title=L('Phone alerts not supported',"\u062a\u0646\u0628\u064a\u0647\u0627\u062a \u0627\u0644\u0645\u0648\u0628\u0627\u064a\u0644 \u063a\u064a\u0631 \u0645\u062f\u0639\u0648\u0645\u0629"); sub=L('You will still see reminders inside the app.',"\u0647\u062a\u0634\u0648\u0641 \u0627\u0644\u062a\u0630\u0643\u064a\u0631\u0627\u062a \u062f\u0627\u062e\u0644 \u0627\u0644\u062a\u0637\u0628\u064a\u0642."); }
+  else { title=L('Get alerts on your phone',"\u0627\u062d\u0635\u0644 \u0639\u0644\u0649 \u062a\u0646\u0628\u064a\u0647\u0627\u062a \u0639\u0644\u0649 \u0645\u0648\u0628\u0627\u064a\u0644\u0643"); sub=L('Turn on notifications to see a banner when a date is near.',"\u0641\u0639\u0651\u0644 \u0627\u0644\u0625\u0634\u0639\u0627\u0631\u0627\u062a \u0639\u0634\u0627\u0646 \u064a\u0638\u0647\u0631\u0644\u0643 \u0625\u0634\u0639\u0627\u0631 \u0644\u0645\u0627 \u0645\u0648\u0639\u062f \u064a\u0642\u0631\u0628."); btn=`<button type="button" class="rem-os-btn" onclick="remEnableOsNotify()">${L('Turn on',"\u062a\u0641\u0639\u064a\u0644")}</button>`; }
+  return `<div class="rem-os${on?' on':''}"><span class="rem-os-ic">${ic(on?'bell':'smartphone',17)}</span><div class="rem-os-tx"><b>${title}</b><small>${sub}</small></div>${btn}</div>`;
 }
 function openRemindersPanel(){
-  const osOn=remOsOptedIn();
+  const notifyOpts=[[0,L('On the day',"\u0641\u064a \u0646\u0641\u0633 \u0627\u0644\u064a\u0648\u0645")],[1,L('1 day',"\u0642\u0628\u0644\u0647\u0627 \u0628\u064a\u0648\u0645")],[3,L('3 days',"\u0642\u0628\u0644\u0647\u0627 3 \u0623\u064a\u0627\u0645")],[7,L('1 week',"\u0642\u0628\u0644\u0647\u0627 \u0623\u0633\u0628\u0648\u0639")],[14,L('2 weeks',"\u0642\u0628\u0644\u0647\u0627 \u0623\u0633\u0628\u0648\u0639\u064a\u0646")]];
   document.getElementById('modalContent').innerHTML=`
     <div class="modal-hdr">
-      <div class="modal-hdr-icon" style="background:linear-gradient(135deg,#0891b2,#06b6d4)">${ic('clock',20)}</div>
+      <div class="modal-hdr-icon" style="background:linear-gradient(135deg,#A97C1F,#D4AF37)">${ic('clock',20)}</div>
       <div>
-        <div class="modal-hdr-title">${L('Reminders','التذكيرات')}</div>
-        <div class="modal-hdr-sub">${L('Upcoming dates you want a heads-up on','مواعيد مهمة تريد تذكّرها')}</div>
+        <div class="modal-hdr-title">${L('Reminders',"\u0627\u0644\u062a\u0630\u0643\u064a\u0631\u0627\u062a")}</div>
+        <div class="modal-hdr-sub">${L('Never miss an important date',"\u0645\u062a\u0641\u0648\u0651\u062a\u0634 \u0623\u064a \u0645\u0648\u0639\u062f \u0645\u0647\u0645")}</div>
       </div>
     </div>
-    <div style="display:flex;flex-direction:column;gap:8px;background:var(--surface2);border-radius:var(--radius-sm);padding:12px;margin-bottom:6px">
-      <input class="fin-inp" id="remTitleInput" type="text" dir="auto" placeholder="${L('Reminder title — e.g. Contract renewal','عنوان التذكير — مثال: تجديد عقد')}" style="height:40px;padding:0 12px;font-size:calc(13px*var(--app-text-scale,1));font-family:inherit">
-      <div style="display:flex;gap:8px">
-        <input class="fin-inp" id="remDateInput" type="date" style="flex:1;height:40px;padding:0 10px;font-size:calc(13px*var(--app-text-scale,1));font-family:inherit">
-        <select class="fin-inp" id="remNotifyDaysInput" style="width:132px;height:40px;padding:0 8px;font-size:calc(12px*var(--app-text-scale,1));font-family:inherit">
-          <option value="0">${L('On the day','في نفس اليوم')}</option>
-          <option value="1">${L('1 day before','قبلها بيوم')}</option>
-          <option value="3" selected>${L('3 days before','قبلها 3 أيام')}</option>
-          <option value="7">${L('1 week before','قبلها أسبوع')}</option>
-          <option value="14">${L('2 weeks before','قبلها أسبوعين')}</option>
-        </select>
+    <div class="rem-add">
+      <div class="rem-field">
+        <label class="rem-lbl" for="remTitleInput">${L('What should we remind you about?',"\u0646\u0630\u0643\u0651\u0631\u0643 \u0628\u0625\u064a\u0647\u061f")}</label>
+        <input class="fin-inp rem-inp" id="remTitleInput" type="text" dir="auto" enterkeyhint="done" placeholder="${L('e.g. Contract renewal',"\u0645\u062b\u0627\u0644: \u062a\u062c\u062f\u064a\u062f \u0639\u0642\u062f")}">
       </div>
-      <button onclick="remSubmitAdd()" class="card-add-btn green">${ic('plus',13)} ${L('Add Reminder','إضافة تذكير')}</button>
+      <div class="rem-field">
+        <label class="rem-lbl" for="remDateInput">${L('When is it?',"\u0625\u0645\u062a\u0649 \u0627\u0644\u0645\u0648\u0639\u062f\u061f")}</label>
+        <div class="rem-chips" id="remDateChips">
+          <button type="button" class="rem-chip" onclick="remQuickDate(0,this)">${L('Today',"\u0627\u0644\u064a\u0648\u0645")}</button>
+          <button type="button" class="rem-chip" onclick="remQuickDate(1,this)">${L('Tomorrow',"\u063a\u062f\u0627\u064b")}</button>
+          <button type="button" class="rem-chip" onclick="remQuickDate(7,this)">${L('In a week',"\u0628\u0639\u062f \u0623\u0633\u0628\u0648\u0639")}</button>
+          <button type="button" class="rem-chip" onclick="remQuickDate(30,this)">${L('In a month',"\u0628\u0639\u062f \u0634\u0647\u0631")}</button>
+        </div>
+        <input class="fin-inp rem-inp" id="remDateInput" type="date" onchange="remDateTyped()" oninput="remDateTyped()">
+      </div>
+      <div class="rem-field">
+        <span class="rem-lbl">${L('Remind me',"\u0646\u0646\u0628\u0651\u0647\u0643")}</span>
+        <div class="rem-chips" id="remNotifyChips" role="group">
+          ${notifyOpts.map(([v,t])=>`<button type="button" class="rem-chip${v===3?' on':''}" aria-pressed="${v===3}" onclick="remPickNotify(${v},this)">${t}</button>`).join('')}
+        </div>
+        <input type="hidden" id="remNotifyDaysInput" value="3">
+      </div>
+      <div class="rem-preview" id="remPreview"></div>
+      <button type="button" onclick="remSubmitAdd()" class="rem-submit">${ic('plus',15)} ${L('Add Reminder',"\u0625\u0636\u0627\u0641\u0629 \u062a\u0630\u0643\u064a\u0631")}</button>
     </div>
-    <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 2px 4px">
-      <span style="font-size:calc(11px*var(--app-text-scale,1));color:var(--muted);font-weight:600">${ic('bell',12)} ${osOn?L('OS notifications on (works while app is open)','إشعارات النظام مفعّلة (تشتغل والتطبيق مفتوح)'):L('In-app only — enable OS notifications?','داخل التطبيق فقط — هل تريد تفعيل إشعارات النظام؟')}</span>
-      ${osOn?'':`<button onclick="remEnableOsNotify()" style="flex-shrink:0;font-size:calc(10.5px*var(--app-text-scale,1));font-weight:800;color:var(--blue);background:transparent;border:none;cursor:pointer;padding:2px 4px">${L('Enable','تفعيل')}</button>`}
-    </div>
+    ${_remOsRowHTML()}
     <div id="remListBody"></div>`;
   document.getElementById('modalOverlay').style.display='flex';
   renderRemindersPanel();
+  remUpdatePreview();
 }
 loadReminders();
 remCheckDue();
