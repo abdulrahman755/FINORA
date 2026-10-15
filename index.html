@@ -7774,6 +7774,58 @@ button.cx-sh-tap{width:100%;background:none;border:0;font-family:inherit;color:i
    carried only by a 4px inline-start rule + the existing .cx-chip colours
    (green = received, gold = received with notes, red = not received). */
 .cx-tabs{margin-bottom:-4px}
+/* ══ My CV tab (My Job) ══ */
+.cx-tabs{display:flex}
+.cx-tabs .cx-seg-btn{flex:1 1 auto;padding:0 9px;font-size:calc(12.5px*var(--app-text-scale,1));overflow:visible;text-overflow:clip}
+.cv-wrap{display:flex;flex-direction:column;gap:12px}
+.cv-live{display:flex;align-items:center;gap:8px;padding:9px 12px;border-radius:12px;background:color-mix(in srgb,var(--green) 9%,var(--surface));border:1px solid color-mix(in srgb,var(--green) 22%,var(--border));font-size:calc(12.5px*var(--app-text-scale,1));font-weight:800;color:var(--text)}
+.cv-live em{margin-inline-start:auto;font-style:normal;font-weight:600;color:var(--muted);font-size:calc(11.5px*var(--app-text-scale,1))}
+.cv-live-dot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 0 3px color-mix(in srgb,var(--green) 22%,transparent)}
+.cv-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;box-shadow:var(--shadow-sm)}
+.cv-prof-top{display:flex;align-items:center;gap:12px}
+.cv-av{flex:none;width:52px;height:52px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:calc(22px*var(--app-text-scale,1));font-weight:900;color:#fff;background:linear-gradient(135deg,#0f7a55,#0a5c40)}
+.cv-prof-id{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.cv-prof-id b{font-size:calc(17px*var(--app-text-scale,1));font-weight:900;color:var(--text);line-height:1.25}
+.cv-prof-id small{font-size:calc(12.5px*var(--app-text-scale,1));font-weight:700;color:var(--green)}
+.cv-ib{flex:none;width:36px;height:36px;border-radius:11px;border:1px solid var(--border);background:var(--surface2);color:var(--muted);display:flex;align-items:center;justify-content:center;cursor:pointer}
+.cv-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.cv-chip,.cv-tag{display:inline-flex;align-items:center;gap:5px;padding:5px 10px;border-radius:99px;background:var(--surface2);color:var(--text);font-size:calc(12px*var(--app-text-scale,1));font-weight:700}
+.cv-chip svg{color:var(--muted)}
+.cv-sum{margin:12px 0 0;font-size:calc(13px*var(--app-text-scale,1));line-height:1.6;color:var(--text)}
+.cv-add{margin-top:12px;display:inline-flex;align-items:center;gap:6px;padding:8px 12px;border-radius:10px;border:1px dashed color-mix(in srgb,var(--green) 45%,transparent);background:color-mix(in srgb,var(--green) 7%,var(--surface));color:var(--green);font-family:inherit;font-size:calc(12.5px*var(--app-text-scale,1));font-weight:800;cursor:pointer}
+.cv-sec-row{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:4px}
+.cv-sec-t{display:inline-flex;align-items:center;gap:7px;font-size:calc(13px*var(--app-text-scale,1));font-weight:900;color:var(--text)}
+.cv-sec-t svg{color:var(--green)}
+.cv-card .cv-sec-t{margin-bottom:10px}
+.cv-card .cv-chips{margin-top:0}
+.cv-newprj{display:inline-flex;align-items:center;gap:5px;padding:7px 12px;border-radius:99px;border:0;background:var(--green);color:#fff;font-family:inherit;font-size:calc(12px*var(--app-text-scale,1));font-weight:800;cursor:pointer}
+.cv-projs{display:flex;flex-direction:column;gap:10px}
+.cv-proj{position:relative;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:13px 16px 12px;box-shadow:var(--shadow-sm);overflow:hidden}
+.cv-proj::before{content:'';position:absolute;inset-block:0;inset-inline-start:0;width:4px;background:var(--green)}
+.cv-proj.is-hidden{opacity:.6}
+.cv-proj-hd{display:flex;align-items:center;gap:11px}
+.cv-proj-av{flex:none;display:flex}
+.cv-proj-ttl{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.cv-proj-ttl b{font-size:calc(14.5px*var(--app-text-scale,1));font-weight:900;color:var(--text);line-height:1.25}
+.cv-proj-ttl small{font-size:calc(12px*var(--app-text-scale,1));font-weight:600;color:var(--muted)}
+.cv-proj-meta{display:flex;flex-wrap:wrap;gap:12px;margin-top:9px;font-size:calc(11.5px*var(--app-text-scale,1));font-weight:700;color:var(--muted)}
+.cv-proj-meta span{display:inline-flex;align-items:center;gap:5px}
+.cv-proj-desc{margin:9px 0 0;font-size:calc(12.5px*var(--app-text-scale,1));line-height:1.6;color:var(--text)}
+.cv-auto{margin:10px 0 0;padding-inline-start:18px;font-size:calc(12px*var(--app-text-scale,1));line-height:1.55;color:var(--text)}
+.cv-auto li{margin-bottom:3px}
+.cv-auto-tag,.cv-hidden-tag{display:inline-flex;align-items:center;gap:5px;margin-top:8px;font-size:calc(10.5px*var(--app-text-scale,1));font-weight:800;color:var(--green)}
+.cv-hidden-tag{color:var(--muted);margin-inline-start:10px}
+.cv-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:2px}
+.cv-btn{display:flex;align-items:center;justify-content:center;gap:7px;height:46px;border-radius:14px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-family:inherit;font-size:calc(13.5px*var(--app-text-scale,1));font-weight:800;cursor:pointer}
+.cv-btn.primary{background:var(--green);border-color:var(--green);color:#fff}
+.cv-ta{width:100%;min-height:64px;resize:vertical;font-family:inherit}
+.cv-2col{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.cv-hide-row{display:flex;align-items:center;gap:10px;margin:8px 0 2px;font-size:calc(13px*var(--app-text-scale,1));font-weight:700;color:var(--text);cursor:pointer}
+.cv-hide-row input{width:18px;height:18px;accent-color:var(--green)}
+.cv-btns{display:flex;gap:6px}
+.cv-newprj.alt{background:var(--surface2);color:var(--text);border:1px solid var(--border)}
+.cv-link{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:8px;font-size:calc(11.5px*var(--app-text-scale,1));font-weight:700;color:var(--muted);cursor:pointer}
+
 
 .rq-stat{appearance:none;-webkit-appearance:none;border:1.5px solid var(--border);background:var(--surface);border-radius:var(--radius-sm);font-family:inherit;padding:13px 4px 11px;min-height:70px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;cursor:pointer;color:var(--muted);box-shadow:var(--shadow-xs);transition:background-color .15s,border-color .15s,transform .12s,box-shadow .15s}
 .rq-stat:active{transform:scale(.96)}
@@ -31460,6 +31512,7 @@ function generateExpenseAIInsights(exps, groups){
 // deleteExp, deleteNoteGroup, _ng* categorize) are untouched.
 function renderExpenses(m){
   if(_cxTab==='attendance') return ATT.render();
+  if(_cxTab==='cv') return renderMyCV();
   if(_cxTab==='requests') return renderMyRequests();
   const allRaw=m?.site_expenses||[];
   const all=allRaw.filter(_prjMine);
@@ -31933,6 +31986,7 @@ function _prjCreate(){
   _PRJ.list.push(proj);
   if(!_prjSave()){ _PRJ.list.pop(); return; }
   _prjNewLogo=undefined;
+  try{ _cvTouch(id); }catch(e){}
   _prjSwitch(id,true);
 }
 function _prjSwitch(id,isNew){
@@ -31942,7 +31996,7 @@ function _prjSwitch(id,isNew){
   try{ _rqFilter='all'; searchQ=''; }catch(e){}
   try{ closeModal(); }catch(e){}
   try{ renderView(); }catch(e){ _logErr('_prjSwitch',e); }
-  showToast(isNew?L('New project started','بدأ مشروع جديد'):L('Switched project','تم تغيير المشروع'),'success');
+  showToast(isNew?L('New project started · added to My CV','بدأ مشروع جديد · اتضاف لسيرتك الذاتية'):L('Switched project','تم تغيير المشروع'),'success');
 }
 const _RQ_KEY='wdp_receipts_v1';
 const _RQ_STATUS={
@@ -32468,13 +32522,386 @@ async function _rqRunTranslate(id,targetLang){
 
 function _cxTabsHTML(){
   const t=(k,lbl)=>`<button type="button" role="tab" class="cx-seg-btn${_cxTab===k?' on':''}" aria-selected="${_cxTab===k?'true':'false'}" onclick="_cxSetTab('${k}')">${lbl}</button>`;
-  return `<div class="cx-seg cx-tabs" role="tablist">${t('requests',L('My Receipts','استلاماتي'))}${t('custody',L('Custody','العهدة'))}${t('attendance',L('Attendance','الحضور'))}</div>`;
+  return `<div class="cx-seg cx-tabs" role="tablist">${t('requests',L('My Receipts','استلاماتي'))}${t('custody',L('Custody','العهدة'))}${t('attendance',L('Attendance','الحضور'))}${t('cv',L('My CV','سيرتي'))}</div>`;
 }
 function _cxSetTab(k){
-  const nk=(k==='requests'||k==='attendance')?k:'custody';
+  const nk=(k==='requests'||k==='attendance'||k==='cv')?k:'custody';
   if(nk===_cxTab) return;
   _cxTab=nk; searchQ='';
   renderView();
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// MY CV — 4th tab inside My Job. Work experience is built from the project list,
+// so a project you add (or rename) appears in the CV by itself; its receipts feed
+// an auto-written bullet. Past jobs that are not app projects are added by hand
+// ("Past job"). The exported CV (PDF / copied text) is always English and follows
+// the layout of the user's own CV (centered name, navy headings, 2-column core
+// skills, company → role line → bullets, "Updated Month YYYY | Page N" footer).
+// Own localStorage key (wdp_cv_v1) — touches no finance / receipts data.
+// ══════════════════════════════════════════════════════════════════════════
+const _CV_KEY='wdp_cv_v1';
+function _cvLoad(){
+  try{
+    const o=JSON.parse(localStorage.getItem(_CV_KEY)||'null');
+    if(o&&typeof o==='object') return {
+      profile:(o.profile&&typeof o.profile==='object')?o.profile:{},
+      projects:(o.projects&&typeof o.projects==='object')?o.projects:{},
+      extra:Array.isArray(o.extra)?o.extra.filter(x=>x&&x.id):[],
+      updatedAt:o.updatedAt||0};
+  }catch(e){ _logErr('_cvLoad',e); }
+  return {profile:{},projects:{},extra:[],updatedAt:0};
+}
+function _cvSave(cv){
+  cv.updatedAt=Date.now();
+  try{ localStorage.setItem(_CV_KEY,JSON.stringify(cv)); return true; }
+  catch(e){ _logErr('_cvSave',e); try{ showToast(L('Could not save','تعذّر الحفظ'),'warn'); }catch(_){} return false; }
+}
+// Called when a project is created: gives it a CV entry (start date = today).
+function _cvTouch(pid){
+  try{
+    const cv=_cvLoad();
+    if(!cv.projects[pid]){ cv.projects[pid]={created:Date.now()}; _cvSave(cv); return true; }
+  }catch(e){ _logErr('_cvTouch',e); }
+  return false;
+}
+function _cvRq(pid){
+  try{
+    const raw=localStorage.getItem(pid===_PRJ_DEFAULT?_RQ_KEY:_RQ_KEY+'__'+pid);
+    const a=raw?JSON.parse(raw):[];
+    return Array.isArray(a)?a.filter(r=>r&&typeof r==='object'&&r.id):[];
+  }catch(e){ return []; }
+}
+function _cvStats(pid){
+  const rs=_cvRq(pid), seen={}, co=[], ty=[], pl={};
+  let rec=0,notes=0,rej=0,first='',last='';
+  rs.forEach(r=>{
+    if(r.status==='rejected') rej++; else if(r.status==='notes') notes++; else rec++;
+    const c=String(r.company||'').trim(); if(c&&!seen['c'+c.toLowerCase()]){ seen['c'+c.toLowerCase()]=1; co.push(c); }
+    const t=String(r.type||'').trim(); if(t&&!seen['t'+t.toLowerCase()]){ seen['t'+t.toLowerCase()]=1; ty.push(t); }
+    if(r.plot) pl[String(r.plot).trim()]=1;
+    const d=String(r.date||''); if(/^\d{4}-\d{2}/.test(d)){ if(!first||d<first) first=d; if(!last||d>last) last=d; }
+  });
+  return {n:rs.length,rec,notes,rej,companies:co,types:ty,plots:Object.keys(pl).length,first,last};
+}
+// One list for the screen and the export: app projects + hand-added past jobs, newest first.
+function _cvEntries(cv){
+  const out=_PRJ.list.map(p=>{
+    const e=cv.projects[p.id]||{}, st=_cvStats(p.id);
+    const from=e.from||st.first||(e.created?new Date(e.created).toISOString().slice(0,10):'');
+    return {kind:'p',id:p.id,name:_prjName(p),logo:p.logo,company:e.client||'',role:e.role||'',loc:e.loc||'',from,to:e.to||'',desc:e.desc||'',hide:!!e.hide,noauto:!!e.noauto,st};
+  });
+  (cv.extra||[]).forEach(x=>out.push({kind:'x',id:x.id,name:x.project||'',company:x.company||'',role:x.role||'',loc:x.loc||'',from:x.from||'',to:x.to||'',desc:x.desc||'',hide:!!x.hide,noauto:true,st:null}));
+  return out.sort((a,b)=>String(b.from||'').localeCompare(String(a.from||'')));
+}
+// ---- dates -----------------------------------------------------------------
+function _cvDateParts(d){ const m=/^(\d{4})-(\d{2})(?:-(\d{2}))?$/.exec(d||''); return m?{y:+m[1],mo:+m[2],d:m[3]?+m[3]:0}:null; }
+function _cvFmt(d){   // UI language
+  const q=_cvDateParts(d); if(!q) return '';
+  try{ return new Date(q.y,q.mo-1,q.d||1).toLocaleDateString(lang==='ar'?'ar-EG':'en-GB',{month:'short',year:'numeric'}); }catch(e){ return d; }
+}
+function _cvPeriod(e){ const f=_cvFmt(e.from); if(!f) return ''; return f+' – '+(e.to?_cvFmt(e.to):L('Present','حتى الآن')); }
+function _cvLong(d,withDay){   // always English, for the CV itself
+  const q=_cvDateParts(d); if(!q) return '';
+  try{ return new Date(q.y,q.mo-1,q.d||1).toLocaleDateString('en-US',withDay&&q.d?{month:'long',day:'numeric',year:'numeric'}:{month:'long',year:'numeric'}); }catch(e){ return d; }
+}
+function _cvPeriodEN(e){
+  const f=e.from; if(!f) return '';
+  const now=new Date().toISOString().slice(0,10);
+  const fut=f.length>7?f>now:f>now.slice(0,7);
+  if(fut&&!e.to) return 'Starting '+_cvLong(f,true);
+  return _cvLong(f)+' to '+(e.to?_cvLong(e.to):'Present');
+}
+function _cvList(s){ return String(s||'').split('\n').map(x=>x.trim()).filter(Boolean); }
+function _cvTitle(p){ return (p.title||'').trim()||L('Consultant Engineer','مهندس استشاري'); }
+// ---- auto bullets ----------------------------------------------------------
+function _cvAuto(st){   // shown on screen, in the UI language
+  const a=[], sep=lang==='ar'?'، ':', ';
+  if(st&&st.n){
+    a.push(L(`Inspected ${st.n} work item${st.n===1?'':'s'} across ${st.plots} plot${st.plots===1?'':'s'} — ${st.rec} received, ${st.notes} with notes, ${st.rej} not received`,
+             `فحص واستلام ${st.n} عمل على ${st.plots} قطعة — ${st.rec} مستلم، ${st.notes} بملاحظات، ${st.rej} مرفوض`));
+    if(st.companies.length) a.push(L('Contractors: ','المقاولون: ')+st.companies.join(sep));
+    if(st.types.length) a.push(L('Works inspected: ','الأعمال: ')+st.types.join(sep));
+  }
+  return a;
+}
+function _cvAutoCV(st){   // the single line that goes into the CV (English, no rejected counts)
+  if(!st||!st.n) return '';
+  return `Inspected and processed ${st.n} work-receipt request${st.n===1?'':'s'} across ${st.plots} plot${st.plots===1?'':'s'}`+(st.companies.length?` for contractors including ${st.companies.slice(0,4).join(', ')}`:'')+'.';
+}
+// ---- the CV as data → text / HTML -----------------------------------------
+function _cvModel(){
+  const cv=_cvLoad(), p=cv.profile;
+  const jobs=_cvEntries(cv).filter(e=>!e.hide).map(e=>{
+    const head=e.company||e.name||'';
+    const company=[head,e.loc].filter(Boolean).join(', ');
+    const roleLine=[e.role,e.company?e.name:'',_cvPeriodEN(e)].filter(Boolean).join(' | ');
+    const bullets=String(e.desc||'').split('\n').map(x=>x.trim()).filter(Boolean).map(t=>t.startsWith('# ')?{sub:t.slice(2).trim()}:{t});
+    if(e.st&&!e.noauto){ const a=_cvAutoCV(e.st); if(a) bullets.push({t:a}); }
+    return {company,roleLine,bullets};
+  }).filter(j=>j.company||j.roleLine||j.bullets.length);
+  const edu=String(p.edu||'').split(/\n\s*\n/).map(b=>b.split('\n').map(x=>x.trim()).filter(Boolean)).filter(b=>b.length);
+  return {
+    name:(p.name||'').trim(),
+    headline:(p.title||'').trim()||'Consultant Engineer',
+    c1:[p.phone?'Phone: '+p.phone:'',p.email?'Email: '+p.email:''].filter(Boolean).join(' | '),
+    c2:[p.linkedin?'LinkedIn: '+p.linkedin:'',p.loc?'Location: '+p.loc:''].filter(Boolean).join(' | '),
+    summary:(p.summary||'').trim(), skills:_cvList(p.skills), jobs, edu, certs:_cvList(p.certs), langs:_cvList(p.langs)
+  };
+}
+function _cvText(){
+  const m=_cvModel(), o=[];
+  if(m.name) o.push(m.name.toUpperCase());
+  o.push(m.headline); if(m.c1) o.push(m.c1); if(m.c2) o.push(m.c2);
+  if(m.summary) o.push('','SUMMARY',m.summary);
+  if(m.skills.length){ o.push('','CORE SKILLS'); m.skills.forEach(x=>o.push('• '+x)); }
+  if(m.jobs.length){
+    o.push('','WORK EXPERIENCE');
+    m.jobs.forEach((j,i)=>{ if(i) o.push(''); if(j.company) o.push(j.company); if(j.roleLine) o.push(j.roleLine); j.bullets.forEach(b=>o.push(b.sub?b.sub:'• '+b.t)); });
+  }
+  if(m.edu.length){ o.push('','EDUCATION'); m.edu.forEach(b=>b.forEach(x=>o.push(x))); }
+  if(m.certs.length){ o.push('','CERTIFICATIONS & TRAINING'); m.certs.forEach(x=>o.push('• '+x)); }
+  if(m.langs.length) o.push('','LANGUAGES',m.langs.join(' | '));
+  return o.join('\n').trim();
+}
+async function cvCopy(){
+  const ok=await _notesCopyText(_cvText());
+  showToast(ok?L('CV copied ✓','تم نسخ السيرة الذاتية ✓'):L('Copy failed','تعذّر النسخ'),ok?'success':'warn');
+}
+function cvPrint(){
+  const m=_cvModel();
+  const upd=new Date().toLocaleDateString('en-US',{month:'long',year:'numeric'});
+  const ios=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+  const sec=(t,body)=>body?`<h2>${t}</h2>${body}`:'';
+  const li=a=>`<ul class="bl">${a.map(x=>`<li dir="auto">${esc(x)}</li>`).join('')}</ul>`;
+  const subLine=s=>{ const i=s.indexOf(' — '); return i<0?`<b>${esc(s)}</b>`:`<b>${esc(s.slice(0,i))}</b> — ${esc(s.slice(i+3))}`; };
+  const jobsHTML=m.jobs.map(j=>{
+    let body='', run=[];
+    const flush=()=>{ if(run.length){ body+=li(run); run=[]; } };
+    j.bullets.forEach(b=>{ if(b.sub){ flush(); body+=`<div class="sub" dir="auto">${subLine(b.sub)}</div>`; } else run.push(b.t); });
+    flush();
+    return `<div class="job">${j.company?`<div class="co" dir="auto">${esc(j.company)}</div>`:''}${j.roleLine?`<div class="rl" dir="auto">${esc(j.roleLine)}</div>`:''}${body}</div>`;
+  }).join('');
+  const eduHTML=m.edu.map(b=>`<div class="ed"><b dir="auto">${esc(b[0])}</b>${b.slice(1).map(x=>`<div dir="auto">${esc(x)}</div>`).join('')}</div>`).join('');
+  const html=`<!doctype html><html lang="en"><head><meta charset="utf-8"><title>${esc(m.name||'CV')}</title><style>
+@page{size:A4;margin:14mm 16mm 17mm;${ios?'':`@bottom-right{content:"Updated ${upd} | Page " counter(page);font:7pt Helvetica,Arial,sans-serif;color:#6a7680}`}}
+*{box-sizing:border-box}
+body{margin:0;font-family:Helvetica,Arial,'Helvetica Neue',sans-serif;color:#222;font-size:8.1pt;line-height:1.36}
+h1{margin:0;text-align:center;font-size:17pt;line-height:1.15;color:#17324d;font-weight:700;text-transform:uppercase}
+.hl{color:#4b6073;font-size:9.3pt;margin:3pt 0 5pt}
+.ct{color:#333;line-height:1.42}
+h2{margin:8pt 0 4pt;font-size:10.3pt;color:#17324d;font-weight:700;text-transform:uppercase;break-after:avoid}
+p{margin:0}
+.sk{list-style:none;margin:0;padding:0;columns:2;column-gap:22pt}
+.sk li{break-inside:avoid;padding-inline-start:9pt;position:relative;margin-bottom:1.5pt}
+.sk li::before,.bl li::before{content:'•';position:absolute;inset-inline-start:2pt}
+.job{margin-bottom:2pt}
+.co{margin:7pt 0 3pt;font-size:8.8pt;font-weight:700;color:#17324d;break-after:avoid}
+.rl{margin-bottom:4pt;font-size:8pt;color:#5e6d79;break-after:avoid}
+.bl{list-style:none;margin:0;padding:0}
+.bl li{position:relative;padding-inline-start:10pt;margin-bottom:3.6pt;break-inside:avoid}
+.sub{margin:7pt 0 4pt;font-size:8.2pt;break-after:avoid}
+.ed{margin-bottom:4pt}.ed b{display:block;margin-bottom:3pt}.ed div{margin-bottom:3pt}
+.ft{position:fixed;right:0;bottom:0;font-size:7pt;color:#6a7680}
+</style></head><body>
+${ios?`<div class="ft">Updated ${upd}</div>`:''}
+${m.name?`<h1>${esc(m.name)}</h1>`:''}<div class="hl" style="text-align:left">${esc(m.headline)}</div>
+<div class="ct">${m.c1?`<div>${esc(m.c1)}</div>`:''}${m.c2?`<div>${esc(m.c2)}</div>`:''}</div>
+${sec('Summary',m.summary?`<p dir="auto">${esc(m.summary).replace(/\n/g,'<br>')}</p>`:'')}
+${sec('Core Skills',m.skills.length?`<ul class="sk">${m.skills.map(x=>`<li dir="auto">${esc(x)}</li>`).join('')}</ul>`:'')}
+${sec('Work Experience',jobsHTML)}
+${sec('Education',eduHTML)}
+${sec('Certifications &amp; Training',m.certs.length?li(m.certs):'')}
+${sec('Languages',m.langs.length?`<p dir="auto">${esc(m.langs.join(' | '))}</p>`:'')}
+</body></html>`;
+  try{
+    const old=document.getElementById('cvPrintFrame'); if(old) old.remove();
+    const f=document.createElement('iframe'); f.id='cvPrintFrame';
+    f.style.cssText='position:fixed;right:0;bottom:0;width:0;height:0;border:0;visibility:hidden';
+    document.body.appendChild(f);
+    const d=f.contentWindow.document; d.open(); d.write(html); d.close();
+    setTimeout(()=>{ try{ f.contentWindow.focus(); f.contentWindow.print(); }catch(e){ _logErr('cvPrint',e); showToast(L('Could not open print','تعذّر فتح الطباعة'),'warn'); } },350);
+  }catch(e){ _logErr('cvPrint',e); showToast(L('Could not open print','تعذّر فتح الطباعة'),'warn'); }
+}
+
+// ---- screen ----------------------------------------------------------------
+function renderMyCV(){
+  const cv=_cvLoad(), p=cv.profile, ents=_cvEntries(cv);
+  const shown=ents.filter(e=>!e.hide).length;
+  const ini=(p.name||'').trim().charAt(0).toUpperCase();
+  const chip=(ico,v)=>v?`<span class="cv-chip">${ic(ico,13)}<bdi>${esc(v)}</bdi></span>`:'';
+  const contacts=chip('phone',p.phone)+chip('mail',p.email)+chip('link',p.linkedin)+chip('pin',p.loc);
+  const extra=(k,en,ar,ico)=>{ const l=_cvList(p[k]); return l.length?`<section class="cv-card"><div class="cv-sec-t">${ic(ico,15)}<span>${L(en,ar)}</span></div><div class="cv-chips">${l.map(x=>`<span class="cv-tag" dir="auto">${esc(x)}</span>`).join('')}</div></section>`:''; };
+  const cards=ents.map(e=>{
+    const per=_cvPeriod(e), auto=e.noauto?[]:_cvAuto(e.st);
+    const title=e.kind==='p'?e.name:(e.company||e.name||L('Past job','وظيفة سابقة'));
+    const sub=e.kind==='p'?[e.role,e.company].filter(Boolean).join(' · '):[e.role,e.name].filter(Boolean).join(' · ');
+    const av=e.kind==='p'?_prjAv({id:e.id,name:e.name,logo:e.logo},40):`<span class="de-av" style="width:40px;height:40px;font-size:17px">${esc((title||'?').charAt(0).toUpperCase())}</span>`;
+    return `<article class="cv-proj${e.hide?' is-hidden':''}">
+      <div class="cv-proj-hd">
+        <span class="cv-proj-av">${av}</span>
+        <div class="cv-proj-ttl"><b dir="auto">${esc(title)}</b><small dir="auto">${esc(sub||L('Add your role & company','أضف دورك والشركة'))}</small></div>
+        <button type="button" class="cv-ib" onclick="${e.kind==='p'?`_cvEditProj('${e.id}')`:`_cvEditExtra('${e.id}')`}" aria-label="${L('Edit','تعديل')}">${ic('edit',16)}</button>
+      </div>
+      ${(per||e.loc||e.kind==='x')?`<div class="cv-proj-meta">${per?`<span>${ic('calendar',12)}<bdi>${esc(per)}</bdi></span>`:''}${e.loc?`<span>${ic('pin',12)}<bdi>${esc(e.loc)}</bdi></span>`:''}${e.kind==='x'?`<span>${ic('briefcase',12)}${L('Past job','وظيفة سابقة')}</span>`:''}</div>`:''}
+      ${e.desc?`<p class="cv-proj-desc" dir="auto">${esc(e.desc).replace(/^# /gm,'').replace(/\n/g,'<br>')}</p>`:''}
+      ${auto.length?`<ul class="cv-auto">${auto.map(x=>`<li dir="auto">${esc(x)}</li>`).join('')}</ul><div class="cv-auto-tag">${ic('sparkle',11)} ${L('Auto-updated from your receipts','بيتحدّث تلقائيًا من استلاماتك')}</div>`:''}
+      ${e.hide?`<div class="cv-hidden-tag">${ic('eyeoff',12)} ${L('Hidden from the CV','مخفي من السيرة الذاتية')}</div>`:''}
+    </article>`;
+  }).join('');
+  return `<div class="screen-wrap cx-wrap cv-wrap">
+  ${_pgHdr('Site','الموقع','My Job','My Job','Receipts log and custody money','سجل الاستلامات وعهدة الموقع')}
+  ${_cxTabsHTML()}
+  <div class="cv-live"><span class="cv-live-dot"></span><span>${L('Auto-updating CV','سيرة ذاتية بتتحدّث تلقائيًا')}</span><em>${L(`${shown} of ${ents.length} in the CV`,`${shown} من ${ents.length} في السيرة`)}</em></div>
+  <section class="cv-card cv-prof">
+    <div class="cv-prof-top">
+      <span class="cv-av">${ini?esc(ini):ic('cv',22)}</span>
+      <div class="cv-prof-id"><b dir="auto">${p.name?esc(p.name):L('Add your name','أضف اسمك')}</b><small dir="auto">${esc(_cvTitle(p))}</small></div>
+      <button type="button" class="cv-ib" onclick="_cvEditProfile()" aria-label="${L('Edit','تعديل')}">${ic('edit',16)}</button>
+    </div>
+    ${contacts?`<div class="cv-chips">${contacts}</div>`:''}
+    ${p.summary?`<p class="cv-sum" dir="auto">${esc(p.summary).replace(/\n/g,'<br>')}</p>`:`<button type="button" class="cv-add" onclick="_cvEditProfile()">${ic('plus',14)} ${L('Add contact details & summary','أضف بيانات التواصل ونبذة عنك')}</button>`}
+  </section>
+  <div class="cv-sec-row"><span class="cv-sec-t">${ic('briefcase',15)}<span>${L('Work experience','الخبرة العملية')}</span></span>
+    <span class="cv-btns"><button type="button" class="cv-newprj alt" onclick="_cvEditExtra(null)">${ic('plus',14)} ${L('Past job','وظيفة سابقة')}</button><button type="button" class="cv-newprj" onclick="_prjOpen()">${ic('plus',14)} ${L('New project','مشروع جديد')}</button></span></div>
+  <div class="cv-projs">${cards}</div>
+  ${extra('skills','Core skills','المهارات الأساسية','hammer')}${extra('edu','Education','التعليم','grad')}${extra('certs','Certifications & training','الشهادات والتدريب','star')}${extra('langs','Languages','اللغات','languages')}
+  <div class="cv-actions">
+    <button type="button" class="cv-btn primary" onclick="cvCopy()">${ic('copy',16)} ${L('Copy CV','نسخ السيرة')}</button>
+    <button type="button" class="cv-btn" onclick="cvPrint()">${ic('print',16)} ${L('Save as PDF','حفظ PDF')}</button>
+  </div>
+  <label class="cv-link">${ic('upload',14)} ${L('Import CV data (.json)','استيراد بيانات السيرة (.json)')}<input type="file" accept=".json,application/json" style="display:none" onchange="cvImport(this)"></label>
+  </div>`;
+}
+
+// ---- edit sheets -----------------------------------------------------------
+function _cvField(id,label,val,opt){
+  opt=opt||{};
+  const inp=opt.ta?`<textarea id="${id}" rows="${opt.rows||3}" dir="auto" class="cv-ta" placeholder="${esc(opt.ph||'')}">${esc(val||'')}</textarea>`
+                  :`<input type="${opt.type||'text'}" id="${id}" dir="${opt.dir||'auto'}" autocomplete="off" value="${esc(val||'')}" placeholder="${esc(opt.ph||'')}">`;
+  return `<div class="field"><label>${label}</label>${inp}</div>`;
+}
+function _cvSheet(icon,title,sub,body,saveFn,delFn){
+  document.getElementById('modalContent').innerHTML=`<div class="modal-handle"></div><div class="rq-modal de-sheet prj-sheet">
+    <div class="modal-hdr"><div class="modal-hdr-icon" style="background:linear-gradient(135deg,#0f7a55,#0a5c40)">${ic(icon,22)}</div>
+      <div style="flex:1;min-width:0"><div class="modal-hdr-title">${title}</div><div class="modal-hdr-sub">${sub}</div></div>
+      <button type="button" class="sheet-close-btn sq" onclick="closeModal()" aria-label="${L('Close','إغلاق')}">${ic('close',16)}</button></div>
+    ${body}
+    ${delFn?`<button type="button" class="prj-del-link" onclick="${delFn}">${ic('trash',14)} ${L('Delete this entry','حذف الوظيفة دي')}</button>`:''}
+    <div class="modal-btns"><button class="mbtn cancel" onclick="closeModal()">${L('Cancel','إلغاء')}</button><button class="mbtn save" onclick="${saveFn}">${L('Save','حفظ')}</button></div></div>`;
+  document.getElementById('modalOverlay').style.display='flex';
+}
+const _cvDescLbl=()=>L('What you did (one point per line · start a line with # for a sub-heading)','اللي عملته (كل نقطة في سطر · ابدأ السطر بـ # لعنوان فرعي)');
+function _cvEditProfile(){
+  const p=_cvLoad().profile;
+  _cvSheet('cv',L('My CV','سيرتي الذاتية'),L('Your details — projects are added automatically','بياناتك — والمشاريع بتتضاف تلقائيًا'),
+    _cvField('cvName',L('Full name','الاسم بالكامل'),p.name)+
+    _cvField('cvTitle',L('Headline (under your name)','العنوان تحت الاسم'),p.title,{ph:'Civil Engineer | Structure Engineer – Supervision'})+
+    _cvField('cvPhone',L('Phone','الهاتف'),p.phone,{type:'tel',dir:'ltr'})+
+    _cvField('cvEmail',L('Email','البريد الإلكتروني'),p.email,{type:'email',dir:'ltr'})+
+    _cvField('cvLinkedin','LinkedIn',p.linkedin,{dir:'ltr',ph:'linkedin.com/in/…'})+
+    _cvField('cvLoc',L('Location','المدينة / البلد'),p.loc)+
+    _cvField('cvSum',L('Summary','نبذة عنك'),p.summary,{ta:1,rows:4})+
+    _cvField('cvSkills',L('Core skills (one per line)','المهارات الأساسية (كل سطر لوحده)'),p.skills,{ta:1,rows:5})+
+    _cvField('cvEdu',L('Education (blank line between degrees · first line is bold)','التعليم (سطر فاضي بين كل مؤهل · أول سطر بولد)'),p.edu,{ta:1,rows:4})+
+    _cvField('cvCerts',L('Certifications & training (one per line)','الشهادات والتدريب (كل سطر لوحده)'),p.certs,{ta:1,rows:4})+
+    _cvField('cvLangs',L('Languages (one per line, e.g. Arabic: Native)','اللغات (كل سطر لوحده، مثال: Arabic: Native)'),p.langs,{ta:1,rows:2}),
+    '_cvSaveProfile()');
+}
+function _cvSaveProfile(){
+  const g=id=>(document.getElementById(id)?.value||'').trim();
+  const cv=_cvLoad();
+  cv.profile={name:g('cvName'),title:g('cvTitle'),phone:g('cvPhone'),email:g('cvEmail'),linkedin:g('cvLinkedin'),loc:g('cvLoc'),summary:g('cvSum'),skills:g('cvSkills'),edu:g('cvEdu'),certs:g('cvCerts'),langs:g('cvLangs')};
+  if(!_cvSave(cv)) return;
+  try{ closeModal(); }catch(e){}
+  try{ renderView(); }catch(e){ _logErr('_cvSaveProfile',e); }
+  showToast(L('CV updated','تم تحديث السيرة الذاتية'),'success');
+}
+function _cvDateRow(e){
+  return `<div class="cv-2col">${_cvField('cvpFrom',L('From','من'),e.from,{type:'date',dir:'ltr'})}${_cvField('cvpTo',L('To (empty = present)','إلى (فاضي = لحد دلوقتي)'),e.to,{type:'date',dir:'ltr'})}</div>`;
+}
+function _cvEditProj(id){
+  const p=_PRJ.list.find(x=>x.id===id); if(!p) return;
+  const e=_cvEntries(_cvLoad()).find(x=>x.kind==='p'&&x.id===id)||{};
+  _cvSheet('briefcase',esc(_prjName(p)),L('How this project appears in your CV','إزاي المشروع ده يظهر في سيرتك'),
+    _cvField('cvpCompany',L('Company / employer (bold line)','الشركة / جهة العمل (السطر البولد)'),e.company,{ph:'DMA – Engineering Consultancy'})+
+    _cvField('cvpRole',L('Your role','دورك في المشروع'),e.role,{ph:L('e.g. Structure Engineer – Supervision','مثال: Structure Engineer – Supervision')})+
+    _cvField('cvpLoc',L('Location (added after the company)','المكان (بيتضاف بعد الشركة)'),e.loc)+
+    _cvDateRow(e)+
+    _cvField('cvpDesc',_cvDescLbl(),e.desc,{ta:1,rows:5})+
+    `<label class="cv-hide-row"><input type="checkbox" id="cvpAuto"${e.noauto?'':' checked'}><span>${L('Add a line from my receipts (works inspected)','ضيف سطر من استلاماتي (الأعمال اللي فحصتها)')}</span></label>`+
+    `<label class="cv-hide-row"><input type="checkbox" id="cvpHide"${e.hide?' checked':''}><span>${L('Hide this project from the CV','إخفاء المشروع من السيرة')}</span></label>`,
+    `_cvSaveProj('${id}')`);
+}
+function _cvSaveProj(id){
+  const g=k=>(document.getElementById(k)?.value||'').trim();
+  const cv=_cvLoad(), old=cv.projects[id]||{created:Date.now()};
+  cv.projects[id]={created:old.created||Date.now(),client:g('cvpCompany'),role:g('cvpRole'),loc:g('cvpLoc'),from:g('cvpFrom'),to:g('cvpTo'),desc:g('cvpDesc'),hide:!!document.getElementById('cvpHide')?.checked,noauto:!document.getElementById('cvpAuto')?.checked};
+  if(!_cvSave(cv)) return;
+  try{ closeModal(); }catch(e){}
+  try{ renderView(); }catch(e){ _logErr('_cvSaveProj',e); }
+  showToast(L('CV updated','تم تحديث السيرة الذاتية'),'success');
+}
+function _cvEditExtra(id){
+  const x=id?((_cvLoad().extra||[]).find(r=>r.id===id)||{}):{};
+  const e={company:x.company,role:x.role,project:x.project,loc:x.loc,from:x.from,to:x.to,desc:x.desc,hide:x.hide};
+  _cvSheet('briefcase',id?esc(x.company||L('Past job','وظيفة سابقة')):L('Add a past job','إضافة وظيفة سابقة'),L('For jobs that are not projects in the app','للوظائف اللي مش مشاريع في التطبيق'),
+    _cvField('cvxCompany',L('Company / employer','الشركة / جهة العمل'),e.company,{ph:'Kayan Real Estate Development'})+
+    _cvField('cvxLoc',L('Location (added after the company)','المكان (بيتضاف بعد الشركة)'),e.loc,{ph:'New Administrative Capital, Egypt'})+
+    _cvField('cvxRole',L('Your role','دورك'),e.role,{ph:'Site Engineer and Technical Office'})+
+    _cvField('cvxProject',L('Project (optional)','المشروع (اختياري)'),e.project)+
+    `<div class="cv-2col">${_cvField('cvxFrom',L('From','من'),e.from,{type:'date',dir:'ltr'})}${_cvField('cvxTo',L('To (empty = present)','إلى (فاضي = لحد دلوقتي)'),e.to,{type:'date',dir:'ltr'})}</div>`+
+    _cvField('cvxDesc',_cvDescLbl(),e.desc,{ta:1,rows:6})+
+    `<label class="cv-hide-row"><input type="checkbox" id="cvxHide"${e.hide?' checked':''}><span>${L('Hide from the CV','إخفاء من السيرة')}</span></label>`,
+    `_cvSaveExtra('${id||''}')`, id?`_cvDelExtra('${id}')`:'');
+}
+function _cvSaveExtra(id){
+  const g=k=>(document.getElementById(k)?.value||'').trim();
+  const company=g('cvxCompany'), role=g('cvxRole');
+  if(!company&&!role){ showToast(L('Enter the company or your role','اكتب الشركة أو دورك'),'warn'); return; }
+  const cv=_cvLoad();
+  const rec={id:id||('x'+Date.now().toString(36)+Math.random().toString(36).slice(2,4)),company,loc:g('cvxLoc'),role,project:g('cvxProject'),from:g('cvxFrom'),to:g('cvxTo'),desc:g('cvxDesc'),hide:!!document.getElementById('cvxHide')?.checked};
+  const i=cv.extra.findIndex(r=>r.id===rec.id);
+  if(i>=0) cv.extra[i]=rec; else cv.extra.push(rec);
+  if(!_cvSave(cv)) return;
+  try{ closeModal(); }catch(e){}
+  try{ renderView(); }catch(e){ _logErr('_cvSaveExtra',e); }
+  showToast(L('CV updated','تم تحديث السيرة الذاتية'),'success');
+}
+function _cvDelExtra(id){
+  if(!confirm(L('Delete this entry from your CV?','تحذف الوظيفة دي من السيرة؟'))) return;
+  const cv=_cvLoad(); cv.extra=cv.extra.filter(r=>r.id!==id);
+  if(!_cvSave(cv)) return;
+  try{ closeModal(); }catch(e){}
+  try{ renderView(); }catch(e){ _logErr('_cvDelExtra',e); }
+}
+// Import a CV data file: {profile:{…}, extra:[{company,loc,role,project,from,to,desc}], projects:{"<project name>":{client,role,loc,from,to,desc,noauto}}}
+function cvImport(inp){
+  const f=inp&&inp.files&&inp.files[0]; if(!f) return;
+  const rd=new FileReader();
+  rd.onload=()=>{
+    try{
+      const j=JSON.parse(String(rd.result||'{}')), cv=_cvLoad(); let added=0, matched=0; const miss=[];
+      if(j.profile&&typeof j.profile==='object') Object.keys(j.profile).forEach(k=>{ if(j.profile[k]!=null&&String(j.profile[k]).trim()!=='') cv.profile[k]=String(j.profile[k]); });
+      (Array.isArray(j.extra)?j.extra:[]).forEach(x=>{
+        if(!x||(!x.company&&!x.role)) return;
+        if(cv.extra.some(r=>r.company===x.company&&r.role===x.role&&(r.from||'')===(x.from||''))) return;
+        cv.extra.push({id:'x'+Date.now().toString(36)+Math.random().toString(36).slice(2,5),company:x.company||'',loc:x.loc||'',role:x.role||'',project:x.project||'',from:x.from||'',to:x.to||'',desc:x.desc||'',hide:false}); added++;
+      });
+      if(j.projects&&typeof j.projects==='object') Object.keys(j.projects).forEach(nm=>{
+        const p=_PRJ.list.find(q=>_prjName(q).toLowerCase()===String(nm).trim().toLowerCase());
+        if(!p){ miss.push(nm); return; }
+        const s=j.projects[nm]||{}, o=cv.projects[p.id]||{created:Date.now()};
+        cv.projects[p.id]=Object.assign({},o,{client:s.client||o.client||'',role:s.role||o.role||'',loc:s.loc||o.loc||'',from:s.from||o.from||'',to:s.to||o.to||'',desc:s.desc||o.desc||'',noauto:!!s.noauto}); matched++;
+      });
+      if(!_cvSave(cv)) return;
+      try{ renderView(); }catch(e){}
+      showToast(L(`CV data imported · ${added} past job${added===1?'':'s'}${matched?`, ${matched} project${matched===1?'':'s'}`:''}`,`تم استيراد بيانات السيرة · ${added} وظيفة سابقة${matched?`، ${matched} مشروع`:''}`),'success');
+      if(miss.length) setTimeout(()=>showToast(L('No project named: ','مفيش مشروع باسم: ')+miss.join(', ')+L(' — create it, then import again',' — أنشئه وبعدين استورد تاني'),'warn'),600);
+    }catch(e){ _logErr('cvImport',e); showToast(L('Invalid CV data file','ملف بيانات السيرة غير صالح'),'warn'); }
+    inp.value='';
+  };
+  rd.readAsText(f);
 }
 function _rqSetFilter(f){ _rqFilter=f; renderView(); }
 // Receipt-type key: case-insensitive so "cpp" and "CPP" count together; '__none' = no type.
@@ -35512,6 +35939,7 @@ function openExpPicker(e){
   e && e.stopPropagation();
   if(_cxTab==='attendance'){ ATT.openDay(today()); return; }
   if(_cxTab==='requests'){ openRequestModal(null); return; }
+  if(_cxTab==='cv'){ _prjOpen(); return; }
   _fpFabPickerRemoveNow();
   const picker=document.createElement('div');
   picker.className='fab-picker';
@@ -35596,7 +36024,7 @@ function closeFabPicker(){
   setTimeout(()=>{ picker?.remove(); bd?.remove(); },130);
 }
 function openAddTx(){openAdd();}
-function openAdd(){editTarget=null;if(currentView==='transactions') showTxModal(null);else if(currentView==='expenses'){ if(_cxTab==='attendance') ATT.openDay(today()); else if(_cxTab==='requests') openRequestModal(null); else showExpModal(null); }}
+function openAdd(){editTarget=null;if(currentView==='transactions') showTxModal(null);else if(currentView==='expenses'){ if(_cxTab==='attendance') ATT.openDay(today()); else if(_cxTab==='requests') openRequestModal(null); else if(_cxTab==='cv') _prjOpen(); else showExpModal(null); }}
 function openEdit(type,idx){editTarget={type,idx};if(type==='tx') showTxModal(DATA[activeMonth].transactions[idx]);else showExpModal(DATA[activeMonth].site_expenses[idx]);}
 
 // ── AI Quick Entry (UI only — no AI parsing yet) ────────────────────────────
