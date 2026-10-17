@@ -2122,6 +2122,83 @@ tbody tr:hover{background:var(--surface2)}
 .rem-item.is-done{opacity:.74}
 .rem-item.is-done .rem-title{text-decoration:line-through;text-decoration-color:color-mix(in srgb,var(--text) 35%,transparent)}
 
+/* ══ Reminders — premium v2 (visual layer; same ids / handlers / data) ══ */
+.rem-hdr-ic{box-shadow:0 10px 22px -10px rgba(169,124,31,.75),inset 0 1px 0 rgba(255,255,255,.35)}
+
+/* next-up hero */
+.rem-hero{--hc:#4C8DD6;position:relative;overflow:hidden;display:flex;align-items:center;gap:14px;margin:6px 0 14px;padding:16px 18px;border-radius:24px;color:#fff;
+  background:radial-gradient(120% 150% at 100% 0%,color-mix(in srgb,var(--hc) 50%,transparent),transparent 62%),linear-gradient(145deg,#12372A,#0B241B);
+  box-shadow:0 20px 34px -24px rgba(11,36,27,.85),inset 0 1px 0 rgba(255,255,255,.08)}
+.rem-hero.tone-danger{--hc:#E5484D}
+.rem-hero.tone-warn{--hc:#D4AF37}
+.rem-hero.tone-info{--hc:#4C8DD6}
+.rem-hero-tx{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
+.rem-hero-tx small{font-size:calc(12px*var(--app-text-scale,1));font-weight:700;color:rgba(255,255,255,.62)}
+.rem-hero-tx b{font-size:calc(18px*var(--app-text-scale,1));font-weight:800;line-height:1.25;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.rem-hero-tx span{font-size:calc(12.5px*var(--app-text-scale,1));font-weight:600;color:rgba(255,255,255,.72)}
+.rem-hero-n{flex:none;min-width:78px;height:78px;padding:0 10px;border-radius:24px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+  background:rgba(255,255,255,.09);border:1px solid color-mix(in srgb,var(--hc) 55%,rgba(255,255,255,.18));box-shadow:0 0 0 6px color-mix(in srgb,var(--hc) 14%,transparent)}
+.rem-hero-n strong{font-size:calc(30px*var(--app-text-scale,1));font-weight:900;line-height:1;font-variant-numeric:tabular-nums}
+.rem-hero-n.is-word strong{font-size:calc(17px*var(--app-text-scale,1))}
+.rem-hero-n em{font-style:normal;font-size:calc(11px*var(--app-text-scale,1));font-weight:700;color:rgba(255,255,255,.72)}
+
+/* composer */
+.rem-add{position:relative;overflow:hidden;gap:18px;padding:18px 16px 16px;border-radius:24px;background:var(--surface);border:1px solid var(--border);box-shadow:var(--shadow-sm)}
+.rem-add::before{content:"";position:absolute;inset:0 0 auto 0;height:3px;background:linear-gradient(90deg,var(--green),var(--gold))}
+.rem-lbl{font-size:calc(13px*var(--app-text-scale,1));font-weight:700;color:var(--muted)}
+.rem-inwrap,.rem-datepick{position:relative}
+.rem-inic,.rem-datepick-ic{position:absolute;inset-inline-start:15px;top:50%;transform:translateY(-50%);z-index:2;display:flex;color:var(--muted);pointer-events:none;transition:color .15s}
+.rem-inwrap:focus-within .rem-inic,.rem-datepick.has-val .rem-datepick-ic,.rem-datepick:focus-within .rem-datepick-ic{color:var(--tx-accent)}
+#modalContent .rem-add .fin-inp.rem-inp{height:54px;padding:0 14px;padding-inline-start:44px;border-radius:16px;border:1.5px solid transparent;background:var(--surface2);box-shadow:none;
+  font-size:calc(16px*var(--app-text-scale,1));font-weight:600;color:var(--text);transition:border-color .15s,background .15s,box-shadow .15s}
+#modalContent .rem-add .fin-inp.rem-inp:focus{border-color:var(--tx-accent);background:var(--surface);box-shadow:0 0 0 4px color-mix(in srgb,var(--tx-accent) 14%,transparent);outline:none}
+
+/* quick-date tiles: label + the actual date */
+.rem-chips.rem-days{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.rem-chip{background:var(--surface2)}
+.rem-chip.rem-day{height:auto;min-height:58px;padding:8px 2px;border-radius:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;white-space:nowrap}
+.rem-day b{font-size:calc(11.5px*var(--app-text-scale,1));font-weight:800;line-height:1.1;letter-spacing:-.01em}
+.rem-day small{font-size:calc(10.5px*var(--app-text-scale,1));font-weight:600;line-height:1.1;color:var(--muted);font-variant-numeric:tabular-nums}
+.rem-chip.rem-day.on{background:var(--green);border-color:var(--green);color:#fff;box-shadow:0 12px 20px -12px color-mix(in srgb,var(--green) 85%,transparent)}
+.rem-day.on small{color:rgba(255,255,255,.82)}
+
+/* date field (wrapped by _wrapDateInput) */
+#modalContent .rem-add .rem-datepick .date-wrap-auto,
+#modalContent .rem-add .rem-datepick .date-wrap-auto:has(>.fin-inp){height:54px;padding:0 14px;padding-inline-start:44px;border-radius:16px;border:1.5px solid transparent;background:var(--surface2);box-shadow:none;
+  align-items:center;justify-content:flex-start;transition:border-color .15s,box-shadow .15s}
+#modalContent .rem-add .rem-datepick .date-wrap-auto:focus-within{border-color:var(--tx-accent);box-shadow:0 0 0 4px color-mix(in srgb,var(--tx-accent) 14%,transparent)}
+#modalContent .rem-add .rem-datepick .date-label-auto{text-align:start;font-size:calc(16px*var(--app-text-scale,1));font-weight:600;color:var(--muted)}
+#modalContent .rem-add .rem-datepick.has-val .date-label-auto{color:var(--text);font-weight:700}
+
+/* "remind me" = one scrolling row */
+.rem-chips.rem-seg{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin:0 -16px;padding:2px 16px 4px;scroll-snap-type:x proximity;scroll-padding-inline:16px;-webkit-overflow-scrolling:touch}
+.rem-seg::-webkit-scrollbar{display:none}
+.rem-seg .rem-chip{flex:none;height:40px;padding:0 16px;scroll-snap-align:start;white-space:nowrap}
+
+.rem-preview{align-items:center;gap:10px;padding:12px 14px;border-radius:16px;background:var(--surface2)}
+.rem-preview svg{margin-top:0}
+.rem-preview.ok{background:color-mix(in srgb,var(--green) 10%,var(--surface));box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--green) 20%,transparent)}
+.rem-submit{height:54px;border-radius:18px;font-size:calc(15.5px*var(--app-text-scale,1));
+  background:linear-gradient(135deg,var(--green),color-mix(in srgb,var(--green) 70%,#000));
+  box-shadow:0 14px 24px -14px color-mix(in srgb,var(--green) 85%,transparent),inset 0 1px 0 rgba(255,255,255,.18)}
+
+/* phone-alerts row */
+.rem-os{border-radius:18px;background:var(--surface2);margin-bottom:4px}
+.rem-os.on{background:color-mix(in srgb,var(--green) 7%,var(--surface));border-color:color-mix(in srgb,var(--green) 22%,var(--border))}
+
+/* list */
+.rem-sec{margin:22px 4px 10px;font-size:calc(13.5px*var(--app-text-scale,1));font-weight:800;letter-spacing:0;text-transform:none;color:var(--text)}
+.rem-sec.attn{color:color-mix(in srgb,var(--gold) 70%,var(--text))}
+.rem-item{position:relative;overflow:hidden;gap:14px;padding:14px 12px;padding-inline-start:16px;border-radius:20px;box-shadow:var(--shadow-xs)}
+.rem-item::before{content:"";position:absolute;inset-block:16px;inset-inline-start:0;width:4px;border-radius:0 4px 4px 0;background:var(--tc)}
+[dir="rtl"] .rem-item::before{border-radius:4px 0 0 4px}
+.rem-item.is-done::before{opacity:.35}
+.rem-date{width:50px;height:56px;border-radius:16px}
+.rem-title{font-size:calc(15px*var(--app-text-scale,1));white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;line-height:1.3}
+.rem-act{width:36px;height:36px;border:0;border-radius:50%;background:var(--surface2)}
+.rem-act.ok{background:color-mix(in srgb,var(--green) 14%,var(--surface))}
+@media (prefers-reduced-motion:reduce){.rem-inic,.rem-datepick-ic{transition:none}}
+
 .modal{
   background:var(--surface);
   width:100%;
@@ -3469,6 +3546,45 @@ img.atl-img{position:absolute;left:0;top:0;width:100%;height:calc(100% - var(--b
   .sav-row.asset-card.asset-tile:hover{transform:none}
   .atl-ring,img.atl-img,.atl-bg{transition:none}
 }
+
+/* ══════════════════════════════════════════════════════════════════════
+   Assets — Studio finish v5 (CSS only, display layer)
+   Photos get a soft spotlight + contact shadow so cut-outs look shot in a
+   studio instead of pasted; icon tiles get a layered halo; text aligns the
+   same for Arabic and English names. Tokens only → Light + Dark follow theme.
+   ══════════════════════════════════════════════════════════════════════ */
+.asset-tile-art::before,.ast-hero::before{content:"";position:absolute;inset:0;z-index:0;pointer-events:none;
+  background:radial-gradient(75% 58% at 50% 36%,rgba(255,255,255,.55),transparent 72%)}
+[data-theme="dark"] .asset-tile-art::before,[data-theme="dark"] .ast-hero::before{background:radial-gradient(75% 58% at 50% 36%,rgba(255,255,255,.10),transparent 72%)}
+.asset-tile-art>.atl-glow,.ast-hero>.atl-glow{z-index:0}
+.asset-tile-art img.atl-img,.ast-hero img.atl-img{z-index:1}
+
+/* cut-out: layered soft shadow + contact shadow on the "floor" */
+[data-astmode="cutout"] img.atl-img{padding:16px 14px 24px;filter:drop-shadow(0 4px 5px rgba(20,20,20,.16)) drop-shadow(0 16px 16px rgba(20,20,20,.12))}
+.ast-hero[data-astmode="cutout"] img.atl-img{padding:20px 20px 30px}
+[data-astmode="cutout"].asset-tile .asset-tile-art::after,.ast-hero[data-astmode="cutout"]::after{content:"";position:absolute;left:50%;transform:translateX(-50%);z-index:0;pointer-events:none;
+  bottom:calc(var(--bar,0px) + 10px);width:48%;height:12px;border-radius:50%;
+  background:radial-gradient(closest-side,rgba(20,20,20,.30),transparent);filter:blur(3px)}
+.ast-hero[data-astmode="cutout"]::after{bottom:14px;width:40%}
+[data-theme="dark"] [data-astmode="cutout"].asset-tile .asset-tile-art::after,[data-theme="dark"] .ast-hero[data-astmode="cutout"]::after{background:radial-gradient(closest-side,rgba(0,0,0,.55),transparent)}
+
+/* full-bleed photos: gentle bottom fade so the info bar sits on the picture cleanly */
+[data-astmode="photo"].asset-tile .asset-tile-art::after{content:"";position:absolute;inset:auto 0 0 0;height:40%;z-index:1;pointer-events:none;background:linear-gradient(to top,rgba(0,0,0,.18),transparent)}
+
+/* icon-only tiles: layered halo + faint dotted texture instead of a lone flat circle */
+[data-astmode="icon"] .asset-tile-art{background:
+  radial-gradient(color-mix(in srgb,var(--accent) 22%,transparent) 1px,transparent 1.5px) 0 0/14px 14px;
+  -webkit-mask-image:none;mask-image:none}
+[data-astmode="icon"] .atl-ring{width:68px;height:68px;
+  box-shadow:0 0 0 7px color-mix(in srgb,var(--accent) 11%,transparent),0 0 0 16px color-mix(in srgb,var(--accent) 5%,transparent),0 10px 22px -8px color-mix(in srgb,var(--accent) 80%,transparent),inset 0 1px 0 rgba(255,255,255,.28)}
+[data-astmode="icon"] .atl-ring svg{width:30px;height:30px}
+
+/* info bar: same alignment for Arabic + English names, clearer price */
+.asset-tile-meta>i,.asset-tile-meta>b{unicode-bidi:isolate;text-align:start;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.asset-tile-meta small{font-weight:900;letter-spacing:-.005em}
+.sav-row.asset-card.asset-tile{box-shadow:0 1px 2px rgba(20,20,20,.05),0 14px 24px -18px color-mix(in srgb,var(--accent) 70%,transparent),inset 0 1px 0 rgba(255,255,255,.07)}
+.sav-row.asset-card.asset-tile.is-hv{box-shadow:0 1px 2px rgba(120,90,0,.10),0 14px 26px -14px rgba(212,175,55,.60),inset 0 1px 0 rgba(255,235,170,.20)}
+@media (prefers-reduced-motion:reduce){[data-astmode="cutout"] img.atl-img{transition:none}}
 
 /* details sheet opened by tapping a tile */
 /* the sheet header/buttons are hoisted by the modal system, so scope by our own classes, not by .ast-sheet */
@@ -9396,6 +9512,52 @@ body .screen-wrap .sc-header.sav-plain-header.sav-plain-header::after{display:no
 .tx-entry .tx-amt input[placeholder]:not(:placeholder-shown):not(:focus){border-bottom-color:var(--inp-bd-filled)}
 .tx-entry :is(.tx-amt,.tx-notes):focus-within>label{color:var(--tx-accent)}
 .tx-entry .tx-notes input[placeholder]:not(:placeholder-shown):not(:focus){background:var(--surface);border-color:var(--inp-bd-filled);font-weight:600}
+
+/* ══ New Transaction — input polish (CSS only; same fields/ids/handlers) ══
+   Amount = one big filled box with the currency inside + clear + quick-add chips;
+   Notes = filled field with a leading icon; Date = quick Today/Yesterday pills. */
+.txm-date-quick{display:flex;gap:8px;margin:10px 0 0}
+.txm-dq,.tx-chip{
+  min-height:36px;padding:0 14px;border-radius:99px;border:1px solid var(--border);background:var(--surface);color:var(--text2);
+  font-family:inherit;font-size:calc(13px*var(--app-text-scale,1));font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap;
+  cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;transition:background .15s,border-color .15s,color .15s,transform .1s}
+.txm-dq:active,.tx-chip:active{transform:scale(.95)}
+.txm-dq.on{border-color:var(--tx-accent);background:color-mix(in srgb,var(--tx-accent) 12%,var(--surface));color:var(--tx-accent)}
+
+#txEntries .tx-entry .tx-amt .tx-amt-box{
+  display:flex;align-items:center;gap:8px;min-height:68px;padding:0 12px 0 16px;
+  border:1.5px solid transparent;border-radius:18px;background:var(--surface2);
+  transition:border-color .15s,background .15s,box-shadow .15s}
+[dir="rtl"] #txEntries .tx-entry .tx-amt .tx-amt-box{padding:0 16px 0 12px}
+#txEntries .tx-entry .tx-amt .tx-amt-box:focus-within{
+  border-color:var(--tx-accent);background:var(--surface);
+  box-shadow:0 0 0 4px color-mix(in srgb,var(--tx-accent) 14%,transparent)}
+#txEntries .tx-entry .tx-amt .tx-amt-box input,
+#txEntries .tx-entry .tx-amt .tx-amt-box input:focus,
+#txEntries .tx-entry .tx-amt .tx-amt-box input[placeholder]:not(:placeholder-shown):not(:focus){
+  flex:1;min-width:0;width:auto;min-height:64px;padding:0;border:0;border-radius:0;background:transparent;box-shadow:none;outline:none}
+.tx-chip{flex:1 1 0;padding:0 8px}
+#txEntries .tx-entry .tx-amt .tx-amt-box.is-long input{font-size:calc(30px*var(--app-text-scale,1))}
+#txEntries .tx-entry .tx-amt .tx-amt-box.is-xlong input{font-size:calc(22px*var(--app-text-scale,1))}
+#txEntries .tx-entry .tx-amt .tx-amt-box.is-xxlong input{font-size:calc(17px*var(--app-text-scale,1))}
+.tx-amt-cur{flex:none;padding:5px 10px;border-radius:99px;border:1px solid var(--border);background:var(--surface);
+  color:var(--muted);font-size:calc(12px*var(--app-text-scale,1));font-weight:800;letter-spacing:.02em}
+.tx-amt-clr{flex:none;width:30px;height:30px;display:flex;align-items:center;justify-content:center;border:0;border-radius:50%;
+  background:var(--surface3);color:var(--muted);cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.tx-amt-clr:active{transform:scale(.9)}
+.tx-amt-box:has(input:placeholder-shown) .tx-amt-clr{display:none}
+.tx-chips{display:flex;gap:8px;margin-top:10px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.tx-chips::-webkit-scrollbar{display:none}
+.tx-hint.is-calc{color:var(--tx-accent);font-size:calc(12px*var(--app-text-scale,1));font-weight:800;font-variant-numeric:tabular-nums}
+
+.tx-notes-box{position:relative;display:flex;align-items:center}
+.tx-notes-ic{position:absolute;inset-inline-start:14px;display:flex;color:var(--muted);pointer-events:none;transition:color .15s}
+.tx-notes-box:focus-within .tx-notes-ic{color:var(--tx-accent)}
+#txEntries .tx-entry .tx-notes .tx-notes-box input{min-height:54px;padding:12px 14px;padding-inline-start:42px;border-radius:16px}
+#txEntries .tx-entry .tx-notes .tx-notes-box input:focus{box-shadow:0 0 0 4px color-mix(in srgb,var(--tx-accent) 14%,transparent)}
+
+.tx-add-btn{min-height:52px;border-color:color-mix(in srgb,var(--tx-accent) 38%,var(--border));background:color-mix(in srgb,var(--tx-accent) 5%,transparent)}
+@media (prefers-reduced-motion:reduce){.txm-dq,.tx-chip,.tx-amt-box,.tx-notes-ic{transition:none}}
 
 /* ══ FINORA Input System — Part 4 · Commit 3 (visual only · existing tokens) ══
    `.fin-inp` replaces the per-element inline look (border / background / radius / colour)
@@ -18900,6 +19062,7 @@ function savAssetCardMeta(x){
 //  • type picker    : grouped chips + manual (custom) type + unit pricing.
 // ══════════════════════════════════════════════════════════════════════════
 const AST_AUTO_CUTOUT = true;   // set to false to never touch white backgrounds
+const AST_CUT_HOLES = true;     // also clear enclosed white pockets (ring interior); false = edge background only
 const _AST_CUT = {};
 function _astKey(src){ return src.length+'_'+src.slice(-32)+src.slice(48,72); }
 function _astProbe(img){
@@ -18949,6 +19112,28 @@ function _astProbe(img){
       if(x<cw-1) { q=p+1;  if(!seen[q] && near(q*4)){ seen[q]=1; st.push(q); } }
       if(y>0)    { q=p-cw; if(!seen[q] && near(q*4)){ seen[q]=1; st.push(q); } }
       if(y<ch-1) { q=p+cw; if(!seen[q] && near(q*4)){ seen[q]=1; st.push(q); } }
+    }
+    // enclosed near-white pockets (e.g. the inside of a ring) are not reachable from the
+    // picture edge, so the flood-fill above leaves them as a white disc. Clear the big, bright, neutral ones.
+    if(AST_CUT_HOLES){
+      const pocket=(i)=>{
+        if(d[i+3]<24) return false;
+        const r=d[i], g=d[i+1], b=d[i+2];
+        return ((r*299+g*587+b*114)/1000)>224 && (Math.max(r,g,b)-Math.min(r,g,b))<20;
+      };
+      const vis=new Uint8Array(N);
+      for(let p0=0;p0<N;p0++){
+        if(seen[p0]||vis[p0]||!pocket(p0*4)) continue;
+        const comp=[p0]; vis[p0]=1;
+        for(let hd=0;hd<comp.length;hd++){
+          const p=comp[hd], x=p%cw, y=(p/cw)|0; let q;
+          if(x>0)    { q=p-1;  if(!seen[q]&&!vis[q]&&pocket(q*4)){ vis[q]=1; comp.push(q); } }
+          if(x<cw-1) { q=p+1;  if(!seen[q]&&!vis[q]&&pocket(q*4)){ vis[q]=1; comp.push(q); } }
+          if(y>0)    { q=p-cw; if(!seen[q]&&!vis[q]&&pocket(q*4)){ vis[q]=1; comp.push(q); } }
+          if(y<ch-1) { q=p+cw; if(!seen[q]&&!vis[q]&&pocket(q*4)){ vis[q]=1; comp.push(q); } }
+        }
+        if(comp.length>=N*0.012 && comp.length<=N*0.5){ for(let k=0;k<comp.length;k++) seen[comp[k]]=1; }
+      }
     }
     let minX=cw, minY=ch, maxX=-1, maxY=-1, kept=0;
     for(let p=0;p<N;p++){
@@ -20551,7 +20736,7 @@ function renderSavings(){
       <span class="asset-tile-art">${_art}</span>
       ${meta.isHighValue?`<span class="asset-tile-flag" title="${L('High Value',"\u0642\u064a\u0645\u0629 \u0639\u0627\u0644\u064a\u0629")}">${ic('star',11)}</span>`:''}
       <span class="sav-drag-handle asset-tile-grip" data-savtype="asset" onclick="event.stopPropagation()" title="${L('Hold to reorder',"\u0627\u0633\u062d\u0628 \u0644\u0625\u0639\u0627\u062f\u0629 \u0627\u0644\u062a\u0631\u062a\u064a\u0628")}">${_SAV_DRAG_DOTS}</span>
-      <span class="asset-tile-meta"><i class="atl-cat" dir="auto">${esc(meta.catLabel)}</i><b dir="auto">${esc(_tileName)}</b><small dir="ltr"><span>${fmt(x.value||0)}</span><em>${curLabel()}</em></small></span>
+      <span class="asset-tile-meta"><i class="atl-cat">${esc(meta.catLabel)}</i><b>${esc(_tileName)}</b><small dir="ltr"><span>${fmt(x.value||0)}</span><em>${curLabel()}</em></small></span>
     </div>`;
   }).join('') : _savEmptyState('assets');
 
@@ -39877,6 +40062,44 @@ function _aipIgnore(fieldId, ctx){
 // detection works for them too. Date and Provided are shared by all entries.
 let _txRowSeq = 0;
 
+// ── New Transaction: input helpers (UI only — they just set values and fire the
+// same 'input'/'change' events the fields already handle) ─────────────────
+function _txPct(v){ return String(v==null?'':v).replace(/(\d+(\.\d+)?)%/g,'($1/100)'); }
+function _txAmtUI(el){
+  try{
+    const box=el.closest('.tx-amt'); if(!box) return;
+    const h=box.querySelector('.tx-hint'); if(!h) return;
+    if(h.dataset.def==null) h.dataset.def=h.textContent;
+    const raw=String(el.value||'');
+    const ab=el.closest('.tx-amt-box'); if(ab){ ab.classList.toggle('is-long',raw.length>5&&raw.length<=8); ab.classList.toggle('is-xlong',raw.length>8&&raw.length<=11); ab.classList.toggle('is-xxlong',raw.length>11); }
+    if(/[+\-*/()%]/.test(raw.replace(/^-/,''))){
+      const r=evalMath(_txPct(raw));
+      if(/^-?\d+(\.\d+)?$/.test(r)){ h.textContent='= '+fmt(parseFloat(r)); h.classList.add('is-calc'); return; }
+    }
+    h.textContent=h.dataset.def; h.classList.remove('is-calc');
+  }catch(_){}
+}
+function _txAmtAdd(sfx,n){
+  const el=document.getElementById('mPayment'+(sfx||'')); if(!el) return;
+  const cur=parseFloat(evalMath(_txPct(el.value)))||0;
+  el.value=String(Math.round((cur+n)*100)/100);
+  el.dispatchEvent(new Event('input',{bubbles:true}));
+}
+function _txAmtClear(sfx){
+  const el=document.getElementById('mPayment'+(sfx||'')); if(!el) return;
+  el.value=''; el.dispatchEvent(new Event('input',{bubbles:true}));
+  try{ el.focus(); }catch(_){}
+}
+function _txDayStr(off){ const d=new Date(); d.setDate(d.getDate()+off); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function _txSetDay(off){
+  const el=document.getElementById('mDate'); if(!el) return;
+  el.value=_txDayStr(off); el.dispatchEvent(new Event('change',{bubbles:true}));
+}
+function _txSyncDay(){
+  const el=document.getElementById('mDate'), box=document.getElementById('txDateQuick'); if(!el||!box) return;
+  box.querySelectorAll('.txm-dq').forEach(b=>{ const on=el.value===_txDayStr(+b.dataset.off); b.classList.toggle('on',on); b.setAttribute('aria-pressed',on?'true':'false'); });
+}
+
 function _txEntryHTML(sfx, d){
   const ctx = 'tx' + sfx;
   d = d || {};
@@ -39887,12 +40110,17 @@ function _txEntryHTML(sfx, d){
         <button type="button" class="tx-entry-del" onclick="_txRemoveRow('${sfx}')" aria-label="${L('Remove','حذف')}">${ic('trash',15)}</button>
       </div>
       <div class="field tx-amt">
-        <label><span>${L('Amount Paid','المبلغ المدفوع')}</span> <span class="f-badge">${curLabel()}</span><span class="tx-hint">${L('formula OK · 500+200','يقبل معادلة · 500+200')}</span></label>
-        <input type="text" inputmode="decimal" id="mPayment${sfx}" data-calc placeholder="0.00" onblur="applyFormula(this);_txCalcProvided()" oninput="_txCalcProvided()" value="${d.payment||''}">
+        <label><span>${L('Amount Paid','المبلغ المدفوع')}</span><span class="tx-hint">${L('formula OK · 500+200','يقبل معادلة · 500+200')}</span></label>
+        <div class="tx-amt-box">
+          <input type="text" inputmode="decimal" id="mPayment${sfx}" data-calc placeholder="0.00" onblur="applyFormula(this);_txCalcProvided();_txAmtUI(this)" oninput="_txCalcProvided();_txAmtUI(this)" value="${d.payment||''}">
+          <span class="tx-amt-cur" aria-hidden="true">${curLabel()}</span>
+          <button type="button" class="tx-amt-clr" tabindex="-1" aria-label="${L('Clear','مسح')}" onmousedown="event.preventDefault()" onclick="_txAmtClear('${sfx}')">${ic('close',14)}</button>
+        </div>
+        <div class="tx-chips" role="group" aria-label="${L('Quick add','إضافة سريعة')}">${[10,50,100,500].map(n=>`<button type="button" tabindex="-1" class="tx-chip" onmousedown="event.preventDefault()" onclick="_txAmtAdd('${sfx}',${n})">+${n.toLocaleString('en-US')}</button>`).join('')}</div>
       </div>
       <div class="field tx-notes">
         <label>${L('Notes','الملاحظات')}</label>
-        <input type="text" id="mNotes${sfx}" list="sdeList-${ctx}" placeholder="${L('e.g. Materials, Labor, Equipment…','مثال: خامات، عمالة، معدات…')}" value="${esc(d.notes||'')}" oninput="_sdeOnInput('mNotes${sfx}','sdeBox-${ctx}','${ctx}');_aipOnInput('mNotes${sfx}','${ctx}')">
+        <div class="tx-notes-box"><span class="tx-notes-ic" aria-hidden="true">${ic('edit',16)}</span><input type="text" id="mNotes${sfx}" list="sdeList-${ctx}" placeholder="${L('e.g. Materials, Labor, Equipment…','مثال: خامات، عمالة، معدات…')}" value="${esc(d.notes||'')}" oninput="_sdeOnInput('mNotes${sfx}','sdeBox-${ctx}','${ctx}');_aipOnInput('mNotes${sfx}','${ctx}')"></div>
         <datalist id="sdeList-${ctx}"></datalist>
         <div id="aipCard-${ctx}" class="aip-card" data-ctx="${ctx}"></div>
         <div id="sdeBox-${ctx}" class="sde-box" data-field="mNotes${sfx}" data-ctx="${ctx}"></div>
@@ -39952,7 +40180,8 @@ function showTxModal(tx){
         <div class="modal-hdr-sub">${L('Daily spending log','سجل الإنفاق اليومي')}</div>
       </div>
     </div>
-    <label class="txm-date" for="mDate">${ic('calendar',18)}<span class="txm-date-lbl">${L('Date','التاريخ')}</span><input type="date" id="mDate" value="${tx?.date||today()}" onchange="_txCalcProvided()"></label>
+    <label class="txm-date" for="mDate">${ic('calendar',18)}<span class="txm-date-lbl">${L('Date','التاريخ')}</span><input type="date" id="mDate" value="${tx?.date||today()}" onchange="_txCalcProvided();_txSyncDay()"></label>
+    <div class="txm-date-quick" id="txDateQuick" role="group" aria-label="${L('Quick date','تاريخ سريع')}"><button type="button" class="txm-dq" data-off="0" onclick="_txSetDay(0)">${L('Today','اليوم')}</button><button type="button" class="txm-dq" data-off="-1" onclick="_txSetDay(-1)">${L('Yesterday','أمس')}</button></div>
     <div id="txEntries">${_txEntryHTML('', tx)}</div>
     ${tx ? '' : `<button type="button" class="tx-add-btn" onclick="_txAddRow()">${ic('plus',18)} ${L('Add new','إضافة معاملة جديدة')}</button>`}
     <div class="tx-sum" id="txSum" data-state="">
@@ -39974,6 +40203,7 @@ function showTxModal(tx){
   document.getElementById('modalOverlay').style.display='flex';
   setTimeout(attachCalcKb,60);
   _txSyncRowsUI();
+  _txSyncDay();
   _txCalcProvided();
   if(tx?.notes) _sdeRenderBox('mNotes','sdeBox-tx','tx');
   if(tx?.notes) _aipOnInput('mNotes','tx',true);
@@ -43249,6 +43479,25 @@ function remCheckDue(){
   });
 }
 
+// ── Reminders: premium panel helpers (display only) ─────────────────────
+function _remDaySub(off){
+  const iso=_remISO(off);
+  return esc(off<=1 ? remFmt(iso,{weekday:'short',day:'numeric'}) : remFmt(iso,{day:'numeric',month:'short'}));
+}
+// big "next up" card: the nearest upcoming reminder and a live countdown
+function _remHeroHTML(){
+  try{
+    const next=REMINDERS.filter(r=>!r.done&&remDaysUntil(r.date)>=0).sort((a,b)=>a.date.localeCompare(b.date))[0];
+    if(!next) return '';
+    const d=remDaysUntil(next.date), tone=remTone(d,next.notifyDays);
+    const word=d===0;
+    return `<div class="rem-hero tone-${tone}">
+      <div class="rem-hero-tx"><small>${L('Next up','التذكير القادم')}</small><b dir="auto">${esc(next.title)}</b><span>${esc(remDateLong(next.date))}</span></div>
+      <div class="rem-hero-n${word?' is-word':''}"><strong>${word?L('Today','اليوم'):d}</strong>${word?'':`<em>${d===1?L('day','يوم'):L('days','أيام')}</em>`}</div>
+    </div>`;
+  }catch(e){ return ''; }
+}
+
 function _remISO(offsetDays){
   const d=new Date(); d.setHours(0,0,0,0); d.setDate(d.getDate()+offsetDays);
   return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
@@ -43256,6 +43505,7 @@ function _remISO(offsetDays){
 function remQuickDate(off,btn){
   const inp=document.getElementById('remDateInput'); if(!inp) return;
   inp.value=_remISO(off);
+  try{ if(inp._dateLabelRefresh) inp._dateLabelRefresh(); }catch(_){}
   document.querySelectorAll('#remDateChips .rem-chip').forEach(b=>b.classList.toggle('on',b===btn));
   remUpdatePreview();
 }
@@ -43273,6 +43523,7 @@ function remUpdatePreview(){
   const el=document.getElementById('remPreview'); if(!el) return;
   const date=document.getElementById('remDateInput')?.value||'';
   const n=parseInt(document.getElementById('remNotifyDaysInput')?.value||'3',10);
+  const _dp=document.querySelector('.rem-datepick'); if(_dp) _dp.classList.toggle('has-val',!!date);
   if(!date){ el.innerHTML=`${ic('info',13)} <span>${L('Pick a date and we will show you when you will be alerted.',"\u0627\u062e\u062a\u0627\u0631 \u0627\u0644\u062a\u0627\u0631\u064a\u062e \u0648\u0647\u0646\u0642\u0648\u0644\u0643 \u0647\u062a\u062a\u0646\u0628\u0651\u0647 \u0625\u0645\u062a\u0649.")}</span>`; el.classList.remove('ok'); return; }
   const d=new Date(date+'T00:00:00'); d.setDate(d.getDate()-n);
   const alertISO=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
@@ -43293,6 +43544,7 @@ function remSubmitAdd(){
   saveReminders();
   document.getElementById('remTitleInput').value='';
   document.getElementById('remDateInput').value='';
+  try{ const _di=document.getElementById('remDateInput'); if(_di&&_di._dateLabelRefresh) _di._dateLabelRefresh(); }catch(_){}
   document.querySelectorAll('#remDateChips .rem-chip').forEach(b=>b.classList.remove('on'));
   renderRemindersPanel();
   remUpdatePreview();
@@ -43356,6 +43608,7 @@ function remCardHTML(r){
 function renderRemindersPanel(){
   const body=document.getElementById('remListBody');
   if(!body) return; // panel not open right now
+  const _hero=document.getElementById('remHero'); if(_hero) _hero.innerHTML=_remHeroHTML();
   const byDate=(a,b)=>a.date.localeCompare(b.date);
   const active=REMINDERS.filter(r=>!r.done), done=REMINDERS.filter(r=>r.done).sort((a,b)=>b.date.localeCompare(a.date));
   const soon=active.filter(r=>{const d=remDaysUntil(r.date);return d>=0&&d<=r.notifyDays;}).sort(byDate);
@@ -43380,30 +43633,31 @@ function openRemindersPanel(){
   const notifyOpts=[[0,L('On the day',"\u0641\u064a \u0646\u0641\u0633 \u0627\u0644\u064a\u0648\u0645")],[1,L('1 day',"\u0642\u0628\u0644\u0647\u0627 \u0628\u064a\u0648\u0645")],[3,L('3 days',"\u0642\u0628\u0644\u0647\u0627 3 \u0623\u064a\u0627\u0645")],[7,L('1 week',"\u0642\u0628\u0644\u0647\u0627 \u0623\u0633\u0628\u0648\u0639")],[14,L('2 weeks',"\u0642\u0628\u0644\u0647\u0627 \u0623\u0633\u0628\u0648\u0639\u064a\u0646")]];
   document.getElementById('modalContent').innerHTML=`
     <div class="modal-hdr">
-      <div class="modal-hdr-icon" style="background:linear-gradient(135deg,#A97C1F,#D4AF37)">${ic('clock',20)}</div>
+      <div class="modal-hdr-icon rem-hdr-ic" style="background:linear-gradient(135deg,#A97C1F,#D4AF37)">${ic('clock',20)}</div>
       <div>
         <div class="modal-hdr-title">${L('Reminders',"\u0627\u0644\u062a\u0630\u0643\u064a\u0631\u0627\u062a")}</div>
         <div class="modal-hdr-sub">${L('Never miss an important date',"\u0645\u062a\u0641\u0648\u0651\u062a\u0634 \u0623\u064a \u0645\u0648\u0639\u062f \u0645\u0647\u0645")}</div>
       </div>
     </div>
+    <div id="remHero">${_remHeroHTML()}</div>
     <div class="rem-add">
       <div class="rem-field">
         <label class="rem-lbl" for="remTitleInput">${L('What should we remind you about?',"\u0646\u0630\u0643\u0651\u0631\u0643 \u0628\u0625\u064a\u0647\u061f")}</label>
-        <input class="fin-inp rem-inp" id="remTitleInput" type="text" dir="auto" enterkeyhint="done" placeholder="${L('e.g. Contract renewal',"\u0645\u062b\u0627\u0644: \u062a\u062c\u062f\u064a\u062f \u0639\u0642\u062f")}">
+        <div class="rem-inwrap"><span class="rem-inic" aria-hidden="true">${ic('edit',17)}</span><input class="fin-inp rem-inp" id="remTitleInput" type="text" dir="auto" enterkeyhint="done" placeholder="${L('e.g. Contract renewal',"\u0645\u062b\u0627\u0644: \u062a\u062c\u062f\u064a\u062f \u0639\u0642\u062f")}"></div>
       </div>
       <div class="rem-field">
         <label class="rem-lbl" for="remDateInput">${L('When is it?',"\u0625\u0645\u062a\u0649 \u0627\u0644\u0645\u0648\u0639\u062f\u061f")}</label>
-        <div class="rem-chips" id="remDateChips">
-          <button type="button" class="rem-chip" onclick="remQuickDate(0,this)">${L('Today',"\u0627\u0644\u064a\u0648\u0645")}</button>
-          <button type="button" class="rem-chip" onclick="remQuickDate(1,this)">${L('Tomorrow',"\u063a\u062f\u0627\u064b")}</button>
-          <button type="button" class="rem-chip" onclick="remQuickDate(7,this)">${L('In a week',"\u0628\u0639\u062f \u0623\u0633\u0628\u0648\u0639")}</button>
-          <button type="button" class="rem-chip" onclick="remQuickDate(30,this)">${L('In a month',"\u0628\u0639\u062f \u0634\u0647\u0631")}</button>
+        <div class="rem-chips rem-days" id="remDateChips">
+          <button type="button" class="rem-chip rem-day" onclick="remQuickDate(0,this)"><b>${L('Today',"\u0627\u0644\u064a\u0648\u0645")}</b><small>${_remDaySub(0)}</small></button>
+          <button type="button" class="rem-chip rem-day" onclick="remQuickDate(1,this)"><b>${L('Tomorrow',"\u063a\u062f\u0627\u064b")}</b><small>${_remDaySub(1)}</small></button>
+          <button type="button" class="rem-chip rem-day" onclick="remQuickDate(7,this)"><b>${L('In a week',"\u0628\u0639\u062f \u0623\u0633\u0628\u0648\u0639")}</b><small>${_remDaySub(7)}</small></button>
+          <button type="button" class="rem-chip rem-day" onclick="remQuickDate(30,this)"><b>${L('In a month',"\u0628\u0639\u062f \u0634\u0647\u0631")}</b><small>${_remDaySub(30)}</small></button>
         </div>
-        <input class="fin-inp rem-inp" id="remDateInput" type="date" onchange="remDateTyped()" oninput="remDateTyped()">
+        <div class="rem-datepick"><span class="rem-datepick-ic" aria-hidden="true">${ic('calendar',18)}</span><input class="fin-inp rem-inp" id="remDateInput" type="date" placeholder="${L('Pick a date','اختر تاريخاً')}" onchange="remDateTyped()" oninput="remDateTyped()"></div>
       </div>
       <div class="rem-field">
         <span class="rem-lbl">${L('Remind me',"\u0646\u0646\u0628\u0651\u0647\u0643")}</span>
-        <div class="rem-chips" id="remNotifyChips" role="group">
+        <div class="rem-chips rem-seg" id="remNotifyChips" role="group">
           ${notifyOpts.map(([v,t])=>`<button type="button" class="rem-chip${v===3?' on':''}" aria-pressed="${v===3}" onclick="remPickNotify(${v},this)">${t}</button>`).join('')}
         </div>
         <input type="hidden" id="remNotifyDaysInput" value="3">
@@ -43416,6 +43670,7 @@ function openRemindersPanel(){
   document.getElementById('modalOverlay').style.display='flex';
   renderRemindersPanel();
   remUpdatePreview();
+  setTimeout(()=>{ try{ const c=document.querySelector('#remNotifyChips .rem-chip.on'); if(c) c.scrollIntoView({inline:'center',block:'nearest'}); }catch(_){} },30);
 }
 loadReminders();
 remCheckDue();
