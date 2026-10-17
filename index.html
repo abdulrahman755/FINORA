@@ -2199,6 +2199,104 @@ tbody tr:hover{background:var(--surface2)}
 .rem-act.ok{background:color-mix(in srgb,var(--green) 14%,var(--surface))}
 @media (prefers-reduced-motion:reduce){.rem-inic,.rem-datepick-ic{transition:none}}
 
+/* ══ Reminders — premium v3 (visual layer only; same ids / handlers / data) ══ */
+.rem-hdr-ic{box-shadow:0 12px 24px -10px rgba(169,124,31,.8),0 0 0 5px color-mix(in srgb,var(--gold-light) 16%,transparent),inset 0 1px 0 rgba(255,255,255,.45),inset 0 -6px 12px rgba(124,90,22,.35)}
+
+/* hero — next up */
+.rem-hero{background:radial-gradient(120% 150% at 100% 0%,color-mix(in srgb,var(--hc) 34%,transparent),transparent 60%),linear-gradient(145deg,#12372A,#0B241B)}
+.rem-hero{isolation:isolate;padding:20px 18px;border-radius:28px;margin:8px 0 16px;
+  box-shadow:0 26px 40px -26px rgba(11,36,27,.9),0 0 0 1px rgba(255,255,255,.05),inset 0 1px 0 rgba(255,255,255,.12)}
+.rem-hero::before{content:"";position:absolute;z-index:-1;width:200px;height:200px;inset-inline-end:-70px;top:-90px;border-radius:50%;
+  border:1px solid rgba(255,255,255,.07);box-shadow:0 0 0 30px rgba(255,255,255,.025),0 0 0 60px rgba(255,255,255,.015)}
+.rem-hero::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;background:linear-gradient(180deg,rgba(255,255,255,.08),transparent 42%)}
+.rem-hero-tx small{display:inline-flex;align-items:center;gap:7px;font-size:calc(11px*var(--app-text-scale,1));font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.66)}
+.rem-hero-tx small::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--hc);box-shadow:0 0 0 3px color-mix(in srgb,var(--hc) 30%,transparent),0 0 12px var(--hc)}
+.rem-hero-tx b{font-size:calc(19px*var(--app-text-scale,1));letter-spacing:-.01em}
+.rem-hero-n{min-width:86px;width:86px;height:86px;padding:0;border-radius:50%;
+  background:radial-gradient(circle at 30% 25%,rgba(255,255,255,.18),rgba(255,255,255,.05));
+  border:1.5px solid color-mix(in srgb,var(--hc) 60%,rgba(255,255,255,.2));
+  box-shadow:0 0 0 7px color-mix(in srgb,var(--hc) 14%,transparent),0 0 0 14px color-mix(in srgb,var(--hc) 6%,transparent),inset 0 1px 0 rgba(255,255,255,.2)}
+.rem-hero-n strong{font-size:calc(32px*var(--app-text-scale,1))}
+
+/* composer card */
+.rem-add{counter-reset:remstep;gap:22px;padding:22px 16px 16px;border-radius:28px;
+  border:1px solid color-mix(in srgb,var(--border) 75%,transparent);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.7),0 28px 44px -34px rgba(18,36,28,.4)}
+[data-theme="dark"] .rem-add{box-shadow:var(--shadow-sm),inset 0 1px 0 rgba(255,255,255,.04)}
+.rem-add::before{height:2px;background:linear-gradient(90deg,transparent,var(--gold-light) 25%,var(--green) 75%,transparent)}
+.rem-lbl{display:flex;align-items:center;gap:9px;font-size:calc(13px*var(--app-text-scale,1));font-weight:800;color:var(--text2)}
+.rem-add .rem-lbl::before{counter-increment:remstep;content:counter(remstep);flex:none;width:21px;height:21px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:900;color:var(--gold-dark);background:color-mix(in srgb,var(--gold-light) 22%,var(--surface));box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--gold) 30%,transparent)}
+[dir="rtl"] .rem-add .rem-lbl::before{content:counter(remstep,arabic-indic)}
+[data-theme="dark"] .rem-add .rem-lbl::before{color:var(--gold-light)}
+
+/* inputs */
+#modalContent .rem-add .fin-inp.rem-inp{height:56px;border-radius:18px;box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--border) 70%,transparent)}
+#modalContent .rem-add .fin-inp.rem-inp:focus{box-shadow:0 0 0 4px color-mix(in srgb,var(--tx-accent) 16%,transparent)}
+#modalContent .rem-add .rem-datepick .date-wrap-auto,
+#modalContent .rem-add .rem-datepick .date-wrap-auto:has(>.fin-inp){height:56px;border-radius:18px;box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--border) 70%,transparent)}
+#modalContent .rem-add .rem-datepick .date-wrap-auto:focus-within{box-shadow:0 0 0 4px color-mix(in srgb,var(--tx-accent) 16%,transparent)}
+
+/* quick-date tiles */
+.rem-chips.rem-days{gap:9px}
+.rem-chip{transition:background .2s,border-color .2s,color .2s,box-shadow .25s,transform .12s cubic-bezier(.3,.7,.4,1)}
+.rem-chip.rem-day{position:relative;min-height:66px;border-radius:19px;gap:5px;border-color:color-mix(in srgb,var(--border) 80%,transparent)}
+.rem-day b{font-size:calc(12.5px*var(--app-text-scale,1))}
+.rem-chip.rem-day.on{background:linear-gradient(150deg,color-mix(in srgb,var(--green) 88%,#fff),var(--green-dark));border-color:transparent;
+  box-shadow:0 14px 22px -12px color-mix(in srgb,var(--green) 90%,transparent),inset 0 1px 0 rgba(255,255,255,.22)}
+.rem-chip.rem-day.on::after{content:"";position:absolute;top:7px;inset-inline-end:7px;width:7px;height:7px;border-radius:50%;background:var(--gold-light);box-shadow:0 0 0 3px rgba(255,255,255,.14)}
+
+/* "remind me" row */
+.rem-chips.rem-seg{padding-bottom:16px;margin-bottom:-12px}
+.rem-seg .rem-chip{height:42px;padding:0 18px;border-color:color-mix(in srgb,var(--border) 80%,transparent)}
+.rem-seg .rem-chip.on{background:linear-gradient(150deg,color-mix(in srgb,var(--green) 88%,#fff),var(--green-dark));border-color:transparent;color:#fff;
+  box-shadow:0 12px 20px -12px color-mix(in srgb,var(--green) 90%,transparent),inset 0 1px 0 rgba(255,255,255,.22)}
+
+/* live preview */
+.rem-preview{padding:13px 14px;border-radius:20px;gap:12px;font-weight:700}
+.rem-pv-ic{flex:none;width:30px;height:30px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;background:color-mix(in srgb,var(--text) 7%,transparent);font-style:normal}
+.rem-preview.ok .rem-pv-ic{background:color-mix(in srgb,var(--green) 16%,var(--surface))}
+.rem-preview.ok .rem-pv-ic svg{transform-origin:50% 10%;animation:remRing .9s ease .1s 1}
+@keyframes remRing{0%,100%{transform:rotate(0)}20%{transform:rotate(16deg)}40%{transform:rotate(-13deg)}60%{transform:rotate(8deg)}80%{transform:rotate(-4deg)}}
+
+/* submit */
+.rem-submit{position:relative;overflow:hidden;height:56px;border-radius:20px;letter-spacing:.01em;
+  background:linear-gradient(135deg,color-mix(in srgb,var(--green) 90%,#fff),var(--green-dark));
+  box-shadow:0 18px 28px -16px color-mix(in srgb,var(--green) 90%,transparent),inset 0 1px 0 rgba(255,255,255,.24)}
+.rem-submit::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(180deg,rgba(255,255,255,.14),transparent 55%)}
+.rem-submit svg{filter:drop-shadow(0 1px 1px rgba(0,0,0,.25))}
+.rem-submit:active{transform:scale(.975);background:linear-gradient(135deg,var(--green),var(--green-dark))}
+
+/* phone-alerts row */
+.rem-os{gap:14px;padding:14px 16px;border-radius:22px;margin-top:2px}
+.rem-os-ic{width:42px;height:42px;border-radius:50%}
+.rem-os.on .rem-os-ic{box-shadow:0 0 0 5px color-mix(in srgb,var(--green) 9%,transparent)}
+.rem-os-btn{height:38px;padding:0 16px;border-radius:999px;background:linear-gradient(135deg,color-mix(in srgb,var(--green) 90%,#fff),var(--green-dark));box-shadow:0 10px 16px -10px color-mix(in srgb,var(--green) 90%,transparent)}
+
+/* list */
+.rem-sec{margin:26px 4px 12px}
+.rem-sec span{display:inline-flex;align-items:center;gap:9px}
+.rem-sec.attn span::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--gold-light);box-shadow:0 0 0 4px color-mix(in srgb,var(--gold-light) 25%,transparent);animation:remPulse 2.2s ease-in-out infinite}
+@keyframes remPulse{50%{box-shadow:0 0 0 7px color-mix(in srgb,var(--gold-light) 0%,transparent)}}
+.rem-sec em{background:color-mix(in srgb,var(--text) 7%,transparent)}
+.rem-item{padding:14px 12px 14px 16px;border-radius:24px;margin-bottom:10px;border-color:color-mix(in srgb,var(--border) 70%,transparent);
+  box-shadow:0 14px 26px -22px rgba(18,36,28,.5);animation:remRise .4s cubic-bezier(.2,.8,.2,1) both}
+[data-theme="dark"] .rem-item{box-shadow:none}
+@keyframes remRise{from{opacity:0;transform:translateY(8px)}}
+.rem-item::before{inset-block:18px;width:4px}
+.rem-date{width:52px;height:60px;border-radius:18px;
+  background:linear-gradient(165deg,color-mix(in srgb,var(--tc) 18%,var(--surface)),color-mix(in srgb,var(--tc) 6%,var(--surface)));
+  box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--tc) 26%,transparent),inset 0 1px 0 rgba(255,255,255,.35)}
+.rem-date b{font-size:calc(22px*var(--app-text-scale,1))}
+.rem-pill{padding:3px 10px}
+.rem-acts{gap:7px}
+.rem-act{width:38px;height:38px;transition:transform .12s,background .2s,color .2s}
+.rem-act.del:active{color:var(--red);background:color-mix(in srgb,var(--red) 12%,var(--surface))}
+@media (prefers-reduced-motion:reduce){
+  .rem-item,.rem-sec.attn span::before,.rem-preview.ok .rem-pv-ic svg{animation:none}
+  .rem-chip,.rem-act{transition:none}
+}
+
 .modal{
   background:var(--surface);
   width:100%;
@@ -8859,6 +8957,59 @@ body .screen-wrap .sc-header.sav-plain-header.sav-plain-header::after{display:no
 .pur2-cap{margin-top:12px;text-align:center;font-size:calc(11.5px*var(--app-text-scale,1));font-weight:600;color:var(--muted)}
 .pur2-i[hidden],.pur2-more[hidden]{display:none!important}
 @media (prefers-reduced-motion:reduce){.pur2-i,.pur2-chip{transition:none}}
+
+/* ══ My Purchases — tappable cards + card editor sheet ══ */
+.pur2-i{cursor:pointer;-webkit-tap-highlight-color:transparent}
+.pur2-i:focus-visible{outline:2px solid var(--green);outline-offset:2px}
+.pur2-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+.pur2-stage.has-img::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(180deg,rgba(0,0,0,.14),transparent 38%)}
+.pur2-ed{position:absolute;z-index:1;top:8px;inset-inline-start:8px;width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;pointer-events:none;
+  background:color-mix(in srgb,var(--surface) 78%,transparent);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);color:var(--muted)}
+.pur2-x{z-index:1}
+
+.pe-stage{position:relative;aspect-ratio:16/10;border-radius:26px;overflow:hidden;margin:6px 0 12px;display:flex;align-items:center;justify-content:center;
+  background:radial-gradient(80% 90% at 50% 35%,color-mix(in srgb,var(--k) 26%,transparent),transparent 75%),color-mix(in srgb,var(--k) 8%,var(--surface2));
+  box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--border) 80%,transparent),0 22px 34px -26px rgba(18,36,28,.5)}
+.pe-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;animation:peFade .35s ease both}
+@keyframes peFade{from{opacity:0;transform:scale(1.03)}}
+.pe-ring{width:84px;height:84px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--k);background:var(--surface);margin-bottom:34px;
+  box-shadow:0 14px 26px -12px color-mix(in srgb,var(--k) 70%,transparent),inset 0 0 0 1px color-mix(in srgb,var(--k) 26%,transparent)}
+.pe-tools{position:absolute;inset-inline:12px;bottom:12px;display:flex;gap:8px;z-index:2}
+.pe-tool{flex:1;height:42px;border:0;border-radius:999px;display:flex;align-items:center;justify-content:center;gap:7px;cursor:pointer;font-family:inherit;
+  font-size:calc(13px*var(--app-text-scale,1));font-weight:800;color:var(--text);
+  background:color-mix(in srgb,var(--surface) 84%,transparent);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
+  box-shadow:0 8px 16px -10px rgba(0,0,0,.45),inset 0 0 0 1px color-mix(in srgb,var(--border) 70%,transparent);transition:transform .12s}
+.pe-tool:active{transform:scale(.96)}
+.pe-tool:disabled{opacity:.55}
+.pe-tool.pe-tool-x{flex:none;width:42px;color:var(--red)}
+.pe-busy{position:absolute;inset:0;z-index:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding-bottom:40px;
+  background:color-mix(in srgb,var(--surface) 62%,transparent);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);
+  font-size:calc(13px*var(--app-text-scale,1));font-weight:700;color:var(--text)}
+.pe-spin{width:26px;height:26px;border-radius:50%;border:3px solid color-mix(in srgb,var(--green) 22%,transparent);border-top-color:var(--green);animation:peSpin .8s linear infinite}
+@keyframes peSpin{to{transform:rotate(360deg)}}
+
+.pe-cands{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 12px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.pe-cands::-webkit-scrollbar{display:none}
+.pe-cands[hidden]{display:none}
+.pe-cand{flex:none;width:62px;height:62px;padding:0;border:0;border-radius:16px;overflow:hidden;cursor:pointer;background:var(--surface2);
+  box-shadow:inset 0 0 0 1px var(--border);transition:box-shadow .15s,transform .12s}
+.pe-cand img{width:100%;height:100%;object-fit:cover;display:block}
+.pe-cand:active{transform:scale(.94)}
+.pe-cand.on{box-shadow:0 0 0 2.5px var(--green),0 8px 14px -8px color-mix(in srgb,var(--green) 80%,transparent)}
+
+.pe-form{margin-bottom:8px}
+.pe-cur{position:absolute;inset-inline-end:16px;top:50%;transform:translateY(-50%);font-size:calc(12px*var(--app-text-scale,1));font-weight:800;color:var(--muted);pointer-events:none}
+#modalContent .pe-form #pePrice{padding-inline-end:56px;text-align:start}
+.pe-kinds{display:flex;flex-wrap:wrap;gap:8px}
+.pe-kind{display:inline-flex;align-items:center;gap:7px;height:38px;padding:0 14px;border-radius:999px;border:1.5px solid color-mix(in srgb,var(--border) 80%,transparent);background:var(--surface2);
+  color:var(--text);font-family:inherit;font-size:calc(12.5px*var(--app-text-scale,1));font-weight:700;cursor:pointer;transition:background .2s,border-color .2s,color .2s,transform .12s}
+.pe-kind svg{color:var(--k)}
+.pe-kind:active{transform:scale(.96)}
+.pe-kind.on{background:color-mix(in srgb,var(--k) 16%,var(--surface));border-color:var(--k);color:var(--text);box-shadow:0 8px 16px -12px var(--k)}
+.pe-remove{height:46px;border-radius:16px;border:1.5px solid color-mix(in srgb,var(--red) 30%,var(--border));background:transparent;color:var(--red);
+  font-family:inherit;font-size:calc(13.5px*var(--app-text-scale,1));font-weight:800;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer}
+.pe-remove:active{background:color-mix(in srgb,var(--red) 10%,var(--surface))}
+@media (prefers-reduced-motion:reduce){.pe-img,.pe-spin{animation:none}.pe-spin{border-top-color:var(--green)}}
 /* ── Data entry: company edit ── */
 .de-row.editing{border-top:0;margin:4px 0;padding:8px;border-radius:14px;background:color-mix(in srgb,var(--green) 7%,transparent)}
 .de-edit-inp{flex:1;min-width:0;height:38px;padding:0 12px;border:1.5px solid var(--green);border-radius:var(--icon-r-2);background:var(--surface);color:var(--text);font-family:inherit;font-size:calc(13.5px*var(--app-text-scale,1));font-weight:700;outline:none}
@@ -9101,6 +9252,48 @@ body .screen-wrap .sc-header.sav-plain-header.sav-plain-header::after{display:no
 .rpt-ta{min-height:220px;padding:10px 4px}
 .dtp-note{display:flex;align-items:center;gap:9px;margin:2px 0 14px;padding:10px 12px;border-radius:12px;background:color-mix(in srgb,var(--gold-light) 16%,var(--surface));color:var(--text2);font-size:calc(12.5px*var(--app-text-scale,1));font-weight:700;line-height:1.4}
 .dtp-note svg{flex:none;color:var(--gold)}
+
+/* ══ Today's Target sheet — premium ══ */
+.dt-hero{position:relative;overflow:hidden;isolation:isolate;border-radius:28px;padding:18px 16px 16px;margin:4px 0 16px;color:#fff;
+  background:radial-gradient(120% 140% at 100% 0%,rgba(212,175,55,.36),transparent 60%),linear-gradient(150deg,#12372A,#0B241B);
+  box-shadow:0 26px 40px -28px rgba(11,36,27,.9),0 0 0 1px rgba(255,255,255,.05),inset 0 1px 0 rgba(255,255,255,.12);animation:dtRise .45s cubic-bezier(.2,.8,.2,1) both}
+.dt-hero::before{content:"";position:absolute;z-index:-1;width:210px;height:210px;inset-inline-end:-80px;top:-100px;border-radius:50%;
+  border:1px solid rgba(255,255,255,.07);box-shadow:0 0 0 30px rgba(255,255,255,.025),0 0 0 60px rgba(255,255,255,.015)}
+.dt-hero::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;background:linear-gradient(180deg,rgba(255,255,255,.08),transparent 40%)}
+@keyframes dtRise{from{opacity:0;transform:translateY(10px)}}
+.dt-top{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.dt-badge{display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 12px;border-radius:999px;background:rgba(255,255,255,.1);box-shadow:inset 0 0 0 1px rgba(255,255,255,.14);
+  font-size:calc(11.5px*var(--app-text-scale,1));font-weight:800;color:var(--gold-light)}
+.dt-date{font-size:calc(12px*var(--app-text-scale,1));font-weight:700;color:rgba(255,255,255,.66)}
+.dt-title{margin:14px 2px 16px;font-size:calc(18px*var(--app-text-scale,1));font-weight:800;line-height:1.35;letter-spacing:-.01em}
+.dt-amt-row{display:flex;align-items:center;gap:10px;direction:ltr}
+.dt-step{flex:none;width:48px;height:48px;border-radius:50%;border:0;padding:0;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#fff;
+  background:rgba(255,255,255,.12);box-shadow:inset 0 0 0 1px rgba(255,255,255,.16);transition:transform .1s,background .2s;-webkit-tap-highlight-color:transparent}
+.dt-step:active{transform:scale(.9);background:rgba(255,255,255,.22)}
+.dt-amt{position:relative;flex:1;min-width:0;height:80px;border-radius:22px;background:rgba(255,255,255,.08);box-shadow:inset 0 0 0 1px rgba(255,255,255,.12);transition:box-shadow .2s}
+.dt-amt:focus-within{box-shadow:inset 0 0 0 1.5px var(--gold-light),0 0 0 4px rgba(212,175,55,.2)}
+#modalContent .dt-amt .dt-inp{box-sizing:border-box;width:100%;height:100%;padding:20px 10px 0;border:0;border-radius:22px;background:transparent;box-shadow:none;outline:none;color:#fff;text-align:center;
+  font-family:var(--font-display);font-size:calc(34px*var(--app-text-scale,1));font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+#modalContent .dt-amt .dt-inp::placeholder{color:rgba(255,255,255,.32)}
+.dt-cur{position:absolute;left:50%;top:9px;transform:translateX(-50%);pointer-events:none;font-size:calc(10.5px*var(--app-text-scale,1));font-weight:800;letter-spacing:.06em;color:rgba(255,255,255,.62);
+  padding:2px 9px;border-radius:999px;background:rgba(255,255,255,.1);line-height:1.4}
+.dt-hint{display:flex;align-items:center;justify-content:center;gap:7px;margin-top:14px;min-height:20px;text-align:center;font-size:calc(12.5px*var(--app-text-scale,1));font-weight:600;color:rgba(255,255,255,.74)}
+.dt-hint svg{flex:none;color:var(--gold-light)}
+.dt-hint b{color:var(--gold-light);font-weight:800}
+.dt-sec{margin:0 4px 10px;font-size:calc(12.5px*var(--app-text-scale,1));font-weight:800;color:var(--muted)}
+.dt-chips{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
+.dt-chip{min-height:60px;padding:8px 4px;border-radius:19px;border:1.5px solid color-mix(in srgb,var(--border) 85%,transparent);background:var(--surface2);color:var(--text);font-family:inherit;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;-webkit-tap-highlight-color:transparent;
+  transition:background .2s,border-color .2s,color .2s,box-shadow .25s,transform .12s cubic-bezier(.3,.7,.4,1)}
+.dt-chip b{font-size:calc(17px*var(--app-text-scale,1));font-weight:900;font-variant-numeric:tabular-nums;line-height:1.1}
+.dt-chip small{font-size:calc(10.5px*var(--app-text-scale,1));font-weight:700;color:var(--muted);line-height:1.1}
+.dt-chip:active{transform:scale(.95)}
+.dt-chip.sug{border-color:color-mix(in srgb,var(--gold) 42%,var(--border));background:color-mix(in srgb,var(--gold-light) 12%,var(--surface))}
+.dt-chip.on{background:linear-gradient(150deg,color-mix(in srgb,var(--green) 88%,#fff),var(--green-dark));border-color:transparent;color:#fff;
+  box-shadow:0 14px 22px -12px color-mix(in srgb,var(--green) 90%,transparent),inset 0 1px 0 rgba(255,255,255,.22)}
+.dt-chip.on small{color:rgba(255,255,255,.82)}
+.dt-btns{margin-top:20px}
+@media (prefers-reduced-motion:reduce){.dt-hero{animation:none}.dt-chip,.dt-step{transition:none}}
 .rpt-top{display:flex;align-items:center;gap:8px;margin:0 0 10px}
 .rpt-top .rpt-pick{flex:1;min-width:0;margin:0;padding:0 12px;min-height:38px;border-radius:12px;font-size:calc(12.5px*var(--app-text-scale,1))}
 .rpt-ibtns{display:flex;gap:6px;flex:none}
@@ -17690,6 +17883,248 @@ function _purToggleAll(btn){
 }
 function _purAskRemove(monthKey,idx){
   showConfirm(L('Remove this item from My Purchases? The expense itself stays.','تشيل العنصر ده من مشترياتي؟ المصروف نفسه هيفضل زي ما هو.'), ()=>_buyRemoveItem(monthKey,idx));
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// My Purchases — card editor. Tap a card → sheet to edit its image, name,
+// price/date and category, or remove it from My Purchases.
+//  • name / category → stored ON the source transaction as purName / purKind
+//    (display-only overrides; the expense note itself is never rewritten)
+//  • price / date    → written to the same transaction with the same rules as
+//    the expense editor (saveTx): provided is recomputed; persistData() then
+//    moves the entry to the month of its date if needed
+//  • image           → small JPEG thumbnail in its own localStorage key
+//    (wdp_pur_img_v1), keyed by the cleaned item name, so DATA stays light
+//  • auto image      → searches Wikimedia Commons, Wikipedia and Openverse
+//    (all key-less + CORS-enabled); Arabic names are also searched in English
+// ══════════════════════════════════════════════════════════════════════════
+const PUR_IMG_KEY='wdp_pur_img_v1';
+let _purImgMap=null;
+function _purImgLoad(){
+  if(_purImgMap) return _purImgMap;
+  try{ _purImgMap=JSON.parse(localStorage.getItem(PUR_IMG_KEY))||{}; }catch(e){ _purImgMap={}; }
+  return _purImgMap;
+}
+function _purImgKey(t){ return String(_txlgItemName(t&&t.notes)||'').toLowerCase().trim(); }
+function _purImgGet(t){ const k=_purImgKey(t); return k?(_purImgLoad()[k]||''):''; }
+function _purImgSet(t,val){
+  const k=_purImgKey(t); if(!k) return true;
+  const m=_purImgLoad(); const prev=m[k];
+  if(val) m[k]=val; else delete m[k];
+  try{ localStorage.setItem(PUR_IMG_KEY,JSON.stringify(m)); return true; }
+  catch(e){
+    if(prev) m[k]=prev; else delete m[k];
+    try{ _logErr('purImgSet',e); }catch(_){}
+    showToast(L('Storage is full — the image was not saved','التخزين ممتلئ — الصورة لم تُحفظ'),'warn');
+    return false;
+  }
+}
+function _purNameOf(t){ return (t&&t.purName&&String(t.purName).trim()) || _txlgItemName(t&&t.notes) || L('Untitled item','عنصر بدون اسم'); }
+function _purKindOf(t,nm){ return (t&&t.purKind&&_PUR_KINDS[t.purKind]) ? t.purKind : _purKind(nm); }
+
+// ── image helpers ────────────────────────────────────────────────────────
+// any image blob/file → 360×270 cover-cropped JPEG data URL (≈10–20 KB)
+function _purShrink(blob){
+  return new Promise((res,rej)=>{
+    const url=URL.createObjectURL(blob), im=new Image();
+    im.onload=()=>{
+      try{
+        const W=360,H=270, c=document.createElement('canvas'); c.width=W; c.height=H;
+        const x=c.getContext('2d'), r=Math.max(W/im.naturalWidth,H/im.naturalHeight), w=im.naturalWidth*r, h=im.naturalHeight*r;
+        x.fillStyle='#fff'; x.fillRect(0,0,W,H); x.drawImage(im,(W-w)/2,(H-h)/2,w,h);
+        URL.revokeObjectURL(url); res(c.toDataURL('image/jpeg',.74));
+      }catch(e){ URL.revokeObjectURL(url); rej(e); }
+    };
+    im.onerror=()=>{ URL.revokeObjectURL(url); rej(new Error('image decode')); };
+    im.src=url;
+  });
+}
+async function _purFetchJSON(url,ms){
+  const ac=new AbortController(), to=setTimeout(()=>ac.abort(),ms||8000);
+  try{ const r=await fetch(url,{signal:ac.signal}); if(!r.ok) throw new Error('http '+r.status); return await r.json(); }
+  finally{ clearTimeout(to); }
+}
+const _PUR_OK_MIME=/^image\/(jpeg|png|webp)$/i;
+async function _purSrcCommons(q){
+  const u='https://commons.wikimedia.org/w/api.php?action=query&format=json&origin=*&generator=search&gsrnamespace=6&gsrlimit=8&prop=imageinfo&iiprop=url|mime&iiurlwidth=480&gsrsearch='+encodeURIComponent(q);
+  const j=await _purFetchJSON(u), pg=j&&j.query&&j.query.pages; if(!pg) return [];
+  return Object.values(pg).sort((a,b)=>(a.index||0)-(b.index||0)).map(p=>p.imageinfo&&p.imageinfo[0]).filter(i=>i&&i.thumburl&&_PUR_OK_MIME.test(i.mime||'')).map(i=>i.thumburl);
+}
+async function _purSrcWiki(lg,q){
+  const u='https://'+lg+'.wikipedia.org/w/api.php?action=query&format=json&origin=*&generator=search&gsrlimit=6&prop=pageimages&piprop=thumbnail&pithumbsize=480&gsrsearch='+encodeURIComponent(q);
+  const j=await _purFetchJSON(u), pg=j&&j.query&&j.query.pages; if(!pg) return [];
+  return Object.values(pg).sort((a,b)=>(a.index||0)-(b.index||0)).map(p=>p.thumbnail&&p.thumbnail.source).filter(Boolean);
+}
+async function _purSrcOpenverse(q){
+  const u='https://api.openverse.org/v1/images/?page_size=8&mature=false&q='+encodeURIComponent(q);
+  const j=await _purFetchJSON(u);
+  return ((j&&j.results)||[]).map(r=>r.thumbnail||r.url).filter(Boolean);
+}
+// → array of image URLs, best first, de-duplicated
+async function _purSearchImages(name){
+  const base=String(name||'').trim(); if(!base) return [];
+  let en=base;
+  if(/[؀-ۿ]/.test(base)){
+    try{
+      const tr=await Promise.race([_atTranslate(base,'en'),new Promise((_,rj)=>setTimeout(()=>rj(new Error('tr timeout')),5000))]);
+      if(tr && String(tr).trim()) en=String(tr).trim();
+    }catch(e){}
+  }
+  const jobs=[ _purSrcCommons(en), _purSrcOpenverse(en), _purSrcWiki('en',en) ];
+  if(en!==base) jobs.push(_purSrcCommons(base),_purSrcWiki('ar',base),_purSrcOpenverse(base));
+  const res=await Promise.allSettled(jobs);
+  const seen=new Set(), out=[];
+  // round-robin so the first picks come from different sources
+  const lists=res.map(r=>r.status==='fulfilled'?r.value:[]);
+  for(let i=0;i<8;i++) lists.forEach(l=>{ const u=l[i]; if(u && !seen.has(u)){ seen.add(u); out.push(u); } });
+  return out.slice(0,10);
+}
+
+// ── editor sheet ─────────────────────────────────────────────────────────
+let _pe=null, _peSession=0;
+function _peLive(sess){ return _pe && _peSession===sess && document.getElementById('peStage'); }
+function _purOpenEdit(mk,idx){
+  const t=DATA[mk]&&DATA[mk].transactions&&DATA[mk].transactions[idx]; if(!t) return;
+  if(!canMutateMonth(mk)){ showToast(L('This month is closed','هذا الشهر مغلق'),'warn'); return; }
+  const nm=_purNameOf(t);
+  _peSession++;
+  _pe={mk,idx,t,img:_purImgGet(t),dirty:false,kind:_purKindOf(t,nm),cands:[],sel:-1,busy:false};
+  const kinds=Object.keys(_PUR_KINDS);
+  document.getElementById('modalContent').innerHTML=`
+    <div class="modal-hdr">
+      <div class="modal-hdr-icon" style="background:linear-gradient(135deg,var(--green),var(--green-dark))">${ic('edit',20)}</div>
+      <div>
+        <div class="modal-hdr-title">${L('Edit item','تعديل الكارت')}</div>
+        <div class="modal-hdr-sub">${L('Photo, name, price and category','الصورة والاسم والسعر والتصنيف')}</div>
+      </div>
+    </div>
+    <div class="pe-stage" id="peStage"></div>
+    <div class="pe-cands" id="peCands"></div>
+    <input type="file" id="peFile" accept="image/*" hidden onchange="_peFilePicked(this)">
+    <div class="rem-add pe-form">
+      <div class="rem-field">
+        <label class="rem-lbl" for="peName">${L('Name','الاسم')}</label>
+        <div class="rem-inwrap"><span class="rem-inic" aria-hidden="true">${ic('edit',17)}</span><input class="fin-inp rem-inp" id="peName" type="text" dir="auto" enterkeyhint="done" value="${esc(nm)}"></div>
+      </div>
+      <div class="rem-field">
+        <label class="rem-lbl" for="pePrice">${L('Price','السعر')}</label>
+        <div class="rem-inwrap"><span class="rem-inic" aria-hidden="true">${ic('banknote',17)}</span><input class="fin-inp rem-inp" id="pePrice" type="text" inputmode="decimal" dir="ltr" value="${esc(String(t.payment==null?'':t.payment))}"><span class="pe-cur">${esc(curLabel())}</span></div>
+      </div>
+      <div class="rem-field">
+        <label class="rem-lbl" for="peDate">${L('Date','التاريخ')}</label>
+        <div class="rem-datepick has-val"><span class="rem-datepick-ic" aria-hidden="true">${ic('calendar',18)}</span><input class="fin-inp rem-inp" id="peDate" type="date" value="${esc(t.date||'')}"></div>
+      </div>
+      <div class="rem-field">
+        <span class="rem-lbl">${L('Category','التصنيف')}</span>
+        <div class="pe-kinds" id="peKinds">
+          ${kinds.map(k=>`<button type="button" class="pe-kind${k===_pe.kind?' on':''}" data-k="${k}" style="--k:${_PUR_KINDS[k].color}" onclick="_peKind('${k}')">${ic(_PUR_KINDS[k].icon,15)}<span>${L(_PUR_KINDS[k].en,_PUR_KINDS[k].ar)}</span></button>`).join('')}
+        </div>
+      </div>
+      <button type="button" class="rem-submit" onclick="_purSaveEdit()">${ic('check',16)} ${L('Save changes','حفظ التعديلات')}</button>
+      <button type="button" class="pe-remove" onclick="_purEditRemove()">${ic('trash',15)} ${L('Remove from My Purchases','إزالة من مشترياتي')}</button>
+    </div>`;
+  document.getElementById('modalOverlay').style.display='flex';
+  try{ if(typeof _localizeAllDateInputs==='function') _localizeAllDateInputs(document.getElementById('modalContent')); }catch(_){}
+  _peRenderStage(); _peRenderCands();
+  // no photo yet → look one up automatically
+  if(!_pe.img) _peAutoSearch();
+}
+function _peRenderStage(){
+  const el=document.getElementById('peStage'); if(!el||!_pe) return;
+  const K=_PUR_KINDS[_pe.kind]||_PUR_KINDS.other;
+  el.style.setProperty('--k',K.color);
+  el.classList.toggle('has-img',!!_pe.img);
+  el.innerHTML=
+    (_pe.img?`<img class="pe-img" src="${esc(_pe.img)}" alt="">`:`<span class="pe-ring">${ic(K.icon,34)}</span>`)
+    +(_pe.busy?`<div class="pe-busy"><i class="pe-spin"></i><span>${L('Looking for a photo…','بدوّر على صورة المنتج…')}</span></div>`:'')
+    +`<div class="pe-tools">
+        <button type="button" class="pe-tool" onclick="_peAutoSearch()"${_pe.busy?' disabled':''}>${ic('search',15)}<span>${L('Auto-find','بحث تلقائي')}</span></button>
+        <button type="button" class="pe-tool" onclick="document.getElementById('peFile').click()">${ic('upload',15)}<span>${L('Upload','رفع صورة')}</span></button>
+        ${_pe.img?`<button type="button" class="pe-tool pe-tool-x" onclick="_peClearImg()" aria-label="${L('Remove photo','حذف الصورة')}">${ic('trash',15)}</button>`:''}
+      </div>`;
+}
+function _peRenderCands(){
+  const el=document.getElementById('peCands'); if(!el||!_pe) return;
+  el.hidden=!_pe.cands.length;
+  el.innerHTML=_pe.cands.map((u,i)=>`<button type="button" class="pe-cand${i===_pe.sel?' on':''}" onclick="_pePickCand(${i})"><img src="${esc(u)}" alt="" loading="lazy"></button>`).join('');
+}
+function _peKind(k){
+  if(!_pe) return; _pe.kind=k;
+  document.querySelectorAll('#peKinds .pe-kind').forEach(b=>b.classList.toggle('on',b.dataset.k===k));
+  if(!_pe.img) _peRenderStage();
+}
+function _peClearImg(){ if(!_pe) return; _pe.img=''; _pe.dirty=true; _pe.sel=-1; _peRenderStage(); _peRenderCands(); }
+async function _peFilePicked(inp){
+  const f=inp&&inp.files&&inp.files[0]; if(!f||!_pe) return;
+  const sess=_peSession;
+  try{
+    const d=await _purShrink(f);
+    if(!_peLive(sess)) return;
+    _pe.img=d; _pe.dirty=true; _pe.sel=-1; _peRenderStage(); _peRenderCands();
+  }catch(e){ showToast(L('Could not read this image','تعذّرت قراءة الصورة'),'warn'); }
+  try{ inp.value=''; }catch(_){}
+}
+async function _peAutoSearch(){
+  if(!_pe||_pe.busy) return;
+  const sess=_peSession;
+  const q=(document.getElementById('peName')?.value||'').trim()||_purNameOf(_pe.t);
+  _pe.busy=true; _peRenderStage();
+  let urls=[];
+  try{ urls=await _purSearchImages(q); }catch(e){ try{ _logErr('purSearchImages',e); }catch(_){} }
+  if(!_peLive(sess)) return;
+  _pe.cands=urls; _pe.sel=-1; _pe.busy=false; _peRenderCands(); _peRenderStage();
+  if(!urls.length){ showToast(L('No photo found — upload one instead','ما لقيتش صورة — ارفع صورة بنفسك'),'info'); return; }
+  await _pePickCand(0,true);
+}
+// apply a candidate: download → shrink → store as data URL; if the host blocks
+// reading the pixels, fall back to using the remote URL directly
+async function _pePickCand(i,quiet){
+  if(!_pe||!_pe.cands[i]) return;
+  const sess=_peSession, url=_pe.cands[i];
+  _pe.sel=i; _peRenderCands();
+  _pe.busy=true; _peRenderStage();
+  let out=url;
+  try{
+    const r=await fetch(url); if(!r.ok) throw new Error('http '+r.status);
+    out=await _purShrink(await r.blob());
+  }catch(e){ /* keep remote URL */ }
+  if(!_peLive(sess)) return;
+  _pe.img=out; _pe.dirty=true; _pe.busy=false; _peRenderStage();
+}
+function _purSaveEdit(){
+  if(!_pe) return;
+  _valClear();
+  const {mk,idx,t}=_pe;
+  const name=(document.getElementById('peName').value||'').trim();
+  if(!name){ _valError('peName',L('Please enter a name','اكتب اسم المنتج')); return; }
+  const payChk=_valAmount(document.getElementById('pePrice').value,true);
+  if(!payChk.ok){ _valError('pePrice',payChk.err); return; }
+  const dateVal=document.getElementById('peDate').value;
+  const dChk=_valDate(dateVal,true);
+  if(!dChk.ok){ _valError('peDate',dChk.err); return; }
+  if(!canMutateMonth(mk)) return;
+  // price / date — same bookkeeping as saveTx's edit branch
+  if(payChk.value!==(parseFloat(t.payment)||0) || dateVal!==t.date){
+    const tk=_monthKeyForDate(dateVal), tmk=(tk&&DATA[tk])?tk:mk;
+    const dayTarget=getDailyTarget(tmk,dateVal);
+    const running=_dailyPaymentsSum(tmk,dateVal,tmk===mk?idx:-1)+payChk.value;
+    t.payment=payChk.value; t.date=dateVal; t.target=dayTarget;
+    t.provided=Math.round((dayTarget-running)*100)/100; t._ts=Date.now();
+  }
+  // name / category — display overrides on the card only
+  if(name!==(_txlgItemName(t.notes)||'')) t.purName=name; else delete t.purName;
+  if(_pe.kind && _pe.kind!==_purKind(name)) t.purKind=_pe.kind; else delete t.purKind;
+  if(_pe.dirty) _purImgSet(t,_pe.img||'');
+  _pe=null; _peSession++;
+  closeModal(); persistData(); renderView();
+  showToast(L('Updated ✓','تم التحديث ✓'),'success');
+}
+function _purEditRemove(){
+  if(!_pe) return;
+  const {mk,idx}=_pe;
+  showConfirm(L('Remove this item from My Purchases? The expense itself stays.','تشيل العنصر ده من مشترياتي؟ المصروف نفسه هيفضل زي ما هو.'),()=>{
+    _pe=null; _peSession++; closeModal(); _buyRemoveItem(mk,idx);
+  });
 }
 const kpi3ValHTML=(s,tone,raw)=>{
   const dv=(raw!=null&&isFinite(raw))?` data-v="${raw}"`:'';
@@ -31385,35 +31820,103 @@ function _dtpTitle(){
   const t=_DTP_TITLES[n%_DTP_TITLES.length];
   return L(t[0],t[1]);
 }
+// ── Today's Target sheet (also the daily auto-prompt) ───────────────────────
+// Premium layout: a hero with a big amount + −/+ steppers, a live "what this
+// means for the rest of the month" line, and one-tap quick picks built from the
+// user's own history (last target, recent average) plus a few round presets.
+// Same input id / save function / data as before — only the sheet changed.
+function _dtISO(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function _dtRound(v){ return v>=100 ? Math.round(v/10)*10 : Math.round(v); }
+function _dtSuggest(){
+  const td=today(), totals={}, targets={};
+  (MONTHS_ORDER||[]).forEach(k=>{
+    const m=DATA[k]; if(!m) return;
+    (m.transactions||[]).forEach(t=>{ if(t&&t.date) totals[t.date]=(totals[t.date]||0)+(parseFloat(t.payment)||0); });
+    Object.keys(m.daily_targets||{}).forEach(d=>{ const n=parseFloat(m.daily_targets[d])||0; if(n>0) targets[d]=n; });
+  });
+  const past=Object.keys(targets).filter(d=>d<td).sort();
+  const last=past.length?targets[past[past.length-1]]:0;
+  const n=new Date(), days=[];
+  for(let i=1;i<=7;i++) days.push(_dtISO(new Date(n.getFullYear(),n.getMonth(),n.getDate()-i)));
+  const sp=days.map(d=>totals[d]||0).filter(v=>v>0);
+  const avg=sp.length?sp.reduce((a,b)=>a+b,0)/sp.length:0;
+  return {last,avg,ySpent:totals[days[0]]||0,yTarget:targets[days[0]]||0};
+}
+function _dtVal(){
+  const raw=String(document.getElementById('dailyTargetInput')?.value||'').replace(/,/g,'');
+  const v=parseFloat(raw); return isNaN(v)?0:v;
+}
+function _dtSync(){
+  const v=_dtVal();
+  document.querySelectorAll('#dtChips .dt-chip').forEach(c=>c.classList.toggle('on',v>0&&parseFloat(c.dataset.v)===v));
+  const el=document.getElementById('dtHint'); if(!el) return;
+  const n=new Date(), left=new Date(n.getFullYear(),n.getMonth()+1,0).getDate()-n.getDate()+1;
+  if(v>0){
+    el.innerHTML=`${ic('trend_up',14)}<span>${L('Keep this up for the '+left+' days left → ','لو التزمت '+left+' يوم متبقي → ')}<b dir="ltr">${esc(fmt(v*left))} ${esc(curLabel())}</b></span>`;
+  }else{
+    const S=window._dtS||{};
+    el.innerHTML=S.ySpent
+      ? `${ic('clock',14)}<span>${L('Yesterday you spent ','أمس صرفت ')}<b dir="ltr">${esc(fmt(S.ySpent))}</b>${S.yTarget?L(' of ',' من ')+'<b dir="ltr">'+esc(fmt(S.yTarget))+'</b>':''}</span>`
+      : `${ic('sparkle',14)}<span>${L('Tap a quick pick or type your own amount','اختار رقم سريع أو اكتب مبلغك')}</span>`;
+  }
+}
+function _dtPick(v){
+  const el=document.getElementById('dailyTargetInput'); if(!el) return;
+  el.value=String(v); _dtSync();
+}
+function _dtStep(dir){
+  const el=document.getElementById('dailyTargetInput'); if(!el) return;
+  const cur=_dtVal(), step=cur>=1000?100:cur>=100?50:10;
+  el.value=String(Math.max(0,Math.round((cur+dir*step)*100)/100)||''); _dtSync();
+}
 function openDailyTargetModal(auto){
   const dateStr = today();
   const existing = getDailyTarget(activeMonth, dateStr);
+  let S={last:0,avg:0,ySpent:0,yTarget:0};
+  try{ S=_dtSuggest(); }catch(e){ try{ _logErr('dtSuggest',e); }catch(_){} }
+  window._dtS=S;
+  const picks=[], add=(v,cap)=>{ v=_dtRound(v); if(v>0&&!picks.some(p=>p.v===v)) picks.push({v,cap,sug:!!cap}); };
+  if(S.last) add(S.last,L('Last target','آخر تارجت'));
+  if(S.avg)  add(S.avg,L('Your average','متوسط صرفك'));
+  [100,200,300,500,800].forEach(v=>add(v,''));
+  const chips=picks.slice(0,6);
+  let dLabel=dateStr;
+  try{ dLabel=new Date().toLocaleDateString(lang==='ar'?'ar-EG-u-nu-latn':'en-GB',{weekday:'long',day:'numeric',month:'long'}); }catch(e){}
   document.getElementById('modalContent').innerHTML = `
     <div class="modal-handle"></div>
-    <div class="modal-hdr">
-      <div class="modal-hdr-icon" style="background:linear-gradient(135deg,var(--green-dark),var(--gold-dark))">${ic('target',22)}</div>
-      <div>
-        <div class="modal-hdr-title">${auto===true?_dtpTitle():L("Today's Target",'تارجت اليوم')}</div>
-        <div class="modal-hdr-sub">${dateStr}</div>
+    <div class="dt-hero">
+      <div class="dt-top">
+        <span class="dt-badge">${ic(auto===true?'sun':'target',14)} ${auto===true?L('New day','يوم جديد'):L("Today's Target",'تارجت اليوم')}</span>
+        <span class="dt-date">${esc(dLabel)}</span>
       </div>
+      <div class="dt-title">${auto===true?_dtpTitle():L('How much can you spend today?','كام تقدر تصرف النهاردة؟')}</div>
+      <div class="dt-amt-row">
+        <button type="button" class="dt-step" onclick="_dtStep(-1)" aria-label="${L('Decrease','نقّص')}">${ic('minus',20)}</button>
+        <div class="dt-amt">
+          <input type="text" inputmode="decimal" data-calc id="dailyTargetInput" class="dt-inp" dir="ltr"
+            value="${existing || ''}" placeholder="0" oninput="_dtSync()" autocomplete="off">
+          <span class="dt-cur">${esc(curLabel())}</span>
+        </div>
+        <button type="button" class="dt-step" onclick="_dtStep(1)" aria-label="${L('Increase','زوّد')}">${ic('plus',20)}</button>
+      </div>
+      <div class="dt-hint" id="dtHint"></div>
     </div>
-    ${auto===true?`<div class="dtp-note">${ic('bell',15)}<span>${L("New day — set today's budget so you don't forget.",'يوم جديد — حدّد ميزانية اليوم حتى لا تنساها.')}</span></div>`:''}
-    <div class="field">
-      <label>${L('Target Amount','مبلغ المستهدف')} <span class="f-badge">${curLabel()}</span></label>
-      <input type="text" inputmode="decimal" data-calc id="dailyTargetInput"
-        value="${existing || ''}"
-        placeholder="0.00"
-        style="font-size:calc(22px*var(--app-text-scale,1));font-weight:900;text-align:center;color:var(--green)">
+    <div class="dt-sec">${L('Quick picks','اختيارات سريعة')}</div>
+    <div class="dt-chips" id="dtChips">
+      ${chips.map(p=>`<button type="button" class="dt-chip${p.sug?' sug':''}" data-v="${p.v}" onclick="_dtPick(${p.v})"><b dir="ltr">${esc(fmt(p.v))}</b>${p.cap?`<small>${esc(p.cap)}</small>`:''}</button>`).join('')}
     </div>
-    <div class="modal-btns">
-      <button class="mbtn save" onclick="saveDailyTargetModal()">${L('Save','حفظ')}</button>
+    <div class="modal-btns dt-btns">
+      <button class="mbtn save" onclick="saveDailyTargetModal()">${ic('check',16)} ${L('Set target','تثبيت التارجت')}</button>
       <button class="mbtn cancel" onclick="closeModal()">${auto===true?L('Later','لاحقاً'):L('Cancel','إلغاء')}</button>
     </div>`;
   document.getElementById('modalOverlay').style.display = 'flex';
-  setTimeout(() => { const el = document.getElementById('dailyTargetInput'); if(el) el.focus(); }, 200);
+  _dtSync();
+  // the daily pop-up shouldn't raise the keyboard over the quick picks; a manual open still does
+  if(auto!==true) setTimeout(() => { const el = document.getElementById('dailyTargetInput'); if(el) el.focus(); }, 200);
 }
 
 function saveDailyTargetModal(){
+  try{ const _el=document.getElementById('dailyTargetInput'); if(_el && typeof applyFormula==='function') applyFormula(_el); }catch(e){}
   const raw = document.getElementById('dailyTargetInput')?.value || '';
   const amount = parseFloat(String(raw).replace(/,/g,''));
   if(isNaN(amount) || amount < 0){
@@ -31846,8 +32349,8 @@ function renderTransactions(m){
   const buyOpen = !_buyIsCollapsed();
   const purchasesHTML = purchaseRowsAll.length ? (()=>{
     const _pItems = purchaseRows.map(row=>{
-      const nm = _txlgItemName(row.t.notes) || L('Untitled item','عنصر بدون اسم');
-      const kind = _purKind(nm), K = _PUR_KINDS[kind];
+      const nm = _purNameOf(row.t);
+      const kind = _purKindOf(row.t,nm), K = _PUR_KINDS[kind];
       return {row, nm, kind, K};
     });
     const _pTotal = purchaseRowsAll.reduce((sm,r)=>sm+(r.t.payment||0),0);
@@ -31859,10 +32362,11 @@ function renderTransactions(m){
           <button type="button" class="pur2-chip on" onclick="_purFilter(this,'all')">${L('All','الكل')} <small>${_pItems.length}</small></button>
           ${_pKeys.map(k=>`<button type="button" class="pur2-chip" onclick="_purFilter(this,'${k}')">${L(_PUR_KINDS[k].en,_PUR_KINDS[k].ar)} <small>${_pKinds[k]}</small></button>`).join('')}
         </div>` : '';
-    const _pCards = _pItems.map((it,i)=>`
-        <article class="pur2-i" data-kind="${it.kind}" style="--k:${it.K.color}"${i>=PUR_PREVIEW?' hidden':''}>
-          <div class="pur2-stage">
-            <span class="pur2-ring">${ic(it.K.icon,26)}</span>
+    const _pCards = _pItems.map((it,i)=>{ const _img=_purImgGet(it.row.t); return `
+        <article class="pur2-i" data-kind="${it.kind}" style="--k:${it.K.color}"${i>=PUR_PREVIEW?' hidden':''} role="button" tabindex="0" onclick="_purOpenEdit('${esc(it.row.monthKey)}',${it.row.idx})" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();_purOpenEdit('${esc(it.row.monthKey)}',${it.row.idx})}">
+          <div class="pur2-stage${_img?' has-img':''}">
+            ${_img?`<img class="pur2-img" src="${esc(_img)}" alt="" loading="lazy" decoding="async">`:`<span class="pur2-ring">${ic(it.K.icon,26)}</span>`}
+            <span class="pur2-ed" aria-hidden="true">${ic('edit',13)}</span>
             <button type="button" class="pur2-x" onclick="event.stopPropagation();_purAskRemove('${esc(it.row.monthKey)}',${it.row.idx})" aria-label="${L('Remove','حذف')}">${ic('trash',13)}</button>
           </div>
           <div class="pur2-info">
@@ -31870,7 +32374,7 @@ function renderTransactions(m){
             <span class="pur2-dt">${esc(_purFmtDate(it.row.t.date))}</span>
             <div class="pur2-pr"><span dir="ltr">${fmt(it.row.t.payment||0)}</span><small>${esc(curLabel())}</small></div>
           </div>
-        </article>`).join('');
+        </article>`; }).join('');
     return `
   <div class="sc-card sc-main pur2-card">
     <div class="sc-main-header" onclick="_buyToggleFold(this)">
@@ -43524,12 +44028,12 @@ function remUpdatePreview(){
   const date=document.getElementById('remDateInput')?.value||'';
   const n=parseInt(document.getElementById('remNotifyDaysInput')?.value||'3',10);
   const _dp=document.querySelector('.rem-datepick'); if(_dp) _dp.classList.toggle('has-val',!!date);
-  if(!date){ el.innerHTML=`${ic('info',13)} <span>${L('Pick a date and we will show you when you will be alerted.',"\u0627\u062e\u062a\u0627\u0631 \u0627\u0644\u062a\u0627\u0631\u064a\u062e \u0648\u0647\u0646\u0642\u0648\u0644\u0643 \u0647\u062a\u062a\u0646\u0628\u0651\u0647 \u0625\u0645\u062a\u0649.")}</span>`; el.classList.remove('ok'); return; }
+  if(!date){ el.innerHTML=`<i class="rem-pv-ic">${ic('info',14)}</i> <span>${L('Pick a date and we will show you when you will be alerted.',"\u0627\u062e\u062a\u0627\u0631 \u0627\u0644\u062a\u0627\u0631\u064a\u062e \u0648\u0647\u0646\u0642\u0648\u0644\u0643 \u0647\u062a\u062a\u0646\u0628\u0651\u0647 \u0625\u0645\u062a\u0649.")}</span>`; el.classList.remove('ok'); return; }
   const d=new Date(date+'T00:00:00'); d.setDate(d.getDate()-n);
   const alertISO=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
   const past=remDaysUntil(alertISO)<0;
   el.classList.add('ok');
-  el.innerHTML=`${ic('bell',13)} <span>${past
+  el.innerHTML=`<i class="rem-pv-ic">${ic('bell',14)}</i> <span>${past
     ? L('The alert window already started \u2014 you will see it right away.',"\u0641\u062a\u0631\u0629 \u0627\u0644\u062a\u0646\u0628\u064a\u0647 \u0628\u062f\u0623\u062a \u0628\u0627\u0644\u0641\u0639\u0644 \u2014 \u0647\u062a\u0634\u0648\u0641\u0647 \u062d\u0627\u0644\u0627\u064b.")
     : L('You will be alerted on ','\u0647\u062a\u062a\u0646\u0628\u0651\u0647 \u064a\u0648\u0645 ')+'<b>'+esc(remDateMid(alertISO))+'</b>'+(n>0?' ('+esc(remAlertLabel(n))+')':'')}</span>`;
 }
