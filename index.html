@@ -8982,20 +8982,7 @@ body .screen-wrap .sc-header.sav-plain-header.sav-plain-header::after{display:no
 .pe-tool:active{transform:scale(.96)}
 .pe-tool:disabled{opacity:.55}
 .pe-tool.pe-tool-x{flex:none;width:42px;color:var(--red)}
-.pe-busy{position:absolute;inset:0;z-index:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding-bottom:40px;
-  background:color-mix(in srgb,var(--surface) 62%,transparent);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);
-  font-size:calc(13px*var(--app-text-scale,1));font-weight:700;color:var(--text)}
-.pe-spin{width:26px;height:26px;border-radius:50%;border:3px solid color-mix(in srgb,var(--green) 22%,transparent);border-top-color:var(--green);animation:peSpin .8s linear infinite}
-@keyframes peSpin{to{transform:rotate(360deg)}}
 
-.pe-cands{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 12px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
-.pe-cands::-webkit-scrollbar{display:none}
-.pe-cands[hidden]{display:none}
-.pe-cand{flex:none;width:62px;height:62px;padding:0;border:0;border-radius:16px;overflow:hidden;cursor:pointer;background:var(--surface2);
-  box-shadow:inset 0 0 0 1px var(--border);transition:box-shadow .15s,transform .12s}
-.pe-cand img{width:100%;height:100%;object-fit:cover;display:block}
-.pe-cand:active{transform:scale(.94)}
-.pe-cand.on{box-shadow:0 0 0 2.5px var(--green),0 8px 14px -8px color-mix(in srgb,var(--green) 80%,transparent)}
 
 .pe-form{margin-bottom:8px}
 .pe-cur{position:absolute;inset-inline-end:16px;top:50%;transform:translateY(-50%);font-size:calc(12px*var(--app-text-scale,1));font-weight:800;color:var(--muted);pointer-events:none}
@@ -9009,7 +8996,7 @@ body .screen-wrap .sc-header.sav-plain-header.sav-plain-header::after{display:no
 .pe-remove{height:46px;border-radius:16px;border:1.5px solid color-mix(in srgb,var(--red) 30%,var(--border));background:transparent;color:var(--red);
   font-family:inherit;font-size:calc(13.5px*var(--app-text-scale,1));font-weight:800;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer}
 .pe-remove:active{background:color-mix(in srgb,var(--red) 10%,var(--surface))}
-@media (prefers-reduced-motion:reduce){.pe-img,.pe-spin{animation:none}.pe-spin{border-top-color:var(--green)}}
+@media (prefers-reduced-motion:reduce){.pe-img{animation:none}}
 /* ── Data entry: company edit ── */
 .de-row.editing{border-top:0;margin:4px 0;padding:8px;border-radius:14px;background:color-mix(in srgb,var(--green) 7%,transparent)}
 .de-edit-inp{flex:1;min-width:0;height:38px;padding:0 12px;border:1.5px solid var(--green);border-radius:var(--icon-r-2);background:var(--surface);color:var(--text);font-family:inherit;font-size:calc(13.5px*var(--app-text-scale,1));font-weight:700;outline:none}
@@ -9294,6 +9281,12 @@ body .screen-wrap .sc-header.sav-plain-header.sav-plain-header::after{display:no
 .dt-chip.on small{color:rgba(255,255,255,.82)}
 .dt-btns{margin-top:20px}
 @media (prefers-reduced-motion:reduce){.dt-hero{animation:none}.dt-chip,.dt-step{transition:none}}
+
+/* ══ Performance — no live blur on elements repeated per list row (each blur is its own
+   GPU layer: 60 cards × 2 buttons made My Purchases scroll heavy on iOS). Solid
+   translucent fills look the same and cost nothing. ══ */
+.pur2-x,.pur2-ed{-webkit-backdrop-filter:none;backdrop-filter:none;background:color-mix(in srgb,var(--surface) 90%,transparent)}
+.rpt-day-h{-webkit-backdrop-filter:none;backdrop-filter:none;background:color-mix(in srgb,var(--surface2) 97%,transparent)}
 .rpt-top{display:flex;align-items:center;gap:8px;margin:0 0 10px}
 .rpt-top .rpt-pick{flex:1;min-width:0;margin:0;padding:0 12px;min-height:38px;border-radius:12px;font-size:calc(12.5px*var(--app-text-scale,1))}
 .rpt-ibtns{display:flex;gap:6px;flex:none}
@@ -10733,6 +10726,52 @@ html body .sc-header .sc-header-sub{padding-inline-start:12px;margin-top:4px;fon
 .fr-step-tx small{font-size:calc(12px*var(--app-text-scale,1));color:var(--muted)}
 .fr-step svg{flex:none;color:var(--muted)}
 [dir="rtl"] .fr-step>svg:last-child{transform:scaleX(-1)}
+
+/* ══════════════════════════════════════════════════════════════════════
+   UI polish v4 — visual layer only (no markup / text / data / handler changes).
+   1) fixes: inner gutters on dashboard cards, Month-Closing button, hero
+      contrast, double header line   2) one consistent card/button/number look
+   ══════════════════════════════════════════════════════════════════════ */
+
+/* 1a — dashboard cards whose rows sat flush against the card edge */
+.sc-card > .dfp-card-head{padding:14px 16px 0;margin-bottom:12px}
+.sc-card > .ctr-grid{padding-inline:12px;gap:8px;margin-bottom:16px}
+.sc-card > .ctr-grid .ctr-kpi{padding-inline:9px}
+.sc-card > .ctr-grid .ctr-kpi-val{white-space:nowrap;letter-spacing:-.02em}
+.sc-card > .sc-card-label + .ctr-grid{margin-top:4px}
+.sc-card > div:not([class]):has(> canvas){padding-inline:12px;padding-bottom:14px}
+.sc-card > .dfp-card-head .dfp-card-btn{margin-inline-end:0}
+
+/* 1b — a lone primary button inside a card (Month Closing …): sit inside the card, full width */
+.sc-card > .sc-btn.primary{display:flex;align-items:center;justify-content:center;gap:8px;width:calc(100% - 32px);margin:6px 16px 16px;min-height:48px;border-radius:14px}
+
+/* 1c — Finance hero: translucent green was made for the dark theme; on the ivory theme white text sat on pale mint.
+        Solid deep-green surface in both themes (also drops a 28px live blur). */
+.dfp-hero-v2{
+  background:radial-gradient(120% 140% at 100% 0%,rgba(46,214,140,.26),transparent 62%),linear-gradient(150deg,#12372A,#0B241B);
+  -webkit-backdrop-filter:none;backdrop-filter:none;
+  box-shadow:0 22px 38px -26px rgba(11,36,27,.85),0 0 0 1px rgba(255,255,255,.05),inset 0 1px 0 rgba(255,255,255,.1)}
+.dfp-hero-v2 .dash-hero-eyebrow,.dfp-hero-v2 .dash-hero-main-lbl,.dfp-hero-v2 .dash-hero-stat-lbl{color:rgba(255,255,255,.82)}
+
+/* 1d — header: the 1px border + the 2px emerald→gold line read as a double rule; keep the signature gradient only.
+        (≈92% opaque already, so the 24px live blur on a sticky bar bought nothing but scroll cost.) */
+.app-header{-webkit-backdrop-filter:none;backdrop-filter:none;background:rgba(246,244,234,.96);border-bottom-color:transparent}
+[data-theme="dark"] .app-header{border-bottom-color:var(--border)}
+
+/* 2 — one family of surfaces */
+.sc-card{border-radius:20px;border-color:color-mix(in srgb,var(--border) 78%,transparent);
+  box-shadow:0 1px 2px rgba(18,36,28,.04),0 14px 28px -22px rgba(18,36,28,.32)}
+[data-theme="dark"] .sc-card{box-shadow:none;border-color:color-mix(in srgb,var(--border) 100%,transparent)}
+.sc-card-label{font-weight:800;letter-spacing:.01em}
+.sc-btn{transition:transform .12s cubic-bezier(.3,.7,.4,1),box-shadow .2s,background .2s}
+.sc-btn.primary{box-shadow:0 12px 22px -14px color-mix(in srgb,var(--green) 85%,transparent),inset 0 1px 0 rgba(255,255,255,.18)}
+.ctr-kpi{border-radius:18px}
+.ctr-kpi-val,.dfp-kpi3-val,.dash-hero-stat-val,.sc-fields{font-variant-numeric:tabular-nums}
+
+/* 3 — feel: no 300ms tap delay / grey tap flash, softer press on every tappable card & button */
+button,[role="button"],.sc-card[onclick],.nav-btn,.dfp-card-btn{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.sc-card[onclick]:active,[role="button"]:active{transition:transform .12s}
+@media (prefers-reduced-motion:reduce){.sc-btn{transition:none}}
 </style>
 <script>
 // Suppress cross-origin Script errors (in-app browsers like TikTok/Instagram)
@@ -17895,8 +17934,7 @@ function _purAskRemove(monthKey,idx){
 //    moves the entry to the month of its date if needed
 //  • image           → small JPEG thumbnail in its own localStorage key
 //    (wdp_pur_img_v1), keyed by the cleaned item name, so DATA stays light
-//  • auto image      → searches Wikimedia Commons, Wikipedia and Openverse
-//    (all key-less + CORS-enabled); Arabic names are also searched in English
+//  • image is added manually only: upload / camera, or remove
 // ══════════════════════════════════════════════════════════════════════════
 const PUR_IMG_KEY='wdp_pur_img_v1';
 let _purImgMap=null;
@@ -17939,47 +17977,6 @@ function _purShrink(blob){
     im.src=url;
   });
 }
-async function _purFetchJSON(url,ms){
-  const ac=new AbortController(), to=setTimeout(()=>ac.abort(),ms||8000);
-  try{ const r=await fetch(url,{signal:ac.signal}); if(!r.ok) throw new Error('http '+r.status); return await r.json(); }
-  finally{ clearTimeout(to); }
-}
-const _PUR_OK_MIME=/^image\/(jpeg|png|webp)$/i;
-async function _purSrcCommons(q){
-  const u='https://commons.wikimedia.org/w/api.php?action=query&format=json&origin=*&generator=search&gsrnamespace=6&gsrlimit=8&prop=imageinfo&iiprop=url|mime&iiurlwidth=480&gsrsearch='+encodeURIComponent(q);
-  const j=await _purFetchJSON(u), pg=j&&j.query&&j.query.pages; if(!pg) return [];
-  return Object.values(pg).sort((a,b)=>(a.index||0)-(b.index||0)).map(p=>p.imageinfo&&p.imageinfo[0]).filter(i=>i&&i.thumburl&&_PUR_OK_MIME.test(i.mime||'')).map(i=>i.thumburl);
-}
-async function _purSrcWiki(lg,q){
-  const u='https://'+lg+'.wikipedia.org/w/api.php?action=query&format=json&origin=*&generator=search&gsrlimit=6&prop=pageimages&piprop=thumbnail&pithumbsize=480&gsrsearch='+encodeURIComponent(q);
-  const j=await _purFetchJSON(u), pg=j&&j.query&&j.query.pages; if(!pg) return [];
-  return Object.values(pg).sort((a,b)=>(a.index||0)-(b.index||0)).map(p=>p.thumbnail&&p.thumbnail.source).filter(Boolean);
-}
-async function _purSrcOpenverse(q){
-  const u='https://api.openverse.org/v1/images/?page_size=8&mature=false&q='+encodeURIComponent(q);
-  const j=await _purFetchJSON(u);
-  return ((j&&j.results)||[]).map(r=>r.thumbnail||r.url).filter(Boolean);
-}
-// → array of image URLs, best first, de-duplicated
-async function _purSearchImages(name){
-  const base=String(name||'').trim(); if(!base) return [];
-  let en=base;
-  if(/[؀-ۿ]/.test(base)){
-    try{
-      const tr=await Promise.race([_atTranslate(base,'en'),new Promise((_,rj)=>setTimeout(()=>rj(new Error('tr timeout')),5000))]);
-      if(tr && String(tr).trim()) en=String(tr).trim();
-    }catch(e){}
-  }
-  const jobs=[ _purSrcCommons(en), _purSrcOpenverse(en), _purSrcWiki('en',en) ];
-  if(en!==base) jobs.push(_purSrcCommons(base),_purSrcWiki('ar',base),_purSrcOpenverse(base));
-  const res=await Promise.allSettled(jobs);
-  const seen=new Set(), out=[];
-  // round-robin so the first picks come from different sources
-  const lists=res.map(r=>r.status==='fulfilled'?r.value:[]);
-  for(let i=0;i<8;i++) lists.forEach(l=>{ const u=l[i]; if(u && !seen.has(u)){ seen.add(u); out.push(u); } });
-  return out.slice(0,10);
-}
-
 // ── editor sheet ─────────────────────────────────────────────────────────
 let _pe=null, _peSession=0;
 function _peLive(sess){ return _pe && _peSession===sess && document.getElementById('peStage'); }
@@ -17988,7 +17985,7 @@ function _purOpenEdit(mk,idx){
   if(!canMutateMonth(mk)){ showToast(L('This month is closed','هذا الشهر مغلق'),'warn'); return; }
   const nm=_purNameOf(t);
   _peSession++;
-  _pe={mk,idx,t,img:_purImgGet(t),dirty:false,kind:_purKindOf(t,nm),cands:[],sel:-1,busy:false};
+  _pe={mk,idx,t,img:_purImgGet(t),dirty:false,kind:_purKindOf(t,nm),busy:false};
   const kinds=Object.keys(_PUR_KINDS);
   document.getElementById('modalContent').innerHTML=`
     <div class="modal-hdr">
@@ -17999,7 +17996,6 @@ function _purOpenEdit(mk,idx){
       </div>
     </div>
     <div class="pe-stage" id="peStage"></div>
-    <div class="pe-cands" id="peCands"></div>
     <input type="file" id="peFile" accept="image/*" hidden onchange="_peFilePicked(this)">
     <div class="rem-add pe-form">
       <div class="rem-field">
@@ -18025,9 +18021,7 @@ function _purOpenEdit(mk,idx){
     </div>`;
   document.getElementById('modalOverlay').style.display='flex';
   try{ if(typeof _localizeAllDateInputs==='function') _localizeAllDateInputs(document.getElementById('modalContent')); }catch(_){}
-  _peRenderStage(); _peRenderCands();
-  // no photo yet → look one up automatically
-  if(!_pe.img) _peAutoSearch();
+  _peRenderStage();
 }
 function _peRenderStage(){
   const el=document.getElementById('peStage'); if(!el||!_pe) return;
@@ -18036,60 +18030,26 @@ function _peRenderStage(){
   el.classList.toggle('has-img',!!_pe.img);
   el.innerHTML=
     (_pe.img?`<img class="pe-img" src="${esc(_pe.img)}" alt="">`:`<span class="pe-ring">${ic(K.icon,34)}</span>`)
-    +(_pe.busy?`<div class="pe-busy"><i class="pe-spin"></i><span>${L('Looking for a photo…','بدوّر على صورة المنتج…')}</span></div>`:'')
     +`<div class="pe-tools">
-        <button type="button" class="pe-tool" onclick="_peAutoSearch()"${_pe.busy?' disabled':''}>${ic('search',15)}<span>${L('Auto-find','بحث تلقائي')}</span></button>
-        <button type="button" class="pe-tool" onclick="document.getElementById('peFile').click()">${ic('upload',15)}<span>${L('Upload','رفع صورة')}</span></button>
+        <button type="button" class="pe-tool" onclick="document.getElementById('peFile').click()">${ic('upload',15)}<span>${_pe.img?L('Change photo','تغيير الصورة'):L('Add photo','إضافة صورة')}</span></button>
         ${_pe.img?`<button type="button" class="pe-tool pe-tool-x" onclick="_peClearImg()" aria-label="${L('Remove photo','حذف الصورة')}">${ic('trash',15)}</button>`:''}
       </div>`;
-}
-function _peRenderCands(){
-  const el=document.getElementById('peCands'); if(!el||!_pe) return;
-  el.hidden=!_pe.cands.length;
-  el.innerHTML=_pe.cands.map((u,i)=>`<button type="button" class="pe-cand${i===_pe.sel?' on':''}" onclick="_pePickCand(${i})"><img src="${esc(u)}" alt="" loading="lazy"></button>`).join('');
 }
 function _peKind(k){
   if(!_pe) return; _pe.kind=k;
   document.querySelectorAll('#peKinds .pe-kind').forEach(b=>b.classList.toggle('on',b.dataset.k===k));
   if(!_pe.img) _peRenderStage();
 }
-function _peClearImg(){ if(!_pe) return; _pe.img=''; _pe.dirty=true; _pe.sel=-1; _peRenderStage(); _peRenderCands(); }
+function _peClearImg(){ if(!_pe) return; _pe.img=''; _pe.dirty=true; _peRenderStage(); }
 async function _peFilePicked(inp){
   const f=inp&&inp.files&&inp.files[0]; if(!f||!_pe) return;
   const sess=_peSession;
   try{
     const d=await _purShrink(f);
     if(!_peLive(sess)) return;
-    _pe.img=d; _pe.dirty=true; _pe.sel=-1; _peRenderStage(); _peRenderCands();
+    _pe.img=d; _pe.dirty=true; _peRenderStage();
   }catch(e){ showToast(L('Could not read this image','تعذّرت قراءة الصورة'),'warn'); }
   try{ inp.value=''; }catch(_){}
-}
-async function _peAutoSearch(){
-  if(!_pe||_pe.busy) return;
-  const sess=_peSession;
-  const q=(document.getElementById('peName')?.value||'').trim()||_purNameOf(_pe.t);
-  _pe.busy=true; _peRenderStage();
-  let urls=[];
-  try{ urls=await _purSearchImages(q); }catch(e){ try{ _logErr('purSearchImages',e); }catch(_){} }
-  if(!_peLive(sess)) return;
-  _pe.cands=urls; _pe.sel=-1; _pe.busy=false; _peRenderCands(); _peRenderStage();
-  if(!urls.length){ showToast(L('No photo found — upload one instead','ما لقيتش صورة — ارفع صورة بنفسك'),'info'); return; }
-  await _pePickCand(0,true);
-}
-// apply a candidate: download → shrink → store as data URL; if the host blocks
-// reading the pixels, fall back to using the remote URL directly
-async function _pePickCand(i,quiet){
-  if(!_pe||!_pe.cands[i]) return;
-  const sess=_peSession, url=_pe.cands[i];
-  _pe.sel=i; _peRenderCands();
-  _pe.busy=true; _peRenderStage();
-  let out=url;
-  try{
-    const r=await fetch(url); if(!r.ok) throw new Error('http '+r.status);
-    out=await _purShrink(await r.blob());
-  }catch(e){ /* keep remote URL */ }
-  if(!_peLive(sess)) return;
-  _pe.img=out; _pe.dirty=true; _pe.busy=false; _peRenderStage();
 }
 function _purSaveEdit(){
   if(!_pe) return;
@@ -38613,9 +38573,15 @@ const SmartDescriptionEngine = (function(){
   ];
 
   // ── normalization helpers (Arabic-aware) ───────────────────────────────────
+  // Pure function, called with the same dictionary keywords thousands of times
+  // per classification pass → memoized (bounded so free-text notes can't grow it forever).
+  const _normCache = new Map();
   function normalize(text){
     if(!text) return '';
-    return String(text)
+    const key = typeof text==='string' ? text : String(text);
+    const hit = _normCache.get(key);
+    if(hit!==undefined) return hit;
+    const out = key
       .toLowerCase()
       .replace(/[\u064B-\u0652\u0640]/g,'')      // strip tashkeel + tatweel
       .replace(/[إأآا]/g,'ا')
@@ -38624,6 +38590,9 @@ const SmartDescriptionEngine = (function(){
       .replace(/[^\p{L}\p{N}\s]/gu,' ')            // strip punctuation
       .replace(/\s+/g,' ')
       .trim();
+    if(_normCache.size>20000) _normCache.clear();
+    _normCache.set(key,out);
+    return out;
   }
 
   const _synIndex = (() => {
@@ -38653,6 +38622,27 @@ const SmartDescriptionEngine = (function(){
     }
     return prev[bl];
   }
+  // Same result as levenshtein() whenever the distance is <= max; otherwise
+  // returns max+1 as soon as it is certain (early exit — most pairs are far apart).
+  function levenshteinMax(a,b,max){
+    if(a===b) return 0;
+    const al=a.length, bl=b.length;
+    if(Math.abs(al-bl)>max) return max+1;
+    if(al===0) return bl; if(bl===0) return al;
+    let prev = new Array(bl+1);
+    for(let j=0;j<=bl;j++) prev[j]=j;
+    for(let i=1;i<=al;i++){
+      const cur=[i]; let rowMin=i;
+      for(let j=1;j<=bl;j++){
+        const cost = a[i-1]===b[j-1] ? 0 : 1;
+        const v = Math.min(prev[j]+1, cur[j-1]+1, prev[j-1]+cost);
+        cur[j]=v; if(v<rowMin) rowMin=v;
+      }
+      if(rowMin>max) return max+1;
+      prev=cur;
+    }
+    return Math.min(prev[bl],max+1);
+  }
   function fuzzyTolerance(len){
     if(len<=3) return 0;   // too short — fuzzy matching would false-positive
     if(len<=6) return 1;
@@ -38667,6 +38657,8 @@ const SmartDescriptionEngine = (function(){
   // category signal). Defaults to false so every pre-existing call site
   // (entity extraction: findMerchant/findMaterial, etc.) keeps its exact
   // previous behavior — this is purely additive and opt-in per call site.
+  let _noAlKey=null, _noAlVal='';
+  const _variantsCache = new Map();   // kwNorm → Set(kwNorm + synonyms); read-only
   function matchEntry(normDesc, words, entry, isMerchant, excludeModifierKeywords){
     let totalScore = 0, hits = 0;
     const matchedKeywords = [];
@@ -38682,17 +38674,25 @@ const SmartDescriptionEngine = (function(){
     // word-boundary matches against both — this fixes the whole class of
     // article/preposition-fused cases at once instead of listing each variant
     // by hand.
-    const normDescNoAl = words.map(w=>{
-      for(const p of _AR_PREFIXES){ if(w.length>p.length+2 && w.startsWith(p)) return w.slice(p.length); }
-      return w;
-    }).join(' ');
+    // (callers always pass words = normDesc.split(' ').filter(Boolean), and one
+    // description is scanned against every dictionary entry in a row → compute once)
+    let normDescNoAl;
+    if(_noAlKey===normDesc){ normDescNoAl=_noAlVal; }
+    else{
+      normDescNoAl = words.map(w=>{
+        for(const p of _AR_PREFIXES){ if(w.length>p.length+2 && w.startsWith(p)) return w.slice(p.length); }
+        return w;
+      }).join(' ');
+      _noAlKey=normDesc; _noAlVal=normDescNoAl;
+    }
     const paddedDesc = ' '+normDesc+' ';
     const paddedDescNoAl = normDescNoAl!==normDesc ? ' '+normDescNoAl+' ' : null;
     for(const rawKw of entry.kw){
       const kwNorm = normalize(rawKw);
       if(!kwNorm || seenNorm.has(kwNorm)) continue;
       if(excludeModifierKeywords && _modifierKeywordSet.has(kwNorm)) continue;
-      const variants = new Set([kwNorm, ...synonymsOf(kwNorm)]);
+      let variants = _variantsCache.get(kwNorm);
+      if(!variants){ variants = new Set([kwNorm, ...synonymsOf(kwNorm)]); _variantsCache.set(kwNorm,variants); }
       let s = 0, spanHit = '';
       for(const kw of variants){
         if(!kw) continue;
@@ -38719,7 +38719,7 @@ const SmartDescriptionEngine = (function(){
           for(const w of words){
             const tol = fuzzyTolerance(Math.max(w.length,kw.length));
             if(tol>0 && Math.abs(w.length-kw.length)<=tol){
-              const d = levenshtein(w,kw);
+              const d = levenshteinMax(w,kw,tol);
               const fs = 55 - d*8;
               if(d<=tol && fs>s){ s=fs; spanHit=w; }
             }
