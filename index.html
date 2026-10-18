@@ -10663,6 +10663,81 @@ html body .sc-header .sc-header-sub{padding-inline-start:12px;margin-top:4px;fon
 @media (max-width:340px){.rq-list.rq-v-grid{grid-template-columns:repeat(4,1fr)}}
 .rq-cardsheet .rq-card{margin-top:4px}
 
+/* ══ Receipt sheet v2 + contractor rating ══ */
+.rq-ds{--rq-sc:var(--muted);gap:14px}
+.rq-ds.ok{--rq-sc:var(--green)}.rq-ds.low{--rq-sc:var(--gold)}.rq-ds.over{--rq-sc:var(--red)}
+.rq-ds-hero{display:flex;align-items:center;gap:13px;padding:14px;border-radius:var(--radius);background:color-mix(in srgb,var(--rq-sc) 9%,var(--surface));border:1px solid color-mix(in srgb,var(--rq-sc) 28%,var(--border));box-shadow:inset 0 4px 0 var(--rq-sc);padding-top:17px}
+.rq-ds-logo{flex:none;width:58px;height:58px;border-radius:17px;background:#fff;display:flex;align-items:center;justify-content:center;overflow:hidden;box-shadow:var(--shadow-xs);color:var(--rq-sc)}
+.rq-ds-id{flex:1;min-width:0}
+.rq-ds-ttl{font-size:calc(12.5px*var(--app-text-scale,1));font-weight:700;color:var(--sub)}
+.rq-ds-co{margin-top:1px;font-size:calc(21px*var(--app-text-scale,1));font-weight:900;line-height:1.2;color:var(--text);overflow-wrap:anywhere}
+.rq-ds-chips{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.rq-ds-tp{display:inline-flex;align-items:center;padding:4px 12px;border-radius:99px;font-size:calc(12px*var(--app-text-scale,1));font-weight:800;color:var(--rq-tc);background:color-mix(in srgb,var(--rq-tc) 13%,var(--surface));border:1px solid color-mix(in srgb,var(--rq-tc) 35%,transparent)}
+.rq-ds-dt{display:inline-flex;align-items:center;gap:5px;margin-inline-start:auto;font-size:calc(12.5px*var(--app-text-scale,1));font-weight:700;color:var(--sub);font-variant-numeric:tabular-nums}
+.rq-ds-line{padding:12px 14px;border-radius:var(--radius-sm);background:var(--surface2);border-inline-start:3px solid var(--rq-tc);font-size:calc(14px*var(--app-text-scale,1));font-weight:700;line-height:1.65;color:var(--text);overflow-wrap:anywhere}
+.rq-ds-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.rq-ds-f{display:flex;align-items:center;gap:10px;min-width:0;padding:10px 11px;border-radius:var(--radius-sm);background:var(--surface);border:1px solid var(--border)}
+.rq-ds-f.wide,.rq-ds-f:last-child:nth-child(odd){grid-column:1/-1}
+[data-theme="dark"] .rq-rt-trade,[data-theme="dark"] .rq-rt-lbl,[data-theme="dark"] .rq-rt-num,[data-theme="dark"] .rq-rate-lbl b{color:color-mix(in srgb,var(--rr) 60%,#fff)}
+.rq-ds-f>div{min-width:0;flex:1}
+.rq-ds-fi{flex:none;width:34px;height:34px;border-radius:11px;display:flex;align-items:center;justify-content:center;background:var(--green-tint);color:var(--green)}
+.rq-ds-f small{display:block;margin-bottom:2px;font-size:calc(11px*var(--app-text-scale,1));font-weight:700;color:var(--muted)}
+.rq-ds-f b{display:block;font-size:calc(14.5px*var(--app-text-scale,1));font-weight:800;line-height:1.3;color:var(--text);overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
+.rq-ds-sec-t{display:flex;align-items:center;gap:8px;margin-bottom:10px;font-size:calc(14px*var(--app-text-scale,1));font-weight:800;color:var(--text)}
+.rq-ds-sec-t svg{color:var(--rq-tc)}
+.rq-ds-sec-t em{margin-inline-start:auto;font-style:normal;font-size:calc(12px*var(--app-text-scale,1));font-weight:800;color:var(--muted)}
+.rq-ds-notes{padding:12px 14px;border-radius:var(--radius);background:var(--surface2);border-inline-start:3px solid var(--rq-tc)}
+.rq-ds-notes .rq-ds-sec-t{margin-bottom:6px}
+.rq-ds-nl{display:flex;gap:11px;align-items:flex-start;padding:5px 0;font-size:calc(13.5px*var(--app-text-scale,1));line-height:1.65;color:var(--text2)}
+.rq-ds-nl i{flex:none;width:7px;height:7px;margin-top:9px;border-radius:50%;background:var(--rq-tc)}
+.rq-ds-nl span{min-width:0;overflow-wrap:anywhere}
+.rq-ds-act{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.rq-ds-btn{display:flex;align-items:center;justify-content:center;gap:8px;min-height:48px;border-radius:var(--radius);border:1.5px solid var(--border);background:var(--surface);color:var(--text);font:inherit;font-size:calc(14px*var(--app-text-scale,1));font-weight:800;cursor:pointer}
+.rq-ds-btn:active{transform:scale(.98)}
+.rq-ds-btn.pri{background:var(--green);border-color:var(--green);color:#fff}
+.rq-ds-btn.del{color:var(--red);border-color:color-mix(in srgb,var(--red) 35%,var(--border))}
+.rq-ds-btn:focus-visible,.rq-st:focus-visible,.rq-tr:focus-visible,.rq-rt-empty:focus-visible{outline:var(--focus-ring-width,2px) solid var(--focus-ring-color,var(--green));outline-offset:2px}
+
+/* contractor rating */
+.rr-ok{--rr:var(--green)}.rr-mid{--rr:var(--gold)}.rr-bad{--rr:var(--red)}
+.rq-stars{display:flex;gap:4px;direction:ltr}
+.rq-st{flex:none;display:inline-flex;padding:0;border:0;background:none;color:var(--border-strong);line-height:0;font:inherit}
+button.rq-st{cursor:pointer;padding:3px}
+.rq-st svg{fill:none;stroke:currentColor;stroke-width:1.8}
+.rq-st.on{color:var(--gold-light)}
+.rq-st.on svg{fill:currentColor}
+.rq-rt{padding:14px 15px;border-radius:var(--radius);border:1px solid color-mix(in srgb,var(--rr) 35%,var(--border));background:color-mix(in srgb,var(--rr) 8%,var(--surface))}
+.rq-rt-head{display:flex;align-items:center;gap:7px;font-size:calc(13.5px*var(--app-text-scale,1));font-weight:800;color:var(--text);white-space:nowrap}
+.rq-rt-head>svg{fill:var(--gold-light);stroke:var(--gold-light)}
+.rq-rt-trade{display:inline-flex;align-items:center;gap:5px;margin-inline-start:auto;padding:3px 10px;border-radius:99px;font-style:normal;font-size:calc(12px*var(--app-text-scale,1));font-weight:800;color:var(--rr);background:color-mix(in srgb,var(--rr) 14%,var(--surface))}
+.rq-rt-head .cx-icbtn{margin-inline-end:-6px}
+.rq-rt-body{display:flex;align-items:center;gap:14px;margin-top:12px}
+.rq-rt-score{flex:none;min-width:74px;display:flex;flex-direction:column;align-items:center;gap:6px}
+.rq-rt-num{font-family:var(--font-display);font-size:calc(46px*var(--app-text-scale,1));font-weight:700;line-height:1;color:var(--rr);font-variant-numeric:tabular-nums}
+.rq-rt-side{flex:1;min-width:0}
+.rq-rt-lbl{font-size:calc(16px*var(--app-text-scale,1));font-weight:900;color:var(--rr)}
+.rq-rt-bars{display:grid;gap:8px;margin-top:10px}
+.rq-rt-bar{display:grid;grid-template-columns:minmax(0,9.5em) minmax(52px,1fr);align-items:center;gap:8px;font-size:calc(12px*var(--app-text-scale,1));font-weight:700;color:var(--sub);line-height:1.25}
+.rq-rt-seg{display:flex;gap:3px}
+.rq-rt-seg i{flex:1;height:6px;border-radius:3px;background:var(--border)}
+.rq-rt-seg i.on{background:var(--rr)}
+.rq-rt-empty{display:flex;align-items:center;gap:13px;width:100%;padding:14px;border:1.5px dashed var(--border-strong);border-radius:var(--radius);background:transparent;color:var(--sub);font:inherit;text-align:start;cursor:pointer}
+.rq-rt-empty b{display:block;font-size:calc(14px*var(--app-text-scale,1));font-weight:800;color:var(--text)}
+.rq-rt-empty small{display:block;margin-top:2px;font-size:calc(12px*var(--app-text-scale,1));font-weight:600;color:var(--muted)}
+.rq-rate-mini{display:inline-flex;align-items:center;gap:5px;margin-top:5px;font-size:calc(12px*var(--app-text-scale,1));font-weight:800;color:var(--rr)}
+.rq-rate-mini svg{fill:var(--gold-light);stroke:var(--gold-light)}
+.rq-trades{display:flex;flex-wrap:wrap;gap:7px}
+.rq-tr{min-height:38px;padding:7px 14px;border-radius:99px;border:1.5px solid var(--border);background:var(--surface);color:var(--sub);font:inherit;font-size:calc(13px*var(--app-text-scale,1));font-weight:700;cursor:pointer}
+.rq-tr.on{background:var(--green-tint);border-color:var(--green);color:var(--green)}
+.rq-trades+input{margin-top:10px}
+.rq-rate-main{display:flex;flex-direction:column;align-items:center;gap:8px;padding:14px;margin-bottom:12px;border-radius:var(--radius);background:var(--surface2)}
+.rq-rate-lbl{min-height:20px;font-size:calc(13px*var(--app-text-scale,1));font-weight:700;color:var(--muted)}
+.rq-rate-lbl b{font-size:calc(15px*var(--app-text-scale,1));font-weight:900;color:var(--rr)}
+.rq-crit{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:5px 0;border-bottom:1px dashed var(--border);font-size:calc(13px*var(--app-text-scale,1));font-weight:700;color:var(--sub)}
+.rq-crit:last-of-type{border-bottom:0}
+.rq-crit .rq-stars{gap:0}
+@media (prefers-reduced-motion:reduce){.rq-ds-btn:active{transform:none}}
+
 /* ══ Dashboard list v2 — one clean grouped list, uniform coloured icon chips, no truncation ══ */
 .wdash-tile[data-cardid="cash"] .wdash-tile-ico{--tc-d:#0f7a55}
 .wdash-tile[data-cardid="site"] .wdash-tile-ico{--tc-d:#be123c}
@@ -34278,7 +34353,7 @@ function _rqMatchSearch(r,q){
   const generic=()=>{
     if(gen) return gen;
     const cached=r.tr&&r.tr[lang];
-    const vals=[r.company,r.engineer,r.type,r.zone,r.irType,r.floor,r.level,r.notes];
+    const vals=[r.company,r.engineer,r.type,r.zone,r.irType,r.floor,r.level,r.notes,(()=>{ try{ return _rqTradeLabel(r.rating); }catch(e){ return ''; } })()];
     if(cached) _RQ_TR_FIELDS.forEach(f=>{ if(cached[f]) vals.push(cached[f]); });
     try{ vals.push(_rqFloorLabel(r.floor),_rqIrLabel(r)); }catch(e){}
     gen=[].concat(...vals.map(_rqWords));
@@ -34512,6 +34587,7 @@ function _rqCardHTML(r){
           <div class="rq-co">${esc(dCompany)}</div>
           ${_rqCardLine(r)}
           ${dType?`<div class="rq-type">${esc(dType)}</div>`:''}
+          ${_rqRateMiniHTML(r)}
         </div>
         <span class="cx-chip ${st.cls}">${_rqStatusLabel(r.status)}</span>
       </div>
@@ -34563,18 +34639,174 @@ function _rqTileHTML(r){
     <span class="rq-tile-meta ${/^[\d\s\-–—\/.,]+$/.test(plot||'')?((plot||'').length>4?'rq-tl-s':''):((plot||'').length>12?'rq-tl-xs':(plot||'').length>6?'rq-tl-s':'')}">${/^[\d\s\-–—\/.,]+$/.test(plot||'')?`<small class="rq-tl-pre">${L('Plot','قطعة')}</small>`:''}<b dir="auto">${esc(plot||'—')}</b></span>
   </button>`;
 }
-// tap a row / tile → the full card in a sheet (edit and delete work from there)
+// ── Contractor rating (trade + overall stars + 3 optional criteria) ──────────
+const _RQ_TRADES=[
+  {k:'mason',en:'Mason',ar:'بنّاء'},
+  {k:'carpenter',en:'Carpenter',ar:'نجّار'},
+  {k:'blacksmith',en:'Blacksmith',ar:'حدّاد'},
+  {k:'plasterer',en:'Plasterer',ar:'مبيّض محارة'},
+  {k:'plumber',en:'Plumber',ar:'سبّاك'},
+  {k:'electrician',en:'Electrician',ar:'كهربائي'},
+  {k:'painter',en:'Painter',ar:'نقّاش'},
+  {k:'tiler',en:'Tiler',ar:'مبلّط'},
+  {k:'insulation',en:'Insulation',ar:'عزل'},
+  {k:'aluminum',en:'Aluminum',ar:'ألوميتال'},
+  {k:'gypsum',en:'Gypsum',ar:'جبس'}
+];
+const _RQ_RATE_ZERO={trade:'',tradeText:'',stars:0,q:0,t:0,s:0};
+let _rqRateSel=Object.assign({},_RQ_RATE_ZERO), _rqRateEditId=null;
+function _rqRateInit(rt){ _rqRateSel=Object.assign({},_RQ_RATE_ZERO,(rt&&typeof rt==='object')?rt:{}); }
+function _rqTradeLabel(rt){
+  if(!rt||!rt.trade) return '';
+  if(rt.trade==='other') return String(rt.tradeText||'').trim();
+  const t=_RQ_TRADES.find(x=>x.k===rt.trade); return t?L(t.en,t.ar):'';
+}
+function _rqRateOverall(rt){
+  if(!rt||typeof rt!=='object') return 0;
+  if(+rt.stars>0) return +rt.stars;
+  const v=[rt.q,rt.t,rt.s].map(Number).filter(n=>n>0);
+  return v.length?v.reduce((a,b)=>a+b,0)/v.length:0;
+}
+function _rqRateCls(n){ return n>=4?'ok':n>=3?'mid':'bad'; }
+function _rqRateLabel(n){
+  const i=Math.max(1,Math.min(5,Math.round(n)));
+  return L(['Poor','Fair','Good','Very good','Excellent'][i-1],['ضعيف','مقبول','جيد','جيد جدًا','ممتاز'][i-1]);
+}
+function _rqStarSvg(sz){ return `<svg width="${sz}" height="${sz}" viewBox="0 0 24 24" stroke-linejoin="round" stroke-linecap="round"><path d="${_ICONS.star}"/></svg>`; }
+function _rqStarsStatic(n,sz){
+  const k=Math.round(n); let h='';
+  for(let i=1;i<=5;i++) h+=`<span class="rq-st${i<=k?' on':''}">${_rqStarSvg(sz)}</span>`;
+  return h;
+}
+function _rqRateMiniHTML(r){
+  const ov=_rqRateOverall(r&&r.rating); if(!ov) return '';
+  const tr=_rqTradeLabel(r.rating);
+  return `<div class="rq-rate-mini rr-${_rqRateCls(ov)}">${_rqStarSvg(13)}<span dir="auto">${ov.toFixed(1)}${tr?' · '+esc(tr):''}</span></div>`;
+}
+function _rqRateStarsInput(key,sz){
+  const cur=+_rqRateSel[key]||0; let h='';
+  for(let i=1;i<=5;i++) h+=`<button type="button" class="rq-st${i<=cur?' on':''}" onclick="_rqRateSet('${key}',${i})" aria-label="${i}/5" aria-pressed="${i<=cur}">${_rqStarSvg(sz)}</button>`;
+  return `<div class="rq-stars" role="group">${h}</div>`;
+}
+function _rqRateSet(key,v){ _rqRateSel[key]=(+_rqRateSel[key]===v)?0:v; _rqRateRender(); }
+function _rqRatePickTrade(k){
+  _rqRateSel.trade=(_rqRateSel.trade===k)?'':k; _rqRateRender();
+  if(_rqRateSel.trade==='other') setTimeout(()=>document.getElementById('rqTradeTxt')?.focus(),30);
+}
+function _rqRateClear(){ _rqRateSel=Object.assign({},_RQ_RATE_ZERO); _rqRateRender(); }
+function _rqRateInnerHTML(){
+  const s=_rqRateSel, ov=_rqRateOverall(s);
+  const has=!!(s.trade||s.stars||s.q||s.t||s.s);
+  const chip=(k,lbl)=>`<button type="button" class="rq-tr${s.trade===k?' on':''}" aria-pressed="${s.trade===k}" onclick="_rqRatePickTrade('${k}')">${lbl}</button>`;
+  const chips=_RQ_TRADES.map(t=>chip(t.k,L(t.en,t.ar))).join('')+chip('other',L('Other','أخرى'));
+  const crit=[['q',L('Quality','الجودة')],['t',L('On-time delivery','الالتزام بالمواعيد')],['s',L('Safety & cleanliness','السلامة والنظافة')]]
+    .map(([k,l])=>`<div class="rq-crit"><span>${l}</span>${_rqRateStarsInput(k,22)}</div>`).join('');
+  return `<div class="field"><label>${L('Contractor trade','تخصص المقاول')}</label>
+      <div class="rq-trades">${chips}</div>
+      ${s.trade==='other'?`<input type="text" id="rqTradeTxt" dir="auto" autocomplete="off" placeholder="${L('e.g. Marble fitter','مثال: مركّب رخام')}" value="${esc(s.tradeText||'')}" oninput="_rqRateSel.tradeText=this.value">`:''}
+    </div>
+    <div class="rq-rate-main ${ov?'rr-'+_rqRateCls(ov):''}">${_rqRateStarsInput('stars',36)}<div class="rq-rate-lbl">${s.stars?`<b>${_rqRateLabel(s.stars)}</b>`:L('Tap a star to rate','اضغط على نجمة للتقييم')}</div></div>
+    <div class="rq-crit-list">${crit}</div>
+    ${has?`<button type="button" class="rq-lvl-reset" onclick="_rqRateClear()">${L('Clear rating','مسح التقييم')}</button>`:''}`;
+}
+function _rqRateRender(){ const b=document.getElementById('rqRateBox'); if(b) b.innerHTML=_rqRateInnerHTML(); }
+function _rqRateSecHTML(){
+  return `<div class="rq-sec"><div class="rq-sec-hdr">${ic('star',15)}<span>${L('Contractor rating','تقييم المقاول')}</span><span class="f-opt" style="margin-inline-start:auto;font-weight:600">(${L('optional','اختياري')})</span></div><div id="rqRateBox">${_rqRateInnerHTML()}</div></div>`;
+}
+function _rqRateCollect(){
+  const s=_rqRateSel;
+  if(!(s.trade||s.stars||s.q||s.t||s.s)) return null;
+  const o={trade:s.trade||'',stars:+s.stars||0,q:+s.q||0,t:+s.t||0,s:+s.s||0};
+  if(s.trade==='other'){
+    const txt=(document.getElementById('rqTradeTxt')?.value||s.tradeText||'').trim();
+    o.tradeText=txt; if(!txt) o.trade='';
+  }
+  return (o.trade||o.stars||o.q||o.t||o.s)?o:null;
+}
+// quick sheet: rate from the receipt sheet without opening the whole form
+function rqRateOpen(id){
+  const r=_rqLoad().find(x=>x.id===id); if(!r) return;
+  _rqRateInit(r.rating); _rqRateEditId=id;
+  const plot=_rqPlotLabel(r), co=_rqDisplayValue(r,'company');
+  document.getElementById('modalContent').innerHTML=`<div class="modal-handle"></div>
+    <div class="rq-modal">
+      <div class="modal-hdr">
+        <div class="modal-hdr-icon" style="background:linear-gradient(135deg,#c9a02c,#8a6414)">${ic('star',22)}</div>
+        <div style="flex:1;min-width:0"><div class="modal-hdr-title">${L('Rate contractor','تقييم المقاول')}</div><div class="modal-hdr-sub" dir="auto">${esc(co)}${plot?' · '+esc(plot):''}</div></div>
+        <button type="button" class="sheet-close-btn sq" onclick="rqOpenCard('${id}')" aria-label="${L('Back','رجوع')}">${ic('close',16)}</button>
+      </div>
+      <div class="rq-sec"><div id="rqRateBox">${_rqRateInnerHTML()}</div></div>
+      <div class="modal-btns"><button class="mbtn save" onclick="rqRateSave()">${L('Save','حفظ')}</button><button class="mbtn cancel" onclick="rqOpenCard('${id}')">${L('Cancel','إلغاء')}</button></div>
+    </div>`;
+  document.getElementById('modalOverlay').style.display='flex';
+}
+function rqRateSave(){
+  const list=_rqLoad(), i=list.findIndex(x=>x.id===_rqRateEditId); if(i<0) return;
+  list[i]={...list[i],rating:_rqRateCollect(),updatedAt:Date.now()};
+  _rqSave(list);
+  showToast(L('Rating saved ✓','تم حفظ التقييم ✓'),'success');
+  const id=_rqRateEditId; renderView(); rqOpenCard(id);
+}
+function _rqRateCardHTML(r){
+  const rt=r.rating, ov=_rqRateOverall(rt);
+  if(!ov){
+    return `<button type="button" class="rq-rt-empty" onclick="rqRateOpen('${r.id}')"><span class="rq-stars">${_rqStarsStatic(0,22)}</span><span><b>${L('Rate the contractor','قيّم المقاول')}</b><small>${L('Mason, carpenter, blacksmith…','بنّاء، نجّار، حدّاد…')}</small></span></button>`;
+  }
+  const trade=_rqTradeLabel(rt);
+  const bar=(lbl,n)=>n>0?`<div class="rq-rt-bar"><span>${lbl}</span><span class="rq-rt-seg">${[1,2,3,4,5].map(i=>`<i class="${i<=n?'on':''}"></i>`).join('')}</span></div>`:'';
+  const bars=bar(L('Quality','الجودة'),+rt.q)+bar(L('On-time delivery','الالتزام بالمواعيد'),+rt.t)+bar(L('Safety & cleanliness','السلامة والنظافة'),+rt.s);
+  return `<section class="rq-rt rr-${_rqRateCls(ov)}">
+    <div class="rq-rt-head">${ic('star',17)}<span>${L('Contractor rating','تقييم المقاول')}</span>${trade?`<em class="rq-rt-trade">${ic('hammer',13)}<span dir="auto">${esc(trade)}</span></em>`:''}<button type="button" class="cx-icbtn" onclick="rqRateOpen('${r.id}')" aria-label="${L('Edit rating','تعديل التقييم')}">${ic('edit',15)}</button></div>
+    <div class="rq-rt-body">
+      <div class="rq-rt-score"><div class="rq-rt-num" dir="ltr">${ov.toFixed(1)}</div><span class="rq-stars">${_rqStarsStatic(ov,15)}</span></div>
+      <div class="rq-rt-side"><div class="rq-rt-lbl">${_rqRateLabel(ov)}</div>${bars?`<div class="rq-rt-bars">${bars}</div>`:''}</div>
+    </div>
+  </section>`;
+}
+// tap a row / tile → the receipt sheet (rating, edit and delete work from there)
 function rqOpenCard(id){
   const r=_rqLoad().find(x=>x.id===id); if(!r) return;
-  const plot=_rqPlotLabel(r);
+  const st=_RQ_STATUS[r.status]||_RQ_STATUS.received;
+  const ar=(lang==='ar'), plot=_rqPlotLabel(r);
+  const dCompany=_rqDisplayValue(r,'company'), dType=_rqDisplayValue(r,'type'),
+        dEngineer=_rqDisplayValue(r,'engineer'), dPlot=_rqDisplayValue(r,'plot'),
+        dModel=_rqDisplayValue(r,'model'), dNotes=_rqDisplayValue(r,'notes'), dZone=_rqDisplayValue(r,'zone');
+  const lvl=_rqAutoTrText(r.level), lvlLtr=!/[\u0600-\u06FF]/.test(lvl||'');
+  const fact=(icn,lbl,val,o)=>{
+    if(!val) return ''; o=o||{};
+    return `<div class="rq-ds-f${o.wide?' wide':''}"><span class="rq-ds-fi">${ic(icn,16)}</span><div><small>${lbl}</small><b dir="${o.ltr?'ltr':'auto'}"${o.ltr?` style="text-align:${ar?'end':'start'}"`:''}>${esc(val)}</b></div></div>`;
+  };
+  const parts=_rqCardParts(r);
+  const notes=String(dNotes||'').split('\n').map(l=>l.trim().replace(/^[•\-]\s*/,'')).filter(Boolean);
+  const logo=_rqCoLogoSrc(r.company)?bankLogoHTML(_rqCoLogoSrc(r.company),46,{alt:dCompany}):ic('building',24);
   document.getElementById('modalContent').innerHTML=`<div class="modal-handle"></div>
-    <div class="rq-modal rq-cardsheet">
-      <div class="modal-hdr">
-        <div class="modal-hdr-icon" style="background:linear-gradient(135deg,#0f7a55,#0a5c40)">${ic('clipboard',22)}</div>
-        <div style="flex:1;min-width:0"><div class="modal-hdr-title">${L('Receipt','استلامة')}${plot?' · '+esc(plot):''}</div><div class="modal-hdr-sub">${esc(r.date||'')}</div></div>
+    <div class="rq-modal rq-cardsheet rq-ds ${st.cls}" style="--rq-tc:${_rqTypeColor(r)}">
+      <div class="rq-ds-hero">
+        <div class="rq-ds-logo">${logo}</div>
+        <div class="rq-ds-id"><div class="rq-ds-ttl" dir="auto">${L('Receipt','استلامة')}${plot?' · '+esc(plot):''}</div><div class="rq-ds-co" dir="auto">${esc(dCompany)}</div></div>
         <button type="button" class="sheet-close-btn sq" onclick="closeModal()" aria-label="${L('Close','إغلاق')}">${ic('close',16)}</button>
       </div>
-      ${_rqCardHTML(r)}
+      <div class="rq-ds-chips">
+        <span class="cx-chip ${st.cls}">${_rqStatusLabel(r.status)}</span>
+        ${dType?`<span class="rq-ds-tp" dir="auto">${esc(dType)}</span>`:''}
+        ${r.date?`<span class="rq-ds-dt" dir="ltr">${ic('calendar',14)}${esc(r.date)}</span>`:''}
+      </div>
+      ${parts.length?`<div class="rq-ds-line" dir="auto">${esc(parts.join(' - '))}</div>`:''}
+      <div class="rq-ds-grid">
+        ${fact('hardhat',L('Engineer','المهندس'),dEngineer)}
+        ${fact('map',L('Zone','المنطقة'),dZone)}
+        ${fact('pin',L('Plot No.','رقم القطعة'),dPlot)}
+        ${fact('clipboard',L('Form / Model','النموذج'),dModel)}
+        ${fact('floor',L('Floor','الدور'),_rqFloorLabel(r.floor),{wide:!lvl})}
+        ${fact('ruler',L('Level','المنسوب'),lvl,{ltr:lvlLtr})}
+        ${fact('type',L('Inspection type','نوع الاستلامة'),_rqIrLabel(r),{wide:true})}
+      </div>
+      ${_rqRateCardHTML(r)}
+      ${notes.length?`<div class="rq-ds-notes"><div class="rq-ds-sec-t">${ic('message',16)}<span>${L('Notes','الملاحظات')}</span><em>${notes.length}</em></div>${notes.map(n=>`<div class="rq-ds-nl"><i></i><span dir="auto" style="text-align:${ar?'right':'left'}">${esc(n)}</span></div>`).join('')}</div>`:''}
+      <div class="rq-ds-act">
+        <button type="button" class="rq-ds-btn pri" onclick="openRequestModal('${r.id}')">${ic('edit',17)}${L('Edit','تعديل')}</button>
+        <button type="button" class="rq-ds-btn del" onclick="deleteRequest('${r.id}')">${ic('trash',17)}${L('Delete','حذف')}</button>
+      </div>
     </div>`;
   document.getElementById('modalOverlay').style.display='flex';
 }
@@ -34718,6 +34950,7 @@ function openRequestModal(id){
   const r=id?list.find(x=>x.id===id):null;
   _rqEditId=r?r.id:null;
   _rqStatusSel=(r&&_RQ_STATUS[r.status])?r.status:'received';
+  _rqRateInit(r&&r.rating);
   _rqPendingCoLogo=undefined;
   const uniq=k=>[...new Set(list.map(x=>String(x[k]||'').trim()).filter(Boolean))];
   const dl=(idn,k)=>`<datalist id="${idn}">${uniq(k).map(v=>`<option value="${esc(v)}"></option>`).join('')}</datalist>`;
@@ -34775,6 +35008,8 @@ function openRequestModal(id){
       <div class="rq-sec-hdr">${ic('flag',15)}<span>${L('Status','الحالة')}</span></div>
       <div class="field"><div class="rq-seg">${stBtns}</div></div>
     </div>
+
+    ${_rqRateSecHTML()}
 
     <div class="rq-sec">
       <div class="rq-sec-hdr">${ic('note',15)}<span>${L('Notes','ملاحظات')}</span></div>
@@ -35097,6 +35332,7 @@ function saveRequest(){
   }
   const rec={company,engineer:g('rqEngineer'),date:g('rqDate')||today(),type:g('rqType'),zone:g('rqZone'),plot:g('rqPlot'),model:g('rqModel'),floor:g('rqFloor'),level:g('rqLevel'),status:_rqStatusSel,notes:g('rqNotes')};
   rec.irType=g('rqIrType'); // inspection type, kept for every receipt type
+  rec.rating=_rqRateCollect(); // contractor rating (trade + stars) or null
   _atLearnEdits(document.getElementById('rqNotes'));
   _rqLearnCommentSuggestions(rec.type,rec.irType,rec.notes);
   _rqLearnField('company',rec.company);
