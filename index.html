@@ -11812,6 +11812,21 @@ function fpInitSmartHeader(){
 .att-prog i{display:block;height:100%;border-radius:3px;background:linear-gradient(90deg,var(--green-light),var(--green))}
 .att-dur small{order:4;flex:1 1 100%;text-align:end;font-size:calc(11px*var(--app-text-scale,1));font-weight:700;color:var(--muted);font-variant-numeric:tabular-nums}
 [data-theme="dark"] .att-seg.on,[data-theme="dark"] .cx-seg-btn.on,[data-theme="dark"] .rq-vbtn.on{background:color-mix(in srgb,var(--green) 18%,var(--surface3));color:var(--green-light,var(--green))}
+
+/* ── salary: earned to date ── */
+.att-pay-cyc-bar{height:7px;margin:8px 0 2px;border-radius:4px;background:color-mix(in srgb,var(--green) 16%,var(--surface2));overflow:hidden}
+.att-pay-cyc-bar i{display:block;height:100%;border-radius:4px;background:linear-gradient(90deg,var(--green-light),var(--green))}
+.att-pay-meta{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:4px;font-size:calc(12px*var(--app-text-scale,1));font-weight:700;color:var(--sub)}
+.att-pay-meta b{color:var(--text);font-variant-numeric:tabular-nums}
+.att-pay-more{display:flex;align-items:center;justify-content:space-between;width:calc(100% - 28px);margin:0 14px 12px;padding:11px 14px;border:1px solid var(--border);border-radius:14px;background:var(--surface2);color:var(--text);font:inherit;font-size:calc(13px*var(--app-text-scale,1));font-weight:800;cursor:pointer}
+.att-pay-days{display:flex;flex-direction:column;gap:6px;margin:0 14px 14px}
+.att-pay-day{display:grid;grid-template-columns:4.6em 1fr auto;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--border);border-radius:13px;background:var(--surface);color:var(--text);font:inherit;text-align:start;cursor:pointer}
+.att-pay-day .d{font-size:calc(12px*var(--app-text-scale,1));font-weight:800;color:var(--sub)}
+.att-pay-day .t{font-size:calc(13px*var(--app-text-scale,1));font-weight:700;min-width:0}
+.att-pay-day b{font-size:calc(13px*var(--app-text-scale,1));font-weight:900;font-variant-numeric:tabular-nums;white-space:nowrap}
+.att-pay-day.neg b{color:var(--red)}.att-pay-day.pos b{color:var(--green)}
+.att-pay-day.fut{opacity:.6;border-style:dashed}
+.att-pay-day:active{transform:scale(.985)}
 </style>
 </head>
 <body>
@@ -46683,43 +46698,68 @@ const ATT=(function(){
     const f=d=>d.toLocaleDateString(loc(),{day:'numeric',month:'short'});
     return {a:dk(sy,sm,D), b:dk(ey,em,D), days:Math.round((e0-s0)/864e5), label:f(s0)+' – '+f(last)};
   }
+  const dOf=k=>new Date(+k.slice(0,4),+k.slice(5,7)-1,+k.slice(8,10));
+  let payDays=false;
+  // earned-to-date is linked to the attendance calendar: salary accrues per day, then absence / short hours / overtime are applied
   function calcPay(){
     const cfg=payCfg(), rg=payRange(cfg);
     const div=cfg.basis==='cal'?rg.days:+cfg.basis;
     const daily=cfg.net/div, hourly=daily/cfg.hpd;
-    const r={cfg,range:rg,label:rg.label,absent:0,sick:0,shortMin:0,otMin:0,absDed:0,sickDed:0,shortDed:0,otAdd:0,recorded:0,base:cfg.net,total:0,hourly:hourly};
-    Object.keys(db.days).forEach(k=>{
+    const today=tk();
+    const elapsed=today<rg.a?0:(today>=rg.b?rg.days:Math.round((dOf(today)-dOf(rg.a))/864e5)+1);
+    const items=[];
+    Object.keys(db.days).sort().forEach(k=>{
       if(k<rg.a||k>=rg.b) return;
       const rec=db.days[k]; if(!rec) return;
-      r.recorded++;
-      if(rec.s==='absent'){ r.absent++; r.absDed+=daily; }
-      else if(rec.s==='sick'&&cfg.sickUnpaid){ r.sick++; r.sickDed+=daily; }
+      if(rec.s==='absent') items.push({k,t:'absent',amt:-daily});
+      else if(rec.s==='sick'&&cfg.sickUnpaid) items.push({k,t:'sick',amt:-daily});
       else if(WORKING(rec.s)&&rec.i&&rec.o){
         const d=durMin(rec.i,rec.o), std=cfg.hpd*60;
         if(d>0){
-          if(d<std){ if(cfg.short){ r.shortMin+=std-d; r.shortDed+=(std-d)/60*hourly; } }
-          else if(cfg.ot>0){ r.otMin+=d-std; r.otAdd+=(d-std)/60*hourly*cfg.ot; }
+          if(d<std){ if(cfg.short) items.push({k,t:'short',min:std-d,amt:-(std-d)/60*hourly}); }
+          else if(cfg.ot>0) items.push({k,t:'ot',min:d-std,amt:(d-std)/60*hourly*cfg.ot});
         }
       }
     });
-    r.total=Math.max(0,r.base-r.absDed-r.sickDed-r.shortDed+r.otAdd);
+    const sum=(f)=>items.filter(f).reduce((a,x)=>a+x.amt,0);
+    const cnt=(t)=>items.filter(x=>x.t===t&&x.k<=today).length;
+    const mins=(t)=>items.filter(x=>x.t===t&&x.k<=today).reduce((a,x)=>a+(x.min||0),0);
+    const baseTD=cfg.net*elapsed/rg.days;
+    const r={cfg,range:rg,label:rg.label,days:rg.days,elapsed,items,today,hourly,base:cfg.net,baseTD,
+      absent:cnt('absent'),sick:cnt('sick'),shortMin:mins('short'),otMin:mins('ot'),
+      absDed:-sum(x=>x.t==='absent'&&x.k<=today),sickDed:-sum(x=>x.t==='sick'&&x.k<=today),
+      shortDed:-sum(x=>x.t==='short'&&x.k<=today),otAdd:sum(x=>x.t==='ot'&&x.k<=today)};
+    r.toDate=Math.max(0,baseTD+sum(x=>x.k<=today));
+    r.endTotal=Math.max(0,cfg.net+sum(()=>true));
     return r;
   }
   const secH=(icn,en,ar,right)=>`<div class="att-sec"><span class="att-sec-t">${ic(icn,15)}<span>${L(en,ar)}</span></span>${right||''}</div>`;
+  function togglePayDays(){ payDays=!payDays; try{ renderView(true); }catch(e){} }
   function payHTML(){
     const cfg=payCfg(), pr=calcPay();
     const M=n=>fmtEGP(Math.round(n*100)/100);
     const row=(lbl,val,cls)=>`<div class="att-pay-r ${cls||''}"><span>${lbl}</span><b>${val}</b></div>`;
+    const done=pr.elapsed>=pr.days, pct=Math.round(pr.elapsed/pr.days*100);
     const rows=cfg.net>0?[
-      row(L('Base net salary','المرتب الصافي الأساسي'),M(pr.base)),
+      row(L('Salary for '+pr.elapsed+' of '+pr.days+' days','المرتب عن '+pr.elapsed+' يوم من '+pr.days),M(pr.baseTD)),
       pr.absent?row(L('Absence','غياب')+' · '+pr.absent+' '+L('day(s)','يوم'),'− '+M(pr.absDed),'neg'):'',
       pr.sick?row(L('Unpaid sick leave','مرضي بدون أجر')+' · '+pr.sick+' '+L('day(s)','يوم'),'− '+M(pr.sickDed),'neg'):'',
       pr.shortMin?row(L('Short hours','ساعات ناقصة')+' · '+fmtDur(pr.shortMin),'− '+M(pr.shortDed),'neg'):'',
       pr.otMin?row(L('Overtime','أوفر تايم')+' · '+fmtDur(pr.otMin)+' ×'+cfg.ot,'+ '+M(pr.otAdd),'pos'):''
     ].join(''):'';
+    const lbl={absent:L('Absent','غياب'),sick:L('Unpaid sick','مرضي بدون أجر'),short:L('Short hours','ساعات ناقصة'),ot:L('Overtime','أوفر تايم')};
+    const dayRows=pr.items.slice().reverse().map(x=>{
+      const dt=dOf(x.k).toLocaleDateString(loc(),{day:'numeric',month:'short'});
+      return `<button type="button" class="att-pay-day ${x.amt<0?'neg':'pos'}${x.k>pr.today?' fut':''}" onclick="ATT.openDay('${x.k}')"><span class="d">${dt}</span><span class="t">${lbl[x.t]}${x.min?' · '+fmtDur(x.min):''}${x.k>pr.today?' · '+L('upcoming','قادم'):''}</span><b dir="ltr">${x.amt<0?'−':'+'} ${M(Math.abs(x.amt))}</b></button>`;
+    }).join('');
     const btn=`<button type="button" class="att-sec-btn" onclick="ATT.openPay()">${ic('edit',13)} ${cfg.net>0?L('Edit','تعديل'):L('Set up','إعداد')}</button>`;
     const body=cfg.net>0
-      ?`<div class="att-pay-hero"><small>${L('Expected net pay','المرتب المتوقع')} · ${esc(pr.label)}</small><div class="att-pay-amt" dir="ltr">${M(pr.total)}</div><small>${L('Hourly rate','أجر الساعة')}: <b dir="ltr">${M(pr.hourly)}</b> · ${cfg.hpd}${L(' h/day',' س/يوم')}</small></div><div class="att-pay-rows">${rows}</div>`
+      ?`<div class="att-pay-hero"><small>${done?L('Net pay for the cycle','صافي مرتب الدورة'):L('Earned so far','مرتبك لحد النهاردة')} · ${esc(pr.label)}</small><div class="att-pay-amt" dir="ltr">${M(pr.toDate)}</div>
+          <div class="att-pay-cyc-bar" role="progressbar" aria-valuenow="${pct}" aria-valuemin="0" aria-valuemax="100"><i style="width:${pct}%"></i></div>
+          <div class="att-pay-meta"><span>${L('Day','اليوم')} ${pr.elapsed} ${L('of','من')} ${pr.days}</span>${done?'':`<span>${L('Expected at cycle end','المتوقع آخر الدورة')}: <b dir="ltr">${M(pr.endTotal)}</b></span>`}</div>
+          <small>${L('Hourly rate','أجر الساعة')}: <b dir="ltr">${M(pr.hourly)}</b> · ${cfg.hpd}${L(' h/day',' س/يوم')}</small></div>
+        <div class="att-pay-rows">${rows}</div>
+        ${pr.items.length?`<button type="button" class="att-pay-more" onclick="ATT.togglePayDays()" aria-expanded="${payDays}"><span>${L('Day-by-day impact','تأثير كل يوم')} (${pr.items.length})</span><span class="att-chev dn${payDays?' up':''}"></span></button>${payDays?`<div class="att-pay-days">${dayRows}</div>`:''}`:''}`
       :`<div class="att-pay-start"><span class="att-pay-ic">${ic('wallet',22)}</span><p>${L('Add your monthly net salary and working hours to calculate pay from attendance, absence and overtime.','أضف مرتبك الصافي وساعات العمل عشان يتحسب المرتب من الحضور والغياب والأوفر تايم.')}</p><button type="button" class="att-pay-go" onclick="ATT.openPay()">${ic('wallet',16)} ${L('Set up salary','إعداد المرتب')}</button></div>`;
     return secH('wallet','Salary','المرتب',btn)+`<div class="sc-card att-pay">${body}</div>`;
   }
@@ -47211,7 +47251,7 @@ const ATT=(function(){
       if(save()){ try{ renderView(true); }catch(e){} showToast(L('Month cleared','تم مسح الشهر'),'success'); }
     });
   }
-  return {render,dashCard,dashSummary,quickStrip,checkIn,checkOut,stamp,tUpd,clearT,noteChip,openPage,openDay,pick,saveDay,clearDay,quick,nav,goToday,setScope,setField,pickLogo,removeLogo,clearMonth,toggleCo,openPay,payDraftSet,paySave,toggleMulti,setRangeMode,clearSel,tapDay,openMulti,saveMulti,clearMulti};
+  return {render,dashCard,dashSummary,quickStrip,checkIn,checkOut,stamp,tUpd,clearT,noteChip,openPage,openDay,pick,saveDay,clearDay,quick,nav,goToday,setScope,setField,pickLogo,removeLogo,clearMonth,toggleCo,openPay,togglePayDays,payDraftSet,paySave,toggleMulti,setRangeMode,clearSel,tapDay,openMulti,saveMulti,clearMulti};
 })();
 // My Locations photos live in IndexedDB; carry them through the app's existing backup/restore
 // (which only knows localStorage) without ever writing them into localStorage.
