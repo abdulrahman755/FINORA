@@ -10759,6 +10759,52 @@ html body .sc-header .sc-header-sub{padding-inline-start:12px;margin-top:4px;fon
 .content.screen-mode > .sc-card + .sc-card{margin-top:12px}
 .content.screen-mode > .sc-card + .sc-card-label,.content.screen-mode > .sc-card + .ds-grid-2-tight{margin-top:14px}
 
+/* ===== My Purchases — simple price-list rows (shopping-app style) ===== */
+.pur2-grid,.pur2-grid{grid-template-columns:1fr!important;gap:0}
+.pur2-i{flex-direction:row;align-items:center;gap:12px;padding:11px 2px;border:0;border-radius:0;background:none;box-shadow:none;border-bottom:1px solid var(--border);overflow:visible}
+.pur2-i:last-child,.pur2-i[hidden] + .pur2-i[hidden]{border-bottom:0}
+.pur2-i:active{transform:none;background:color-mix(in srgb,var(--text) 5%,transparent)}
+.pur2-stage{flex:none;width:58px;height:58px;aspect-ratio:1;border-radius:16px;overflow:hidden;box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--border) 90%,transparent)}
+.pur2-stage.has-img{background:#fff}
+.pur2-stage.has-img::before,.pur2-stage.has-img::after{display:none}
+[data-theme="dark"] .pur2-img{filter:none}
+.pur2-ring{width:38px;height:38px;box-shadow:none}
+.pur2-ring svg{width:20px;height:20px}
+.pur2-info{flex:1;min-width:0;padding:0;gap:3px;justify-content:center}
+.pur2-nm{font-size:calc(15px*var(--app-text-scale,1));font-weight:700;-webkit-line-clamp:2;line-height:1.35}
+.pur2-dt{font-size:calc(12px*var(--app-text-scale,1));font-weight:600;color:var(--muted);padding:0;background:none}
+.pur2-i > .pur2-pr{margin:0;flex:none;font-size:calc(17px*var(--app-text-scale,1));font-weight:800;gap:3px;align-items:baseline}
+.pur2-go{flex:none;display:flex;color:var(--muted);opacity:.55}
+[dir="rtl"] .pur2-go{transform:scaleX(-1)}
+.pur2-chips{margin-bottom:2px}
+
+/* ===== Attendance fingerprint — premium (visual only) ===== */
+.att-fp{gap:9px;padding:4px 8px 2px;--fp:#0f8a5f;--fp2:#06543a;--fp-hi:#6fe3b3}
+.att-fp.out{--fp:#e0b84a;--fp2:#9a7414;--fp-hi:#fff0b8;--fp-ink:#2b2106}
+.att-fp-disc{width:72px;height:72px}
+.att-fp-disc::before{content:"";position:absolute;inset:-5px;border-radius:50%;pointer-events:none;
+  background:conic-gradient(from 0deg,transparent 0 55%,color-mix(in srgb,var(--fp-hi) 85%,transparent) 80%,var(--fp) 100%);
+  -webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 2px),#000 calc(100% - 1.5px));mask:radial-gradient(farthest-side,transparent calc(100% - 2px),#000 calc(100% - 1.5px));
+  animation:attFpSpin 4.2s linear infinite}
+.att-fp-core{background:linear-gradient(150deg,color-mix(in srgb,var(--fp) 55%,var(--fp-hi)) 0%,var(--fp) 42%,var(--fp2) 100%);
+  box-shadow:0 10px 22px -6px color-mix(in srgb,var(--fp) 70%,transparent),0 2px 4px rgba(0,0,0,.18),inset 0 1px 1px rgba(255,255,255,.6),inset 0 -8px 14px rgba(0,0,0,.2),inset 0 0 0 1px color-mix(in srgb,var(--fp2) 60%,transparent)}
+.att-fp-core::before{content:"";position:absolute;left:12%;right:12%;top:3%;height:46%;border-radius:50%;background:linear-gradient(180deg,rgba(255,255,255,.38),rgba(255,255,255,0));pointer-events:none}
+.att-fp-core svg{width:36px;height:36px;stroke-width:1.5;filter:drop-shadow(0 1px 2px rgba(0,0,0,.28))}
+.att-fp-ring{border-width:1.5px;animation-name:attFpRing2}
+.att-fp-scan{height:1.5px;left:20%;right:20%;opacity:.8;box-shadow:0 0 6px rgba(255,255,255,.7)}
+.att-fp-lb{font-size:calc(11px*var(--app-text-scale,1));font-weight:800;letter-spacing:.02em;padding:4px 12px;border-radius:99px;
+  color:var(--fp2);background:color-mix(in srgb,var(--fp) 13%,var(--surface));box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--fp) 30%,transparent)}
+[data-theme="dark"] .att-fp-lb{color:var(--fp-hi);background:color-mix(in srgb,var(--fp) 16%,transparent)}
+.att-fp.done{--fp:#0f8a5f}
+.att-fp.done .att-fp-disc::before{display:none}
+.att-fp.done .att-fp-core{background:color-mix(in srgb,var(--green) 12%,var(--surface));box-shadow:inset 0 0 0 1.5px color-mix(in srgb,var(--green) 40%,transparent),0 6px 14px -8px color-mix(in srgb,var(--green) 60%,transparent)}
+.att-fp.done .att-fp-core::before{display:none}
+.att-fp.done .att-fp-core svg{filter:none}
+.att-fp:active .att-fp-core{transform:scale(.93)}
+@keyframes attFpSpin{to{transform:rotate(360deg)}}
+@keyframes attFpRing2{0%{transform:scale(1);opacity:.4}100%{transform:scale(1.5);opacity:0}}
+@media (prefers-reduced-motion:reduce){.att-fp-disc::before{animation:none}}
+
 /* ══════════════════════════════════════════════════════════════════════
    UI polish v4 — visual layer only (no markup / text / data / handler changes).
    1) fixes: inner gutters on dashboard cards, Month-Closing button, hero
@@ -32357,17 +32403,14 @@ function renderTransactions(m){
     const _pCards = _pItems.map((it,i)=>{ const _img=_purImgGet(it.row.t); return `
         <article class="pur2-i" data-kind="${it.kind}" style="--k:${it.K.color}"${i>=PUR_PREVIEW?' hidden':''} role="button" tabindex="0" onclick="_purOpenEdit('${esc(it.row.monthKey)}',${it.row.idx})" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();_purOpenEdit('${esc(it.row.monthKey)}',${it.row.idx})}">
           <div class="pur2-stage${_img?' has-img':''}">
-            ${_img?`<img class="pur2-img" src="${esc(_img)}" alt="" loading="lazy" decoding="async">`:`<span class="pur2-ring">${ic(it.K.icon,26)}</span>`}
-            <span class="pur2-ed" aria-hidden="true">${ic('edit',13)}</span>
-            <button type="button" class="pur2-x" onclick="event.stopPropagation();_purAskRemove('${esc(it.row.monthKey)}',${it.row.idx})" aria-label="${L('Remove','حذف')}">${ic('trash',13)}</button>
+            ${_img?`<img class="pur2-img" src="${esc(_img)}" alt="" loading="lazy" decoding="async">`:`<span class="pur2-ring">${ic(it.K.icon,22)}</span>`}
           </div>
           <div class="pur2-info">
             <b class="pur2-nm">${esc(it.nm)}</b>
-            <div class="pur2-meta">
-              <div class="pur2-pr"><span dir="ltr">${fmt(it.row.t.payment||0)}</span><small>${esc(curLabel())}</small></div>
-              <span class="pur2-dt">${esc(_purFmtDate(it.row.t.date))}</span>
-            </div>
+            <span class="pur2-dt">${esc(_purFmtDate(it.row.t.date))}</span>
           </div>
+          <div class="pur2-pr"><span dir="ltr">${fmt(it.row.t.payment||0)}</span><small>${esc(curLabel())}</small></div>
+          <span class="pur2-go" aria-hidden="true">${ic('chevron_right',14)}</span>
         </article>`; }).join('');
     return `
   <div class="sc-card sc-main pur2-card">
