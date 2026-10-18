@@ -11652,6 +11652,70 @@ function fpInitSmartHeader(){
 .mat-hrow:first-child{border-top:0}
 .mat-hempty{padding:12px;text-align:center;color:var(--muted);font-size:calc(12px*var(--app-text-scale,1))}
 </style>
+<style id="premium-ui">
+/* ══ Premium UI layer — one place for buttons, inputs, segmented controls, chips, cards, settings, sheets ══ */
+:root{--radius:20px;--radius-sm:14px;--radius-xs:9px;--pm-hi:inset 0 1px 0 rgba(255,255,255,.22);--pm-ease:cubic-bezier(.32,.72,0,1)}
+:root:not([data-theme="dark"]){
+  --shadow-xs:0 1px 2px rgba(18,36,28,.05),0 0 0 1px rgba(18,36,28,.025);
+  --shadow-sm:0 1px 3px rgba(18,36,28,.04),0 10px 22px -10px rgba(18,36,28,.14);
+  --shadow-md:0 2px 6px rgba(18,36,28,.05),0 20px 38px -14px rgba(18,36,28,.2);
+}
+/* buttons */
+.mbtn{min-height:54px;border-radius:16px;letter-spacing:.1px;transition:transform .14s var(--pm-ease),box-shadow .2s,filter .2s,background .2s}
+.modal .mbtn.save,.mbtn.save,.rq-ds-btn.pri{background:linear-gradient(180deg,color-mix(in srgb,var(--green) 86%,#fff) 0%,var(--green) 42%,var(--green-dark) 135%);box-shadow:var(--pm-hi),0 12px 22px -10px var(--green),0 1px 2px rgba(10,74,52,.3);text-shadow:0 1px 0 rgba(0,0,0,.14)}
+.mbtn.save:hover,.rq-ds-btn.pri:hover{filter:brightness(1.06);box-shadow:var(--pm-hi),0 14px 26px -10px var(--green),0 0 0 4px var(--green-glow)}
+.mbtn.save:active,.rq-ds-btn.pri:active{transform:scale(.98);filter:brightness(.96)}
+.mbtn.cancel{background:transparent;border:1.5px solid var(--border);color:var(--sub);min-height:50px;box-shadow:none}
+.mbtn.cancel:active{background:var(--surface2);transform:scale(.98)}
+.rq-ds-btn{border-radius:16px;transition:transform .14s var(--pm-ease),box-shadow .2s,filter .2s}
+.cx-icbtn,.sheet-close-btn.sq,.stt-close-btn{border-radius:13px;transition:background .15s,transform .12s var(--pm-ease)}
+.cx-icbtn:active,.sheet-close-btn.sq:active,.stt-close-btn:active{transform:scale(.92)}
+/* inputs */
+.field input,.field select,.field textarea,.f-inp,.f-sel,.f-txta,.rq-modal .field input,.rq-modal .field select,.rq-modal .field textarea{min-height:52px;border-radius:14px;border:1px solid var(--border);background:color-mix(in srgb,var(--surface2) 16%,var(--surface));box-shadow:inset 0 1px 2px rgba(18,36,28,.05);font-weight:600;transition:border-color .18s,box-shadow .18s,background .18s}
+.field textarea,.f-txta,.rq-modal .field textarea{min-height:96px;line-height:1.65}
+.field input::placeholder,.field textarea::placeholder{color:var(--muted);font-weight:500;opacity:.8}
+.field input:focus,.field select:focus,.field textarea:focus,.f-inp:focus,.f-sel:focus,.f-txta:focus,.rq-modal .field input:focus,.rq-modal .field select:focus,.rq-modal .field textarea:focus{border-color:var(--green);background:var(--surface);box-shadow:0 0 0 4px var(--green-glow);outline:none}
+[data-theme="dark"] .field input,[data-theme="dark"] .field select,[data-theme="dark"] .field textarea,[data-theme="dark"] .f-inp,[data-theme="dark"] .rq-modal .field input,[data-theme="dark"] .rq-modal .field select,[data-theme="dark"] .rq-modal .field textarea{background:var(--surface2);box-shadow:none}
+.field label,.rq-modal .field label{font-size:calc(12px*var(--app-text-scale,1));font-weight:700;letter-spacing:0;text-transform:none;color:var(--text2);margin-bottom:7px}
+/* segmented controls & view switchers */
+.cx-seg,.rq-vbar,.rq-scope{background:color-mix(in srgb,var(--surface3) 50%,var(--surface2));border-radius:16px;box-shadow:inset 0 1px 2px rgba(18,36,28,.07)}
+.cx-seg-btn{border-radius:12px;height:40px;transition:background .2s var(--pm-ease),color .2s,box-shadow .2s}
+.cx-seg-btn.on,.rq-vbtn.on,.rq-scope-b.on{background:var(--surface);color:var(--green);box-shadow:0 1px 2px rgba(18,36,28,.1),0 6px 12px -6px rgba(18,36,28,.22)}
+.rq-vbtn,.rq-scope-b{border-radius:12px;transition:background .2s var(--pm-ease),color .2s,box-shadow .2s}
+.rq-stbtn{border-radius:16px;transition:transform .14s var(--pm-ease),box-shadow .2s,background .2s,border-color .2s}
+.rq-stbtn.on{box-shadow:0 8px 16px -10px currentColor}
+.rq-stbtn:active{transform:scale(.97)}
+/* chips */
+.rq-tchip,.rq-tr,.rq-sugg-chip{border-radius:99px;box-shadow:var(--shadow-xs);transition:background .18s,border-color .18s,color .18s,transform .12s var(--pm-ease)}
+.rq-tchip:active,.rq-tr:active,.rq-sugg-chip:active{transform:scale(.95)}
+.rq-tr.on{box-shadow:0 6px 14px -8px var(--green)}
+/* cards */
+.stt-card,.rq-card{border-radius:20px;box-shadow:var(--shadow-sm)}
+.rq-card:hover{transform:none}
+.rq-ds-hero,.rq-rt,.rq-ds-notes{border-radius:20px}
+.rq-ds-f{border-radius:16px;box-shadow:var(--shadow-xs)}
+/* settings */
+.stt-card-label{font-size:calc(12px*var(--app-text-scale,1));font-weight:800;letter-spacing:.2px;color:var(--sub);padding:0 6px 8px}
+.stt-row{min-height:60px;padding:11px 14px;gap:13px;transition:background .15s}
+.stt-row:not(:last-child)::after{left:auto;right:auto;inset-inline-start:68px;inset-inline-end:14px;background:color-mix(in srgb,var(--border) 80%,transparent)}
+.stt-row:active{background:color-mix(in srgb,var(--green) 7%,var(--surface))}
+.stt-row-icon{width:40px;height:40px;border-radius:13px;background:linear-gradient(145deg,var(--green-tint),color-mix(in srgb,var(--green-tint) 35%,var(--surface)));color:var(--green);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--green) 14%,transparent)}
+.stt-row-title{font-size:calc(14.5px*var(--app-text-scale,1));font-weight:800}
+.stt-chevron{opacity:.55}
+.stt-switch{width:50px;height:30px;border-radius:15px;border:0;background:color-mix(in srgb,var(--surface3) 80%,var(--border-strong));box-shadow:inset 0 1px 3px rgba(0,0,0,.14);transition:background .25s var(--pm-ease),box-shadow .25s}
+.stt-switch.on{background:linear-gradient(180deg,var(--green-light),var(--green));box-shadow:inset 0 1px 2px rgba(0,0,0,.18),0 0 0 4px var(--green-glow)}
+.stt-switch-dot{top:3px;left:3px;width:24px;height:24px;border-radius:12px;box-shadow:0 1px 2px rgba(0,0,0,.2),0 3px 8px -2px rgba(0,0,0,.25)}
+.stt-switch.on .stt-switch-dot{transform:translateX(20px)}
+.stt-header{backdrop-filter:saturate(1.4) blur(12px);-webkit-backdrop-filter:saturate(1.4) blur(12px);background:color-mix(in srgb,var(--surface) 90%,transparent)}
+/* sheets & nav */
+.modal{border-radius:28px 28px 0 0;box-shadow:0 -18px 50px -12px rgba(18,36,28,.28),0 -1px 0 var(--border)}
+.modal-handle{width:42px;height:4px;border-radius:4px;background:var(--border-strong);opacity:.75}
+.bottom-nav{border-radius:24px 24px 0 0;background:color-mix(in srgb,var(--surface) 88%,transparent);backdrop-filter:saturate(1.5) blur(16px);-webkit-backdrop-filter:saturate(1.5) blur(16px);box-shadow:0 -10px 30px -14px rgba(18,36,28,.22)}
+.bottom-nav .nav-btn{border-radius:16px}
+.bottom-nav .nav-btn.active{background:color-mix(in srgb,var(--green) 10%,transparent)}
+.bottom-nav .nav-btn.active span{color:var(--green);font-weight:800}
+@media (prefers-reduced-motion:reduce){.mbtn,.rq-stbtn,.rq-tchip,.cx-icbtn,.stt-switch,.stt-switch-dot{transition:none!important}}
+</style>
 </head>
 <body>
 
