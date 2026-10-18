@@ -11772,6 +11772,44 @@ function fpInitSmartHeader(){
 .att-pay-tg b{font-size:calc(13.5px*var(--app-text-scale,1));font-weight:800;color:var(--text)}
 .att-pay-tg small{font-size:calc(11.5px*var(--app-text-scale,1));font-weight:600;color:var(--muted)}
 .att-pay-tg .stt-switch{flex:none}
+
+.att-pay-top{display:flex;align-items:center;gap:12px;padding:14px 14px 0}
+.att-pay-top b{font-size:calc(15px*var(--app-text-scale,1));font-weight:900;color:var(--text)}
+.att-pay-top small{font-size:calc(12px*var(--app-text-scale,1));font-weight:600;color:var(--muted)}
+.att-pay .att-pay-go{width:100%;margin-top:2px;display:flex;align-items:center;justify-content:center;gap:8px;min-height:50px;border:0;border-radius:15px;color:#fff;font-weight:800;background:linear-gradient(180deg,color-mix(in srgb,var(--green) 86%,#fff) 0%,var(--green) 42%,var(--green-dark) 135%);box-shadow:var(--pm-hi),0 12px 22px -10px var(--green)}
+.att-pay-top .att-co-txt small{white-space:normal}
+
+/* ── attendance: organised sections ── */
+.atp{display:flex;flex-direction:column}
+.att-sec{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:22px 4px 8px}
+.att-sec:first-of-type{margin-top:6px}
+.att-sec-t{display:inline-flex;align-items:center;gap:8px;font-size:calc(13px*var(--app-text-scale,1));font-weight:900;letter-spacing:.2px;color:var(--text2)}
+.att-sec-t svg{color:var(--green)}
+.att-sec-btn{display:inline-flex;align-items:center;gap:6px;min-height:34px;padding:0 13px;border:1px solid var(--border);border-radius:99px;background:var(--surface);color:var(--green);font:inherit;font-size:calc(12px*var(--app-text-scale,1));font-weight:800;box-shadow:var(--shadow-xs);cursor:pointer}
+.att-sec-btn:active{transform:scale(.95)}
+.att-pay-start{display:flex;flex-direction:column;align-items:center;gap:12px;padding:20px 16px;text-align:center}
+.att-pay-start p{margin:0;font-size:calc(13px*var(--app-text-scale,1));line-height:1.7;color:var(--sub);font-weight:600;max-width:30em}
+.att-pay-fields{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.att-pay-fields .field{margin:0}
+.att-pay-g{margin-bottom:12px}
+.att-pay-tg{margin-bottom:10px;background:var(--surface2)}
+
+/* ── attendance: pro polish ── */
+.atp-today .att-lbl{display:none}
+.atp-hero.v2{display:flex;align-items:center;justify-content:flex-start;gap:18px;padding:4px 0}
+.att-ring{--p:0;position:relative;flex:none;width:96px;height:96px;border-radius:50%;display:grid;place-items:center;background:conic-gradient(var(--green) calc(var(--p)*1%),color-mix(in srgb,var(--green) 14%,var(--surface2)) 0)}
+.att-ring::before{content:'';position:absolute;inset:10px;border-radius:50%;background:var(--surface);box-shadow:inset 0 1px 3px rgba(18,36,28,.08)}
+.att-ring b{position:relative;font-family:var(--font-display);font-size:calc(28px*var(--app-text-scale,1));font-weight:700;line-height:1;color:var(--text);font-variant-numeric:tabular-nums}
+.att-ring b small{font-size:.5em;font-weight:800;color:var(--muted);margin-inline-start:1px}
+.att-ring-tx{display:flex;flex-direction:column;gap:4px;min-width:0}
+.att-ring-tx b{font-size:calc(15px*var(--app-text-scale,1));font-weight:900;color:var(--text)}
+.att-ring-tx span{font-size:calc(12.5px*var(--app-text-scale,1));font-weight:700;color:var(--muted)}
+.att-ring-tx em{align-self:flex-start;margin-top:4px;padding:4px 11px;border-radius:99px;font-style:normal;font-size:calc(12px*var(--app-text-scale,1));font-weight:800;color:var(--green);background:var(--green-tint)}
+.att-dur{flex-wrap:wrap}
+.att-prog{flex:1 1 100%;order:3;height:6px;border-radius:3px;background:color-mix(in srgb,var(--green) 14%,var(--surface2));overflow:hidden}
+.att-prog i{display:block;height:100%;border-radius:3px;background:linear-gradient(90deg,var(--green-light),var(--green))}
+.att-dur small{order:4;flex:1 1 100%;text-align:end;font-size:calc(11px*var(--app-text-scale,1));font-weight:700;color:var(--muted);font-variant-numeric:tabular-nums}
+[data-theme="dark"] .att-seg.on,[data-theme="dark"] .cx-seg-btn.on,[data-theme="dark"] .rq-vbtn.on{background:color-mix(in srgb,var(--green) 18%,var(--surface3));color:var(--green-light,var(--green))}
 </style>
 </head>
 <body>
@@ -46616,7 +46654,8 @@ const ATT=(function(){
     if(!rec||!WORKING(rec.s)||!rec.i) return '';
     if(rec.o){ const m=durMin(rec.i,rec.o); return m>0?`<div class="att-dur ok">${ic('clock',13)} ${L('Worked','ساعات العمل')} <b>${fmtDur(m)}</b></div>`:''; }
     if(onlyDone) return '';
-    return `<div class="att-dur">${ic('clock',13)} ${L('In progress since','شغّال من')} <b>${esc(fmtT(rec.i))}</b></div>`;
+    { const std=Math.max(60,(payCfg().hpd||8)*60), el=Math.min(std,durMin(rec.i,nowT())), pct=Math.round(el/std*100);
+      return `<div class="att-dur">${ic('clock',13)} ${L('In progress since','شغّال من')} <b>${esc(fmtT(rec.i))}</b><span class="att-prog" role="progressbar" aria-valuenow="${pct}" aria-valuemin="0" aria-valuemax="100"><i style="width:${pct}%"></i></span><small>${fmtDur(el)} / ${fmtDur(std)}</small></div>`; }
   }
   function hoursHTML(mins,hdays){
     if(!(mins>0&&hdays>0)) return '';
@@ -46659,9 +46698,9 @@ const ATT=(function(){
     r.hourly=cfg.net/payDiv(cfg,vy,vm+1)/cfg.hpd;
     return r;
   }
+  const secH=(icn,en,ar,right)=>`<div class="att-sec"><span class="att-sec-t">${ic(icn,15)}<span>${L(en,ar)}</span></span>${right||''}</div>`;
   function payHTML(){
     const cfg=payCfg(), pr=calcPay(scopePrefix());
-    const open=payOpen===null?!(cfg.net>0):payOpen;
     const M=n=>fmtEGP(Math.round(n*100)/100);
     const row=(lbl,val,cls)=>`<div class="att-pay-r ${cls||''}"><span>${lbl}</span><b>${val}</b></div>`;
     const rows=cfg.net>0?[
@@ -46671,46 +46710,62 @@ const ATT=(function(){
       pr.shortMin?row(L('Short hours','ساعات ناقصة')+' · '+fmtDur(pr.shortMin),'− '+M(pr.shortDed),'neg'):'',
       pr.otMin?row(L('Overtime','أوفر تايم')+' · '+fmtDur(pr.otMin)+' ×'+cfg.ot,'+ '+M(pr.otAdd),'pos'):''
     ].join(''):'';
-    const hero=cfg.net>0?`<div class="att-pay-hero"><small>${L('Expected net pay','المرتب المتوقع')} · ${esc(scopeLabel())}</small><div class="att-pay-amt" dir="ltr">${M(pr.total)}</div><small>${L('Hourly rate','أجر الساعة')}: <b dir="ltr">${M(pr.hourly)}</b> · ${cfg.hpd}${L('h/day','س/يوم')}</small></div>`
-      :`<div class="att-hint att-pay-empty">${L('Enter your monthly net salary to calculate pay from attendance, absence and work hours.','اكتب مرتبك الصافي الشهري وهنحسبه من الحضور والغياب وساعات العمل.')}</div>`;
-    const seg=(f,val,lbl,on)=>`<button type="button" class="att-seg${on?' on':''}" aria-pressed="${on}" onclick="ATT.setPay('${f}','${val}')">${lbl}</button>`;
-    const tg=(f,on,lbl,sub)=>`<div class="att-pay-tg"><span><b>${lbl}</b><small>${sub}</small></span><button type="button" class="stt-switch${on?' on':''}" role="switch" aria-checked="${on}" aria-label="${lbl}" onclick="ATT.setPay('${f}',${!on})"><span class="stt-switch-dot"></span></button></div>`;
-    return `<div class="sc-card att-pay${open?' open':''}">
-      ${hero}
-      ${rows?`<div class="att-pay-rows">${rows}</div>`:''}
-      <button type="button" class="att-co-head att-pay-head" onclick="ATT.togglePay()" aria-expanded="${open}">
-        <span class="att-pay-ic">${ic('wallet',20)}</span>
-        <span class="att-co-txt"><b>${L('Net salary settings','إعدادات المرتب الصافي')}</b><small>${cfg.net>0?M(cfg.net)+' · '+cfg.hpd+L(' h/day',' ساعة/يوم'):L('Salary, working hours, overtime','المرتب وساعات العمل والأوفر تايم')}</small></span>
-        <span class="att-chev dn${open?' up':''}"></span>
-      </button>
-      ${open?`<div class="att-co-body att-pay-body">
-        <div class="att-co-grid">
-          <label class="att-co-f"><span>${ic('wallet',12)} ${L('Monthly net salary','المرتب الصافي الشهري')}</span>
-            <input type="text" inputmode="decimal" dir="ltr" autocomplete="off" value="${cfg.net>0?cfg.net:''}" placeholder="0" onchange="ATT.setPay('net',this.value)"></label>
-          <label class="att-co-f"><span>${ic('clock',12)} ${L('Working hours per day','ساعات العمل في اليوم')}</span>
-            <input type="text" inputmode="decimal" dir="ltr" autocomplete="off" value="${cfg.hpd}" placeholder="8" onchange="ATT.setPay('hpd',this.value)"></label>
+    const btn=`<button type="button" class="att-sec-btn" onclick="ATT.openPay()">${ic('edit',13)} ${cfg.net>0?L('Edit','تعديل'):L('Set up','إعداد')}</button>`;
+    const body=cfg.net>0
+      ?`<div class="att-pay-hero"><small>${L('Expected net pay','المرتب المتوقع')} · ${esc(scopeLabel())}</small><div class="att-pay-amt" dir="ltr">${M(pr.total)}</div><small>${L('Hourly rate','أجر الساعة')}: <b dir="ltr">${M(pr.hourly)}</b> · ${cfg.hpd}${L(' h/day',' س/يوم')}</small></div><div class="att-pay-rows">${rows}</div>`
+      :`<div class="att-pay-start"><span class="att-pay-ic">${ic('wallet',22)}</span><p>${L('Add your monthly net salary and working hours to calculate pay from attendance, absence and overtime.','أضف مرتبك الصافي وساعات العمل عشان يتحسب المرتب من الحضور والغياب والأوفر تايم.')}</p><button type="button" class="att-pay-go" onclick="ATT.openPay()">${ic('wallet',16)} ${L('Set up salary','إعداد المرتب')}</button></div>`;
+    return secH('wallet','Salary','المرتب',btn)+`<div class="sc-card att-pay">${body}</div>`;
+  }
+  let payDraft=null;
+  function payModalInner(){
+    const d=payDraft;
+    const seg=(f,val,lbl,on)=>`<button type="button" class="att-seg${on?' on':''}" aria-pressed="${on}" onclick="ATT.payDraftSet('${f}','${val}')">${lbl}</button>`;
+    const tg=(f,on,lbl,sub)=>`<div class="att-pay-tg"><span><b>${lbl}</b><small>${sub}</small></span><button type="button" class="stt-switch${on?' on':''}" role="switch" aria-checked="${on}" aria-label="${lbl}" onclick="ATT.payDraftSet('${f}',${!on})"><span class="stt-switch-dot"></span></button></div>`;
+    return `<div class="att-pay-fields">
+        <div class="field"><label>${L('Monthly net salary','المرتب الصافي الشهري')}</label><input type="text" inputmode="decimal" dir="ltr" autocomplete="off" id="attPayNet" value="${d.net>0?d.net:''}" placeholder="${L('e.g. 9000','مثال: 9000')}"></div>
+        <div class="field"><label>${L('Working hours per day','ساعات العمل في اليوم')}</label><input type="text" inputmode="decimal" dir="ltr" autocomplete="off" id="attPayHpd" value="${d.hpd}" placeholder="8"></div>
+      </div>
+      <div class="att-pay-g"><span>${L('Days in the month used to split the salary','عدد أيام الشهر لقسمة المرتب')}</span><div class="att-seg-row att-seg-sm">${seg('basis','30',L('30 days','30 يوم'),d.basis==='30')}${seg('basis','26',L('26 days','26 يوم'),d.basis==='26')}${seg('basis','cal',L('Calendar','أيام الشهر'),d.basis==='cal')}</div></div>
+      <div class="att-pay-g"><span>${L('Overtime rate (hours beyond the daily hours)','سعر الأوفر تايم (الساعات الزيادة عن ساعات اليوم)')}</span><div class="att-seg-row att-seg-sm">${PAY_OT.map(v=>seg('ot',v,v?('×'+v):L('None','بدون'),d.ot===v)).join('')}</div></div>
+      ${tg('short',d.short,L('Deduct short hours','خصم الساعات الناقصة'),L('When check-out is earlier than the daily hours','لو الانصراف قبل ساعات اليوم'))}
+      ${tg('sickUnpaid',d.sickUnpaid,L('Sick leave is unpaid','المرضي بدون أجر'),L('Deduct one day for each sick day','خصم يوم عن كل يوم مرضي'))}
+      <p class="atp-note">${L('Absent days are deducted. Hours are counted only on days with both check-in and check-out; other working days count as full days.','أيام الغياب بتتخصم. الساعات بتتحسب بس في الأيام اللي فيها حضور وانصراف، وباقي أيام الحضور بتعتبر يوم كامل.')}</p>`;
+  }
+  function openPay(){
+    load(); const c=payCfg();
+    payDraft={net:c.net,hpd:c.hpd,basis:c.basis,ot:c.ot,sickUnpaid:c.sickUnpaid,short:c.short};
+    document.getElementById('modalContent').innerHTML=`<div class="modal-handle"></div>
+      <div class="rq-modal">
+        <div class="modal-hdr">
+          <div class="modal-hdr-icon" style="background:linear-gradient(135deg,#0f7a55,#0a5c40)">${ic('wallet',22)}</div>
+          <div style="flex:1;min-width:0"><div class="modal-hdr-title">${L('Salary settings','إعدادات المرتب')}</div><div class="modal-hdr-sub">${L('Net salary, work hours and overtime','المرتب وساعات العمل والأوفر تايم')}</div></div>
+          <button type="button" class="sheet-close-btn sq" onclick="closeModal()" aria-label="${L('Close','إغلاق')}">${ic('close',16)}</button>
         </div>
-        <div class="att-pay-g"><span>${L('Days in the month used to split the salary','عدد أيام الشهر لقسمة المرتب')}</span>
-          <div class="att-seg-row att-seg-sm">${seg('basis','30',L('30 days','30 يوم'),cfg.basis==='30')}${seg('basis','26',L('26 days','26 يوم'),cfg.basis==='26')}${seg('basis','cal',L('Calendar','أيام الشهر'),cfg.basis==='cal')}</div></div>
-        <div class="att-pay-g"><span>${L('Overtime rate (hours beyond the daily hours)','سعر الأوفر تايم (الساعات الزيادة عن ساعات اليوم)')}</span>
-          <div class="att-seg-row att-seg-sm">${PAY_OT.map(v=>seg('ot',v,v?('×'+v):L('None','بدون'),cfg.ot===v)).join('')}</div></div>
-        ${tg('short',cfg.short,L('Deduct short hours','خصم الساعات الناقصة'),L('When check-out is earlier than the daily hours','لو الانصراف قبل ساعات اليوم'))}
-        ${tg('sickUnpaid',cfg.sickUnpaid,L('Sick leave is unpaid','المرضي بدون أجر'),L('Deduct one day for each sick day','خصم يوم عن كل يوم مرضي'))}
-        <p class="atp-note">${L('Absent days are deducted. Hours are counted only on days with both check-in and check-out; other working days count as full days.','أيام الغياب بتتخصم. الساعات بتتحسب بس في الأيام اللي فيها حضور وانصراف، وباقي أيام الحضور بتعتبر يوم كامل.')}</p>
-      </div>`:''}
-    </div>`;
+        <div class="rq-sec"><div id="attPayBox">${payModalInner()}</div></div>
+        <div class="modal-btns"><button class="mbtn save" onclick="ATT.paySave()">${L('Save','حفظ')}</button><button class="mbtn cancel" onclick="closeModal()">${L('Cancel','إلغاء')}</button></div>
+      </div>`;
+    document.getElementById('modalOverlay').style.display='flex';
   }
-  function setPay(f,v){
-    load(); db.pay=db.pay||{};
-    if(f==='net'){ const n=parseFloat(_n2(v)); db.pay.net=(isFinite(n)&&n>0)?Math.min(n,1e9):0; }
-    else if(f==='hpd'){ const n=parseFloat(_n2(v)); db.pay.hpd=(isFinite(n)&&n>0&&n<=24)?n:8; }
-    else if(f==='basis'){ if(['30','26','cal'].indexOf(String(v))<0) return; db.pay.basis=String(v); }
-    else if(f==='ot'){ const n=+v; if(PAY_OT.indexOf(n)<0) return; db.pay.ot=n; }
-    else if(f==='sickUnpaid'||f==='short'){ db.pay[f]=(v===true||v==='true'); }
+  function payRead(){
+    if(!payDraft) return;
+    const n=document.getElementById('attPayNet'), h=document.getElementById('attPayHpd');
+    if(n){ const v=parseFloat(_n2(n.value)); payDraft.net=(isFinite(v)&&v>0)?Math.min(v,1e9):0; }
+    if(h){ const v=parseFloat(_n2(h.value)); if(isFinite(v)&&v>0&&v<=24) payDraft.hpd=v; }
+  }
+  function payDraftSet(f,v){
+    if(!payDraft) return; payRead();
+    if(f==='basis'){ if(['30','26','cal'].indexOf(String(v))<0) return; payDraft.basis=String(v); }
+    else if(f==='ot'){ const n=+v; if(PAY_OT.indexOf(n)<0) return; payDraft.ot=n; }
+    else if(f==='sickUnpaid'||f==='short'){ payDraft[f]=(v===true||v==='true'); }
     else return;
-    if(save()){ try{ renderView(true); }catch(e){} }
+    const b=document.getElementById('attPayBox'); if(b) b.innerHTML=payModalInner();
   }
-  function togglePay(){ load(); const cfg=payCfg(); payOpen=!(payOpen===null?!(cfg.net>0):payOpen); try{ renderView(true); }catch(e){} }
+  function paySave(){
+    if(!payDraft) return; payRead();
+    if(!(payDraft.net>0)){ try{ showToast(L('Enter your monthly net salary first','اكتب المرتب الصافي الشهري الأول'),'warn'); }catch(e){} const n=document.getElementById('attPayNet'); if(n) n.focus(); return; }
+    load(); db.pay=Object.assign({},payDraft);
+    if(save()){ try{ closeModal(); }catch(e){} try{ renderView(true); }catch(e){} showToast(L('Salary settings saved ✓','تم حفظ إعدادات المرتب ✓'),'success'); }
+  }
   function render(){
     load();
     const {c,total,mins,hdays}=counts();
@@ -46753,6 +46808,7 @@ const ATT=(function(){
       </div>
       ${typeof _cxTabsHTML==='function'?_cxTabsHTML():''}
 
+      ${secH('clock','Today','النهاردة')}
       <div class="sc-card atp-today">
         <div class="atp-th"><div><div class="att-lbl">${L('Today','النهاردة')}</div><div class="atp-d">${tName}</div></div>
           ${trec&&BY[trec.s]?`<span class="att-pill att-st-${trec.s}">${ic(BY[trec.s].ic,12)} ${stLbl(BY[trec.s])}</span>`:`<span class="att-pill none">${L('Not recorded','لسه متسجلش')}</span>`}</div>
@@ -46762,11 +46818,12 @@ const ATT=(function(){
         <button type="button" class="atp-more" onclick="ATT.openDay('${tkey}')"><span>${L('More options / add a note','خيارات أكتر / إضافة ملاحظة')}</span><i class="atp-chev"></i></button>
       </div>
 
+      ${secH('chart','Summary','ملخص الحضور')}
       <div class="sc-card atp-sum">
         <div class="att-seg-row">${sc('month','Month','الشهر')}${sc('year','Year','السنة')}${sc('all','All','الكل')}</div>
-        <div class="atp-hero">
-          <div class="atp-rate" role="img" aria-label="${L('Attendance rate','معدل الحضور')} ${rate===null?'—':rate+'%'}"><b>${rate===null?'—':rate}${rate===null?'':'<small>%</small>'}</b><span>${L('Attendance rate','معدل الحضور')} · ${esc(scopeLabel())}</span></div>
-          ${_due?`<div class="atp-of"><b>${_worked}<em>/${_due}</em></b><span>${L('working days','يوم عمل')}</span></div>`:''}
+        <div class="atp-hero v2">
+          <div class="att-ring" style="--p:${rate===null?0:rate}" role="img" aria-label="${L('Attendance rate','معدل الحضور')} ${rate===null?'—':rate+'%'}"><b>${rate===null?'—':rate}${rate===null?'':'<small>%</small>'}</b></div>
+          <div class="att-ring-tx"><b>${L('Attendance rate','معدل الحضور')}</b><span>${esc(scopeLabel())}</span>${_due?`<em>${_worked}/${_due} ${L('working days','يوم عمل')}</em>`:`<em>${L('No records yet','لسه مفيش سجلات')}</em>`}</div>
         </div>
         ${distBar?`<div class="atp-bar" aria-hidden="true">${distBar}</div>`:`<div class="atp-bar empty" aria-hidden="true"></div>`}
         <div class="atp-rows">${distRows}</div>
@@ -46774,8 +46831,7 @@ const ATT=(function(){
         <p class="atp-note">${L('Present + late out of working days. Holidays and days off are excluded.','الحضور + التأخير من أيام العمل. الرسمي والراحة مش محسوبين.')}</p>
       </div>
 
-      ${payHTML()}
-
+      ${secH('calendar','Calendar','التقويم')}
       <div class="sc-card att-cal-card">
         <div class="att-nav">
           <button type="button" class="icon-btn" onclick="ATT.nav(-1)" aria-label="${L('Previous month','الشهر السابق')}"><span class="att-chev prev"></span></button>
@@ -46794,6 +46850,9 @@ const ATT=(function(){
 
       ${notes?`<div class="sc-card att-notes"><div class="att-lbl">${L('Notes this month','ملاحظات الشهر')}</div>${notes}</div>`:''}
 
+      ${payHTML()}
+
+      ${secH('building','Workplace','جهة العمل')}
       <div class="sc-card att-co${isOpen?' open':''}">
         <button type="button" class="att-co-head" onclick="ATT.toggleCo()" aria-expanded="${isOpen}">
           <span class="att-logo-s">${db.logo?bankLogoHTML(db.logo,40,{alt:''}):`<span class="att-logo-ph">${ic('building',20)}</span>`}</span>
@@ -47142,7 +47201,7 @@ const ATT=(function(){
       if(save()){ try{ renderView(true); }catch(e){} showToast(L('Month cleared','تم مسح الشهر'),'success'); }
     });
   }
-  return {render,dashCard,dashSummary,quickStrip,checkIn,checkOut,stamp,tUpd,clearT,noteChip,openPage,openDay,pick,saveDay,clearDay,quick,nav,goToday,setScope,setField,pickLogo,removeLogo,clearMonth,toggleCo,setPay,togglePay,toggleMulti,setRangeMode,clearSel,tapDay,openMulti,saveMulti,clearMulti};
+  return {render,dashCard,dashSummary,quickStrip,checkIn,checkOut,stamp,tUpd,clearT,noteChip,openPage,openDay,pick,saveDay,clearDay,quick,nav,goToday,setScope,setField,pickLogo,removeLogo,clearMonth,toggleCo,openPay,payDraftSet,paySave,toggleMulti,setRangeMode,clearSel,tapDay,openMulti,saveMulti,clearMulti};
 })();
 // My Locations photos live in IndexedDB; carry them through the app's existing backup/restore
 // (which only knows localStorage) without ever writing them into localStorage.
