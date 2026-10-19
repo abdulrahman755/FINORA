@@ -11997,6 +11997,16 @@ function fpInitSmartHeader(){
 .cv-rows .cv-row{gap:2px;padding:2px 2px 2px 4px}
 .cv-rows .cv-rk{width:20px}
 .cv-edu-f input,.cv-edu-f textarea{font-weight:600!important;padding:10px 6px!important}
+
+.cv-addbar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:2px 0 10px}
+.cv-addbar>span:first-child{display:inline-flex;align-items:center;gap:6px;font-size:calc(12px*var(--app-text-scale,1));font-weight:800;color:var(--muted)}
+.cv-addbtns{display:inline-flex;gap:8px}
+.cv-addbtns button{min-height:38px;padding:0 14px;border:0;border-radius:99px;background:var(--green-tint);color:var(--green);font:inherit;font-size:calc(12.5px*var(--app-text-scale,1));font-weight:800;cursor:pointer}
+.cv-addbtns button:active{transform:scale(.95)}
+.cv-addbtns button:first-child{background:var(--green);color:#fff}
+.prj-sheet{padding-bottom:calc(env(safe-area-inset-bottom,0px) + 40px)}
+.rq-modal .field .cv-rows .cv-row>textarea,.cv-rows .cv-row>textarea{min-height:52px!important}
+.rq-modal .field .cv-rows .cv-row>input,.cv-rows .cv-row>input{min-height:50px!important}
 </style>
 </head>
 <body>
@@ -34589,7 +34599,7 @@ function _cvRowHTML(kind,v,ph){
   if(kind==='lang'){ const k=String(v).indexOf(':'), a=k<0?String(v):String(v).slice(0,k), b=k<0?'':String(v).slice(k+1).trim(); return `<div class="cv-row"><input type="text" class="ra" dir="auto" autocomplete="off" value="${esc(a.trim())}" placeholder="${L('Language','اللغة')}"><input type="text" class="rb" dir="auto" autocomplete="off" value="${esc(b)}" placeholder="${L('Level (Native…)','المستوى (Native…)')}">${_cvRm()}</div>`; }
   if(kind==='edu'){ const o=(typeof v==='object')?v:{}; return `<div class="cv-row cv-edu-r"><div class="cv-edu-f"><input type="text" class="e1" dir="auto" autocomplete="off" value="${esc(o.degree||'')}" placeholder="${L("Degree (e.g. Bachelor's Degree in Civil Engineering)",'المؤهل (مثال: Bachelor\'s Degree in Civil Engineering)')}"><input type="text" class="e2" dir="auto" autocomplete="off" value="${esc(o.inst||'')}" placeholder="${L('University / institute','الجامعة / المعهد')}"><input type="text" class="e3" inputmode="numeric" dir="ltr" autocomplete="off" value="${esc(o.year||'')}" placeholder="${L('Graduated (year)','سنة التخرج')}"><textarea class="e4" rows="2" dir="auto" placeholder="${L('More lines (e.g. Graduation Project: …)','سطور إضافية (مثال: Graduation Project: …)')}">${esc(o.more||'')}</textarea></div>${_cvRm()}</div>`; }
   if(kind==='head') return `<div class="cv-row h"><span class="cv-rk">H</span><input type="text" dir="auto" autocomplete="off" value="${esc(v)}" placeholder="${L('Sub-heading (e.g. Wataniya Mall — 6,000 sqm | Post-Tension Slab System)','عنوان فرعي (مثال: Wataniya Mall — 6,000 sqm)')}">${_cvRm()}</div>`;
-  return `<div class="cv-row b"><span class="cv-rk">•</span><textarea rows="2" dir="auto" placeholder="${esc(ph||L('What you did…','اللي عملته…'))}">${esc(v)}</textarea>${_cvRm()}</div>`;
+  return `<div class="cv-row b"><span class="cv-rk">•</span><textarea rows="1" dir="auto" placeholder="${esc(ph||L('What you did…','اللي عملته…'))}">${esc(v)}</textarea>${_cvRm()}</div>`;
 }
 function _cvRows(id,kind,items,ph,addLbl){
   return `<div class="cv-rows" id="${id}" data-k="${kind}" data-ph="${esc(ph||'')}">${items.map(x=>_cvRowHTML(kind,x,ph)).join('')}</div><button type="button" class="cv-addrow" onclick="_cvRowAdd('${id}')">${ic('plus',14)} ${addLbl||L('Add','إضافة')}</button>`;
@@ -34597,7 +34607,7 @@ function _cvRows(id,kind,items,ph,addLbl){
 function _cvRowAdd(id,kind){
   const c=document.getElementById(id); if(!c) return;
   const k=kind||c.dataset.k; c.insertAdjacentHTML('beforeend',_cvRowHTML(k,k==='edu'?{}:'',c.dataset.ph));
-  const last=c.lastElementChild&&c.lastElementChild.querySelector('input,textarea'); if(last) last.focus();
+  const last=c.lastElementChild&&c.lastElementChild.querySelector('input,textarea'); if(last){ last.focus(); try{ last.scrollIntoView({block:'center',behavior:'smooth'}); }catch(e){} }
   _cvGrowAll();
 }
 function _cvRowVals(id){
@@ -34616,10 +34626,11 @@ function _cvRowVals(id){
 // bullets + sub-headings share one ordered list
 function _cvBulRows(id,desc){
   const items=_cvNormDesc(desc).split('\n').filter(Boolean);
-  return `<div class="cv-rows" id="${id}" data-k="mix">${items.map(x=>x.startsWith('# ')?_cvRowHTML('head',x.slice(2)):_cvRowHTML('bul',x)).join('')}</div>
+  return `<div class="cv-addbar"><span>${ic('plus',13)} ${L('Add a line','إضافة سطر')}</span><span class="cv-addbtns"><button type="button" onclick="_cvMixAdd('${id}','bul')">${L('Bullet','نقطة')}</button><button type="button" onclick="_cvMixAdd('${id}','head')">${L('Sub-heading','عنوان فرعي')}</button></span></div>
+    <div class="cv-rows" id="${id}" data-k="mix">${items.map(x=>x.startsWith('# ')?_cvRowHTML('head',x.slice(2)):_cvRowHTML('bul',x)).join('')}</div>
     <div class="cv-addrow-2"><button type="button" class="cv-addrow" onclick="_cvMixAdd('${id}','bul')">${ic('plus',14)} ${L('Bullet point','نقطة')}</button><button type="button" class="cv-addrow" onclick="_cvMixAdd('${id}','head')">${ic('plus',14)} ${L('Sub-heading','عنوان فرعي')}</button></div>`;
 }
-function _cvMixAdd(id,kind){ const c=document.getElementById(id); if(!c) return; c.insertAdjacentHTML('beforeend',_cvRowHTML(kind,'')); const l=c.lastElementChild&&c.lastElementChild.querySelector('input,textarea'); if(l) l.focus(); _cvGrowAll(); }
+function _cvMixAdd(id,kind){ const c=document.getElementById(id); if(!c) return; c.insertAdjacentHTML('beforeend',_cvRowHTML(kind,'')); const l=c.lastElementChild&&c.lastElementChild.querySelector('input,textarea'); if(l){ l.focus(); try{ l.scrollIntoView({block:'center',behavior:'smooth'}); }catch(e){} } _cvGrowAll(); }
 function _cvMixVals(id){
   const c=document.getElementById(id); if(!c) return '';
   const out=[]; c.querySelectorAll('.cv-row').forEach(r=>{
@@ -34757,6 +34768,18 @@ document.addEventListener('paste',function(ev){
     anchor.insertAdjacentHTML('afterend',_cvRowHTML(kind,v,rows.dataset.ph));
     anchor=anchor.nextElementSibling;
   });
+  _cvGrowAll();
+},true);
+// Enter (the keyboard's return key) adds a new line right below, like a notes app
+document.addEventListener('keydown',function(ev){
+  if(ev.key!=='Enter'||ev.shiftKey||ev.isComposing) return;
+  const t=ev.target; if(!t||!t.closest||!(t.tagName==='TEXTAREA'||t.tagName==='INPUT')) return;
+  const rows=t.closest('.cv-rows'); if(!rows) return;
+  const k=rows.dataset.k; if(k!=='mix'&&k!=='list') return;
+  const row=t.closest('.cv-row'); if(!row) return;
+  ev.preventDefault();
+  row.insertAdjacentHTML('afterend',_cvRowHTML(k==='list'?'list':'bul','',rows.dataset.ph));
+  const n=row.nextElementSibling.querySelector('input,textarea'); if(n){ n.focus(); try{ n.scrollIntoView({block:'center',behavior:'smooth'}); }catch(e){} }
   _cvGrowAll();
 },true);
 function _cvDraft(){
