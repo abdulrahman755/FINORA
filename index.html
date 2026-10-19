@@ -11917,6 +11917,86 @@ function fpInitSmartHeader(){
 .cvp-paper .sub{margin:7pt 0 4pt;font-size:8.2pt}
 .cvp-paper .ed{margin-bottom:4pt}.cvp-paper .ed b{display:block;margin-bottom:3pt}.cvp-paper .ed div{margin-bottom:3pt}
 .cvp-ft{margin-top:16pt;text-align:right;font-size:7pt;color:#6a7680}
+
+/* ── My CV: calm & premium ── */
+.cv-wrap .cv-live{background:transparent;border:0;padding:2px 2px 10px;gap:8px;font-size:calc(12.5px*var(--app-text-scale,1));font-weight:700;color:var(--muted)}
+.cv-wrap .cv-live em{font-style:normal;font-weight:600;color:var(--muted)}
+.cv-wrap .cv-card,.cv-wrap .cv-proj{background:var(--surface);border:1px solid color-mix(in srgb,var(--border) 55%,transparent);border-radius:22px;box-shadow:var(--shadow-xs);padding:18px;margin-bottom:12px;transition:box-shadow .2s,transform .15s var(--pm-ease)}
+.cv-wrap .cv-proj{border-inline-start:1px solid color-mix(in srgb,var(--border) 55%,transparent)}
+.cv-wrap .tap{cursor:pointer}
+.cv-wrap .tap:active{transform:scale(.992)}
+.cv-wrap .cv-prof{padding:20px 18px}
+.cv-wrap .cv-av{width:48px;height:48px;border-radius:16px;font-size:20px}
+.cv-wrap .cv-prof-id b{font-size:calc(19px*var(--app-text-scale,1));font-weight:800;line-height:1.3;letter-spacing:.1px;color:var(--text)}
+.cv-wrap .cv-prof-id small{display:block;margin-top:4px;font-size:calc(12.5px*var(--app-text-scale,1));font-weight:600;line-height:1.5;color:var(--sub)}
+.cv-wrap .cv-cts{margin-top:14px;padding-top:14px;border-top:1px solid color-mix(in srgb,var(--border) 60%,transparent);display:grid;gap:8px}
+.cv-wrap .cv-ct{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:calc(12.5px*var(--app-text-scale,1));font-weight:600;color:var(--sub)}
+.cv-wrap .cv-ct span{display:inline-flex;align-items:center;gap:7px;min-width:0}
+.cv-wrap .cv-ct svg{flex:none;color:var(--green);opacity:.85}
+.cv-wrap .cv-ct bdi{overflow-wrap:anywhere}
+.cv-wrap .cv-sec-row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 0 12px}
+.cv-wrap .cv-sec-t{display:inline-flex;align-items:center;gap:8px;font-size:calc(12px*var(--app-text-scale,1));font-weight:800;letter-spacing:.7px;text-transform:uppercase;color:var(--muted)}
+.cv-wrap .cv-sec-t svg{color:var(--green)}
+.cv-wrap>.cv-sec-row{margin:22px 4px 10px}
+.cv-wrap .cv-ib{width:34px;height:34px;border:0;border-radius:11px;background:transparent;color:var(--muted);box-shadow:none}
+.cv-wrap .cv-ib:hover,.cv-wrap .cv-ib:active{background:var(--green-tint);color:var(--green)}
+.cv-wrap .cv-sum{margin:0;font-size:calc(14px*var(--app-text-scale,1));line-height:1.75;color:var(--text2);font-weight:500}
+.cv-wrap .cv-sk{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:1fr;gap:9px 18px}
+@media (min-width:520px){.cv-wrap .cv-sk{grid-template-columns:1fr 1fr}}
+.cv-wrap .cv-sk li{position:relative;padding-inline-start:16px;font-size:calc(13.5px*var(--app-text-scale,1));line-height:1.5;color:var(--text2);font-weight:500}
+.cv-wrap .cv-sk li::before{content:'';position:absolute;inset-inline-start:2px;top:.58em;width:5px;height:5px;border-radius:50%;background:var(--green)}
+.cv-wrap .cv-langs{margin:0;font-size:calc(14px*var(--app-text-scale,1));line-height:1.7;color:var(--text2);font-weight:500}
+.cv-wrap .cv-langs i{font-style:normal;margin:0 8px;color:var(--muted)}
+.cv-wrap .cv-ul{gap:8px;font-weight:500}
+.cv-wrap .cv-ed b{font-weight:800}
+.cv-wrap .cv-add{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:46px;border:1.5px dashed color-mix(in srgb,var(--green) 40%,var(--border));border-radius:14px;background:transparent;color:var(--green);font:inherit;font-size:calc(13px*var(--app-text-scale,1));font-weight:700;cursor:pointer}
+.cv-wrap .cv-proj-hd{align-items:center}
+.cv-wrap .cv-proj-ttl b{font-size:calc(15px*var(--app-text-scale,1));font-weight:800;line-height:1.3;color:var(--text)}
+.cv-wrap .cv-proj-ttl small{display:block;margin-top:3px;font-size:calc(12.5px*var(--app-text-scale,1));font-weight:600;color:var(--sub)}
+.cv-wrap .cv-proj-meta{display:flex;flex-wrap:wrap;gap:4px 16px;margin:10px 0 0;font-size:calc(12px*var(--app-text-scale,1));font-weight:600;color:var(--muted)}
+.cv-wrap .cv-proj-meta span{display:inline-flex;align-items:center;gap:6px}
+.cv-wrap .cv-proj-desc{margin-top:12px}
+.cv-wrap .cv-proj-desc.clamp{max-height:9.6em;overflow:hidden;-webkit-mask-image:linear-gradient(#000 70%,transparent);mask-image:linear-gradient(#000 70%,transparent)}
+.cv-wrap .cv-db{font-weight:500}
+.cv-wrap .cv-dh{font-weight:800}
+.cv-wrap .cv-more{margin-top:6px;padding:6px 0;border:0;background:none;color:var(--green);font:inherit;font-size:calc(12.5px*var(--app-text-scale,1));font-weight:800;cursor:pointer}
+.cv-wrap .cv-auto{margin:12px 0 0}
+.cv-wrap .cv-newprj{min-height:34px;padding:0 13px;border-radius:99px;font-size:calc(12px*var(--app-text-scale,1));font-weight:800}
+.cv-wrap .cv-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0 0}
+.cv-wrap .cv-actions:first-of-type{margin-top:22px}
+.cv-wrap .cv-actions .cv-btn{min-height:48px;border-radius:16px;font-weight:800;gap:8px}
+.cv-wrap .cv-actions .cv-btn.primary{background:linear-gradient(180deg,color-mix(in srgb,var(--green) 86%,#fff) 0%,var(--green) 42%,var(--green-dark) 135%);color:#fff;border:0;box-shadow:var(--pm-hi),0 12px 22px -10px var(--green)}
+.cv-wrap .cv-actions .cv-btn:not(.primary){background:var(--surface);border:1px solid var(--border);color:var(--text2);box-shadow:var(--shadow-xs)}
+.cv-wrap .cv-prev-top{box-shadow:0 8px 16px -8px var(--green)}
+.cv-wrap{padding-bottom:calc(env(safe-area-inset-bottom,0px) + 110px)}
+
+/* ── CV row editor: roomy, auto-height, one soft card per line ── */
+.cv-rows{gap:10px;padding:10px;border-radius:20px;background:color-mix(in srgb,var(--surface2) 70%,var(--surface));border:1px solid color-mix(in srgb,var(--border) 60%,transparent)}
+.cv-rows:empty{display:none}
+.cv-row{align-items:flex-start;gap:4px;padding:4px 4px 4px 6px;background:var(--surface);border:1px solid color-mix(in srgb,var(--border) 70%,transparent);border-radius:16px;box-shadow:var(--shadow-xs);transition:border-color .18s,box-shadow .18s}
+.cv-row:focus-within{border-color:var(--green);box-shadow:0 0 0 4px var(--green-glow)}
+.cv-row>input,.cv-row>textarea,.cv-edu-f input,.cv-edu-f textarea{border:0!important;box-shadow:none!important;background:transparent!important;border-radius:10px!important;outline:none!important}
+.cv-row>textarea{min-height:56px;padding:12px 6px;font-size:calc(14.5px*var(--app-text-scale,1));line-height:1.65;font-weight:500;resize:none;overflow:hidden;field-sizing:content}
+.cv-row>input{min-height:50px;padding:0 6px;font-size:calc(14.5px*var(--app-text-scale,1))}
+.cv-rk{width:22px;height:56px;font-size:15px}
+.cv-row.b .cv-rk{color:var(--green)}
+.cv-row.h{background:color-mix(in srgb,var(--green) 7%,var(--surface));border-color:color-mix(in srgb,var(--green) 28%,var(--border))}
+.cv-row.h .cv-rk{height:50px;font-size:11px;letter-spacing:.3px}
+.cv-row.h>input{font-weight:800;color:var(--text)}
+.cv-rm{width:34px;height:34px;margin-top:4px;border-radius:10px;opacity:.7}
+.cv-rm:hover,.cv-rm:active{opacity:1;background:var(--surface2);color:var(--red)}
+.cv-edu-r{padding:8px}
+.cv-edu-f{gap:2px}
+.cv-edu-f input,.cv-edu-f textarea{padding:10px 8px;min-height:44px;font-size:calc(14.5px*var(--app-text-scale,1))}
+.cv-edu-f input+input,.cv-edu-f input+textarea,.cv-edu-f textarea{border-top:1px dashed var(--border)!important;border-radius:0!important}
+.cv-addrow{min-height:44px;border-radius:14px;background:var(--surface)}
+.cv-addrow-2{margin-top:2px}
+.cv-rows .cv-row>textarea{padding:12px 4px!important;font-size:calc(14px*var(--app-text-scale,1))!important;font-weight:500!important;line-height:1.65!important;color:var(--text)}
+.cv-rows .cv-row>input{padding:0 4px!important;font-size:calc(14px*var(--app-text-scale,1))!important}
+.cv-rows .cv-row.h>input{font-weight:800!important}
+.cv-rows .cv-row{gap:2px;padding:2px 2px 2px 4px}
+.cv-rows .cv-rk{width:20px}
+.cv-edu-f input,.cv-edu-f textarea{font-weight:600!important;padding:10px 6px!important}
 </style>
 </head>
 <body>
@@ -34266,9 +34346,9 @@ function _cvEntries(cv){
   const out=_PRJ.list.map(p=>{
     const e=cv.projects[p.id]||{}, st=_cvStats(p.id);
     const from=e.from||st.first||(e.created?new Date(e.created).toISOString().slice(0,10):'');
-    return {kind:'p',id:p.id,name:_prjName(p),logo:p.logo,company:e.client||'',role:e.role||'',loc:e.loc||'',from,to:e.to||'',desc:e.desc||'',hide:!!e.hide,noauto:!!e.noauto,st};
+    return {kind:'p',id:p.id,name:_prjName(p),logo:p.logo,company:e.client||'',role:e.role||'',loc:e.loc||'',from,to:e.to||'',desc:_cvNormDesc(e.desc),hide:!!e.hide,noauto:!!e.noauto,st};
   });
-  (cv.extra||[]).forEach(x=>out.push({kind:'x',id:x.id,name:x.project||'',company:x.company||'',role:x.role||'',loc:x.loc||'',from:x.from||'',to:x.to||'',desc:x.desc||'',hide:!!x.hide,noauto:true,st:null}));
+  (cv.extra||[]).forEach(x=>out.push({kind:'x',id:x.id,name:x.project||'',company:x.company||'',role:x.role||'',loc:x.loc||'',from:x.from||'',to:x.to||'',desc:_cvNormDesc(x.desc),hide:!!x.hide,noauto:true,st:null}));
   return out.sort((a,b)=>String(b.from||'').localeCompare(String(a.from||'')));
 }
 // ---- dates -----------------------------------------------------------------
@@ -34289,7 +34369,14 @@ function _cvPeriodEN(e){
   if(fut&&!e.to) return 'Starting '+_cvLong(f,true);
   return _cvLong(f)+' to '+(e.to?_cvLong(e.to):'Present');
 }
-function _cvList(s){ return String(s||'').split('\n').map(x=>x.trim()).filter(Boolean); }
+// pasted text → clean lines: removes markdown escapes (\. \-), splits on bullet glyphs, drops list dashes / numbering
+function _cvClean(t){ return String(t==null?'':t).replace(/\r/g,'').replace(/\\([\\`*_{}\[\]()#+\-.!|>~:])/g,'$1'); }
+function _cvNormDesc(t){
+  const out=[];
+  _cvClean(t).split(/\n|[•●▪◦‣∙]/).forEach(x=>{ x=x.replace(/^\s*(?:[-*–—]\s+|\d{1,2}[.)]\s+)/,'').replace(/\s+/g,' ').trim(); if(x) out.push(x); });
+  return out.join('\n');
+}
+function _cvList(s){ return _cvNormDesc(s).split('\n').filter(Boolean); }
 function _cvTitle(p){ return (p.title||'').trim()||L('Consultant Engineer','مهندس استشاري'); }
 // ---- auto bullets ----------------------------------------------------------
 function _cvAuto(st){   // shown on screen, in the UI language
@@ -34323,7 +34410,7 @@ function _cvModel(cvIn){
     headline:(p.title||'').trim()||'Consultant Engineer',
     c1:[p.phone?'Phone: '+p.phone:'',p.email?'Email: '+p.email:''].filter(Boolean).join(' | '),
     c2:[p.linkedin?'LinkedIn: '+p.linkedin:'',p.loc?'Location: '+p.loc:''].filter(Boolean).join(' | '),
-    summary:(p.summary||'').trim(), skills:_cvList(p.skills), jobs, edu, certs:_cvList(p.certs), langs:_cvList(p.langs)
+    summary:_cvClean(p.summary).trim(), skills:_cvList(p.skills), jobs, edu, certs:_cvList(p.certs), langs:_cvList(p.langs)
   };
 }
 function _cvText(){
@@ -34416,10 +34503,10 @@ function renderMyCV(){
   const cv=_cvLoad(), p=cv.profile, ents=_cvEntries(cv);
   const shown=ents.filter(e=>!e.hide).length;
   const ini=(p.name||'').trim().charAt(0).toUpperCase();
-  const chip=(ico,v)=>v?`<span class="cv-chip">${ic(ico,13)}<bdi>${esc(v)}</bdi></span>`:'';
-  const contacts=chip('phone',p.phone)+chip('mail',p.email)+chip('link',p.linkedin)+chip('pin',p.loc);
-  const secCard=(key,ico,en,ar,body,emptyEn,emptyAr)=>`<section class="cv-card cv-sc"><div class="cv-sec-row"><span class="cv-sec-t">${ic(ico,15)}<span>${L(en,ar)}</span></span><button type="button" class="cv-ib" onclick="_cvEditSec('${key}')" aria-label="${L('Edit','تعديل')}">${ic('edit',16)}</button></div>${body||`<button type="button" class="cv-add" onclick="_cvEditSec('${key}')">${ic('plus',14)} ${L(emptyEn,emptyAr)}</button>`}</section>`;
-  const sum=p.summary?`<p class="cv-sum" dir="auto">${esc(p.summary).replace(/\n/g,'<br>')}</p>`:'';
+  const cl=(ico,v)=>v?`<span>${ic(ico,13)}<bdi>${esc(v)}</bdi></span>`:'';
+  const contacts=[cl('phone',p.phone)+cl('mail',p.email),cl('link',p.linkedin)+cl('pin',p.loc)].filter(Boolean).map(r=>`<div class="cv-ct">${r}</div>`).join('');
+  const secCard=(key,ico,en,ar,body,emptyEn,emptyAr)=>`<section class="cv-card cv-sc${body?' tap':''}"${body?` onclick="_cvEditSec('${key}')"`:''}><div class="cv-sec-row"><span class="cv-sec-t">${ic(ico,15)}<span>${L(en,ar)}</span></span><button type="button" class="cv-ib" onclick="event.stopPropagation();_cvEditSec('${key}')" aria-label="${L('Edit','تعديل')}">${ic('edit',15)}</button></div>${body||`<button type="button" class="cv-add" onclick="_cvEditSec('${key}')">${ic('plus',14)} ${L(emptyEn,emptyAr)}</button>`}</section>`;
+  const sum=p.summary?`<p class="cv-sum" dir="auto">${esc(_cvClean(p.summary)).replace(/\n/g,'<br>')}</p>`:'';
   const skills=_cvList(p.skills), certs=_cvList(p.certs), langs=_cvList(p.langs);
   const edu=String(p.edu||'').split(/\n\s*\n/).map(b=>b.split('\n').map(x=>x.trim()).filter(Boolean)).filter(b=>b.length);
   const cards=ents.map(e=>{
@@ -34427,14 +34514,16 @@ function renderMyCV(){
     const title=e.kind==='p'?e.name:(e.company||e.name||L('Past job','وظيفة سابقة'));
     const sub=e.kind==='p'?[e.role,e.company].filter(Boolean).join(' · '):[e.role,e.name].filter(Boolean).join(' · ');
     const av=e.kind==='p'?_prjAv({id:e.id,name:e.name,logo:e.logo},40):`<span class="de-av" style="width:40px;height:40px;font-size:17px">${esc((title||'?').charAt(0).toUpperCase())}</span>`;
-    return `<article class="cv-proj${e.hide?' is-hidden':''}">
+    const dl=String(e.desc||'').split('\n').filter(x=>x.trim()).length;
+    const edit=e.kind==='p'?`_cvEditProj('${e.id}')`:`_cvEditExtra('${e.id}')`;
+    return `<article class="cv-proj tap${e.hide?' is-hidden':''}" onclick="${edit}">
       <div class="cv-proj-hd">
         <span class="cv-proj-av">${av}</span>
         <div class="cv-proj-ttl"><b dir="auto">${esc(title)}</b><small dir="auto">${esc(sub||L('Add your role & company','أضف دورك والشركة'))}</small></div>
-        <button type="button" class="cv-ib" onclick="${e.kind==='p'?`_cvEditProj('${e.id}')`:`_cvEditExtra('${e.id}')`}" aria-label="${L('Edit','تعديل')}">${ic('edit',16)}</button>
+        <button type="button" class="cv-ib" onclick="event.stopPropagation();${edit}" aria-label="${L('Edit','تعديل')}">${ic('edit',15)}</button>
       </div>
-      ${(per||e.loc||e.kind==='x')?`<div class="cv-proj-meta">${per?`<span>${ic('calendar',12)}<bdi>${esc(per)}</bdi></span>`:''}${e.loc?`<span>${ic('pin',12)}<bdi>${esc(e.loc)}</bdi></span>`:''}${e.kind==='x'?`<span>${ic('briefcase',12)}${L('Past job','وظيفة سابقة')}</span>`:''}</div>`:''}
-      ${e.desc?`<div class="cv-proj-desc" dir="auto">${String(e.desc).split('\n').map(x=>x.trim()).filter(Boolean).map(x=>x.startsWith('# ')?`<b class="cv-dh">${esc(x.slice(2))}</b>`:`<div class="cv-db">${esc(x)}</div>`).join('')}</div>`:''}
+      ${(per||e.loc)?`<div class="cv-proj-meta">${per?`<span>${ic('calendar',12)}<bdi>${esc(per)}</bdi></span>`:''}${e.loc?`<span>${ic('pin',12)}<bdi>${esc(e.loc)}</bdi></span>`:''}</div>`:''}
+      ${e.desc?`<div class="cv-proj-desc${dl>4?' clamp':''}" dir="auto">${String(e.desc).split('\n').map(x=>x.trim()).filter(Boolean).map(x=>x.startsWith('# ')?`<b class="cv-dh">${esc(x.slice(2))}</b>`:`<div class="cv-db">${esc(x)}</div>`).join('')}</div>${dl>4?`<button type="button" class="cv-more" data-a="${L('Show more','عرض المزيد')}" data-b="${L('Show less','عرض أقل')}" onclick="event.stopPropagation();const d=this.previousElementSibling;d.classList.toggle('clamp');this.textContent=d.classList.contains('clamp')?this.dataset.a:this.dataset.b">${L('Show more','عرض المزيد')}</button>`:''}`:''}
       ${auto.length?`<ul class="cv-auto">${auto.map(x=>`<li dir="auto">${esc(x)}</li>`).join('')}</ul><div class="cv-auto-tag">${ic('sparkle',11)} ${L('Auto-updated from your receipts','بيتحدّث تلقائيًا من استلاماتك')}</div>`:''}
       ${e.hide?`<div class="cv-hidden-tag">${ic('eyeoff',12)} ${L('Hidden from the CV','مخفي من السيرة الذاتية')}</div>`:''}
     </article>`;
@@ -34442,7 +34531,7 @@ function renderMyCV(){
   return `<div class="screen-wrap cx-wrap cv-wrap">
   ${_pgHdr('Site','الموقع','My Job','My Job','Receipts log and custody money','سجل الاستلامات وعهدة الموقع')}
   ${_cxTabsHTML()}
-  <div class="cv-live"><span class="cv-live-dot"></span><span>${L('Auto-updating CV','سيرة ذاتية بتتحدّث تلقائيًا')}</span><em>${L(`${shown} of ${ents.length} in the CV`,`${shown} من ${ents.length} في السيرة`)}</em>
+  <div class="cv-live"><span class="cv-live-dot"></span><span>${L('Auto-updating','بتتحدّث تلقائيًا')}</span><em>${L(`${shown}/${ents.length} in CV`,`${shown}/${ents.length} في السيرة`)}</em>
     <button type="button" class="cv-prev-top" onclick="cvPreview(false)">${ic('eye',14)} ${L('Preview','معاينة')}</button></div>
   <section class="cv-card cv-prof">
     <div class="cv-prof-top">
@@ -34450,16 +34539,16 @@ function renderMyCV(){
       <div class="cv-prof-id"><b dir="auto">${p.name?esc(p.name):L('Add your name','أضف اسمك')}</b><small dir="auto">${esc(_cvTitle(p))}</small></div>
       <button type="button" class="cv-ib" onclick="_cvEditSec('hdr')" aria-label="${L('Edit','تعديل')}">${ic('edit',16)}</button>
     </div>
-    ${contacts?`<div class="cv-chips">${contacts}</div>`:`<button type="button" class="cv-add" onclick="_cvEditSec('hdr')">${ic('plus',14)} ${L('Add contact details','أضف بيانات التواصل')}</button>`}
+    ${contacts?`<div class="cv-cts">${contacts}</div>`:`<button type="button" class="cv-add" onclick="_cvEditSec('hdr')">${ic('plus',14)} ${L('Add contact details','أضف بيانات التواصل')}</button>`}
   </section>
   ${secCard('sum','cv','Summary','النبذة',sum,'Add a short summary','أضف نبذة عنك')}
-  ${secCard('skills','hammer','Core skills','المهارات الأساسية',skills.length?`<div class="cv-chips">${skills.map(x=>`<span class="cv-tag" dir="auto">${esc(x)}</span>`).join('')}</div>`:'','Add your core skills','أضف مهاراتك')}
+  ${secCard('skills','hammer','Core skills','المهارات الأساسية',skills.length?`<ul class="cv-sk">${skills.map(x=>`<li dir="auto">${esc(x)}</li>`).join('')}</ul>`:'','Add your core skills','أضف مهاراتك')}
   <div class="cv-sec-row"><span class="cv-sec-t">${ic('briefcase',15)}<span>${L('Work experience','الخبرة العملية')}</span></span>
     <span class="cv-btns"><button type="button" class="cv-newprj alt" onclick="_cvEditExtra(null)">${ic('plus',14)} ${L('Past job','وظيفة سابقة')}</button><button type="button" class="cv-newprj" onclick="_prjOpen()">${ic('plus',14)} ${L('New project','مشروع جديد')}</button></span></div>
   <div class="cv-projs">${cards}</div>
   ${secCard('edu','grad','Education','التعليم',edu.length?edu.map(b=>`<div class="cv-ed"><b dir="auto">${esc(b[0])}</b>${b.slice(1).map(x=>`<div dir="auto">${esc(x)}</div>`).join('')}</div>`).join(''):'','Add your education','أضف تعليمك')}
   ${secCard('certs','star','Certifications & training','الشهادات والتدريب',certs.length?`<ul class="cv-ul">${certs.map(x=>`<li dir="auto">${esc(x)}</li>`).join('')}</ul>`:'','Add certifications & training','أضف الشهادات والتدريب')}
-  ${secCard('langs','languages','Languages','اللغات',langs.length?`<div class="cv-chips">${langs.map(x=>`<span class="cv-tag" dir="auto">${esc(x)}</span>`).join('')}</div>`:'','Add your languages','أضف لغاتك')}
+  ${secCard('langs','languages','Languages','اللغات',langs.length?`<p class="cv-langs" dir="auto">${langs.map(x=>esc(x)).join('<i>·</i>')}</p>`:'','Add your languages','أضف لغاتك')}
   <div class="cv-actions">
     <button type="button" class="cv-btn primary" onclick="cvPreview(false)">${ic('eye',16)} ${L('Preview CV','معاينة السيرة')}</button>
     <button type="button" class="cv-btn" onclick="cvPrint()">${ic('print',16)} ${L('Save as PDF','حفظ PDF')}</button>
@@ -34487,7 +34576,11 @@ function _cvSheet(icon,title,sub,body,saveFn,delFn){
     <button type="button" class="cv-prev-btn" onclick="cvPreview(true)">${ic('eye',16)} ${L('Preview the CV with these changes','معاينة السيرة بالتعديلات دي')}</button>
     <div class="modal-btns"><button class="mbtn cancel" onclick="closeModal()">${L('Cancel','إلغاء')}</button><button class="mbtn save" onclick="${saveFn}">${L('Save','حفظ')}</button></div></div>`;
   document.getElementById('modalOverlay').style.display='flex';
+  _cvGrowAll(); requestAnimationFrame(_cvGrowAll);
 }
+// auto-height textareas: the whole text is always visible, no inner scrolling
+function _cvGrowAll(){ document.querySelectorAll('.cv-row textarea').forEach(t=>{ t.style.height='auto'; t.style.height=(t.scrollHeight+2)+'px'; }); }
+document.addEventListener('input',function(e){ const t=e.target; if(t&&t.tagName==='TEXTAREA'&&t.closest&&t.closest('.cv-row')){ t.style.height='auto'; t.style.height=(t.scrollHeight+2)+'px'; } },true);
 // ---- row editors (list / language / education / bullets) -------------------
 const _cvRm=()=>`<button type="button" class="cv-rm" onclick="this.closest('.cv-row').remove()" aria-label="${L('Remove','حذف')}">${ic('close',14)}</button>`;
 function _cvRowHTML(kind,v,ph){
@@ -34505,6 +34598,7 @@ function _cvRowAdd(id,kind){
   const c=document.getElementById(id); if(!c) return;
   const k=kind||c.dataset.k; c.insertAdjacentHTML('beforeend',_cvRowHTML(k,k==='edu'?{}:'',c.dataset.ph));
   const last=c.lastElementChild&&c.lastElementChild.querySelector('input,textarea'); if(last) last.focus();
+  _cvGrowAll();
 }
 function _cvRowVals(id){
   const c=document.getElementById(id); if(!c) return [];
@@ -34521,11 +34615,11 @@ function _cvRowVals(id){
 }
 // bullets + sub-headings share one ordered list
 function _cvBulRows(id,desc){
-  const items=String(desc||'').split('\n').map(x=>x.trim()).filter(Boolean);
+  const items=_cvNormDesc(desc).split('\n').filter(Boolean);
   return `<div class="cv-rows" id="${id}" data-k="mix">${items.map(x=>x.startsWith('# ')?_cvRowHTML('head',x.slice(2)):_cvRowHTML('bul',x)).join('')}</div>
     <div class="cv-addrow-2"><button type="button" class="cv-addrow" onclick="_cvMixAdd('${id}','bul')">${ic('plus',14)} ${L('Bullet point','نقطة')}</button><button type="button" class="cv-addrow" onclick="_cvMixAdd('${id}','head')">${ic('plus',14)} ${L('Sub-heading','عنوان فرعي')}</button></div>`;
 }
-function _cvMixAdd(id,kind){ const c=document.getElementById(id); if(!c) return; c.insertAdjacentHTML('beforeend',_cvRowHTML(kind,'')); const l=c.lastElementChild&&c.lastElementChild.querySelector('input,textarea'); if(l) l.focus(); }
+function _cvMixAdd(id,kind){ const c=document.getElementById(id); if(!c) return; c.insertAdjacentHTML('beforeend',_cvRowHTML(kind,'')); const l=c.lastElementChild&&c.lastElementChild.querySelector('input,textarea'); if(l) l.focus(); _cvGrowAll(); }
 function _cvMixVals(id){
   const c=document.getElementById(id); if(!c) return '';
   const out=[]; c.querySelectorAll('.cv-row').forEach(r=>{
@@ -34570,7 +34664,7 @@ function _cvEditProfile(){ _cvEditSec('hdr'); }
 function _cvSecRead(k){
   const g=id=>(document.getElementById(id)?.value||'').trim();
   if(k==='hdr') return {name:g('cvName'),title:g('cvTitle'),phone:g('cvPhone'),email:g('cvEmail'),linkedin:g('cvLinkedin'),loc:g('cvLoc')};
-  if(k==='sum') return {summary:g('cvSum')};
+  if(k==='sum') return {summary:_cvClean(g('cvSum'))};
   if(k==='skills') return {skills:_cvRowVals('cvR_skills').join('\n')};
   if(k==='edu') return {edu:_cvRowVals('cvR_edu').join('\n\n')};
   if(k==='certs') return {certs:_cvRowVals('cvR_certs').join('\n')};
@@ -34615,7 +34709,7 @@ function _cvSaveProj(id){
 }
 function _cvEditExtra(id){
   const x=id?((_cvLoad().extra||[]).find(r=>r.id===id)||{}):{};
-  const e={company:x.company,role:x.role,project:x.project,loc:x.loc,from:x.from,to:x.to,desc:x.desc,hide:x.hide};
+  const e={company:x.company,role:x.role,project:x.project,loc:x.loc,from:x.from,to:x.to,desc:_cvNormDesc(x.desc),hide:x.hide};
   _cvCtx={t:'x',id:id||''};
   _cvSheet('briefcase',id?esc(x.company||L('Past job','وظيفة سابقة')):L('Add a past job','إضافة وظيفة سابقة'),L('For jobs that are not projects in the app','للوظائف اللي مش مشاريع في التطبيق'),
     _cvField('cvxCompany',L('Company / employer (bold line)','الشركة / جهة العمل (السطر البولد)'),e.company,{ph:'Kayan Real Estate Development'})+
@@ -34643,6 +34737,28 @@ function _cvSaveExtra(id){
   showToast(L('CV updated','تم تحديث السيرة الذاتية'),'success');
 }
 // ---- live preview (A4 page, same layout as the exported PDF) ----------------
+
+// pasting several lines / bullets into a row splits them into separate rows automatically
+document.addEventListener('paste',function(ev){
+  const t=ev.target; if(!t||!t.closest) return;
+  const rows=t.closest('.cv-rows'); if(!rows||!(t.tagName==='TEXTAREA'||t.tagName==='INPUT')) return;
+  const k=rows.dataset.k; if(k!=='mix'&&k!=='list') return;
+  const txt=(ev.clipboardData&&ev.clipboardData.getData('text'))||''; if(!txt) return;
+  const lines=_cvNormDesc(txt).split('\n').filter(Boolean);
+  if(lines.length<2) return;
+  ev.preventDefault();
+  const row=t.closest('.cv-row'), isH=row.classList.contains('h');
+  const cur=(t.value||'').trim();
+  let anchor=row;
+  if(!cur){ t.value=lines[0]; lines.shift(); }
+  lines.forEach(l=>{
+    const kind=(k==='list')?'list':(l.startsWith('# ')?'head':'bul');
+    const v=(kind==='head')?l.slice(2):l;
+    anchor.insertAdjacentHTML('afterend',_cvRowHTML(kind,v,rows.dataset.ph));
+    anchor=anchor.nextElementSibling;
+  });
+  _cvGrowAll();
+},true);
 function _cvDraft(){
   const cv=_cvLoad(), c=_cvCtx;
   try{
