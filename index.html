@@ -10925,6 +10925,34 @@ button.rq-st{cursor:pointer;padding:3px}
 button,[role="button"],.sc-card[onclick],.nav-btn,.dfp-card-btn{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 .sc-card[onclick]:active,[role="button"]:active{transition:transform .12s}
 @media (prefers-reduced-motion:reduce){.sc-btn{transition:none}}
+/* ── Accounts · add-movement form v2 (placed last so it wins the cascade) ── */
+.banks-v2 .sc-add-row{--mv-accent:var(--fin-income);padding:16px;gap:16px;border-radius:22px}
+.banks-v2 .sc-add-row:has(.tx-type-toggle button:last-child.active){--mv-accent:var(--fin-outcome)}
+.banks-v2 .sc-add-label{font-size:calc(12.5px*var(--app-text-scale,1));font-weight:600;letter-spacing:0;text-transform:none;color:var(--muted)}
+.banks-v2 .sc-add-toprow{gap:14px}
+.banks-v2 .tx-type-toggle{position:relative;isolation:isolate;padding:4px;gap:0;border-radius:16px}
+.banks-v2 .tx-type-toggle::before{content:"";position:absolute;z-index:-1;inset-block:4px;inset-inline-start:4px;width:calc(50% - 4px);border-radius:12px;background:var(--fin-income);transition:transform .28s cubic-bezier(.3,.8,.3,1),background .2s}
+.banks-v2 .tx-type-toggle:has(button:last-child.active)::before{transform:translateX(100%);background:var(--fin-outcome)}
+[dir="rtl"] .banks-v2 .tx-type-toggle:has(button:last-child.active)::before{transform:translateX(-100%)}
+.banks-v2 .tx-type-toggle button{min-height:48px;border-radius:12px;font-size:calc(15px*var(--app-text-scale,1));font-weight:700;background:transparent!important;box-shadow:none!important}
+.banks-v2 .tx-type-toggle button.active{color:#fff}
+@supports not selector(:has(*)){
+  .banks-v2 .tx-type-toggle::before{display:none}
+  .banks-v2 .tx-type-toggle button.active{background:var(--active-c,var(--green))!important}
+}
+.banks-v2 .sc-add-fields{flex-direction:column;gap:14px}
+.banks-v2 .sc-add-fields .sc-add-group{min-width:0}
+.banks-v2 .sc-add-fields input[data-calc]{min-height:64px;font-size:calc(28px*var(--app-text-scale,1));font-weight:700;letter-spacing:-.01em;border-radius:16px;padding-inline-start:46px;padding-inline-end:62px}
+.banks-v2 .sc-add-fields input[data-calc]::placeholder{opacity:.45}
+.banks-v2 .sc-add-fields input:not([data-calc]){min-height:52px;border-radius:14px}
+.banks-v2 .sc-add-row input:focus{border-color:var(--mv-accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--mv-accent) 22%,transparent)}
+.sc-cur-suffix{position:absolute;inset-inline-end:16px;font-size:calc(14px*var(--app-text-scale,1));font-weight:700;color:var(--muted);pointer-events:none}
+.sc-chips{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding:2px 0}
+.sc-chips::-webkit-scrollbar{display:none}
+.sc-chip{flex:none;min-height:38px;padding:0 15px;border-radius:19px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-family:inherit;font-size:calc(13.5px*var(--app-text-scale,1));font-weight:600;cursor:pointer;transition:transform .1s,background .15s,border-color .15s}
+.sc-chip:active{transform:scale(.95);background:var(--surface2)}
+.banks-v2 .sc-add-submit{min-height:56px;border-radius:16px;font-size:calc(16px*var(--app-text-scale,1));font-weight:700}
+@media (prefers-reduced-motion:reduce){.banks-v2 .tx-type-toggle::before,.sc-chip{transition:none}}
 </style>
 <script>
 // Suppress cross-origin Script errors (in-app browsers like TikTok/Instagram)
@@ -27552,6 +27580,12 @@ function renderBanks(m){
                 <div class="sc-add-field-wrap">
                   ${ic('banknote',15,`style="color:${(txTypes[b.key]||'dep')==='dep'?'var(--fin-income)':'var(--fin-outcome)'}"`)}
                   <input type="text" inputmode="decimal" id="mv-amount-${b.key}" data-calc placeholder="0.00" onblur="applyFormula(this)" oninput="showFeePreview('${b.key}',this.value)">
+                  <span class="sc-cur-suffix">${esc(curLabel())}</span>
+                </div>
+                <div class="sc-chips">
+                  <button type="button" class="sc-chip" onclick="mvQuickAdd('${b.key}',100)">+100</button>
+                  <button type="button" class="sc-chip" onclick="mvQuickAdd('${b.key}',500)">+500</button>
+                  <button type="button" class="sc-chip" onclick="mvQuickAdd('${b.key}',1000)">+1,000</button>
                 </div>
               </div>
               <div class="sc-add-group">
@@ -27559,6 +27593,12 @@ function renderBanks(m){
                 <div class="sc-add-field-wrap">
                   ${ic('edit',15)}
                   <input type="text" id="mv-note-${b.key}" placeholder="${L('e.g. rent, supplies…','مثال: إيجار، مستلزمات…')}">
+                </div>
+                <div class="sc-chips">
+                  <button type="button" class="sc-chip" data-t="${L('Rent','إيجار')}" onclick="mvNoteChip('${b.key}',this.dataset.t)">${L('Rent','إيجار')}</button>
+                  <button type="button" class="sc-chip" data-t="${L('Supplies','مستلزمات')}" onclick="mvNoteChip('${b.key}',this.dataset.t)">${L('Supplies','مستلزمات')}</button>
+                  <button type="button" class="sc-chip" data-t="${L('Transport','مواصلات')}" onclick="mvNoteChip('${b.key}',this.dataset.t)">${L('Transport','مواصلات')}</button>
+                  <button type="button" class="sc-chip" data-t="${L('Food','أكل')}" onclick="mvNoteChip('${b.key}',this.dataset.t)">${L('Food','أكل')}</button>
                 </div>
               </div>
             </div>
@@ -29717,6 +29757,18 @@ function setTxType(bank,type){
   if(wmWrap) wmWrap.style.display = type==='with' ? 'flex' : 'none';
   const amt = document.getElementById('mv-amount-'+bank)?.value || '';
   showFeePreview(bank, amt);
+}
+
+function mvQuickAdd(bank,n){
+  const el=document.getElementById('mv-amount-'+bank); if(!el) return;
+  const cur=parseFloat(String(el.value||'').replace(/,/g,''))||0;
+  el.value=String(Math.round((cur+n)*100)/100);
+  showFeePreview(bank,el.value);
+  if(navigator.vibrate) navigator.vibrate(8);
+}
+function mvNoteChip(bank,txt){
+  const el=document.getElementById('mv-note-'+bank); if(!el) return;
+  el.value=txt;
 }
 
 // ── Per-wallet fee rules ───────────────────────────────────────────────────────
