@@ -7049,6 +7049,8 @@ html.wdash-sheet-lock,html.wdash-sheet-lock body{overflow:hidden}
    handler then measured the card's top mid-way through the scale-back, so the scroll pin pulled the page
    — visible as a flicker and a random jump. Controls keep their own feedback. */
 .banks-v2 .bnk-card.bnk-clickable:active{transform:none}
+/* Set for two frames while another card collapses so the layout change is a single step. */
+.banks-v2 .bnk-card.bnk-instant,.banks-v2 .bnk-card.bnk-instant *{transition:none!important}
 /* Tap ripple removed — it was firing not just on deliberate taps but also
    when a finger simply lifted off a card at the end of a scroll gesture (a
    known iOS :active quirk), which read as an unwanted flicker rather than
@@ -9446,9 +9448,10 @@ body .screen-wrap .sc-header.sav-plain-header.sav-plain-header::after{display:no
 /* Movement list: a single sheet, grouped by day, hairline rows */
 .banks-v2 .tx-rows.bnk-mv-list{
   margin-top:14px;padding:0;gap:0;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius)}
-/* The movements list no longer scrolls on its own: a nested scroller with overscroll-behavior:contain
-   swallowed swipes that started on a row, so the page would not scroll over the list. The page scrolls instead. */
-.banks-v2 .tx-rows.bnk-mv-list{max-height:none;overflow:visible;overscroll-behavior:auto;contain:none;transform:none}
+/* Movements list: a smaller window with its own scroll. overscroll-behavior stays at auto (not contain) so a swipe
+   that reaches the top or bottom of the list continues into the page instead of getting stuck, and the extra
+   containment/compositing layer is dropped. The window only scrolls when the rows overflow it. */
+.banks-v2 .tx-rows.bnk-mv-list{max-height:min(380px,55vh);overflow-y:auto;overflow-x:hidden;overscroll-behavior:auto;contain:none;transform:none;-webkit-overflow-scrolling:touch}
 .banks-v2 .bnk-mv-list .list-empty{padding:22px 16px}
 .banks-v2 .bnk-mv-day{
   display:flex;align-items:center;justify-content:space-between;gap:8px;
@@ -26906,13 +26909,18 @@ function _bnkPinCard(card, ms){
     window.removeEventListener('wheel',abort);
   })();
 }
-function _bnkCloseOtherCards(exceptKey){
+function _bnkCloseOtherCards(exceptKey, instant){
   Object.keys(bnkCardOpenState).forEach(k=>{
     if(k===exceptKey || !bnkCardOpenState[k]) return;
     bnkCardOpenState[k]=false;
     const oBody=document.getElementById('bnk-body-'+k);
     const oCard=document.getElementById('bcard-'+k);
     const oChev=document.getElementById('bnk-chev-'+k);
+    // instant: collapse with transitions off so layout settles in one step (see bnkToggleCard)
+    if(instant && oCard){
+      oCard.classList.add('bnk-instant');
+      requestAnimationFrame(()=>requestAnimationFrame(()=>oCard.classList.remove('bnk-instant')));
+    }
     _bnkSetBodyOpen(oBody, false);
     if(oCard) oCard.classList.remove('bnk-card-expanded');
     if(oChev) oChev.style.transform='rotate(0deg)';
@@ -26928,13 +26936,26 @@ function bnkToggleCard(key){
   const card=document.getElementById('bcard-'+key);
   const chev=document.getElementById('bnk-chev-'+key);
   if(!body) return;
-  _bnkPinCard(card,500);
   const open=!body.classList.contains('bnk-open');
+  if(open){
+    // Opening: any other open card collapses instantly and the page is corrected ONCE, so this card stays put
+    // under the finger. (Animating that collapse while pinning the scroll every frame made the page shudder
+    // when scrolled down.) Only the tapped card animates.
+    const sc=card?_bnkScroller(card):null;
+    const isDoc=!sc||(sc===document.scrollingElement||sc===document.documentElement);
+    const top0=card?card.getBoundingClientRect().top:0;
+    _bnkCloseOtherCards(key,true);
+    if(card){
+      const d=card.getBoundingClientRect().top-top0;
+      if(Math.abs(d)>0.5){ if(isDoc) window.scrollBy(0,d); else sc.scrollTop+=d; }
+    }
+  } else {
+    _bnkPinCard(card,500);
+  }
   _bnkSetBodyOpen(body, open);
   bnkCardOpenState[key]=open;
   if(card) card.classList.toggle('bnk-card-expanded', open);
   if(chev) chev.style.transform = open ? 'rotate(180deg)' : 'rotate(0deg)';
-  if(open) _bnkCloseOtherCards(key);
 }
 function bnkExpandCard(key, open){
   const body=document.getElementById('bnk-body-'+key);
