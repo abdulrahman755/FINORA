@@ -2,7 +2,7 @@
 <html lang="en" dir="ltr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#0C2B21">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -1145,6 +1145,9 @@ button:disabled{opacity:.5;cursor:not-allowed;pointer-events:none}
    own descendants only. Same ids/onclick handlers, same icons, same
    month-tab/search/settings logic; only padding/heights/gaps shrink. */
 .app-header{padding:6px var(--s-2);gap:6px}
+/* Page now draws under the iPhone status bar (viewport-fit=cover): the header owns that area, so it is
+   painted the header's own colour instead of showing the bare strip behind it. */
+.app-header{padding-top:calc(6px + env(safe-area-inset-top,0px))}
 .app-brand img{width:22px;height:22px}
 .header-toprow .icon-btn,.header-searchrow .icon-btn{min-height:26px;min-width:26px}
 
@@ -1338,6 +1341,9 @@ button:disabled{opacity:.5;cursor:not-allowed;pointer-events:none}
 
 /* Content */
 .content{padding:var(--sp4);padding-bottom:90px}
+/* Clearance follows the measured nav height (--bottom-nav-h, set by script; includes the iPhone
+   safe-area and Text Size scaling) instead of a flat 90px, same approach as .wdash-wrap. */
+.content{padding-bottom:calc(var(--bottom-nav-h,90px) + 28px)}
 
 /* ── Stat Cards (Dashboard KPI grid) ── Sprint UI-2: tokenized font-size
    (17px==--fs-h2, 9px==--fs-overline — identical values, zero visual
@@ -5595,6 +5601,10 @@ button,
   transform:translate(-50%,-56px);
   transition:transform .25s cubic-bezier(.34,1.56,.64,1),opacity .25s ease;
 }
+/* Top-anchored overlays sit under the header, which is now taller by the safe-area inset. */
+.smart-actions{top:calc(128px + env(safe-area-inset-top,0px))}
+.miora-greet-toast,.miora-panel{top:calc(64px + env(safe-area-inset-top,0px))}
+.wdp-ptr-indicator{top:calc(8px + env(safe-area-inset-top,0px))}
 
 @keyframes wdpPtrSpin{to{transform:rotate(360deg)}}
 /* FINORA wallet refresh: the pull indicator is the app's wallet — it grows while you pull,
@@ -7035,6 +7045,10 @@ html.wdash-sheet-lock,html.wdash-sheet-lock body{overflow:hidden}
    the press originated inside the controls cluster keeps every pixel
    inside it static while a tap is in progress. */
 .banks-v2 .bnk-card.bnk-clickable:has(.bnk-card-controls:active){transform:none}
+/* No press-scale on the whole card: it scaled the entire (possibly expanded) card on touch-down, and the tap
+   handler then measured the card's top mid-way through the scale-back, so the scroll pin pulled the page
+   — visible as a flicker and a random jump. Controls keep their own feedback. */
+.banks-v2 .bnk-card.bnk-clickable:active{transform:none}
 /* Tap ripple removed — it was firing not just on deliberate taps but also
    when a finger simply lifted off a card at the end of a scroll gesture (a
    known iOS :active quirk), which read as an unwanted flicker rather than
@@ -9432,6 +9446,9 @@ body .screen-wrap .sc-header.sav-plain-header.sav-plain-header::after{display:no
 /* Movement list: a single sheet, grouped by day, hairline rows */
 .banks-v2 .tx-rows.bnk-mv-list{
   margin-top:14px;padding:0;gap:0;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius)}
+/* The movements list no longer scrolls on its own: a nested scroller with overscroll-behavior:contain
+   swallowed swipes that started on a row, so the page would not scroll over the list. The page scrolls instead. */
+.banks-v2 .tx-rows.bnk-mv-list{max-height:none;overflow:visible;overscroll-behavior:auto;contain:none;transform:none}
 .banks-v2 .bnk-mv-list .list-empty{padding:22px 16px}
 .banks-v2 .bnk-mv-day{
   display:flex;align-items:center;justify-content:space-between;gap:8px;
@@ -9502,12 +9519,18 @@ body .screen-wrap .sc-header.sav-plain-header.sav-plain-header::after{display:no
 }
 [data-theme="dark"]{
   --inp-bd:var(--border-strong);
-  --inp-edge:inset 3px 0 0 var(--green-light);
-  --inp-edge-rtl:inset -3px 0 0 var(--green-light);
+  --inp-edge:inset 0 0 0 0 transparent;
+  --inp-edge-rtl:inset 0 0 0 0 transparent;
   --inp-bd-hover:color-mix(in srgb,var(--green-light) 40%,var(--border-strong));
   --inp-bd-filled:color-mix(in srgb,var(--green-light) 50%,var(--border));
   --inp-chev:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%232BC48C' stroke-width='2.8' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");
 }
+
+/* Dark only: pastel light-mode hover/error fills (#fecaca/#fed7aa/#fef2f2) were never
+   given dark counterparts and rendered as near-white surfaces. Same tokens as the sibling rules. */
+[data-theme="dark"] .sc-btn.danger:hover{background:color-mix(in srgb,var(--red) 24%,var(--surface))}
+[data-theme="dark"] .sc-btn.orange:hover{background:color-mix(in srgb,var(--orange) 24%,var(--surface))}
+[data-theme="dark"] .aiq-rev-card.has-error{background:var(--red-tint)}
 
 /* ── Base: the well ── (16px floor also stops iOS from zooming the page on focus) */
 .field:not(.tx-amt):not(.tx-notes) :is(input,select,textarea):where(:not(.chk-box):not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]):not([type=color]):not([type=hidden])),
