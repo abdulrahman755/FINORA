@@ -1654,7 +1654,7 @@ tbody tr:hover{background:var(--surface2)}
   touch-action:none;-webkit-user-select:none;user-select:none;
 }
 .fab.dragging{cursor:grabbing;box-shadow:0 6px 18px var(--ws-fab-shadow,var(--green-glow));transition:none}
-.fab:active:not(.dragging){transform:scale(.86);box-shadow:0 2px 8px var(--ws-fab-shadow,var(--green-glow))}
+.fab:active:not(.dragging){transform:scale(.94);box-shadow:0 2px 8px var(--ws-fab-shadow,var(--green-glow))}
 .fab:focus-visible{outline:var(--focus-ring-width) solid #fff;outline-offset:3px}
 /* Daily Screen Redesign (Commit 1) — Daily-only FAB modifier. Applied only
    via the .fab-daily class (toggled on/off for the 'transactions' view in
@@ -12080,6 +12080,42 @@ function fpInitSmartHeader(){
 .prj-sheet{padding-bottom:calc(env(safe-area-inset-bottom,0px) + 40px)}
 .rq-modal .field .cv-rows .cv-row>textarea,.cv-rows .cv-row>textarea{min-height:52px!important}
 .rq-modal .field .cv-rows .cv-row>input,.cv-rows .cv-row>input{min-height:50px!important}
+
+/* ── Bottom nav: compact pass ─────────────────────────────────────────
+   Bar was tall with dead space: buttons stretched to the height of the raised
+   Dashboard button, labels sat at mismatched heights, and the full iPhone
+   safe-area inset was added on top of 6px padding. Now: items bottom-aligned
+   (all labels share one baseline), tighter paddings, home button slightly
+   smaller, safe-area counted at ~40% (the home-indicator only needs ~14px).
+   Floating elements (FAB / action bar / dropdowns) follow the measured nav
+   height (--bottom-nav-h) so no gap is left above the shorter bar. */
+.bottom-nav{
+  align-items:flex-end;
+  padding:4px 10px calc(4px + env(safe-area-inset-bottom,0px)*.4);
+  gap:2px;
+}
+.bottom-nav .nav-btn{padding:4px 4px 6px;gap:3px}
+.bottom-nav .nav-btn-home{margin-top:-14px}
+.bottom-nav .nav-home-icon-wrap{width:44px;height:44px;border-radius:14px}
+.bottom-nav .nav-btn-home .nav-icon{width:22px;height:22px}
+.bottom-nav .nav-btn-home span{margin-top:0}
+.fab,.fab.fab-daily{bottom:calc(var(--bottom-nav-h,74px) + 14px)}
+.sc-bottom{bottom:calc(var(--bottom-nav-h,74px) + var(--sp3))}
+.nav-drop{bottom:calc(var(--bottom-nav-h,74px) - 4px)}
+
+/* ── Salary settings sheet: grouped sections ── */
+.att-pg{border:1px solid var(--border);border-radius:16px;padding:14px;margin-bottom:12px}
+.att-pg-h{display:flex;align-items:center;gap:8px;margin:0 0 12px;font-size:calc(12px*var(--app-text-scale,1));font-weight:900;letter-spacing:.3px;color:var(--text2)}
+.att-pg-h svg{color:var(--green)}
+.att-pg>.field,.att-pg>.att-pay-g,.att-pg>.att-pay-tg,.att-pg>.att-pay-fields,.att-pg>.att-pay-sum,.att-pg>.att-wd{margin:0}
+.att-pg>*+*{margin-top:12px}
+.att-pg .att-pay-cyc{margin:0}
+.att-pg .att-pay-fields{margin-bottom:0}
+.att-pg .att-pay-g>span{font-size:calc(12px*var(--app-text-scale,1));font-weight:700;line-height:1.5}
+.att-pg-hint{display:block;margin-top:6px;font-size:calc(11.5px*var(--app-text-scale,1));font-weight:600;line-height:1.6;color:var(--muted)}
+.att-pay-sum{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 14px;border-radius:12px;background:var(--green-tint);color:var(--green);font-size:calc(13px*var(--app-text-scale,1));font-weight:800}
+.att-pay-sum b{font-variant-numeric:tabular-nums}
+.att-pg .att-seg-row{width:100%}
 </style>
 </head>
 <body>
@@ -47229,7 +47265,11 @@ const ATT=(function(){
   const PAY_OT=[0,1,1.25,1.5,2];
   function payCfg(){
     const p=(db&&db.pay)||{};
-    return {net:(+p.net>0)?+p.net:0, hpd:(+p.hpd>0&&+p.hpd<=24)?+p.hpd:8, basis:['30','26','cal'].indexOf(String(p.basis))>=0?String(p.basis):'30',
+    // Work window: shift start/end. When both are set the daily hours ARE the window length,
+    // and every day is measured against it (see winSplit): time after the end = overtime,
+    // late arrival / early leave = short hours. Without a window the old "hours per day" is used.
+    const ws=validT(p.ws), we=validT(p.we), win=(ws&&we&&ws!==we)?durMin(ws,we):0;
+    return {ws:win?ws:'', we:win?we:'', win, net:(+p.net>0)?+p.net:0, hpd:win?Math.round(win/60*100)/100:((+p.hpd>0&&+p.hpd<=24)?+p.hpd:8), basis:['30','26','cal'].indexOf(String(p.basis))>=0?String(p.basis):'30',
             ot:PAY_OT.indexOf(+p.ot)>=0?+p.ot:0, sickUnpaid:!!p.sickUnpaid, short:p.short!==false, cycle:(+p.cycle>=1&&+p.cycle<=28)?Math.floor(+p.cycle):28,
             off:Array.isArray(p.off)?p.off.map(Number).filter(n=>n>=0&&n<=6):[5]};
   }
@@ -47248,6 +47288,15 @@ const ATT=(function(){
   // Salary accrues from the attendance calendar: every day is worth (net / cycle days).
   // present/late = worth of the hours worked (live for today) + overtime; absent = 0; paid leave, holidays and weekly days off = full day;
   // days not recorded yet earn nothing. The end-of-cycle figure assumes the remaining days are attended in full.
+  // Splits one day's fingerprint (in → out) against the work window:
+  //   reg = minutes actually inside [start,end]  (arriving before start is not counted)
+  //   ot  = minutes after the end of the window
+  function winSplit(cfg,i,o){
+    const m=t=>{ const a=/^(\d{2}):(\d{2})$/.exec(t||''); return a?(+a[1]*60+ +a[2]):0; };
+    const S=m(cfg.ws); let E=m(cfg.we); if(E<=S) E+=1440;
+    const I=m(i); let O=m(o); if(O<I) O+=1440;
+    return {reg:Math.max(0,Math.min(O,E)-Math.max(I,S)), ot:Math.max(0,O-Math.max(I,E))};
+  }
   function calcPay(){
     const cfg=payCfg(), rg=payRange(cfg);
     const dayVal=cfg.net/rg.days, std=cfg.hpd*60;
@@ -47273,13 +47322,15 @@ const ATT=(function(){
         if(rec.i&&rec.o){ w=durMin(rec.i,rec.o); has=w>0; }
         else if(rec.i&&k===today){ w=durMin(rec.i,nowT()); has=true; live=true; }
         if(has){
-          v=(cfg.short||live)?dayVal*Math.min(1,w/std):dayVal;
-          if(w>std&&cfg.ot>0) ot=(w-std)/60*hourly*cfg.ot;
+          let wp=w, om=Math.max(0,w-std);               // wp = regular minutes, om = overtime minutes
+          if(cfg.win){ const sp=winSplit(cfg,rec.i,live?nowT():rec.o); wp=sp.reg; om=sp.ot; }
+          v=(cfg.short||live)?dayVal*Math.min(1,wp/std):dayVal;
+          if(om>0&&cfg.ot>0) ot=om/60*hourly*cfg.ot;
           fin=(live?dayVal:v);
           if(upTo){ r.workMin+=w; }
-          if(!live&&cfg.short&&w<std&&upTo){ r.shortMin+=std-w; r.shortDed+=dayVal-v; r.items.push({k,t:'short',min:std-w,amt:-(dayVal-v)}); }
+          if(!live&&cfg.short&&wp<std&&upTo){ r.shortMin+=std-wp; r.shortDed+=dayVal-v; r.items.push({k,t:'short',min:std-wp,amt:-(dayVal-v)}); }
           if(live&&v<dayVal) r.items.push({k,t:'live',min:w,amt:v-dayVal});
-          if(ot>0){ if(upTo){ r.otMin+=w-std; r.otAdd+=ot; } r.items.push({k,t:'ot',min:w-std,amt:ot}); }
+          if(ot>0){ if(upTo){ r.otMin+=om; r.otAdd+=ot; } r.items.push({k,t:'ot',min:om,amt:ot}); }
         } else v=dayVal;
         if(upTo){ r.workPay+=v; r.workDays++; }
         fin+=ot;
@@ -47394,7 +47445,7 @@ const ATT=(function(){
       ?`<div class="att-pay-hero"><small>${done?L('Net pay for the cycle','صافي مرتب الدورة'):L('Earned so far','مرتبك لحد النهاردة')} · ${esc(pr.label)}</small><div class="att-pay-amt" dir="ltr">${M(pr.toDate)}</div>
           <div class="att-pay-cyc-bar" role="progressbar" aria-valuenow="${pct}" aria-valuemin="0" aria-valuemax="100"><i style="width:${pct}%"></i></div>
           <div class="att-pay-meta"><span>${L('Day','اليوم')} ${pr.elapsed} ${L('of','من')} ${pr.days}</span>${done?'':`<span>${L('Expected at cycle end','المتوقع آخر الدورة')}: <b dir="ltr">${M(pr.endTotal)}</b></span>`}</div>
-          <small>${L('Day value','قيمة اليوم')}: <b dir="ltr">${M(pr.dayVal)}</b> · ${L('Hourly rate','أجر الساعة')}: <b dir="ltr">${M(pr.hourly)}</b> · ${cfg.hpd}${L(' h/day',' س/يوم')}</small></div>
+          <small>${L('Day value','قيمة اليوم')}: <b dir="ltr">${M(pr.dayVal)}</b> · ${L('Hourly rate','أجر الساعة')}: <b dir="ltr">${M(pr.hourly)}</b> · ${cfg.win?'<span dir="ltr">'+esc(fmtT(cfg.ws))+' – '+esc(fmtT(cfg.we))+'</span> · ':''}${cfg.hpd}${L(' h/day',' س/يوم')}</small></div>
         <div class="att-pay-rows">${earn}${lost?`<div class="att-pay-sub">${L('Not earned','غير محسوب')}</div>${lost}`:''}</div>
         ${pr.items.length?`<button type="button" class="att-pay-more" onclick="ATT.togglePayDays()" aria-expanded="${payDays}"><span>${L('Day-by-day impact','تأثير كل يوم')} (${pr.items.length})</span><span class="att-chev dn${payDays?' up':''}"></span></button>${payDays?`<div class="att-pay-days">${dayRows}</div>`:''}`:''}`
       :`<div class="att-pay-start"><span class="att-pay-ic">${ic('wallet',22)}</span><p>${L('Add your monthly net salary and working hours to calculate pay from attendance, absence and overtime.','أضف مرتبك الصافي وساعات العمل عشان يتحسب المرتب من الحضور والغياب والأوفر تايم.')}</p><button type="button" class="att-pay-go" onclick="ATT.openPay()">${ic('wallet',16)} ${L('Set up salary','إعداد المرتب')}</button></div>`;
@@ -47405,20 +47456,32 @@ const ATT=(function(){
     const d=payDraft;
     const seg=(f,val,lbl,on)=>`<button type="button" class="att-seg${on?' on':''}" aria-pressed="${on}" onclick="ATT.payDraftSet('${f}','${val}')">${lbl}</button>`;
     const tg=(f,on,lbl,sub)=>`<div class="att-pay-tg"><span><b>${lbl}</b><small>${sub}</small></span><button type="button" class="stt-switch${on?' on':''}" role="switch" aria-checked="${on}" aria-label="${lbl}" onclick="ATT.payDraftSet('${f}',${!on})"><span class="stt-switch-dot"></span></button></div>`;
-    return `<div class="att-pay-fields">
-        <div class="field"><label>${L('Monthly net salary','المرتب الصافي الشهري')}</label><input type="text" inputmode="decimal" dir="ltr" autocomplete="off" id="attPayNet" value="${d.net>0?d.net:''}" placeholder="${L('e.g. 9000','مثال: 9000')}"></div>
-        <div class="field"><label>${L('Working hours per day','ساعات العمل في اليوم')}</label><input type="text" inputmode="decimal" dir="ltr" autocomplete="off" id="attPayHpd" value="${d.hpd}" placeholder="8"></div>
-      </div>
-      <div class="field att-pay-cyc"><label>${L('Salary cycle starts on day','الدورة بتبدأ من يوم')}</label><input type="text" inputmode="numeric" dir="ltr" autocomplete="off" id="attPayCycle" value="${d.cycle}" placeholder="28"><small>${L('28 = from the 28th of last month to the 27th of this month. 1 = calendar month.','28 = من 28 الشهر اللي فات لـ 27 الشهر ده. و1 = الشهر الميلادي.')}</small></div>
-      <div class="att-pay-g"><span>${L('Weekly days off (paid automatically)','أيام الراحة الأسبوعية (بتتحسب مدفوعة تلقائي)')}</span><div class="att-wd">${[[6,L('Sat','سبت')],[0,L('Sun','حد')],[1,L('Mon','إتنين')],[2,L('Tue','تلات')],[3,L('Wed','أربع')],[4,L('Thu','خميس')],[5,L('Fri','جمعة')]].map(([n,l])=>`<button type="button" class="att-seg${d.off.indexOf(n)>=0?' on':''}" aria-pressed="${d.off.indexOf(n)>=0}" onclick="ATT.payDraftSet('off',${n})">${l}</button>`).join('')}</div></div>
-      <div class="att-pay-g"><span>${L('Days in the month used for the hourly / overtime rate','عدد أيام الشهر لحساب أجر الساعة والأوفر تايم')}</span><div class="att-seg-row att-seg-sm">${seg('basis','30',L('30 days','30 يوم'),d.basis==='30')}${seg('basis','26',L('26 days','26 يوم'),d.basis==='26')}${seg('basis','cal',L('Calendar','أيام الشهر'),d.basis==='cal')}</div></div>
-      <div class="att-pay-g"><span>${L('Overtime rate (hours beyond the daily hours)','سعر الأوفر تايم (الساعات الزيادة عن ساعات اليوم)')}</span><div class="att-seg-row att-seg-sm">${PAY_OT.map(v=>seg('ot',v,v?('×'+v):L('None','بدون'),d.ot===v)).join('')}</div></div>
-      ${tg('short',d.short,L('Deduct short hours','خصم الساعات الناقصة'),L('When check-out is earlier than the daily hours','لو الانصراف قبل ساعات اليوم'))}
-      <p class="atp-note">${L('Each day is worth salary ÷ cycle days. Hours below the daily hours are deducted, extra hours are paid as overtime, absence earns nothing. Sick and annual leave are paid within your leave balance only.','قيمة اليوم = المرتب ÷ أيام الدورة. الساعات الأقل من ساعات اليوم بتتخصم، والزيادة أوفر تايم، والغياب بدون أجر. المرضي والاعتيادي مدفوعين في حدود رصيد الإجازات بس.')}</p>`;
+    const grp=(icn,en,ar,body)=>`<section class="att-pg"><div class="att-pg-h">${ic(icn,15)}<span>${L(en,ar)}</span></div>${body}</section>`;
+    const hasWin=!!(d.ws&&d.we&&d.ws!==d.we);
+    const winMin=hasWin?durMin(d.ws,d.we):0;
+    const hrsBox=hasWin
+      ?`<div class="att-pay-sum"><span>${L('Working hours per day','ساعات العمل في اليوم')}</span><b dir="ltr">${fmtDur(winMin)}</b></div>`
+      :`<div class="field"><label>${L('Working hours per day','ساعات العمل في اليوم')}</label><input type="text" inputmode="decimal" dir="ltr" autocomplete="off" id="attPayHpd" value="${d.hpd}" placeholder="8"><small class="att-pg-hint">${L('Or set the start and end time above to measure every day exactly.','أو حدد بداية ونهاية الدوام فوق عشان كل يوم يتقاس بالظبط.')}</small></div>`;
+    return grp('wallet','Salary','المرتب',
+        `<div class="field"><label>${L('Monthly net salary','المرتب الصافي الشهري')}</label><input type="text" inputmode="decimal" dir="ltr" autocomplete="off" id="attPayNet" value="${d.net>0?d.net:''}" placeholder="${L('e.g. 9000','مثال: 9000')}"></div>
+         <div class="field att-pay-cyc"><label>${L('Salary cycle starts on day','الدورة بتبدأ من يوم')}</label><input type="text" inputmode="numeric" dir="ltr" autocomplete="off" id="attPayCycle" value="${d.cycle}" placeholder="28"><small>${L('28 = from the 28th of last month to the 27th of this month. 1 = calendar month.','28 = من 28 الشهر اللي فات لـ 27 الشهر ده. و1 = الشهر الميلادي.')}</small></div>`)
+      +grp('clock','Work hours','مواعيد الدوام',
+        `<div class="att-pay-fields">
+           <div class="field"><label>${L('Work starts','بداية الدوام')}</label><input type="time" dir="ltr" id="attPayWs" value="${esc(d.ws||'')}" onchange="ATT.payTimeChange()"></div>
+           <div class="field"><label>${L('Work ends','نهاية الدوام')}</label><input type="time" dir="ltr" id="attPayWe" value="${esc(d.we||'')}" onchange="ATT.payTimeChange()"></div>
+         </div>${hrsBox}`)
+      +grp('chart','Pay rules','قواعد الحساب',
+        `<div class="att-pay-g"><span>${L('Overtime rate (time after work ends)','سعر الأوفر تايم (الوقت بعد نهاية الدوام)')}</span><div class="att-seg-row att-seg-sm">${PAY_OT.map(v=>seg('ot',v,v?('×'+v):L('None','بدون'),d.ot===v)).join('')}</div></div>
+         ${tg('short',d.short,L('Deduct short hours','خصم الساعات الناقصة'),L('Late arrival or leaving before the end','التأخير في الدخول أو الانصراف قبل النهاية'))}
+         <div class="att-pay-g"><span>${L('Days in the month used for the hourly / overtime rate','عدد أيام الشهر لحساب أجر الساعة والأوفر تايم')}</span><div class="att-seg-row att-seg-sm">${seg('basis','30',L('30 days','30 يوم'),d.basis==='30')}${seg('basis','26',L('26 days','26 يوم'),d.basis==='26')}${seg('basis','cal',L('Calendar','أيام الشهر'),d.basis==='cal')}</div></div>`)
+      +grp('calendar','Weekly days off','أيام الراحة الأسبوعية',
+        `<div class="att-wd">${[[6,L('Sat','سبت')],[0,L('Sun','حد')],[1,L('Mon','إتنين')],[2,L('Tue','تلات')],[3,L('Wed','أربع')],[4,L('Thu','خميس')],[5,L('Fri','جمعة')]].map(([n,l])=>`<button type="button" class="att-seg${d.off.indexOf(n)>=0?' on':''}" aria-pressed="${d.off.indexOf(n)>=0}" onclick="ATT.payDraftSet('off',${n})">${l}</button>`).join('')}</div>
+         <small class="att-pg-hint">${L('Paid automatically.','بتتحسب مدفوعة تلقائي.')}</small>`)
+      +`<p class="atp-note">${L('Each day is worth salary ÷ cycle days. With a start/end time set, every day is measured against it using your check-in and check-out: time after the end is overtime, late arrival or early leave is deducted, and time before the start is not counted. Absence earns nothing. Sick and annual leave are paid within your leave balance only.','قيمة اليوم = المرتب ÷ أيام الدورة. لو حددت بداية ونهاية الدوام، كل يوم بيتقارن بيهم من بصمة الدخول والخروج: أي وقت بعد نهاية الدوام أوفر تايم، والتأخير أو الانصراف بدري بيتخصم، والوقت قبل البداية مش بيتحسب. والغياب بدون أجر. المرضي والاعتيادي مدفوعين في حدود رصيد الإجازات بس.')}</p>`;
   }
   function openPay(){
     load(); const c=payCfg();
-    payDraft={net:c.net,hpd:c.hpd,basis:c.basis,ot:c.ot,sickUnpaid:c.sickUnpaid,short:c.short,cycle:c.cycle,off:c.off.slice()};
+    payDraft={net:c.net,ws:c.ws,we:c.we,hpd:c.hpd,basis:c.basis,ot:c.ot,sickUnpaid:c.sickUnpaid,short:c.short,cycle:c.cycle,off:c.off.slice()};
     document.getElementById('modalContent').innerHTML=`<div class="modal-handle"></div>
       <div class="rq-modal">
         <div class="modal-hdr">
@@ -47436,6 +47499,10 @@ const ATT=(function(){
     const n=document.getElementById('attPayNet'), h=document.getElementById('attPayHpd');
     if(n){ const v=parseFloat(_n2(n.value)); payDraft.net=(isFinite(v)&&v>0)?Math.min(v,1e9):0; }
     if(h){ const v=parseFloat(_n2(h.value)); if(isFinite(v)&&v>0&&v<=24) payDraft.hpd=v; }
+    const w1=document.getElementById('attPayWs'), w2=document.getElementById('attPayWe');
+    if(w1) payDraft.ws=validT(w1.value);
+    if(w2) payDraft.we=validT(w2.value);
+    if(payDraft.ws&&payDraft.we&&payDraft.ws!==payDraft.we) payDraft.hpd=Math.round(durMin(payDraft.ws,payDraft.we)/60*100)/100;
     const cy=document.getElementById('attPayCycle');
     if(cy){ const v=Math.floor(parseFloat(_n2(cy.value))); if(isFinite(v)&&v>=1&&v<=28) payDraft.cycle=v; }
   }
@@ -47446,6 +47513,10 @@ const ATT=(function(){
     else if(f==='sickUnpaid'||f==='short'){ payDraft[f]=(v===true||v==='true'); }
     else if(f==='off'){ const n=+v; if(!(n>=0&&n<=6)) return; const ix=payDraft.off.indexOf(n); if(ix>=0) payDraft.off.splice(ix,1); else payDraft.off.push(n); }
     else return;
+    const b=document.getElementById('attPayBox'); if(b) b.innerHTML=payModalInner();
+  }
+  function payTimeChange(){
+    if(!payDraft) return; payRead();
     const b=document.getElementById('attPayBox'); if(b) b.innerHTML=payModalInner();
   }
   function paySave(){
@@ -47890,7 +47961,7 @@ const ATT=(function(){
       if(save()){ try{ renderView(true); }catch(e){} showToast(L('Month cleared','تم مسح الشهر'),'success'); }
     });
   }
-  return {render,dashCard,dashSummary,quickStrip,checkIn,checkOut,stamp,tUpd,clearT,noteChip,openPage,openDay,pick,saveDay,clearDay,quick,nav,goToday,setScope,setField,pickLogo,removeLogo,clearMonth,toggleCo,openPay,openLeave,leaveSave,jump,togglePayDays,payDraftSet,paySave,toggleMulti,setRangeMode,clearSel,tapDay,openMulti,saveMulti,clearMulti};
+  return {render,dashCard,dashSummary,quickStrip,checkIn,checkOut,stamp,tUpd,clearT,noteChip,openPage,openDay,pick,saveDay,clearDay,quick,nav,goToday,setScope,setField,pickLogo,removeLogo,clearMonth,toggleCo,openPay,openLeave,leaveSave,jump,togglePayDays,payDraftSet,payTimeChange,paySave,toggleMulti,setRangeMode,clearSel,tapDay,openMulti,saveMulti,clearMulti};
 })();
 // My Locations photos live in IndexedDB; carry them through the app's existing backup/restore
 // (which only knows localStorage) without ever writing them into localStorage.
@@ -48032,6 +48103,10 @@ const WDP_IDB = (function(){
 (function(){
   var FAB_POS_KEY = 'wdp_fab_pos_v1';
   var _dragging = false, _startX, _startY, _origLeft, _origTop, _moved = false;
+  // Drag only starts after the finger/mouse travels past a threshold. 4px was
+  // below normal finger jitter on a tap, so taps were read as drags (picker
+  // never opened, FAB nudged by a few px). Touch gets a bigger dead-zone.
+  var _thr = 10, _justDragged = false;
 
   var getFab = function(){ return document.getElementById('fabBtn'); };
 
@@ -48063,19 +48138,23 @@ const WDP_IDB = (function(){
 
   document.addEventListener('DOMContentLoaded', loadPos);
 
-  var startDrag = function(clientX, clientY){
+  var startDrag = function(clientX, clientY, thr){
     var fab = getFab(); if(!fab || fab.style.display==='none') return;
     var rect = fab.getBoundingClientRect();
-    _dragging = true; _moved = false;
+    _dragging = true; _moved = false; _thr = thr || 10;
     _startX = clientX; _startY = clientY;
     _origLeft = rect.left; _origTop = rect.top;
-    fab.classList.add('dragging');
+    // 'dragging' class is added only once a real drag begins (see moveDrag),
+    // so a plain tap still gets the :active press feedback.
   };
 
   var moveDrag = function(clientX, clientY){
     if(!_dragging) return;
     var dx = clientX - _startX, dy = clientY - _startY;
-    if(Math.abs(dx) > 4 || Math.abs(dy) > 4) _moved = true;
+    if(!_moved && (Math.abs(dx) > _thr || Math.abs(dy) > _thr)){
+      _moved = true;
+      var f0 = getFab(); if(f0) f0.classList.add('dragging');
+    }
     if(_moved) applyPos(getFab(), _origLeft + dx, _origTop + dy);
   };
 
@@ -48084,13 +48163,19 @@ const WDP_IDB = (function(){
     var fab = getFab();
     if(fab) fab.classList.remove('dragging');
     _dragging = false;
-    if(_moved){ savePos(fab); if(e && e.cancelable) e.preventDefault(); }
+    if(_moved){
+      savePos(fab);
+      if(e && e.cancelable) e.preventDefault();
+      // Swallow the click that follows a real drag (mouse mouseup, or touch
+      // where preventDefault isn't honored) so the picker doesn't pop open.
+      _justDragged = true; setTimeout(function(){ _justDragged = false; }, 350);
+    }
   };
 
   document.addEventListener('touchstart', function(e){
     if(!e.target.closest('#fabBtn')) return;
     var t = e.touches[0];
-    startDrag(t.clientX, t.clientY);
+    startDrag(t.clientX, t.clientY, 10);
   }, {passive:true});
 
   document.addEventListener('touchmove', function(e){
@@ -48101,10 +48186,18 @@ const WDP_IDB = (function(){
   }, {passive:false});
 
   document.addEventListener('touchend', endDrag, {passive:false});
+  // Interrupted touch (iOS edge-swipe, system gesture, alert): without this
+  // _dragging stayed true and any later finger movement anywhere on screen
+  // kept dragging the FAB.
+  document.addEventListener('touchcancel', endDrag, {passive:false});
+
+  document.addEventListener('click', function(e){
+    if(_justDragged && e.target.closest('#fabBtn')){ e.stopImmediatePropagation(); e.preventDefault(); }
+  }, true);
 
   document.addEventListener('mousedown', function(e){
     if(!e.target.closest('#fabBtn')) return;
-    startDrag(e.clientX, e.clientY);
+    startDrag(e.clientX, e.clientY, 5);
     e.preventDefault();
   });
 
