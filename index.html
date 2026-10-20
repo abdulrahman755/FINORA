@@ -34716,7 +34716,7 @@ function renderMyCV(){
     const per=_cvPeriod(e), auto=e.noauto?[]:_cvAuto(e.st);
     const title=e.kind==='p'?e.name:(e.company||e.name||L('Past job','وظيفة سابقة'));
     const sub=e.kind==='p'?[e.role,e.company].filter(Boolean).join(' · '):[e.role,e.name].filter(Boolean).join(' · ');
-    const av=e.kind==='p'?_prjAv({id:e.id,name:e.name,logo:e.logo},40):(e.logo?bankLogoHTML(e.logo,40,{alt:''}):`<span class="de-av" style="width:40px;height:40px;font-size:17px">${esc((title||'?').charAt(0).toUpperCase())}</span>`);
+    const av=e.logo?`<span class="cv-logo-box"><img src="${esc(e.logo)}" alt=""></span>`:(e.kind==='p'?_prjAv({id:e.id,name:e.name},56):`<span class="de-av" style="width:56px;height:56px;font-size:23px">${esc((title||'?').charAt(0).toUpperCase())}</span>`);
     const dl=String(e.desc||'').split('\n').filter(x=>x.trim()).length;
     const edit=e.kind==='p'?`_cvEditProj('${e.id}')`:`_cvEditExtra('${e.id}')`;
     return `<article class="cv-proj tap${e.hide?' is-hidden':''}" onclick="${edit}">
@@ -54935,6 +54935,12 @@ function mioraDismissGreetToast(){
 .att-pay .att-pay-r span{min-width:0}
 .att-pay .att-pay-r b{font-size:calc(14px*var(--app-text-scale,1));font-weight:800}
 .att-pay .att-pay-more{margin-top:4px;min-height:46px}
+</style>
+
+<style id="cv-logo-css">
+.cv-proj-av .cv-logo-box{display:block;width:56px;height:56px;border-radius:14px;background:#fff;border:1px solid var(--border);overflow:hidden;box-shadow:var(--shadow-xs)}
+.cv-proj-av .cv-logo-box img{display:block;width:100%;height:100%;object-fit:contain}
+.cv-proj-av .de-av{border-radius:14px}
 </style>
 </body>
 </html>
