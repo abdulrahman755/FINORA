@@ -415,10 +415,12 @@ html[data-theme="dark"] body .stt-app-info-ver{color:var(--muted)}
    a light card background, so left as-is they clash with the dark theme
    surface. Light mode is untouched and keeps honoring the person's
    Customize Card choices exactly as before. */
-[data-theme="dark"] .banks-v2 .bnk-card-name,
-[data-theme="dark"] .banks-v2 .bnk-card-balance-lbl,
-[data-theme="dark"] .banks-v2 .bnk-card-lasttx,
-[data-theme="dark"] .banks-v2 .bnk-card-balance{color:var(--text)!important}
+/* Scoped to cards WITHOUT a bank/custom colour: cards that carry their own colour (inline background) keep
+   their own auto-contrast text in Dark, exactly as in Light. */
+[data-theme="dark"] .banks-v2 .bnk-card:not([style*="background:"]) .bnk-card-name,
+[data-theme="dark"] .banks-v2 .bnk-card:not([style*="background:"]) .bnk-card-balance-lbl,
+[data-theme="dark"] .banks-v2 .bnk-card:not([style*="background:"]) .bnk-card-lasttx,
+[data-theme="dark"] .banks-v2 .bnk-card:not([style*="background:"]) .bnk-card-balance{color:var(--text)!important}
 
 /* ── Semantic Theme Token layer ───────────────────────────────────────────
    Additive only — every token below is a pure alias onto the existing,
@@ -926,9 +928,10 @@ button:disabled{opacity:.5;cursor:not-allowed;pointer-events:none}
    .sc-header elsewhere), while the brand accent (border-top + balance
    box gradient, driven by accentColor) is untouched, so each bank still
    keeps its identity color. ════════════════════════════════════════════ */
-[data-theme="dark"] [id^="bcard-"]{background:var(--surface) !important;}
-[data-theme="dark"] [id^="bcard-"] > div:first-child{background:var(--surface2) !important;}
-[data-theme="dark"] [id^="bcard-"] .bank-name-text{color:var(--text) !important;}
+/* Cards that carry their own bank colour keep it in Dark (same as Light); only uncoloured cards use the neutral surfaces. */
+[data-theme="dark"] [id^="bcard-"]:not([style*="background:"]){background:var(--surface) !important;}
+[data-theme="dark"] [id^="bcard-"]:not([style*="background:"]) > div:first-child{background:var(--surface2) !important;}
+[data-theme="dark"] [id^="bcard-"]:not([style*="background:"]) .bank-name-text{color:var(--text) !important;}
 
 /* ── App ── */
 #app{display:none;flex-direction:column;min-height:100vh}
