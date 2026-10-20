@@ -6953,7 +6953,7 @@ html.wdash-sheet-lock,html.wdash-sheet-lock body{overflow:hidden}
 /* Expandable body — same existing balance/add-row/tx-rows markup inside,
    animated open/close instead of a hard show/hide. */
 .banks-v2 .bnk-card-body{max-height:0;opacity:0;overflow:hidden;overflow-anchor:none;transition:max-height var(--dur-base) var(--ease-standard),opacity var(--dur-base) var(--ease-standard)}
-.banks-v2 .bnk-card-body.bnk-open{max-height:3000px;opacity:1}
+.banks-v2 .bnk-card-body.bnk-open{max-height:none;opacity:1}
 .banks-v2 .bnk-card-body-inner{padding:0 var(--bk8-2) var(--bk8-2)}
 .banks-v2 .balance-display{padding:0 0 var(--bk8-2);border-bottom:none}
 .banks-v2 .bal-main-card{border-radius:16px}
@@ -26835,12 +26835,53 @@ let bnkCardOpenState={};
 // class's flat cap if scrollHeight can't be read for some reason.
 function _bnkSetBodyOpen(body, open){
   if(!body) return;
+  clearTimeout(body._bnkT);
   if(open){
+    if(body.classList.contains('bnk-open')){ body.style.maxHeight='none'; return; }
     body.style.maxHeight = (body.scrollHeight || 3000) + 'px';
+    // Once the open animation is done, release the cap so rows added or
+    // re-rendered later (and tall content) are never clipped by overflow:hidden.
+    body._bnkT=setTimeout(()=>{ if(body.classList.contains('bnk-open')) body.style.maxHeight='none'; }, 500);
   } else {
+    if(!body.style.maxHeight || body.style.maxHeight==='none'){
+      body.style.maxHeight = body.scrollHeight + 'px';
+      void body.offsetHeight;
+    }
     body.style.maxHeight = '0px';
   }
   body.classList.toggle('bnk-open', open);
+}
+// Keeps a card at the same spot on screen while it expands/collapses (and while
+// another card above it collapses), so the page never jumps. Stops at once if
+// the user touches or wheel-scrolls.
+function _bnkScroller(el){
+  let n=el.parentElement;
+  while(n&&n!==document.body&&n!==document.documentElement){
+    const o=getComputedStyle(n).overflowY;
+    if((o==='auto'||o==='scroll')&&n.scrollHeight>n.clientHeight) return n;
+    n=n.parentElement;
+  }
+  return document.scrollingElement||document.documentElement;
+}
+function _bnkPinCard(card, ms){
+  if(!card) return;
+  const sc=_bnkScroller(card);
+  const isDoc=(sc===document.scrollingElement||sc===document.documentElement);
+  const top0=card.getBoundingClientRect().top;
+  const t0=performance.now();
+  let stop=false;
+  const abort=()=>{ stop=true; };
+  window.addEventListener('touchstart',abort,{passive:true});
+  window.addEventListener('wheel',abort,{passive:true});
+  (function step(){
+    if(!stop && card.isConnected){
+      const d=card.getBoundingClientRect().top-top0;
+      if(Math.abs(d)>0.5){ if(isDoc) window.scrollBy(0,d); else sc.scrollTop+=d; }
+      if(performance.now()-t0<ms){ requestAnimationFrame(step); return; }
+    }
+    window.removeEventListener('touchstart',abort);
+    window.removeEventListener('wheel',abort);
+  })();
 }
 function _bnkCloseOtherCards(exceptKey){
   Object.keys(bnkCardOpenState).forEach(k=>{
@@ -26864,6 +26905,7 @@ function bnkToggleCard(key){
   const card=document.getElementById('bcard-'+key);
   const chev=document.getElementById('bnk-chev-'+key);
   if(!body) return;
+  _bnkPinCard(card,500);
   const open=!body.classList.contains('bnk-open');
   _bnkSetBodyOpen(body, open);
   bnkCardOpenState[key]=open;
@@ -26923,11 +26965,9 @@ function bnkQuickAction(kind){
     return;
   }
   const key=banks[0].key;
+  _bnkPinCard(document.getElementById('bcard-'+key),500);
   bnkExpandCard(key,true);
   setTxType(key,kind);
-  const card=document.getElementById('bcard-'+key);
-  if(card) card.scrollIntoView({behavior:'smooth',block:'center'});
-  setTimeout(()=>{ const inp=document.getElementById('mv-amount-'+key); if(inp) inp.focus(); },260);
 }
 
 // ── Per-bank "physical card" visual styling — approximates each Egyptian
