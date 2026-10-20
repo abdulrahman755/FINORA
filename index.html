@@ -9448,9 +9448,9 @@ body .screen-wrap .sc-header.sav-plain-header.sav-plain-header::after{display:no
 /* Movement list: a single sheet, grouped by day, hairline rows */
 .banks-v2 .tx-rows.bnk-mv-list{
   margin-top:14px;padding:0;gap:0;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius)}
-/* Movements list: a smaller window with its own scroll. overscroll-behavior stays at auto (not contain) so a swipe
-   that reaches the top or bottom of the list continues into the page instead of getting stuck, and the extra
-   containment/compositing layer is dropped. The window only scrolls when the rows overflow it. */
+/* Movements list: a smaller window with its own scroll. overscroll-behavior defaults to auto and is switched to contain by script
+   (_bnkMvScrollMode) only when the rows really overflow the window, so a swipe inside a scrolling list does not drag
+   the page along; the extra containment/compositing layer is dropped. */
 .banks-v2 .tx-rows.bnk-mv-list{max-height:min(380px,55vh);overflow-y:auto;overflow-x:hidden;overscroll-behavior:auto;contain:none;transform:none;-webkit-overflow-scrolling:touch}
 .banks-v2 .bnk-mv-list .list-empty{padding:22px 16px}
 .banks-v2 .bnk-mv-day{
@@ -11464,6 +11464,7 @@ function fpInitSmartNav(){
     const maxY = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
     // clamp: iOS rubber-band overscroll (y < 0 or y > maxY) must never look like a scroll direction
     const y = Math.min(maxY, Math.max(0, window.scrollY || 0));
+    if(window._fpNavFreeze){ lastY = y; return; }   // page being corrected by code (e.g. a bank card opening), not by the user
     const modalOverlay = document.getElementById('modalOverlay');
     const pinned = (modalOverlay && modalOverlay.style.display==='flex')
       || !!document.querySelector('.nav-drop[style*="block"], .hdr-more-menu[style*="block"]');
@@ -26889,8 +26890,24 @@ function _bnkScroller(el){
   }
   return document.scrollingElement||document.documentElement;
 }
+// While code corrects the scroll position, the smart bottom nav must not read it as the user scrolling up
+// (that made the nav and the floating button slide in and out — a flicker — when a card opened mid-page).
+function _bnkNavFreeze(ms){
+  window._fpNavFreeze=true;
+  clearTimeout(window._fpNavFreezeT);
+  window._fpNavFreezeT=setTimeout(()=>{ window._fpNavFreeze=false; }, ms);
+}
+// The movements window traps swipes (overscroll contain) only when its rows really overflow it; a short list
+// stays a plain part of the page so the page keeps scrolling over it.
+function _bnkMvScrollMode(body){
+  if(!body) return;
+  body.querySelectorAll('.bnk-mv-list').forEach(el=>{
+    el.style.overscrollBehaviorY = (el.scrollHeight > el.clientHeight + 1) ? 'contain' : 'auto';
+  });
+}
 function _bnkPinCard(card, ms){
   if(!card) return;
+  _bnkNavFreeze((ms||500)+120);
   const sc=_bnkScroller(card);
   const isDoc=(sc===document.scrollingElement||sc===document.documentElement);
   const top0=card.getBoundingClientRect().top;
@@ -26947,12 +26964,13 @@ function bnkToggleCard(key){
     _bnkCloseOtherCards(key,true);
     if(card){
       const d=card.getBoundingClientRect().top-top0;
-      if(Math.abs(d)>0.5){ if(isDoc) window.scrollBy(0,d); else sc.scrollTop+=d; }
+      if(Math.abs(d)>0.5){ _bnkNavFreeze(200); if(isDoc) window.scrollBy(0,d); else sc.scrollTop+=d; }
     }
   } else {
     _bnkPinCard(card,500);
   }
   _bnkSetBodyOpen(body, open);
+  if(open) _bnkMvScrollMode(body);
   bnkCardOpenState[key]=open;
   if(card) card.classList.toggle('bnk-card-expanded', open);
   if(chev) chev.style.transform = open ? 'rotate(180deg)' : 'rotate(0deg)';
@@ -26965,6 +26983,7 @@ function bnkExpandCard(key, open){
   if(open) _bnkCloseOtherCards(key);
   if(!body) return;
   _bnkSetBodyOpen(body, !!open);
+  if(open) _bnkMvScrollMode(body);
   if(card) card.classList.toggle('bnk-card-expanded', !!open);
   if(chev) chev.style.transform = open ? 'rotate(180deg)' : 'rotate(0deg)';
 }
