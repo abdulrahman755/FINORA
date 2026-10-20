@@ -8143,6 +8143,9 @@ button.cx-sh-tap{width:100%;background:none;border:0;font-family:inherit;color:i
 /* ══ My CV tab (My Job) ══ */
 .cx-tabs{display:flex}
 .cx-tabs .cx-seg-btn{flex:1 1 auto;padding:0 9px;font-size:calc(12.5px*var(--app-text-scale,1));overflow:visible;text-overflow:clip}
+/* Narrow phones (<360px): the 4 My Job tabs were ~30px wider than the screen (page scrolled sideways).
+   Tighter side padding only; wider screens are untouched. */
+@media(max-width:359px){.cx-tabs .cx-seg-btn{padding:0 4px}}
 .cv-wrap{display:flex;flex-direction:column;gap:12px}
 .cv-live{display:flex;align-items:center;gap:8px;padding:9px 12px;border-radius:12px;background:color-mix(in srgb,var(--green) 9%,var(--surface));border:1px solid color-mix(in srgb,var(--green) 22%,var(--border));font-size:calc(12.5px*var(--app-text-scale,1));font-weight:800;color:var(--text)}
 .cv-live em{margin-inline-start:auto;font-style:normal;font-weight:600;color:var(--muted);font-size:calc(11.5px*var(--app-text-scale,1))}
@@ -9894,7 +9897,11 @@ body .screen-wrap .sc-header.sav-plain-header.sav-plain-header::after{display:no
 .wdash-wrap.dv3-dark-v2 .dfp-kpi3-val{font-size:calc(14.5px*var(--app-text-scale,1));white-space:nowrap;font-variant-numeric:tabular-nums}
 /* Very long amounts (~10M+) used to be clipped by the KPI row's overflow:hidden and pushed the 2nd column
    off-screen. Allow the value to wrap (unit drops to line 2) instead of hiding digits; values that fit are unaffected. */
-.wdash-wrap.dv3-dark-v2 .dfp-kpi3-val{white-space:normal;overflow-wrap:anywhere}
+.wdash-wrap.dv3-dark-v2 .dfp-kpi3-val{white-space:normal;overflow-wrap:normal}
+/* Hero stat row (Real Balance / Monthly Change / Last Month): realistic 6-digit amounts were cut off
+   ("468,498.82 EG") by nowrap + overflow:hidden in a ~85px column. Let the unit wrap to a 2nd line instead (break only at the space, never inside the number). */
+.wdash-wrap.dv3-dark-v2 .dv3h-stat-val{white-space:normal;overflow-wrap:normal;overflow:visible}
+@media(max-width:340px){.wdash-wrap.dv3-dark-v2 .dv3h-stat-val{font-size:calc(11px*var(--app-text-scale,1))}}
 .wdash-wrap.dv3-dark-v2 .fp-qa-row{margin-bottom:var(--sp6,24px)}
 .wdash-apps-title{display:flex;align-items:center;gap:8px;margin:0 var(--sp1) var(--sp2);font-size:calc(11px*var(--app-text-scale,1));font-weight:700;letter-spacing:.06em;text-transform:uppercase}
 .wdash-apps-title::after{content:"";flex:1;height:1px;background:var(--border)}
@@ -12337,6 +12344,9 @@ function fpInitSmartHeader(){
       .rpt-text{flex:1;min-width:0}
       .rpt-title{font-size:calc(14px*var(--app-text-scale,1));font-weight:900;color:var(--text);line-height:1.2}
       .rpt-sub{font-size:calc(11px*var(--app-text-scale,1));color:var(--muted);font-weight:600;margin-top:2px}
+      /* A global .rpt-sub rule (report paper) adds 15px inline-start padding that leaked into these cards and
+         pushed each subtitle out of line with its title. Scoped reset — report paper styling is untouched. */
+      .rpt-card .rpt-sub{padding-inline-start:0}
       .rpt-chevron{flex-shrink:0;color:var(--muted)}
 /* ── Unified page header (identity pass): header sits flush in each screen's own wrap ── */
 .banks-v2>.sc-header,.txlg-wrap>.sc-header,.cx-wrap>.sc-header{margin:0}
