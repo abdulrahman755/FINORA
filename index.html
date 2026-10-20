@@ -34527,9 +34527,10 @@ function _cvLoad(){
       profile:(o.profile&&typeof o.profile==='object')?o.profile:{},
       projects:(o.projects&&typeof o.projects==='object')?o.projects:{},
       extra:Array.isArray(o.extra)?o.extra.filter(x=>x&&x.id):[],
+      style:(o.style&&typeof o.style==='object')?o.style:{},
       updatedAt:o.updatedAt||0};
   }catch(e){ _logErr('_cvLoad',e); }
-  return {profile:{},projects:{},extra:[],updatedAt:0};
+  return {profile:{},projects:{},extra:[],style:{},updatedAt:0};
 }
 function _cvSave(cv){
   cv.updatedAt=Date.now();
@@ -34570,7 +34571,7 @@ function _cvEntries(cv){
     const from=e.from||st.first||(e.created?new Date(e.created).toISOString().slice(0,10):'');
     return {kind:'p',id:p.id,name:_prjName(p),logo:p.logo,company:e.client||'',role:e.role||'',loc:e.loc||'',from,to:e.to||'',desc:_cvNormDesc(e.desc),hide:!!e.hide,noauto:!!e.noauto,st};
   });
-  (cv.extra||[]).forEach(x=>out.push({kind:'x',id:x.id,name:x.project||'',company:x.company||'',role:x.role||'',loc:x.loc||'',from:x.from||'',to:x.to||'',desc:_cvNormDesc(x.desc),hide:!!x.hide,noauto:true,st:null}));
+  (cv.extra||[]).forEach(x=>out.push({kind:'x',id:x.id,logo:x.logo||'',name:x.project||'',company:x.company||'',role:x.role||'',loc:x.loc||'',from:x.from||'',to:x.to||'',desc:_cvNormDesc(x.desc),hide:!!x.hide,noauto:true,st:null}));
   return out.sort((a,b)=>String(b.from||'').localeCompare(String(a.from||'')));
 }
 // ---- dates -----------------------------------------------------------------
@@ -34630,6 +34631,8 @@ function _cvModel(cvIn){
   return {
     name:(p.name||'').trim(),
     headline:(p.title||'').trim()||'Consultant Engineer',
+    photo:/^data:image\//.test(p.photo||'')?p.photo:'',
+    ctl:[['Phone',p.phone],['Email',p.email],['LinkedIn',p.linkedin],['Location',p.loc]].filter(x=>x[1]),
     c1:[p.phone?'Phone: '+p.phone:'',p.email?'Email: '+p.email:''].filter(Boolean).join(' | '),
     c2:[p.linkedin?'LinkedIn: '+p.linkedin:'',p.loc?'Location: '+p.loc:''].filter(Boolean).join(' | '),
     summary:_cvClean(p.summary).trim(), skills:_cvList(p.skills), jobs, edu, certs:_cvList(p.certs), langs:_cvList(p.langs)
@@ -34681,33 +34684,11 @@ function cvPrint(){
   html,body{background:#fff!important;margin:0!important;padding:0!important;height:auto!important;min-height:0!important;overflow:visible!important}
   body>*:not(#cvPrintRoot){display:none!important}
   html body>#cvPrintRoot{display:block!important;font-family:Helvetica,Arial,'Helvetica Neue',sans-serif;color:#222;font-size:8.1pt;line-height:1.36;direction:ltr}
-  ${R}*{box-sizing:border-box}
-  ${R}h1{margin:0;text-align:center;font-size:17pt;line-height:1.15;color:#17324d;font-weight:700;text-transform:uppercase}
-  ${R}.hl{color:#4b6073;font-size:9.3pt;margin:3pt 0 5pt;text-align:left}
-  ${R}.ct{color:#333;line-height:1.42}
-  ${R}h2{margin:8pt 0 4pt;font-size:10.3pt;color:#17324d;font-weight:700;text-transform:uppercase;break-after:avoid}
-  ${R}p{margin:0}
-  ${R}.sk{list-style:none;margin:0;padding:0;columns:2;column-gap:22pt}
-  ${R}.sk li{break-inside:avoid;padding-inline-start:9pt;position:relative;margin-bottom:1.5pt}
-  ${R}.sk li::before,${R}.bl li::before{content:'•';position:absolute;inset-inline-start:2pt}
-  ${R}.job{margin-bottom:2pt}
-  ${R}.co{margin:7pt 0 3pt;font-size:8.8pt;font-weight:700;color:#17324d;break-after:avoid}
-  ${R}.rl{margin-bottom:4pt;font-size:8pt;color:#5e6d79;break-after:avoid}
-  ${R}.bl{list-style:none;margin:0;padding:0}
-  ${R}.bl li{position:relative;padding-inline-start:10pt;margin-bottom:3.6pt;break-inside:avoid}
-  ${R}.sub{margin:7pt 0 4pt;font-size:8.2pt;break-after:avoid}
-  ${R}.ed{margin-bottom:4pt}${R}.ed b{display:block;margin-bottom:3pt}${R}.ed div{margin-bottom:3pt}
+  ${_cvTplCSS(R)}
   ${R}.ft{position:fixed;right:0;bottom:0;font-size:7pt;color:#6a7680}
 }`;
   const html=`${ios?`<div class="ft">Updated ${upd}</div>`:''}
-${m.name?`<h1>${esc(m.name)}</h1>`:''}<div class="hl">${esc(m.headline)}</div>
-<div class="ct">${m.c1?`<div>${esc(m.c1)}</div>`:''}${m.c2?`<div>${esc(m.c2)}</div>`:''}</div>
-${sec('Summary',m.summary?`<p dir="auto">${esc(m.summary).replace(/\n/g,'<br>')}</p>`:'')}
-${sec('Core Skills',m.skills.length?`<ul class="sk">${m.skills.map(x=>`<li dir="auto">${esc(x)}</li>`).join('')}</ul>`:'')}
-${sec('Work Experience',jobsHTML)}
-${sec('Education',eduHTML)}
-${sec('Certifications &amp; Training',m.certs.length?li(m.certs):'')}
-${sec('Languages',m.langs.length?`<p dir="auto">${esc(m.langs.join(' | '))}</p>`:'')}`;
+${_cvDocHTML(m)}`;
   const cleanup=()=>{ ['cvPrintRoot','cvPrintStyle'].forEach(id=>{ const e=document.getElementById(id); if(e) e.remove(); }); window.removeEventListener('afterprint',cleanup); };
   try{
     cleanup();
@@ -34735,7 +34716,7 @@ function renderMyCV(){
     const per=_cvPeriod(e), auto=e.noauto?[]:_cvAuto(e.st);
     const title=e.kind==='p'?e.name:(e.company||e.name||L('Past job','وظيفة سابقة'));
     const sub=e.kind==='p'?[e.role,e.company].filter(Boolean).join(' · '):[e.role,e.name].filter(Boolean).join(' · ');
-    const av=e.kind==='p'?_prjAv({id:e.id,name:e.name,logo:e.logo},40):`<span class="de-av" style="width:40px;height:40px;font-size:17px">${esc((title||'?').charAt(0).toUpperCase())}</span>`;
+    const av=e.kind==='p'?_prjAv({id:e.id,name:e.name,logo:e.logo},40):(e.logo?bankLogoHTML(e.logo,40,{alt:''}):`<span class="de-av" style="width:40px;height:40px;font-size:17px">${esc((title||'?').charAt(0).toUpperCase())}</span>`);
     const dl=String(e.desc||'').split('\n').filter(x=>x.trim()).length;
     const edit=e.kind==='p'?`_cvEditProj('${e.id}')`:`_cvEditExtra('${e.id}')`;
     return `<article class="cv-proj tap${e.hide?' is-hidden':''}" onclick="${edit}">
@@ -34757,7 +34738,7 @@ function renderMyCV(){
     <button type="button" class="cv-prev-top" onclick="cvPreview(false)">${ic('eye',14)} ${L('Preview','معاينة')}</button></div>
   <section class="cv-card cv-prof">
     <div class="cv-prof-top">
-      <span class="cv-av">${ini?esc(ini):ic('cv',22)}</span>
+      <span class="cv-av">${/^data:image\//.test(p.photo||'')?`<img src="${p.photo}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:inherit">`:(ini?esc(ini):ic('cv',22))}</span>
       <div class="cv-prof-id"><b dir="auto">${p.name?esc(p.name):L('Add your name','أضف اسمك')}</b><small dir="auto">${esc(_cvTitle(p))}</small></div>
       <button type="button" class="cv-ib" onclick="_cvEditSec('hdr')" aria-label="${L('Edit','تعديل')}">${ic('edit',16)}</button>
     </div>
@@ -34771,6 +34752,7 @@ function renderMyCV(){
   ${secCard('edu','grad','Education','التعليم',edu.length?edu.map(b=>`<div class="cv-ed"><b dir="auto">${esc(b[0])}</b>${b.slice(1).map(x=>`<div dir="auto">${esc(x)}</div>`).join('')}</div>`).join(''):'','Add your education','أضف تعليمك')}
   ${secCard('certs','star','Certifications & training','الشهادات والتدريب',certs.length?`<ul class="cv-ul">${certs.map(x=>`<li dir="auto">${esc(x)}</li>`).join('')}</ul>`:'','Add certifications & training','أضف الشهادات والتدريب')}
   ${secCard('langs','languages','Languages','اللغات',langs.length?`<p class="cv-langs" dir="auto">${langs.map(x=>esc(x)).join('<i>·</i>')}</p>`:'','Add your languages','أضف لغاتك')}
+  <div class="cv-actions"><button type="button" class="cv-btn" style="grid-column:1/-1" onclick="cvPreview(false,true)">${ic('sparkle',16)} ${L('CV design & photo','تصميم السيرة والصورة')}</button></div>
   <div class="cv-actions">
     <button type="button" class="cv-btn primary" onclick="cvPreview(false)">${ic('eye',16)} ${L('Preview CV','معاينة السيرة')}</button>
     <button type="button" class="cv-btn" onclick="cvPrint()">${ic('print',16)} ${L('Save as PDF','حفظ PDF')}</button>
@@ -34930,12 +34912,43 @@ function _cvSaveProj(id){
   try{ renderView(); }catch(e){ _logErr('_cvSaveProj',e); }
   showToast(L('CV updated','تم تحديث السيرة الذاتية'),'success');
 }
+// Company logo for a past job (optional) — same picker UX as the receipts company logo, stored on the job record
+let _cvxCurLogo='', _cvxPendingLogo=undefined; // pending: undefined = unchanged, null = removed, string = new data URL
+function _cvxLogoValue(){ return _cvxPendingLogo===undefined?_cvxCurLogo:(_cvxPendingLogo||''); }
+function _cvxLogoRowHTML(){
+  const cur=_cvxLogoValue();
+  return `<div class="field">
+    <label>${L('Company logo','شعار الشركة')} <span class="f-opt">(${L('optional','اختياري')})</span></label>
+    <div class="bnk-custom-logo-row"><div class="bnk-custom-logo-actions">
+      <div id="cvxLogoPreview" class="bnk-custom-logo-preview">${cur?bankLogoHTML(cur,36,{alt:''}):ic('photo',15)}</div>
+      <label class="bnk-custom-logo-btn">${ic('upload',13)} ${L('Upload logo','رفع شعار')}<input type="file" accept="image/*" style="display:none" onchange="cvxHandleLogoUpload(this)"></label>
+      <button type="button" id="cvxLogoRemove" onclick="cvxRemoveLogo()" class="bnk-custom-logo-btn" style="${cur?'':'display:none'}">${ic('trash',13)} ${L('Remove','حذف')}</button>
+    </div></div>
+  </div>`;
+}
+function _cvxLogoRefresh(){
+  const cur=_cvxLogoValue(), pv=document.getElementById('cvxLogoPreview'), rm=document.getElementById('cvxLogoRemove');
+  if(pv) pv.innerHTML=cur?bankLogoHTML(cur,36,{alt:''}):ic('photo',15);
+  if(rm) rm.style.display=cur?'':'none';
+}
+function cvxHandleLogoUpload(inputEl){
+  const file=inputEl.files&&inputEl.files[0]; if(!file) return;
+  if(file.size>500*1024){ showToast(L('⚠️ Image too large (max 500KB)','⚠️ الصورة كبيرة جداً (٥٠٠ كيلوبايت كحد أقصى)'),'warn'); inputEl.value=''; return; }
+  const reader=new FileReader();
+  reader.onload=async ()=>{ try{ _cvxPendingLogo=await _shrinkLogo(reader.result); _cvxLogoRefresh(); }catch(e){ _logErr('cvxHandleLogoUpload',e); } };
+  reader.onerror=()=>{ showToast(L('⚠️ Could not read image','⚠️ تعذّرت قراءة الصورة'),'warn'); };
+  reader.readAsDataURL(file);
+  inputEl.value='';
+}
+function cvxRemoveLogo(){ _cvxPendingLogo=null; _cvxLogoRefresh(); }
 function _cvEditExtra(id){
   const x=id?((_cvLoad().extra||[]).find(r=>r.id===id)||{}):{};
   const e={company:x.company,role:x.role,project:x.project,loc:x.loc,from:x.from,to:x.to,desc:_cvNormDesc(x.desc),hide:x.hide};
   _cvCtx={t:'x',id:id||''};
+  _cvxCurLogo=x.logo||''; _cvxPendingLogo=undefined;
   _cvSheet('briefcase',id?esc(x.company||L('Past job','وظيفة سابقة')):L('Add a past job','إضافة وظيفة سابقة'),L('For jobs that are not projects in the app','للوظائف اللي مش مشاريع في التطبيق'),
     _cvField('cvxCompany',L('Company / employer (bold line)','الشركة / جهة العمل (السطر البولد)'),e.company,{ph:'Kayan Real Estate Development'})+
+    _cvxLogoRowHTML()+
     _cvField('cvxLoc',L('Location (added after the company)','المكان (بيتضاف بعد الشركة)'),e.loc,{ph:'New Administrative Capital, Egypt'})+
     _cvField('cvxRole',L('Role','المسمى الوظيفي'),e.role,{ph:'Site Engineer and Technical Office'})+
     _cvField('cvxProject',L('Project (optional, shown after the role)','المشروع (اختياري، بيظهر بعد المسمى)'),e.project)+
@@ -34946,7 +34959,7 @@ function _cvEditExtra(id){
 }
 function _cvReadExtra(id){
   const g=k=>(document.getElementById(k)?.value||'').trim();
-  return {id:id||('x'+Date.now().toString(36)+Math.random().toString(36).slice(2,4)),company:g('cvxCompany'),loc:g('cvxLoc'),role:g('cvxRole'),project:g('cvxProject'),from:g('cvxFrom'),to:g('cvxTo'),desc:_cvMixVals('cvR_desc'),hide:!!document.getElementById('cvxHide')?.checked};
+  return {id:id||('x'+Date.now().toString(36)+Math.random().toString(36).slice(2,4)),company:g('cvxCompany'),loc:g('cvxLoc'),role:g('cvxRole'),project:g('cvxProject'),from:g('cvxFrom'),to:g('cvxTo'),desc:_cvMixVals('cvR_desc'),hide:!!document.getElementById('cvxHide')?.checked,logo:_cvxLogoValue()};
 }
 function _cvSaveExtra(id){
   const rec=_cvReadExtra(id);
@@ -35003,8 +35016,97 @@ function _cvDraft(){
   }catch(e){ _logErr('_cvDraft',e); }
   return cv;
 }
-function _cvDocHTML(m){
-  const sec=(t,body)=>body?`<h2>${t}</h2>${body}`:'';
+// ═══ CV design: 6 templates, accent colour, line spacing, text size, skills columns, profile photo ═══
+const _CV_TPL={
+  classic:{en:'Classic',ar:'كلاسيك',acc:'#17324d',layout:'one'},
+  modern:{en:'Modern',ar:'مودرن',acc:'#0f7a55',layout:'one'},
+  executive:{en:'Executive',ar:'تنفيذي',acc:'#1f2937',layout:'one'},
+  sidebar:{en:'Sidebar + photo',ar:'شريط جانبي + صورة',acc:'#17324d',layout:'side'},
+  banner:{en:'Banner + photo',ar:'بانر + صورة',acc:'#0f7a55',layout:'one'},
+  minimal:{en:'Minimal',ar:'مينيمال',acc:'#475569',layout:'one'}
+};
+const _CV_ACCENTS=['#17324d','#0f7a55','#0369a1','#6d28d9','#9a3412','#1f2937'];
+const _CV_SP={compact:{g:.75,lh:1.26},normal:{g:1,lh:1.36},relaxed:{g:1.4,lh:1.58}};
+const _CV_FS={s:.93,m:1,l:1.1};
+function _cvStyleGet(){ let s={}; try{ s=_cvLoad().style||{}; }catch(e){} return Object.assign({tpl:'classic',acc:'',sp:'normal',fs:'m',cols:2,photo:true,shape:'circle'},s); }
+function _cvStyleVars(st){
+  const T=_CV_TPL[st.tpl]||_CV_TPL.classic, sp=_CV_SP[st.sp]||_CV_SP.normal;
+  const acc=/^#[0-9a-f]{6}$/i.test(st.acc||'')?st.acc:T.acc;
+  return `--acc:${acc};--fs:${_CV_FS[st.fs]||1};--lh:${sp.lh};--g:${sp.g}`;
+}
+// One stylesheet for the on-screen preview (R='.cvp-paper ') and the print job (R='#cvPrintRoot ')
+function _cvTplCSS(R){
+  const D=R+'.cvd';
+  return `
+${D},${D} *{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+${D}{font-family:var(--ff,Helvetica,Arial,'Helvetica Neue',sans-serif);font-size:calc(8.1pt*var(--fs,1));line-height:var(--lh,1.36);color:#222;direction:ltr;text-align:left}
+${D} h1{margin:0;text-align:center;font-size:calc(17pt*var(--fs,1));line-height:1.15;color:var(--acc);font-weight:700;text-transform:uppercase;letter-spacing:0}
+${D} .hl{color:#4b6073;font-size:calc(9.3pt*var(--fs,1));margin:3pt 0 5pt;text-align:left}
+${D} .ct{color:#333;line-height:calc(var(--lh,1.36) + .06)}
+${D} h2{margin:calc(8pt*var(--g,1)) 0 calc(4pt*var(--g,1));font-size:calc(10.3pt*var(--fs,1));color:var(--acc);font-weight:700;text-transform:uppercase;break-after:avoid;letter-spacing:0;border:0;padding:0}
+${D} p{margin:0}
+${D} .sk{list-style:none;margin:0;padding:0;columns:2;column-gap:22pt}
+${D} .sk.c1{columns:1}
+${D} .sk li{break-inside:avoid;padding-inline-start:9pt;position:relative;margin-bottom:calc(1.5pt*var(--g,1))}
+${D} .sk li::before,${D} .bl li::before{content:'•';position:absolute;inset-inline-start:2pt}
+${D} .job{margin-bottom:calc(2pt*var(--g,1))}
+${D} .co{margin:calc(7pt*var(--g,1)) 0 calc(3pt*var(--g,1));font-size:calc(8.8pt*var(--fs,1));font-weight:700;color:var(--acc);break-after:avoid}
+${D} .rl{margin-bottom:calc(4pt*var(--g,1));font-size:calc(8pt*var(--fs,1));color:#5e6d79;break-after:avoid}
+${D} .bl{list-style:none;margin:0;padding:0}
+${D} .bl li{position:relative;padding-inline-start:10pt;margin-bottom:calc(3.6pt*var(--g,1));break-inside:avoid}
+${D} .sub{margin:calc(7pt*var(--g,1)) 0 calc(4pt*var(--g,1));font-size:calc(8.2pt*var(--fs,1));break-after:avoid}
+${D} .ed{margin-bottom:calc(4pt*var(--g,1))}
+${D} .ed b{display:block;margin-bottom:3pt}
+${D} .ed div{margin-bottom:3pt}
+${D} .hd{display:flex;align-items:center;gap:14pt}
+${D} .hi{flex:1;min-width:0}
+${D} .ph{width:62pt;height:62pt;object-fit:cover;border-radius:50%;flex:none;border:2pt solid var(--acc)}
+${D} .ph.sq{border-radius:6pt}
+/* Modern */
+${R}.cvt-modern h1{text-align:left;text-transform:none;font-size:calc(20pt*var(--fs,1));letter-spacing:-.2pt}
+${R}.cvt-modern .hd{padding-bottom:7pt;border-bottom:2.2pt solid var(--acc);margin-bottom:2pt}
+${R}.cvt-modern .hl{color:var(--acc);font-weight:600;margin:2pt 0 4pt}
+${R}.cvt-modern h2{border-inline-start:3pt solid var(--acc);padding-inline-start:6pt;line-height:1.15}
+${R}.cvt-modern .co{color:#111}
+${R}.cvt-modern .sk li::before,${R}.cvt-modern .bl li::before{color:var(--acc)}
+/* Executive */
+${R}.cvt-executive{--ff:Georgia,'Times New Roman',serif}
+${R}.cvt-executive h1{letter-spacing:1.6pt;font-size:calc(19pt*var(--fs,1))}
+${R}.cvt-executive .hd{flex-direction:column;text-align:center;gap:6pt}
+${R}.cvt-executive .hl{text-align:center;font-style:italic}
+${R}.cvt-executive .ct{text-align:center}
+${R}.cvt-executive h2{border-bottom:.8pt solid var(--acc);padding-bottom:2pt;letter-spacing:.8pt}
+${R}.cvt-executive .co{color:#111}
+${R}.cvt-executive .rl{font-style:italic}
+/* Banner */
+${R}.cvt-banner .hd{background:var(--acc);color:#fff;padding:13pt 15pt;border-radius:8pt;margin-bottom:3pt;break-inside:avoid}
+${R}.cvt-banner h1{color:#fff;text-align:left;font-size:calc(19pt*var(--fs,1))}
+${R}.cvt-banner .hl{color:rgba(255,255,255,.88);margin:2pt 0 4pt}
+${R}.cvt-banner .ct{color:rgba(255,255,255,.92)}
+${R}.cvt-banner .ph{border-color:#fff;width:66pt;height:66pt}
+${R}.cvt-banner h2{border-bottom:1.4pt solid var(--acc);padding-bottom:2pt}
+/* Minimal */
+${R}.cvt-minimal h1{text-align:left;font-weight:300;letter-spacing:2pt;font-size:calc(19pt*var(--fs,1));color:#0f172a}
+${R}.cvt-minimal .hl{color:#64748b;margin:3pt 0 5pt}
+${R}.cvt-minimal h2{font-size:calc(8.2pt*var(--fs,1));letter-spacing:1.6pt;color:#64748b;border-bottom:.5pt solid #cbd5e1;padding-bottom:2pt}
+${R}.cvt-minimal .co{color:#0f172a}
+${R}.cvt-minimal .sk li::before,${R}.cvt-minimal .bl li::before{content:'–'}
+${R}.cvt-minimal .ph{border-color:#cbd5e1;border-width:1pt}
+/* Sidebar */
+${R}.cvt-sidebar .tb{display:table;width:100%;table-layout:fixed}
+${R}.cvt-sidebar .sd{display:table-cell;width:31%;vertical-align:top;padding:12pt 10pt;background:color-mix(in srgb,var(--acc) 9%,#fff);overflow-wrap:anywhere}
+${R}.cvt-sidebar .mn{display:table-cell;vertical-align:top;padding:12pt 0 0 15pt}
+${R}.cvt-sidebar .ph{display:block;width:84pt;height:84pt;margin:0 auto 10pt}
+${R}.cvt-sidebar h1{text-align:left;text-transform:none;font-size:calc(19pt*var(--fs,1));margin-bottom:2pt}
+${R}.cvt-sidebar .hl{color:var(--acc);font-weight:600;margin:0 0 6pt}
+${R}.cvt-sidebar .sd h2{font-size:calc(8.8pt*var(--fs,1));border-bottom:.8pt solid var(--acc);padding-bottom:2pt;margin-top:calc(9pt*var(--g,1))}
+${R}.cvt-sidebar .cl div{margin-bottom:3pt}
+${R}.cvt-sidebar .cl b{display:block;font-size:calc(6.8pt*var(--fs,1));text-transform:uppercase;color:var(--acc);letter-spacing:.4pt}
+`;
+}
+function _cvDocHTML(m,stIn){
+  const st=stIn||_cvStyleGet(), key=_CV_TPL[st.tpl]?st.tpl:'classic', T=_CV_TPL[key], side=T.layout==='side';
+  const sec=(t,body)=>body?`<section class="sc"><h2>${t}</h2>${body}</section>`:'';
   const li=a=>`<ul class="bl">${a.map(x=>`<li dir="auto">${esc(x)}</li>`).join('')}</ul>`;
   const subLine=t=>{ const i=t.indexOf(' — '); return i<0?`<b>${esc(t)}</b>`:`<b>${esc(t.slice(0,i))}</b> — ${esc(t.slice(i+3))}`; };
   const jobs=m.jobs.map(j=>{
@@ -35015,16 +35117,112 @@ function _cvDocHTML(m){
     return `<div class="job">${j.company?`<div class="co" dir="auto">${esc(j.company)}</div>`:''}${j.roleLine?`<div class="rl" dir="auto">${esc(j.roleLine)}</div>`:''}${body}</div>`;
   }).join('');
   const edu=m.edu.map(b=>`<div class="ed"><b dir="auto">${esc(b[0])}</b>${b.slice(1).map(x=>`<div dir="auto">${esc(x)}</div>`).join('')}</div>`).join('');
-  return `${m.name?`<h1>${esc(m.name)}</h1>`:''}<div class="hl">${esc(m.headline)}</div>
-<div class="ct">${m.c1?`<div>${esc(m.c1)}</div>`:''}${m.c2?`<div>${esc(m.c2)}</div>`:''}</div>
-${sec('Summary',m.summary?`<p dir="auto">${esc(m.summary).replace(/\n/g,'<br>')}</p>`:'')}
-${sec('Core Skills',m.skills.length?`<ul class="sk">${m.skills.map(x=>`<li dir="auto">${esc(x)}</li>`).join('')}</ul>`:'')}
-${sec('Work Experience',jobs)}
-${sec('Education',edu)}
-${sec('Certifications &amp; Training',m.certs.length?li(m.certs):'')}
-${sec('Languages',m.langs.length?`<p dir="auto">${esc(m.langs.join(' | '))}</p>`:'')}`;
+  const skills=m.skills.length?`<ul class="sk${(side||+st.cols===1)?' c1':''}">${m.skills.map(x=>`<li dir="auto">${esc(x)}</li>`).join('')}</ul>`:'';
+  const photo=(st.photo!==false&&m.photo)?`<img class="ph${st.shape==='square'?' sq':''}" src="${m.photo}" alt="">`:'';
+  const S={
+    sum:sec('Summary',m.summary?`<p dir="auto">${esc(m.summary).replace(/\n/g,'<br>')}</p>`:''),
+    sk:sec('Core Skills',skills), jobs:sec('Work Experience',jobs), edu:sec('Education',edu),
+    certs:sec('Certifications &amp; Training',m.certs.length?li(m.certs):''),
+    langs:sec('Languages',m.langs.length?`<p dir="auto">${esc(m.langs.join(' | '))}</p>`:'')
+  };
+  const vars=_cvStyleVars(st);
+  if(side){
+    const cl=(m.ctl&&m.ctl.length)?sec('Contact',`<div class="cl">${m.ctl.map(x=>`<div dir="auto"><b>${esc(x[0])}</b>${esc(x[1])}</div>`).join('')}</div>`):'';
+    return `<div class="cvd cvt-${key}" style="${vars}"><div class="tb"><div class="sd">${photo}${cl}${S.sk}${S.edu}${S.certs}${S.langs}</div><div class="mn">${m.name?`<h1>${esc(m.name)}</h1>`:''}<div class="hl">${esc(m.headline)}</div>${S.sum}${S.jobs}</div></div></div>`;
+  }
+  return `<div class="cvd cvt-${key}" style="${vars}"><div class="hd">${photo}<div class="hi">${m.name?`<h1>${esc(m.name)}</h1>`:''}<div class="hl">${esc(m.headline)}</div>
+<div class="ct">${m.c1?`<div>${esc(m.c1)}</div>`:''}${m.c2?`<div>${esc(m.c2)}</div>`:''}</div></div></div>${S.sum}${S.sk}${S.jobs}${S.edu}${S.certs}${S.langs}</div>`;
 }
-function cvPreview(fromSheet){
+// ---- design drawer (inside the CV preview) ---------------------------------
+function _cvThumb(k,a){
+  const R=(x,y,w,h,c,r)=>`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${r==null?1:r}" fill="${c}"/>`;
+  const g='#cfd6dd';
+  const ln=(x,y,w,n,gap)=>{ let o=''; for(let i=0;i<n;i++) o+=R(x,y+i*(gap||5),i===n-1?w*.6:w,2,g); return o; };
+  let b='';
+  if(k==='classic') b=R(14,8,32,4,a)+R(8,15,44,2,g)+R(8,19,34,2,g)+R(8,27,16,3,a)+ln(8,33,44,3)+R(8,52,16,3,a)+ln(8,58,44,3);
+  else if(k==='modern') b=R(8,8,30,5,a)+R(8,15,22,2,a)+R(8,20,44,1.5,a,0)+R(8,27,2,5,a,0)+R(12,28,16,3,a)+ln(8,36,44,3)+R(8,54,2,5,a,0)+R(12,55,16,3,a)+ln(8,63,44,3);
+  else if(k==='executive') b=R(16,8,28,4,'#111')+R(20,15,20,2,g)+R(8,21,44,.8,'#999',0)+R(8,26,16,3,'#111')+R(8,30.5,44,.6,'#999',0)+ln(8,35,44,3)+R(8,54,16,3,'#111')+R(8,58.5,44,.6,'#999',0)+ln(8,63,44,2);
+  else if(k==='sidebar') b=R(5,5,18,68,a+'22',2)+`<circle cx="14" cy="16" r="6" fill="${a}"/>`+ln(8,28,12,3)+ln(8,46,12,3)+R(28,8,26,4,a)+R(28,15,20,2,g)+R(28,24,14,3,a)+ln(28,30,26,4)+R(28,52,14,3,a)+ln(28,58,26,3);
+  else if(k==='banner') b=R(4,4,52,20,a,3)+`<circle cx="14" cy="14" r="6" fill="#fff"/>`+R(24,10,26,4,'#fff')+R(24,17,18,2,'#ffffffaa')+R(8,30,16,3,a)+ln(8,36,44,3)+R(8,54,16,3,a)+ln(8,60,44,3);
+  else b=R(8,8,26,3,'#334155')+R(8,14,18,1.5,g)+R(8,24,14,2,'#64748b')+R(8,27.5,44,.5,'#cbd5e1',0)+ln(8,32,44,3)+R(8,50,14,2,'#64748b')+R(8,53.5,44,.5,'#cbd5e1',0)+ln(8,58,44,3);
+  return `<svg viewBox="0 0 60 78" width="100%" height="100%" aria-hidden="true"><rect x=".5" y=".5" width="59" height="77" rx="3" fill="#fff" stroke="#d5dbe1"/>${b}</svg>`;
+}
+function _cvDzHTML(){
+  const st=_cvStyleGet(), cur=_CV_TPL[st.tpl]?st.tpl:'classic', acc=st.acc||_CV_TPL[cur].acc;
+  const ph=(_cvLoad().profile||{}).photo, hasPh=/^data:image\//.test(ph||'');
+  const arg=v=>typeof v==='string'?`'${v}'`:String(v);
+  const seg=(k,opts)=>`<div class="dz-seg">${opts.map(o=>`<button type="button" class="${String(st[k])===String(o[0])?'on':''}" onclick="cvStyleSet('${k}',${arg(o[0])})">${o[1]}</button>`).join('')}</div>`;
+  const tpls=Object.keys(_CV_TPL).map(k=>`<button type="button" class="dz-tp${k===cur?' on':''}" onclick="cvStyleSet('tpl','${k}')"><span class="th">${_cvThumb(k,acc)}</span><small>${L(_CV_TPL[k].en,_CV_TPL[k].ar)}</small></button>`).join('');
+  const sw=_CV_ACCENTS.map(c=>`<button type="button" class="${acc.toLowerCase()===c?'on':''}" style="background:${c}" onclick="cvStyleSet('acc','${c}')" aria-label="${c}"></button>`).join('');
+  return `<div class="dz-h"><span>${L('Design & photo','التصميم والصورة')}</span><button type="button" onclick="cvDzToggle(false)" aria-label="${L('Close','إغلاق')}">${ic('close',16)}</button></div>
+  <div class="dz-b">
+    <div class="dz-l">${L('Template','القالب')}</div><div class="dz-tpls">${tpls}</div>
+    <div class="dz-l">${L('Colour','اللون')}</div><div class="dz-sw">${sw}</div>
+    <div class="dz-l">${L('Line spacing','المسافات بين الأسطر')}</div>${seg('sp',[['compact',L('Tight','مضغوط')],['normal',L('Normal','عادي')],['relaxed',L('Spacious','واسع')]])}
+    <div class="dz-l">${L('Text size','حجم الخط')}</div>${seg('fs',[['s',L('Small','صغير')],['m',L('Medium','متوسط')],['l',L('Large','كبير')]])}
+    <div class="dz-l">${L('Skills columns','أعمدة المهارات')}</div>${seg('cols',[[1,L('1 column','عمود')],[2,L('2 columns','عمودين')]])}
+    <div class="dz-l">${L('Profile photo','الصورة الشخصية')}</div>
+    <div class="dz-ph">${hasPh?`<img src="${ph}" alt="">`:`<span class="dz-ph0">${ic('photo',18)}</span>`}
+      <label class="dz-btn">${ic('upload',13)} ${hasPh?L('Change','تغيير'):L('Upload photo','رفع صورة')}<input type="file" accept="image/*" style="display:none" onchange="cvPhotoPick(this)"></label>
+      ${hasPh?`<button type="button" class="dz-btn" onclick="cvPhotoRemove()">${ic('trash',13)} ${L('Remove','حذف')}</button>`:''}</div>
+    ${hasPh?`<div style="margin-top:8px">${seg('photo',[[true,L('Show photo','إظهار الصورة')],[false,L('Hide photo','إخفاء الصورة')]])}</div><div style="margin-top:8px">${seg('shape',[['circle',L('Circle','دائرة')],['square',L('Square','مربع')]])}</div>`:''}
+  </div>`;
+}
+function _cvDzRender(){
+  const d=document.getElementById('cvpDz'); if(!d) return;
+  const b=d.querySelector('.dz-b'), t=d.querySelector('.dz-tpls'), bt=b?b.scrollTop:0, tl=t?t.scrollLeft:0;
+  d.innerHTML=_cvDzHTML();
+  const b2=d.querySelector('.dz-b'), t2=d.querySelector('.dz-tpls'); if(b2) b2.scrollTop=bt; if(t2) t2.scrollLeft=tl;
+}
+function cvDzToggle(f){
+  const ov=document.getElementById('cvPrev'); if(!ov) return;
+  ov.classList.toggle('dz-open',typeof f==='boolean'?f:!ov.classList.contains('dz-open'));
+}
+function _cvRerender(){
+  const pa=document.getElementById('cvpPaper'); if(!pa) return;
+  try{
+    const m=_cvModel(_cvPrevDraft?_cvDraft():null), upd=new Date().toLocaleDateString('en-US',{month:'long',year:'numeric'});
+    pa.innerHTML=_cvDocHTML(m)+`<div class="cvp-ft">Updated ${upd}</div>`;
+  }catch(e){ _logErr('_cvRerender',e); }
+}
+function cvStyleSet(k,v){
+  const cv=_cvLoad(); cv.style=Object.assign({},cv.style||{}); cv.style[k]=v;
+  if(!_cvSave(cv)) return;
+  _cvRerender(); _cvDzRender();
+}
+function _cvPhotoPrep(dataUrl){
+  return new Promise((res,rej)=>{
+    const im=new Image();
+    im.onload=()=>{ try{
+      const w=im.naturalWidth, h=im.naturalHeight, s=Math.min(w,h), sx=(w-s)/2, sy=(h-s)*.2, out=Math.min(360,s);
+      const c=document.createElement('canvas'); c.width=c.height=out;
+      const x=c.getContext('2d'); x.fillStyle='#fff'; x.fillRect(0,0,out,out); x.drawImage(im,sx,sy,s,s,0,0,out,out);
+      res(c.toDataURL('image/jpeg',.86));
+    }catch(e){ rej(e); } };
+    im.onerror=rej; im.src=dataUrl;
+  });
+}
+function cvPhotoPick(inp){
+  const f=inp&&inp.files&&inp.files[0]; if(!f) return;
+  if(f.size>12*1024*1024){ showToast(L('⚠️ Image too large (max 12MB)','⚠️ الصورة كبيرة جداً (١٢ ميجا كحد أقصى)'),'warn'); inp.value=''; return; }
+  const rd=new FileReader();
+  rd.onload=async ()=>{
+    try{
+      const url=await _cvPhotoPrep(rd.result), cv=_cvLoad();
+      cv.profile.photo=url; cv.style=Object.assign({},cv.style||{},{photo:true});
+      if(_cvSave(cv)){ _cvRerender(); _cvDzRender(); try{ renderView(); }catch(_){} }
+    }catch(e){ _logErr('cvPhotoPick',e); showToast(L('⚠️ Could not read image','⚠️ تعذّرت قراءة الصورة'),'warn'); }
+  };
+  rd.onerror=()=>{ showToast(L('⚠️ Could not read image','⚠️ تعذّرت قراءة الصورة'),'warn'); };
+  rd.readAsDataURL(f); inp.value='';
+}
+function cvPhotoRemove(){
+  const cv=_cvLoad(); delete cv.profile.photo;
+  if(_cvSave(cv)){ _cvRerender(); _cvDzRender(); try{ renderView(); }catch(_){} }
+}
+let _cvPrevDraft=false;
+function cvPreview(fromSheet,openDesign){
+  _cvPrevDraft=!!fromSheet;
   const m=_cvModel(fromSheet?_cvDraft():null);
   const upd=new Date().toLocaleDateString('en-US',{month:'long',year:'numeric'});
   cvPreviewClose();
@@ -35033,9 +35231,12 @@ function cvPreview(fromSheet){
       <span class="cvp-zoom"><button type="button" data-z="fit" onclick="_cvPrevZoom('fit')">${L('Fit','ملائم')}</button><button type="button" data-z="0.8" onclick="_cvPrevZoom(0.8)">80%</button><button type="button" data-z="1.1" onclick="_cvPrevZoom(1.1)">110%</button></span>
       ${fromSheet?'':`<button type="button" class="cvp-pdf" onclick="cvPrint()">${ic('print',15)} PDF</button>`}
       <button type="button" class="cvp-x" onclick="cvPreviewClose()" aria-label="${L('Close','إغلاق')}">${ic('close',18)}</button></div>
-    <div class="cvp-stage"><div class="cvp-paper" id="cvpPaper">${_cvDocHTML(m)}<div class="cvp-ft">Updated ${upd}</div></div></div>`;
+    <div class="cvp-stage"><div class="cvp-paper" id="cvpPaper">${_cvDocHTML(m)}<div class="cvp-ft">Updated ${upd}</div></div></div>
+    <button type="button" class="cvp-dzbtn" onclick="cvDzToggle()">${ic('sparkle',15)} ${L('Design & photo','التصميم والصورة')}</button>
+    <div class="cvp-dz" id="cvpDz"></div><style>${_cvTplCSS('.cvp-paper ')}</style>`;
   document.body.appendChild(ov);
   _cvPrevZoom('fit');
+  _cvDzRender(); if(openDesign) cvDzToggle(true);
 }
 function _cvPrevZoom(z){
   const pa=document.getElementById('cvpPaper'); if(!pa) return;
@@ -47442,11 +47643,18 @@ const ATT=(function(){
     }).join('');
     const btn=`<button type="button" class="att-sec-btn" onclick="ATT.openPay()">${ic('edit',13)} ${cfg.net>0?L('Edit','تعديل'):L('Set up','إعداد')}</button>`;
     const body=cfg.net>0
-      ?`<div class="att-pay-hero"><small>${done?L('Net pay for the cycle','صافي مرتب الدورة'):L('Earned so far','مرتبك لحد النهاردة')} · ${esc(pr.label)}</small><div class="att-pay-amt" dir="ltr">${M(pr.toDate)}</div>
+      ?`<div class="att-pay-hero">
+          <div class="aph-top"><span class="aph-lbl">${done?L('Net pay for the cycle','صافي مرتب الدورة'):L('Earned so far','مرتبك لحد النهاردة')}</span><span class="aph-per" dir="ltr">${esc(pr.label)}</span></div>
+          <div class="att-pay-amt" dir="ltr">${M(pr.toDate)}</div>
           <div class="att-pay-cyc-bar" role="progressbar" aria-valuenow="${pct}" aria-valuemin="0" aria-valuemax="100"><i style="width:${pct}%"></i></div>
-          <div class="att-pay-meta"><span>${L('Day','اليوم')} ${pr.elapsed} ${L('of','من')} ${pr.days}</span>${done?'':`<span>${L('Expected at cycle end','المتوقع آخر الدورة')}: <b dir="ltr">${M(pr.endTotal)}</b></span>`}</div>
-          <small>${L('Day value','قيمة اليوم')}: <b dir="ltr">${M(pr.dayVal)}</b> · ${L('Hourly rate','أجر الساعة')}: <b dir="ltr">${M(pr.hourly)}</b> · ${cfg.win?'<span dir="ltr">'+esc(fmtT(cfg.ws))+' – '+esc(fmtT(cfg.we))+'</span> · ':''}${cfg.hpd}${L(' h/day',' س/يوم')}</small></div>
-        <div class="att-pay-rows">${earn}${lost?`<div class="att-pay-sub">${L('Not earned','غير محسوب')}</div>${lost}`:''}</div>
+          <div class="att-pay-meta"><span>${L('Day','اليوم')} ${pr.elapsed} ${L('of','من')} ${pr.days}</span><span class="aph-pct">${pct}%</span></div>
+          ${done?'':`<div class="aph-exp"><span>${L('Expected at cycle end','المتوقع آخر الدورة')}</span><b dir="ltr">${M(pr.endTotal)}</b></div>`}
+          <div class="aph-facts">
+            <div class="aph-f"><small>${L('Day value','قيمة اليوم')}</small><b dir="ltr">${M(pr.dayVal)}</b></div>
+            <div class="aph-f"><small>${L('Hourly rate','أجر الساعة')}</small><b dir="ltr">${M(pr.hourly)}</b></div>
+            <div class="aph-f wide"><small>${L('Working hours','ساعات العمل')}</small><b dir="ltr">${cfg.win?esc(fmtT(cfg.ws))+' – '+esc(fmtT(cfg.we))+' · ':''}${cfg.hpd}${L(' h/day',' س/يوم')}</b></div>
+          </div></div>
+        <div class="att-pay-rows">${earn?`<div class="att-pay-sub ok">${L('Earned','محسوب')}</div>${earn}`:''}${lost?`<div class="att-pay-sub">${L('Not earned','غير محسوب')}</div>${lost}`:''}</div>
         ${pr.items.length?`<button type="button" class="att-pay-more" onclick="ATT.togglePayDays()" aria-expanded="${payDays}"><span>${L('Day-by-day impact','تأثير كل يوم')} (${pr.items.length})</span><span class="att-chev dn${payDays?' up':''}"></span></button>${payDays?`<div class="att-pay-days">${dayRows}</div>`:''}`:''}`
       :`<div class="att-pay-start"><span class="att-pay-ic">${ic('wallet',22)}</span><p>${L('Add your monthly net salary and working hours to calculate pay from attendance, absence and overtime.','أضف مرتبك الصافي وساعات العمل عشان يتحسب المرتب من الحضور والغياب والأوفر تايم.')}</p><button type="button" class="att-pay-go" onclick="ATT.openPay()">${ic('wallet',16)} ${L('Set up salary','إعداد المرتب')}</button></div>`;
     return secH('wallet','Salary','المرتب',btn,'att-s-pay')+`<div class="sc-card att-pay">${body}</div>`;
@@ -54675,5 +54883,58 @@ function mioraDismissGreetToast(){
   document.addEventListener('focusout',function(){ setTimeout(req,60); });
 })();
 </script>
+
+<style id="cv-design-css">
+.cvp-dzbtn{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 16px);display:inline-flex;align-items:center;gap:7px;min-height:44px;padding:0 18px;border:0;border-radius:999px;background:var(--green);color:#fff;font:inherit;font-size:13px;font-weight:800;box-shadow:0 8px 24px rgba(0,0,0,.4);cursor:pointer;z-index:3}
+.cvp-ov.dz-open .cvp-dzbtn{display:none}
+.cvp-dz{position:absolute;left:0;right:0;bottom:0;max-height:52vh;display:none;flex-direction:column;background:var(--surface,#fff);color:var(--text,#222);border-radius:20px 20px 0 0;box-shadow:0 -10px 34px rgba(0,0,0,.45);z-index:4;padding-bottom:env(safe-area-inset-bottom,0px)}
+.cvp-ov.dz-open .cvp-dz{display:flex}
+.cvp-ov.dz-open .cvp-stage{padding-bottom:calc(52vh + 20px)}
+.dz-h{display:flex;align-items:center;justify-content:space-between;padding:12px 16px 6px;font-size:15px;font-weight:800;flex:none}
+.dz-h button{width:34px;height:34px;border:0;border-radius:10px;background:var(--surface2,#eee);color:inherit;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.dz-b{overflow-y:auto;-webkit-overflow-scrolling:touch;padding:0 16px 16px}
+.dz-l{margin:12px 0 6px;font-size:11px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--muted,#6b7280)}
+.dz-tpls{display:flex;gap:10px;overflow-x:auto;padding:2px 2px 6px}
+.dz-tp{flex:0 0 74px;border:2px solid var(--border,#e5e7eb);border-radius:12px;background:var(--surface2,#f6f6f6);padding:5px 5px 6px;text-align:center;cursor:pointer;font:inherit;color:inherit}
+.dz-tp .th{display:block;width:100%;aspect-ratio:60/78}
+.dz-tp small{display:block;margin-top:4px;font-size:10px;font-weight:700;line-height:1.2}
+.dz-tp.on{border-color:var(--green);box-shadow:0 0 0 2px color-mix(in srgb,var(--green) 25%,transparent)}
+.dz-sw{display:flex;gap:10px;flex-wrap:wrap}
+.dz-sw button{width:30px;height:30px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1.5px var(--border,#d1d5db);cursor:pointer;padding:0}
+.dz-sw button.on{box-shadow:0 0 0 2.5px var(--green)}
+.dz-seg{display:flex;gap:4px;padding:3px;border-radius:12px;background:var(--surface2,#f1f1f1)}
+.dz-seg button{flex:1;min-height:36px;border:0;border-radius:9px;background:transparent;color:var(--text2,#444);font:inherit;font-size:12.5px;font-weight:700;cursor:pointer}
+.dz-seg button.on{background:var(--surface,#fff);color:var(--green-dark,#0a5c40);box-shadow:0 1px 3px rgba(0,0,0,.15)}
+.dz-ph{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.dz-ph img,.dz-ph .dz-ph0{width:46px;height:46px;border-radius:50%;object-fit:cover;flex:none}
+.dz-ph .dz-ph0{display:flex;align-items:center;justify-content:center;background:var(--surface2,#eee);color:var(--muted,#6b7280)}
+.dz-btn{display:inline-flex;align-items:center;gap:6px;min-height:38px;padding:0 14px;border:1px solid var(--border,#d1d5db);border-radius:11px;background:var(--surface,#fff);color:var(--text2,#444);font:inherit;font-size:12.5px;font-weight:700;cursor:pointer}
+</style>
+
+<style id="att-pay-polish">
+.att-pay .att-pay-hero{padding:18px 18px 16px;gap:0;border-radius:20px;background:linear-gradient(160deg,color-mix(in srgb,var(--green) 12%,var(--surface)) 0%,var(--surface) 72%);border:1px solid color-mix(in srgb,var(--green) 22%,var(--border))}
+.att-pay .aph-top{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.att-pay .aph-lbl{font-size:calc(12.5px*var(--app-text-scale,1));font-weight:800;color:var(--sub);letter-spacing:.02em}
+.att-pay .aph-per{font-size:calc(11px*var(--app-text-scale,1));font-weight:800;color:var(--green);background:color-mix(in srgb,var(--green) 12%,var(--surface));padding:4px 10px;border-radius:99px;white-space:nowrap}
+.att-pay .att-pay-amt{margin:8px 0 14px;font-size:calc(36px*var(--app-text-scale,1));letter-spacing:-.5px}
+.att-pay .att-pay-cyc-bar{height:8px;margin:0 0 8px}
+.att-pay .att-pay-meta{margin:0 0 12px;font-size:calc(12px*var(--app-text-scale,1));color:var(--sub);flex-wrap:nowrap}
+.att-pay .aph-pct{font-variant-numeric:tabular-nums;color:var(--green);font-weight:800}
+.att-pay .aph-exp{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 14px;margin-bottom:10px;border-radius:14px;background:var(--surface);border:1px solid var(--border);font-size:calc(13px*var(--app-text-scale,1));font-weight:700;color:var(--sub)}
+.att-pay .aph-exp b{color:var(--text);font-size:calc(14.5px*var(--app-text-scale,1));font-weight:800;font-variant-numeric:tabular-nums;white-space:nowrap}
+.att-pay .aph-facts{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.att-pay .aph-f{display:flex;flex-direction:column;gap:2px;min-width:0;padding:9px 12px;border-radius:12px;background:color-mix(in srgb,var(--green) 6%,var(--surface))}
+.att-pay .aph-f.wide{grid-column:1/-1}
+.att-pay .aph-f small{font-size:calc(10.5px*var(--app-text-scale,1));font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}
+.att-pay .aph-f b{font-size:calc(14px*var(--app-text-scale,1));font-weight:800;color:var(--text);font-variant-numeric:tabular-nums}
+.att-pay .att-pay-rows{margin:6px 14px 10px;padding:0 4px}
+.att-pay .att-pay-sub{display:flex;align-items:center;gap:8px;margin:14px 0 2px;font-size:calc(11px*var(--app-text-scale,1));font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.att-pay .att-pay-sub::before{content:'';flex:none;width:7px;height:7px;border-radius:50%;background:var(--red)}
+.att-pay .att-pay-sub.ok::before{background:var(--green)}
+.att-pay .att-pay-r{padding:12px 0;border-bottom:1px solid color-mix(in srgb,var(--border) 70%,transparent);font-size:calc(13.5px*var(--app-text-scale,1));font-weight:600;color:var(--text2)}
+.att-pay .att-pay-r span{min-width:0}
+.att-pay .att-pay-r b{font-size:calc(14px*var(--app-text-scale,1));font-weight:800}
+.att-pay .att-pay-more{margin-top:4px;min-height:46px}
+</style>
 </body>
 </html>
