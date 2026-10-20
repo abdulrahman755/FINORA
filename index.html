@@ -981,6 +981,10 @@ button:disabled{opacity:.5;cursor:not-allowed;pointer-events:none}
   font-size:calc(11px*var(--app-text-scale,1));font-weight:700;letter-spacing:.2px;
 }
 .header-month-slot .chevron{font-size:calc(9px*var(--app-text-scale,1));order:2}
+/* Touch-target pass: the month caption stays visually identical (~12px tall); its tappable area is
+   invisibly grown, mirroring .icon-btn::after. Vertical-only growth plus a small horizontal margin. */
+.header-month-slot .month-active-btn{position:relative}
+.header-month-slot .month-active-btn::after{content:'';position:absolute;top:-8px;bottom:-8px;inset-inline-start:-6px;inset-inline-end:-6px}
 .header-icon-rail{display:flex;gap:var(--s-half);align-items:center;flex-shrink:0}
 /* "More" dropdown — houses the less-frequent Print/Backup/Reminders actions
    that used to sit permanently in the icon rail, crowding out the title */
@@ -1637,7 +1641,7 @@ tbody tr:hover{background:var(--surface2)}
    architectural treatment, with the same thin gold edge ring so the two
    "primary action" bubbles in the app share one consistent brand shape. */
 .fab{
-  position:fixed;right:20px;bottom:80px;
+  position:fixed;right:20px;bottom:calc(80px + env(safe-area-inset-bottom,0px));
   width:58px;height:58px;border-radius:16px;
   background:linear-gradient(135deg,var(--green-dark),var(--green));
   border:none;color:#fff;font-size:calc(28px*var(--app-text-scale,1));
@@ -3797,6 +3801,7 @@ img.atl-img{position:absolute;left:0;top:0;width:100%;height:calc(100% - var(--b
   position:absolute;
   left:50%;transform:translateX(-50%);
   width:min(320px,88vw);
+  box-sizing:border-box;
   background:var(--surface);
   border:1px solid var(--border);
   border-radius:var(--radius-hero);
@@ -9887,6 +9892,9 @@ body .screen-wrap .sc-header.sav-plain-header.sav-plain-header::after{display:no
 .wdash-wrap.dv3-dark-v2 .dfp-kpi3-lbl{font-size:calc(10px*var(--app-text-scale,1));letter-spacing:.02em;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .wdash-wrap.dv3-dark-v2 .dv3-kpi-text{min-width:0}
 .wdash-wrap.dv3-dark-v2 .dfp-kpi3-val{font-size:calc(14.5px*var(--app-text-scale,1));white-space:nowrap;font-variant-numeric:tabular-nums}
+/* Very long amounts (~10M+) used to be clipped by the KPI row's overflow:hidden and pushed the 2nd column
+   off-screen. Allow the value to wrap (unit drops to line 2) instead of hiding digits; values that fit are unaffected. */
+.wdash-wrap.dv3-dark-v2 .dfp-kpi3-val{white-space:normal;overflow-wrap:anywhere}
 .wdash-wrap.dv3-dark-v2 .fp-qa-row{margin-bottom:var(--sp6,24px)}
 .wdash-apps-title{display:flex;align-items:center;gap:8px;margin:0 var(--sp1) var(--sp2);font-size:calc(11px*var(--app-text-scale,1));font-weight:700;letter-spacing:.06em;text-transform:uppercase}
 .wdash-apps-title::after{content:"";flex:1;height:1px;background:var(--border)}
