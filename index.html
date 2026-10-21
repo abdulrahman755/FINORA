@@ -15979,7 +15979,7 @@ function renderFinanceSummaryHeroV3(m){
         </div>
         <div class="dash-hero-main dv3-hero-main" style="position:relative;z-index:1">
           <div class="dash-hero-main-lbl">${L('Total Net Balance','صافي رصيدك')}</div>
-          <div class="dash-hero-main-val hnum-row"><span class="hnum-sign">${up?'+':'-'}</span>${heroAmountHTML(netBalance)}</div>
+          <div class="dash-hero-main-val hnum-row"><span class="hnum-sign">${up?'+':'-'}</span>${heroAmountHTML(netBalance,true)}</div>
           <div class="dv3h-stat-row fp-hero-body" id="fpHeroBody">
             ${dv3hStat(L('Real Balance','الرصيد الفعلي'), netBanksOnlyNow, true)}
             <div class="dv3h-stat-sep"></div>
@@ -18344,6 +18344,13 @@ const fmt=n=>{
 // default; call sites that intentionally want an unsigned magnitude (e.g.
 // because they already render their own +/- prefix) pass Math.abs(n) in
 // themselves instead of relying on fmtEGP to do it silently.
+const fmtFull=n=>{
+  const v=n||0;
+  const curCode=(typeof GLOBAL_PROFILE!=='undefined' && GLOBAL_PROFILE.currency) || (typeof CURRENT_CURRENCY!=='undefined' && CURRENT_CURRENCY) || 'EGP';
+  const d=getCurrencyMeta(curCode).decimals;
+  const out=v.toLocaleString(_dtLocale('en-US'),{minimumFractionDigits:d,maximumFractionDigits:d});
+  return (typeof lang!=='undefined'&&lang==='ar')?out.replace(/^[\u061C\u200E\u200F]*[-\u2212]/,'\u200E-'):out;
+};
 const fmtEGP=n=>fmt(n||0)+' '+curLabel();
 // Lightweight, display-only "product name" extractor for the My Purchases
 // section (see renderTransactions): strips a leading purchase-verb phrase
@@ -18725,6 +18732,7 @@ const kpi3ValHTML=(s,tone,raw)=>{
 // First paint of a screen counts up from 0; a later re-render of the same
 // screen (search typing, edits) animates only the amounts that changed,
 // from their previous value, so nothing replays needlessly.
+const _sigFmtFor=el=>el.hasAttribute('data-full')?fmtFull:fmt;
 const _sigPrev=new Map(); let _sigView=null, _sigRaf=0;
 function sigAnimateAmounts(){
   const els=Array.from(document.querySelectorAll('#mainContent .sig-amt[data-v]'));
@@ -18741,10 +18749,10 @@ function sigAnimateAmounts(){
   if(!jobs.length) return;
   if(_sigRaf) cancelAnimationFrame(_sigRaf);
   const dur=700,t0=performance.now();
-  jobs.forEach(j=>{ j.el.textContent=fmt(j.from); });
+  jobs.forEach(j=>{ j.el.textContent=_sigFmtFor(j.el)(j.from); });
   const step=now=>{
     const p=Math.min(1,(now-t0)/dur), e=1-Math.pow(1-p,3);
-    jobs.forEach(j=>{ j.el.textContent=fmt(p<1 ? j.from+(j.to-j.from)*e : j.to); });
+    jobs.forEach(j=>{ j.el.textContent=_sigFmtFor(j.el)(p<1 ? j.from+(j.to-j.from)*e : j.to); });
     if(p<1) _sigRaf=requestAnimationFrame(step); else _sigRaf=0;
   };
   _sigRaf=requestAnimationFrame(step);
@@ -18764,9 +18772,9 @@ const sigNumHTML=(n,opts)=>{
 // wrapper (see .hnum-row) because in Arabic (document dir="rtl") a flex
 // row of separate number/currency spans gets reordered by the browser and
 // scrambles the digit order — numbers stay left-to-right even in RTL UIs.
-const heroAmountHTML=n=>{
-  const str=fmt(Math.abs(n||0));
-  return `<span class="sig-num" dir="ltr"><span class="hnum-amt sig-amt" data-v="${Math.abs(n||0)}">${esc(str)}</span><span class="hnum-cur sig-cur">${esc(curLabel())}</span></span>`;
+const heroAmountHTML=(n,full)=>{
+  const str=(full?fmtFull:fmt)(Math.abs(n||0));
+  return `<span class="sig-num" dir="ltr"><span class="hnum-amt sig-amt" data-v="${Math.abs(n||0)}"${full?' data-full="1"':''}>${esc(str)}</span><span class="hnum-cur sig-cur">${esc(curLabel())}</span></span>`;
 };
 // Phase 21: fixed the UTC/local-date mismatch — toISOString() always
 // serializes in UTC, so for any timezone east of UTC (Egypt, all Gulf
@@ -33184,7 +33192,8 @@ function renderTransactions(m){
     // no longer rendered in the row itself — full detail (duplicate flag,
     // confidence %, split suggestion) still lives in the AI sheet the row
     // opens on tap, exactly as before.
-    const _metaParts = [`${renderCategoryIcon(_aiMeta.category,11)}${renderCategoryLabel(_aiMeta.category)}`];
+    const _cm = getCategoryMeta(_aiMeta.category);
+    const _metaParts = [`${renderCategoryLabel(_aiMeta.category)}`];
     if(_merchant) _metaParts.push(esc(_merchant));
     _metaParts.push(_txlgRowTime(t));
     const metaLineHTML = _metaParts.join(' <span class="txlg-ai-sep">•</span> ');
@@ -33192,16 +33201,15 @@ function renderTransactions(m){
     return `
     <div class="txlg-row" data-ri="${ri}" oncontextmenu="event.preventDefault();openTxQuickActions(${ri});return false;">
     <div class="txlg-row-content" onclick="_txlgRowClick(event,${ri})" ontouchstart="_txlgTouchStart(event,${ri})" ontouchmove="_txlgTouchMove(event)" ontouchend="_txlgTouchEnd(event,${ri})" ontouchcancel="_txlgTouchCancel(event)">
+      <span class="txlg-ico" style="background:color-mix(in srgb,${_cm.color} 12%,var(--surface))">${renderCategoryIcon(_aiMeta.category,19)}</span>
       <div class="txlg-mid">
         <div class="txlg-notes">${esc(t.notes)||L('Untitled entry','بدون عنوان')}</div>
         <div class="txlg-ai-line" onclick="event.stopPropagation();openTxAISheet(${ri})" title="${L('View AI analysis','عرض التحليل الذكي')}">
-          <span class="txlg-ai-meta">${metaLineHTML}</span>
+          <span class="txlg-ai-meta">${metaLineHTML}</span>${reviewBadgeHTML}${dupIconHTML}
         </div>
       </div>
       <div class="txlg-side">
-        <span class="txlg-amt" style="color:${amtColor}">${fmtEGP(t.payment)}</span>
-        ${reviewBadgeHTML}
-        ${dupIconHTML}
+        <span class="txlg-amt" style="color:${amtColor}">${fmt(t.payment||0)}<span class="txlg-cur">${esc(curLabel())}</span></span>
         <span class="txlg-conf-dot" style="background:${confColor}" title="${L('AI confidence','ثقة الذكاء الاصطناعي')}: ${_aiConf}%"></span>
       </div>
     </div>
@@ -33209,8 +33217,9 @@ function renderTransactions(m){
     </div>`;
   };
 
+  const _dayTot={}; txns.forEach(x=>{ const k=_txGroupLabel(x.date); _dayTot[k]=(_dayTot[k]||0)+(x.payment||0); });
   const timelineHTML = groups.map(g=>`
-    <div class="txlg-group-label">${g.label}</div>
+    <div class="txlg-group-label"><span>${g.label}</span><span class="txlg-group-total">${fmtEGP(_dayTot[g.label]||0)}</span></div>
     ${g.rows.map((row,i)=>rowHTML(row, i===0, i===g.rows.length-1)).join('')}
   `).join('');
 
@@ -33386,11 +33395,7 @@ ${_pgHdr('Finance','المالية','Daily Spend','الإنفاق اليومي',
       ${txns.length===0 ? emptyFilteredState : timelineHTML}
     </div>
     ${hasMore?`
-    <div style="text-align:center;padding:10px var(--sp4);border-top:1px solid var(--border)">
-      <button onclick="txViewAll()" style="background:none;border:none;color:var(--green);font-size:calc(var(--fs-caption)*var(--app-text-scale,1));font-weight:800;padding:16px 10px;margin:-10px 0;cursor:pointer">
-        ${L('View All','عرض الكل')} (${txns.length}) ›
-      </button>
-    </div>`:''}
+    <button type="button" class="txlg-viewall" onclick="txViewAll()">${L('View All','عرض الكل')} (${txns.length}) ›</button>`:''}
   </div>
 
   <!-- 3b. MY PURCHASES — auto-classified item/price list (see purchasesHTML above) -->
@@ -34617,25 +34622,40 @@ function _cvAutoCV(st){   // the single line that goes into the CV (English, no 
   return `Inspected and processed ${st.n} work-receipt request${st.n===1?'':'s'} across ${st.plots} plot${st.plots===1?'':'s'}`+(st.companies.length?` for contractors including ${st.companies.slice(0,4).join(', ')}`:'')+'.';
 }
 // ---- the CV as data → text / HTML -----------------------------------------
+// Links in the CV: shown short (no protocol, www., tracking query or trailing slash), linked to the clean URL
+function _cvShortLink(u){
+  let s=String(u||'').trim(); if(!s) return '';
+  s=s.replace(/^[a-z][a-z0-9+.-]*:\/\//i,'').replace(/^www\./i,'').split(/[?#]/)[0].replace(/\/+$/,'');
+  try{ s=decodeURIComponent(s); }catch(e){}
+  return s;
+}
+function _cvLinkHref(u){
+  const raw=String(u||'').trim(); if(!raw) return '';
+  const base=raw.split(/[?#]/)[0].replace(/\/+$/,'');
+  return /^[a-z][a-z0-9+.-]*:\/\//i.test(base)?base:'https://'+base;
+}
+function _cvUrlShort(s){
+  return String(s==null?'':s).replace(/(?:https?:\/\/|www\.)[^\s)]+/gi,u=>{ const m=u.match(/[.,;:!?]+$/), tail=m?m[0]:''; return _cvShortLink(tail?u.slice(0,-tail.length):u)+tail; });
+}
 function _cvModel(cvIn){
   const cv=cvIn||_cvLoad(), p=cv.profile;
   const jobs=_cvEntries(cv).filter(e=>!e.hide).map(e=>{
     const head=e.company||e.name||'';
     const company=[head,e.loc].filter(Boolean).join(', ');
     const roleLine=[e.role,e.company?e.name:'',_cvPeriodEN(e)].filter(Boolean).join(' | ');
-    const bullets=String(e.desc||'').split('\n').map(x=>x.trim()).filter(Boolean).map(t=>t.startsWith('# ')?{sub:t.slice(2).trim()}:{t});
+    const bullets=String(e.desc||'').split('\n').map(x=>_cvUrlShort(x.trim())).filter(Boolean).map(t=>t.startsWith('# ')?{sub:t.slice(2).trim()}:{t});
     if(e.st&&!e.noauto){ const a=_cvAutoCV(e.st); if(a) bullets.push({t:a}); }
     return {company,roleLine,bullets};
   }).filter(j=>j.company||j.roleLine||j.bullets.length);
-  const edu=String(p.edu||'').split(/\n\s*\n/).map(b=>b.split('\n').map(x=>x.trim()).filter(Boolean)).filter(b=>b.length);
+  const edu=String(p.edu||'').split(/\n\s*\n/).map(b=>b.split('\n').map(x=>_cvUrlShort(x.trim())).filter(Boolean)).filter(b=>b.length);
   return {
     name:(p.name||'').trim(),
     headline:(p.title||'').trim()||'Consultant Engineer',
     photo:/^data:image\//.test(p.photo||'')?p.photo:'',
-    ctl:[['Phone',p.phone],['Email',p.email],['LinkedIn',p.linkedin],['Location',p.loc]].filter(x=>x[1]),
+    ctl:[['Phone',p.phone,p.phone?'tel:'+String(p.phone).replace(/[^\d+]/g,''):''],['Email',p.email,p.email?'mailto:'+String(p.email).trim():''],['LinkedIn',_cvShortLink(p.linkedin),_cvLinkHref(p.linkedin)],['Location',p.loc,'']].filter(x=>x[1]),
     c1:[p.phone?'Phone: '+p.phone:'',p.email?'Email: '+p.email:''].filter(Boolean).join(' | '),
-    c2:[p.linkedin?'LinkedIn: '+p.linkedin:'',p.loc?'Location: '+p.loc:''].filter(Boolean).join(' | '),
-    summary:_cvClean(p.summary).trim(), skills:_cvList(p.skills), jobs, edu, certs:_cvList(p.certs), langs:_cvList(p.langs)
+    c2:[p.linkedin?'LinkedIn: '+_cvShortLink(p.linkedin):'',p.loc?'Location: '+p.loc:''].filter(Boolean).join(' | '),
+    summary:_cvUrlShort(_cvClean(p.summary).trim()), skills:_cvList(p.skills).map(_cvUrlShort), jobs, edu, certs:_cvList(p.certs).map(_cvUrlShort), langs:_cvList(p.langs).map(_cvUrlShort)
   };
 }
 function _cvText(){
@@ -35048,6 +35068,10 @@ ${D}{font-family:var(--ff,Helvetica,Arial,'Helvetica Neue',sans-serif);font-size
 ${D} h1{margin:0;text-align:center;font-size:calc(17pt*var(--fs,1));line-height:1.15;color:var(--acc);font-weight:700;text-transform:uppercase;letter-spacing:0}
 ${D} .hl{color:#4b6073;font-size:calc(9.3pt*var(--fs,1));margin:3pt 0 5pt;text-align:left}
 ${D} .ct{color:#333;line-height:calc(var(--lh,1.36) + .06)}
+${D} .ct .cr{display:flex;flex-wrap:wrap;gap:0 14pt}
+${D} .ct .ci{min-width:0;overflow-wrap:anywhere}
+${D} .ct .ci i{font-style:normal;font-weight:600;color:#6b7782}
+${D} a{color:inherit;text-decoration:none}
 ${D} h2{margin:calc(8pt*var(--g,1)) 0 calc(4pt*var(--g,1));font-size:calc(10.3pt*var(--fs,1));color:var(--acc);font-weight:700;text-transform:uppercase;break-after:avoid;letter-spacing:0;border:0;padding:0}
 ${D} p{margin:0}
 ${D} .sk{list-style:none;margin:0;padding:0;columns:2;column-gap:22pt}
@@ -35080,6 +35104,7 @@ ${R}.cvt-executive h1{letter-spacing:1.6pt;font-size:calc(19pt*var(--fs,1))}
 ${R}.cvt-executive .hd{flex-direction:column;text-align:center;gap:6pt}
 ${R}.cvt-executive .hl{text-align:center;font-style:italic}
 ${R}.cvt-executive .ct{text-align:center}
+${R}.cvt-executive .ct .cr{justify-content:center}
 ${R}.cvt-executive h2{border-bottom:.8pt solid var(--acc);padding-bottom:2pt;letter-spacing:.8pt}
 ${R}.cvt-executive .co{color:#111}
 ${R}.cvt-executive .rl{font-style:italic}
@@ -35088,6 +35113,7 @@ ${R}.cvt-banner .hd{background:var(--acc);color:#fff;padding:13pt 15pt;border-ra
 ${R}.cvt-banner h1{color:#fff;text-align:left;font-size:calc(19pt*var(--fs,1))}
 ${R}.cvt-banner .hl{color:rgba(255,255,255,.88);margin:2pt 0 4pt}
 ${R}.cvt-banner .ct{color:rgba(255,255,255,.92)}
+${R}.cvt-banner .ct .ci i{color:rgba(255,255,255,.7)}
 ${R}.cvt-banner .ph{border-color:#fff;width:calc(66pt*var(--ps,1));height:calc(66pt*var(--ps,1))}
 ${R}.cvt-banner h2{border-bottom:1.4pt solid var(--acc);padding-bottom:2pt}
 /* Minimal */
@@ -35119,6 +35145,8 @@ ${D}.bu-none .sk li,${D}.bu-none .bl li{padding-inline-start:0}
 ${D}.bu-none .sk li::before,${D}.bu-none .bl li::before{content:none}
 ${D}.na-left h1,${D}.na-left .hl,${D}.na-left .ct{text-align:left}
 ${D}.na-center h1,${D}.na-center .hl,${D}.na-center .ct{text-align:center}
+${D}.na-center .ct .cr{justify-content:center}
+${D}.na-left .ct .cr{justify-content:flex-start}
 `;
 }
 function _cvDocHTML(m,stIn){
@@ -35151,10 +35179,12 @@ function _cvDocHTML(m,stIn){
   if(st.na==='left'||st.na==='center') cls.push('na-'+st.na);
   const open=`<div class="${cls.join(' ')}" style="${_cvStyleVars(st)}">`;
   if(side){
-    const cl=(!H('ct')&&m.ctl&&m.ctl.length)?sec('Contact',`<div class="cl">${m.ctl.map(x=>`<div dir="auto"><b>${esc(x[0])}</b>${esc(x[1])}</div>`).join('')}</div>`):'';
+    const cl=(!H('ct')&&m.ctl&&m.ctl.length)?sec('Contact',`<div class="cl">${m.ctl.map(x=>`<div dir="auto"><b>${esc(x[0])}</b>${x[2]?`<a href="${esc(x[2])}">${esc(x[1])}</a>`:esc(x[1])}</div>`).join('')}</div>`):'';
     return `${open}<div class="tb"><div class="sd">${photo}${cl}${S.sk}${S.edu}${S.certs}${S.langs}</div><div class="mn">${m.name?`<h1>${esc(m.name)}</h1>`:''}<div class="hl">${esc(m.headline)}</div>${S.sum}${S.jobs}</div></div></div>`;
   }
-  const ct=H('ct')?'':`<div class="ct">${m.c1?`<div>${esc(m.c1)}</div>`:''}${m.c2?`<div>${esc(m.c2)}</div>`:''}</div>`;
+  const ci=x=>`<span class="ci" dir="auto"><i>${esc(x[0])}:</i> ${x[2]?`<a href="${esc(x[2])}">${esc(x[1])}</a>`:esc(x[1])}</span>`;
+  const rows=[(m.ctl||[]).filter(x=>x[0]==='Phone'||x[0]==='Email'),(m.ctl||[]).filter(x=>x[0]==='LinkedIn'||x[0]==='Location')].filter(r=>r.length);
+  const ct=(H('ct')||!rows.length)?'':`<div class="ct">${rows.map(r=>`<div class="cr">${r.map(ci).join('')}</div>`).join('')}</div>`;
   return `${open}<div class="hd">${photo}<div class="hi">${m.name?`<h1>${esc(m.name)}</h1>`:''}<div class="hl">${esc(m.headline)}</div>${ct}</div></div>${S.sum}${S.sk}${S.jobs}${S.edu}${S.certs}${S.langs}</div>`;
 }
 // ---- design drawer (inside the CV preview) ---------------------------------
@@ -38086,7 +38116,7 @@ function _txlgDuplicateFlags(all, metaArr){
 function _txlgRowTime(t){
   if(t && t._ts){
     try{
-      return new Date(t._ts).toLocaleTimeString(_dtLocale(),{hour:'numeric',minute:'2-digit',timeZone:_globalTimeZone()});
+      return new Date(t._ts).toLocaleTimeString(_dtLocale(),{hour:'2-digit',minute:'2-digit',timeZone:_globalTimeZone()});
     }catch(e){ /* fall through to relative label */ }
   }
   return _txRelTime(t.date);
@@ -55043,6 +55073,56 @@ function mioraDismissGreetToast(){
 .dz-tabs button{flex:1 0 auto;min-height:34px;padding:0 14px;border:0;border-radius:99px;background:var(--surface2,#eee);color:var(--text2,#444);font:inherit;font-size:12.5px;font-weight:800;cursor:pointer;white-space:nowrap}
 .dz-tabs button.on{background:var(--green);color:#fff}
 .dz-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 12px;margin-bottom:8px;border-radius:13px;background:var(--surface2,#f1f1f1);font-size:13.5px;font-weight:700;color:var(--text,#222)}
+</style>
+
+<style id="dash-compact-css">
+/* Dashboard hero + summary cards: tighter spacing, clearer hierarchy */
+.wdash-wrap.dv3-dark-v2 > .dv3-hero-standalone{margin-bottom:8px}
+.wdash-wrap.dv3-dark-v2 .dv3-hero .dv3-hero-inner{padding:12px 14px 11px;gap:0}
+.wdash-wrap.dv3-dark-v2 .dash-hero-head{margin-bottom:6px;min-height:0}
+.wdash-wrap.dv3-dark-v2 .dash-hero-eyebrow{font-size:calc(10px*var(--app-text-scale,1));letter-spacing:.08em;font-weight:700}
+.wdash-wrap.dv3-dark-v2 .dash-hero-main-lbl{margin:0 0 2px;font-size:calc(11px*var(--app-text-scale,1));font-weight:600}
+.wdash-wrap.dv3-dark-v2 .dash-hero-main-val{font-size:calc(36px*var(--app-text-scale,1));line-height:1.04;letter-spacing:-1px;font-variant-numeric:tabular-nums}
+.wdash-wrap.dv3-dark-v2 .dash-hero-main-val .hnum-cur{margin-inline-start:5px}
+@media(max-width:430px){.wdash-wrap.dv3-dark-v2 .dash-hero-main-val{font-size:calc(31px*var(--app-text-scale,1))}}
+@media(max-width:360px){.wdash-wrap.dv3-dark-v2 .dash-hero-main-val{font-size:calc(26px*var(--app-text-scale,1))}}
+.wdash-wrap.dv3-dark-v2 .dv3h-stat-row{margin-top:10px;padding-top:9px}
+.wdash-wrap.dv3-dark-v2 .dv3h-stat{gap:2px}
+.wdash-wrap.dv3-dark-v2 .dv3h-stat-lbl{font-size:calc(10px*var(--app-text-scale,1));font-weight:600;color:var(--text-muted)}
+.wdash-wrap.dv3-dark-v2 .fp-hero-toggle{top:8px;inset-inline-end:8px;width:28px;height:28px;min-width:28px;min-height:28px}
+.wdash-wrap.dv3-dark-v2 .fp-hero-toggle svg{width:13px;height:13px}
+/* summary grid: 4 compact tiles */
+.wdash-wrap.dv3-dark-v2 > .dv3-kpi-row{margin:0 0 8px}
+.wdash-wrap.dv3-dark-v2 > .dv3-kpi-row .dfp-kpi3-card{min-height:0;padding:9px 12px;flex-direction:row;align-items:center;gap:10px}
+.wdash-wrap.dv3-dark-v2 .dv3-kpi-text{gap:1px}
+.wdash-wrap.dv3-dark-v2 .dfp-kpi3-lbl{font-size:calc(10px*var(--app-text-scale,1));font-weight:600;letter-spacing:.2px;opacity:1}
+.wdash-wrap.dv3-dark-v2 .dfp-kpi3-val{font-size:calc(14.5px*var(--app-text-scale,1));font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+.wdash-wrap.dv3-dark-v2 .fp-qa-row{margin:0 0 10px}
+</style>
+
+<style id="txlg-timeline-polish">
+/* Daily Timeline card: clear hierarchy — icon · title + meta · amount; day headers with totals */
+.txlg-wrap .sc-main{overflow:hidden}
+.txlg-wrap .sc-main-header{padding:12px 16px;border-bottom:1px solid var(--border)}
+.txlg-wrap .txlg-timeline{padding:0}
+.txlg-wrap .txlg-group-label{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin:0;padding:12px 16px 7px;border-top:0;background:var(--surface2);font-size:calc(11px*var(--app-text-scale,1));font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}
+.txlg-wrap .txlg-group-label:first-child{padding-top:10px}
+.txlg-wrap .txlg-group-total{font-weight:800;letter-spacing:0;text-transform:none;color:var(--text2);font-variant-numeric:tabular-nums;white-space:nowrap}
+.txlg-wrap .txlg-row{position:relative}
+.txlg-wrap .txlg-row-content{display:flex;align-items:center;gap:12px;padding:11px 16px}
+.txlg-wrap .txlg-row+.txlg-row .txlg-row-content{border-top:0}
+.txlg-wrap .txlg-row+.txlg-row::before{content:'';position:absolute;top:0;inset-inline-start:66px;inset-inline-end:16px;height:1px;background:var(--border);z-index:1}
+.txlg-wrap .txlg-ico{flex:none;display:flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:12px}
+.txlg-wrap .txlg-ico .cat-ic{vertical-align:0}
+.txlg-wrap .txlg-notes{margin:0 0 3px;font-size:calc(14.5px*var(--app-text-scale,1));font-weight:700;line-height:1.25;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.txlg-wrap .txlg-ai-line{justify-content:flex-start;gap:8px;margin-top:0}
+.txlg-wrap .txlg-ai-meta{flex:0 1 auto;min-width:0;font-size:calc(11.5px*var(--app-text-scale,1));font-weight:600;color:var(--muted)}
+.txlg-wrap .txlg-review-badge{flex:none;margin:0;padding:2px 8px;font-size:calc(10px*var(--app-text-scale,1));font-weight:800;border-radius:99px}
+.txlg-wrap .txlg-side{align-items:flex-end;gap:0}
+.txlg-wrap .txlg-amt{display:flex;align-items:baseline;gap:4px;font-size:calc(16px*var(--app-text-scale,1));font-weight:800;letter-spacing:-.2px;font-variant-numeric:tabular-nums}
+.txlg-wrap .txlg-amt .txlg-cur{font-size:calc(10.5px*var(--app-text-scale,1));font-weight:700;letter-spacing:.2px;color:var(--muted)}
+.txlg-wrap .txlg-viewall{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;min-height:46px;border:0;border-top:1px solid var(--border);background:var(--surface);color:var(--green);font:inherit;font-size:calc(13px*var(--app-text-scale,1));font-weight:800;cursor:pointer}
+.txlg-wrap .txlg-viewall:active{background:var(--surface2)}
 </style>
 </body>
 </html>
