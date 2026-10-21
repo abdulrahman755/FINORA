@@ -12136,6 +12136,56 @@ function fpInitSmartHeader(){
 .att-pay-sum b{font-variant-numeric:tabular-nums}
 .att-pg .att-seg-row{width:100%}
 
+/* ── Customize Card: preview first, folding sections, bigger touch targets, one-row footer ── */
+#modalContent .bcp-prev-wrap{margin:6px 0 14px}
+#modalContent .bcp-sec{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+#modalContent .bcp-sec > summary{list-style:none;display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:52px;padding:0 16px;cursor:pointer;
+  font-size:calc(14px*var(--app-text-scale,1));font-weight:800;color:var(--text);-webkit-tap-highlight-color:transparent}
+#modalContent .bcp-sec > summary::-webkit-details-marker{display:none}
+#modalContent .bcp-sec > summary::after{content:"";width:8px;height:8px;border-inline-end:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:rotate(45deg);margin-top:-3px;transition:transform .2s}
+#modalContent .bcp-sec[open] > summary::after{transform:rotate(-135deg);margin-top:3px}
+#modalContent .bcp-sec[open] > summary{border-bottom:1px solid var(--border)}
+#modalContent .bcp-sec-body{padding:14px 16px 16px}
+#modalContent .bcp-vcard-opt{height:56px!important}
+#modalContent .bcp-vcard-opt span{font-size:calc(11px*var(--app-text-scale,1))!important}
+#modalContent .bcp-net-opt{height:38px!important;font-size:calc(12px*var(--app-text-scale,1))!important}
+#modalContent .bcp-sec-body div[onclick*="previewBankColors"][style*="width:22px"]{width:32px!important;height:32px!important;border-radius:10px!important}
+#modalContent .bcp-sec-body input[type=color]{height:42px;padding:3px;border-radius:12px;border:1px solid var(--border);background:var(--surface2);cursor:pointer}
+.modal-btns.bcp-btns{flex-direction:row;align-items:stretch;gap:8px}
+.bcp-btns .mbtn{min-height:52px;margin:0}
+.bcp-btns .mbtn.save{flex:1 1 auto;order:1}
+.bcp-btns .mbtn.cancel{flex:0 0 auto;padding-inline:16px;border:0;background:transparent;color:var(--muted)}
+
+/* ── Sheet footers: the bottom-sheet wrapper moves .modal-btns into .bs-footer, so one-row footers must target .bs-footer ── */
+#modalContent:has(.txm-hdr) .bs-footer,
+#modalContent:has(.dt-hero) .bs-footer,
+#modalContent:has(.bcp-prev-wrap) .bs-footer{flex-direction:row;align-items:stretch;gap:8px}
+#modalContent:has(.txm-hdr) .bs-footer .bs-save-btn,
+#modalContent:has(.dt-hero) .bs-footer .bs-save-btn,
+#modalContent:has(.bcp-prev-wrap) .bs-footer .bs-save-btn{flex:1 1 auto;width:auto;min-height:52px;margin:0;order:2}
+#modalContent:has(.txm-hdr) .bs-footer .bs-cancel-btn,
+#modalContent:has(.dt-hero) .bs-footer .bs-cancel-btn,
+#modalContent:has(.bcp-prev-wrap) .bs-footer .bs-cancel-btn{flex:0 0 auto;width:auto;min-height:52px;margin:0;padding-inline:18px;border:0;background:transparent;box-shadow:none;color:var(--muted);order:1}
+[dir="rtl"] #modalContent:has(.txm-hdr) .bs-footer .bs-save-btn,
+[dir="rtl"] #modalContent:has(.dt-hero) .bs-footer .bs-save-btn,
+[dir="rtl"] #modalContent:has(.bcp-prev-wrap) .bs-footer .bs-save-btn{order:1}
+[dir="rtl"] #modalContent:has(.txm-hdr) .bs-footer .bs-cancel-btn,
+[dir="rtl"] #modalContent:has(.dt-hero) .bs-footer .bs-cancel-btn,
+[dir="rtl"] #modalContent:has(.bcp-prev-wrap) .bs-footer .bs-cancel-btn{order:2}
+
+/* ── Customize Card: preview stays pinned while you edit (shrunk so it leaves room for the controls) ── */
+#modalContent .bcp-prev-wrap{position:sticky;top:0;z-index:5;margin:0 calc(var(--sp5)*-1) 12px;padding:8px var(--sp5) 10px;background:var(--surface);border-bottom:1px solid var(--border)}
+#modalContent .bcp-prev-wrap .banks-v2{zoom:.72}
+#modalContent .bcp-prev-wrap > div > div:first-child{margin-bottom:4px}
+
+/* ── Accounts: Bank accounts / E-wallets section headers ── */
+.banks-v2 .bnk-sec-hdr{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:6px 4px 0;margin-top:8px}
+.banks-v2 .bnk-sec-hdr:first-child{margin-top:0}
+.banks-v2 .bnk-sec-t{display:inline-flex;align-items:center;gap:8px;font-size:calc(13.5px*var(--app-text-scale,1));font-weight:800;color:var(--text)}
+.banks-v2 .bnk-sec-t svg{color:var(--muted)}
+.banks-v2 .bnk-sec-t small{font-size:calc(11px*var(--app-text-scale,1));font-weight:700;color:var(--muted);background:var(--surface2);border-radius:99px;padding:2px 8px}
+.banks-v2 .bnk-sec-sum{font-size:calc(13px*var(--app-text-scale,1));font-weight:800;color:var(--text2,var(--text));font-variant-numeric:tabular-nums}
+
 /* ── New Transaction sheet: cleaner hierarchy (presentation-only; ids/handlers untouched) ── */
 #modalContent .txm-hdr{margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--border)}
 #modalContent .txm-datecard{padding:4px 14px 14px;border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);box-shadow:var(--shadow-sm)}
@@ -26068,10 +26118,10 @@ function openBankColorPicker(key){
   // so each concern (card face / network logo / colors / numbers) reads as
   // its own section instead of one long unbroken column.
   const sec=(titleEn,titleAr,inner)=>`
-      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:13px 14px">
-        <div style="font-size:calc(11px*var(--app-text-scale,1));font-weight:700;color:var(--muted);text-transform:none;letter-spacing:.3px;padding-bottom:8px;margin-bottom:10px;border-bottom:1px solid var(--border)">${L(titleEn,titleAr)}</div>
-        ${inner}
-      </div>`;
+      <details class="bcp-sec"${titleEn==='Card Face'?' open':''}>
+        <summary>${L(titleEn,titleAr)}</summary>
+        <div class="bcp-sec-body">${inner}</div>
+      </details>`;
 
   const NETWORK_OPTS=[
     {k:'auto',en:'Auto',ar:'تلقائي'},
@@ -26089,7 +26139,49 @@ function openBankColorPicker(key){
     <div class="modal-handle"></div>
     <div class="modal-title">${L('Customize Card','تخصيص البطاقة')} — ${esc(bankDisplayName(b.name))}</div>
 
-    <div style="display:grid;gap:12px;margin-top:4px">
+    <div class="bcp-prev-wrap">
+      <!-- Live preview — reuses the real card CSS classes so it's an exact
+           reflection of both pieces a customization touches: the collapsed
+           list row (List Row Background/colors) and the expanded card face
+           (Card Face/Numbers Style, plus Network Logo for banks). Every
+           control above calls previewBankColors() on change, which repaints
+           both blocks below instead of a static, disconnected sample. -->
+      <div>
+        <div style="font-size:calc(11px*var(--app-text-scale,1));font-weight:700;color:var(--muted);text-transform:none;letter-spacing:.3px;margin-bottom:8px">${L('Live Preview','معاينة مباشرة')}</div>
+        <div class="banks-v2">
+          <div id="bcp-row-preview" style="border-radius:var(--radius-sm);border-inline-start:4px solid ${c.cardBorder||defColor};background:${c.cardBg||'#ffffff'};padding:10px 12px;display:flex;align-items:center;gap:var(--sp3);margin-bottom:10px">
+            <div id="bcp-row-icon" style="width:34px;height:34px;border-radius:var(--icon-r-2);background:${(c.cardBorder||defColor)}22;display:flex;align-items:center;justify-content:center;font-size:calc(13px*var(--app-text-scale,1));font-weight:900;color:${c.cardBorder||defColor};flex-shrink:0">${esc(b.name.slice(0,2).toUpperCase())}</div>
+            <div style="min-width:0;flex:1">
+              <div id="bcp-row-name" style="font-size:calc(13px*var(--app-text-scale,1));font-weight:800;color:${c.nameColor||'#1e293b'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(bankDisplayName(b.name))}</div>
+              <div style="font-size:calc(9px*var(--app-text-scale,1));color:var(--muted);text-transform:none;letter-spacing:.3px">${typeBadge} · ${L('List Row','صف القائمة')}</div>
+            </div>
+            <div id="bcp-row-num" style="font-size:calc(16px*var(--app-text-scale,1));font-weight:900;color:${c.numbersColor||c.nameColor||'#1e293b'};flex-shrink:0">12,345.00</div>
+          </div>
+          <div id="bcp-preview" class="bnk-visacard bnk-visacard-expanded" style="position:relative">
+            <div class="bnk-vc-sheen"></div>
+            <div class="bnk-vc-top">
+              <div class="bnk-vc-chip" id="bcp-prev-chip"><span></span><span></span><span></span></div>
+              <svg class="bnk-vc-nfc" id="bcp-prev-nfc" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><path d="M8.5 8.5a5 5 0 0 1 0 7"/><path d="M11.5 5.5a9 9 0 0 1 0 13"/><path d="M14.5 2.5a13 13 0 0 1 0 19"/></svg>
+            </div>
+            <div class="bnk-vc-balance" id="bcp-prev-balwrap">
+              <div class="bnk-vc-balance-top">
+                <div class="bal-avail-label">${L('Available Balance','الرصيد المتاح')}</div>
+              </div>
+              <div class="bal-avail-amount" id="bcp-prev-num-val">12,345.00</div>
+            </div>
+            <div class="bnk-vc-bottom">
+              <div class="bnk-vc-holder">
+                <div class="bnk-vc-holder-lbl">${typeBadge}</div>
+                <div class="bnk-vc-holder-name" id="bcp-prev-holder">${esc(bankDisplayName(b.name)).toUpperCase()}</div>
+              </div>
+              <div class="bnk-vc-network" id="bcp-prev-network"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:grid;gap:10px;margin-top:4px">
 
       ${sec('Card Face','شكل البطاقة',`
         <div style="font-size:calc(10.5px*var(--app-text-scale,1));color:var(--muted);margin-bottom:8px">${isWallet
@@ -26197,49 +26289,9 @@ function openBankColorPicker(key){
           <input type="color" id="bcp-numcolor-ui" value="${c.numbersColor||'#ffffff'}" oninput="document.getElementById('bcp-numcolor').value=this.value;previewBankColors('${key}')" style="width:100%">
         </div>
       `)}
-
-      <!-- Live preview — reuses the real card CSS classes so it's an exact
-           reflection of both pieces a customization touches: the collapsed
-           list row (List Row Background/colors) and the expanded card face
-           (Card Face/Numbers Style, plus Network Logo for banks). Every
-           control above calls previewBankColors() on change, which repaints
-           both blocks below instead of a static, disconnected sample. -->
-      <div>
-        <div style="font-size:calc(11px*var(--app-text-scale,1));font-weight:700;color:var(--muted);text-transform:none;letter-spacing:.3px;margin-bottom:8px">${L('Live Preview','معاينة مباشرة')}</div>
-        <div class="banks-v2">
-          <div id="bcp-row-preview" style="border-radius:var(--radius-sm);border-inline-start:4px solid ${c.cardBorder||defColor};background:${c.cardBg||'#ffffff'};padding:10px 12px;display:flex;align-items:center;gap:var(--sp3);margin-bottom:10px">
-            <div id="bcp-row-icon" style="width:34px;height:34px;border-radius:var(--icon-r-2);background:${(c.cardBorder||defColor)}22;display:flex;align-items:center;justify-content:center;font-size:calc(13px*var(--app-text-scale,1));font-weight:900;color:${c.cardBorder||defColor};flex-shrink:0">${esc(b.name.slice(0,2).toUpperCase())}</div>
-            <div style="min-width:0;flex:1">
-              <div id="bcp-row-name" style="font-size:calc(13px*var(--app-text-scale,1));font-weight:800;color:${c.nameColor||'#1e293b'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(bankDisplayName(b.name))}</div>
-              <div style="font-size:calc(9px*var(--app-text-scale,1));color:var(--muted);text-transform:none;letter-spacing:.3px">${typeBadge} · ${L('List Row','صف القائمة')}</div>
-            </div>
-            <div id="bcp-row-num" style="font-size:calc(16px*var(--app-text-scale,1));font-weight:900;color:${c.numbersColor||c.nameColor||'#1e293b'};flex-shrink:0">12,345.00</div>
-          </div>
-          <div id="bcp-preview" class="bnk-visacard bnk-visacard-expanded" style="position:relative">
-            <div class="bnk-vc-sheen"></div>
-            <div class="bnk-vc-top">
-              <div class="bnk-vc-chip" id="bcp-prev-chip"><span></span><span></span><span></span></div>
-              <svg class="bnk-vc-nfc" id="bcp-prev-nfc" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><path d="M8.5 8.5a5 5 0 0 1 0 7"/><path d="M11.5 5.5a9 9 0 0 1 0 13"/><path d="M14.5 2.5a13 13 0 0 1 0 19"/></svg>
-            </div>
-            <div class="bnk-vc-balance" id="bcp-prev-balwrap">
-              <div class="bnk-vc-balance-top">
-                <div class="bal-avail-label">${L('Available Balance','الرصيد المتاح')}</div>
-              </div>
-              <div class="bal-avail-amount" id="bcp-prev-num-val">12,345.00</div>
-            </div>
-            <div class="bnk-vc-bottom">
-              <div class="bnk-vc-holder">
-                <div class="bnk-vc-holder-lbl">${typeBadge}</div>
-                <div class="bnk-vc-holder-name" id="bcp-prev-holder">${esc(bankDisplayName(b.name)).toUpperCase()}</div>
-              </div>
-              <div class="bnk-vc-network" id="bcp-prev-network"></div>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
 
-    <div class="modal-btns" style="margin-top:14px">
+    <div class="modal-btns bcp-btns" style="margin-top:14px">
       <button class="mbtn save" onclick="saveBankColors('${key}')">${L('Save','حفظ')}</button>
       <button class="mbtn cancel" onclick="resetBankColors('${key}')">${L('Reset','إعادة تعيين')}</button>
       <button class="mbtn cancel" onclick="closeModal()">${L('Cancel','إلغاء')}</button>
@@ -27617,7 +27669,7 @@ function renderBanks(m){
   const _bnkQ=(searchQ||'').trim().toLowerCase();
   const banksForCards=_bnkQ ? banks.filter(b=>(bankDisplayName(b.name)||b.name||'').toLowerCase().includes(_bnkQ)) : banks;
 
-  const bankCardsHTML = banksForCards.map((b,idx)=>{
+  const _bankCardsArr = banksForCards.map((b,idx)=>{
     const bal=_bkBalByKey.get(b.key);
     const tot=getTxTotals(m,b.key);
     const moves=(m?.bank_movements||[]).filter(mv=>mv.bank===b.key);
@@ -27874,7 +27926,20 @@ function renderBanks(m){
         </div>
       </div>
     </div>`;
-  }).join('');
+  });
+  // Split into two labelled sections (Bank accounts / E-wallets) when both kinds exist;
+  // the cards themselves, ids and drag handles are unchanged.
+  const _secHdr=(icon,en,ar,idxs)=>{
+    const sum=idxs.reduce((a,i)=>a+(_bkBalByKey.get(banksForCards[i].key)||0),0);
+    return `<div class="bnk-sec-hdr"><span class="bnk-sec-t">${ic(icon,15,'aria-hidden="true"')} ${L(en,ar)} <small>${idxs.length}</small></span><span class="bnk-sec-sum" dir="ltr">${fmt(sum)} ${esc(curLabel())}</span></div>`;
+  };
+  const _ixB=[], _ixW=[];
+  banksForCards.forEach((b,i)=>{ (b.isWallet?_ixW:_ixB).push(i); });
+  const _splitSecs = bankOnly.length>0 && wallets.length>0;
+  const bankCardsHTML = _splitSecs
+    ? (_ixB.length ? _secHdr('bank','Bank accounts','الحسابات البنكية',_ixB)+_ixB.map(i=>_bankCardsArr[i]).join('') : '')
+      + (_ixW.length ? _secHdr('wallet','E-wallets','المحافظ الإلكترونية',_ixW)+_ixW.map(i=>_bankCardsArr[i]).join('') : '')
+    : _bankCardsArr.join('');
 
   // Hero figures — presentation-only, built from `total`/`banks` above via
   // the helpers near the top of this section (see comments there).
