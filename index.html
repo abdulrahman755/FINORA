@@ -1846,6 +1846,59 @@ tbody tr:hover{background:var(--surface2)}
 .qn-fmt-btn.active{color:var(--gold-dark);background:var(--gold-tint)}
 .qn-toolbar-sep{width:1px;height:18px;background:var(--border);margin:0 5px;flex-shrink:0}
 .qn-toolbar{transition:transform .12s ease-out;will-change:transform}
+/* Notes format tools: one FAB-style button; tapping it opens a grouped vertical menu.
+   .qn-toolbar is a zero-height anchor (so the keyboard-tracking transform still moves it) and the FAB floats above its bottom edge. */
+.qn-toolbar{display:block;position:relative;height:0;padding:0;overflow:visible;border:none;border-radius:0;background:none;box-shadow:none;margin:0 var(--sp4) calc(8px + env(safe-area-inset-bottom));z-index:20}
+.qn-fab-scrim{position:absolute;inset:0;z-index:15;background:rgba(8,14,11,.34);opacity:0;visibility:hidden;transition:opacity .2s ease,visibility 0s linear .2s;-webkit-tap-highlight-color:transparent}
+.qn-fab-scrim.open{opacity:1;visibility:visible;transition:opacity .2s ease,visibility 0s}
+.qn-fab-wrap{position:absolute;right:0;bottom:0;display:flex;flex-direction:column;align-items:flex-end;gap:12px}
+.qn-fab{position:relative;width:58px;height:58px;border-radius:18px;border:1px solid rgba(255,255,255,.16);color:#fff;
+  background:linear-gradient(145deg,var(--green),var(--green-dark));
+  box-shadow:0 10px 24px -6px var(--ws-fab-shadow,var(--green-glow)),0 2px 6px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.22);
+  display:flex;align-items:center;justify-content:center;cursor:pointer;-webkit-tap-highlight-color:transparent;
+  transition:transform .22s cubic-bezier(.34,1.56,.64,1),box-shadow .2s,border-radius .22s}
+.qn-fab:active{transform:scale(.92)}
+.qn-fab .qn-fab-ic,.qn-fab .qn-fab-x{display:flex;align-items:center;justify-content:center;transition:transform .22s ease,opacity .18s ease}
+.qn-fab .qn-fab-x{position:absolute;opacity:0;transform:rotate(-90deg) scale(.6)}
+.qn-fab.open{border-radius:50%}
+.qn-fab.open .qn-fab-ic{opacity:0;transform:rotate(90deg) scale(.6)}
+.qn-fab.open .qn-fab-x{opacity:1;transform:none}
+.qn-fab-menu{display:flex;flex-direction:column;min-width:228px;padding:8px;border-radius:24px;
+  background:var(--surface);border:1px solid var(--border);
+  box-shadow:0 22px 48px -12px rgba(0,0,0,.55),0 4px 14px rgba(0,0,0,.22);
+  -webkit-backdrop-filter:saturate(1.4) blur(18px);backdrop-filter:saturate(1.4) blur(18px);
+  opacity:0;visibility:hidden;pointer-events:none;transform:translateY(14px) scale(.94);transform-origin:bottom right;
+  transition:opacity .16s ease,transform .24s cubic-bezier(.22,1,.36,1),visibility 0s linear .24s}
+.qn-fab-menu.open{opacity:1;visibility:visible;pointer-events:auto;transform:none;transition:opacity .16s ease,transform .26s cubic-bezier(.22,1,.36,1),visibility 0s}
+.qn-fab-row{display:flex;align-items:center;gap:12px;width:100%;min-height:46px;padding:0 10px 0 8px;border:none;border-radius:16px;background:transparent;color:var(--text);
+  font-size:calc(14.5px*var(--app-text-scale,1));font-weight:700;letter-spacing:.1px;text-align:start;cursor:pointer;-webkit-tap-highlight-color:transparent;
+  opacity:0;transform:translateY(8px);transition:background .12s}
+.qn-fab-menu.open .qn-fab-row{opacity:1;transform:none;transition:opacity .22s ease,transform .26s cubic-bezier(.22,1,.36,1),background .12s}
+.qn-fab-menu.open .qn-fab-row:nth-last-child(1){transition-delay:0.018s}
+.qn-fab-menu.open .qn-fab-row:nth-last-child(2){transition-delay:0.036s}
+.qn-fab-menu.open .qn-fab-row:nth-last-child(3){transition-delay:0.054s}
+.qn-fab-menu.open .qn-fab-row:nth-last-child(4){transition-delay:0.072s}
+.qn-fab-menu.open .qn-fab-row:nth-last-child(5){transition-delay:0.090s}
+.qn-fab-menu.open .qn-fab-row:nth-last-child(6){transition-delay:0.108s}
+.qn-fab-menu.open .qn-fab-row:nth-last-child(7){transition-delay:0.126s}
+.qn-fab-menu.open .qn-fab-row:nth-last-child(8){transition-delay:0.144s}
+.qn-fab-menu.open .qn-fab-row:nth-last-child(9){transition-delay:0.162s}
+.qn-fab-menu.open .qn-fab-row:nth-last-child(10){transition-delay:0.180s}
+.qn-fab-menu.open .qn-fab-row:nth-last-child(11){transition-delay:0.198s}
+.qn-fab-menu.open .qn-fab-row:nth-last-child(12){transition-delay:0.216s}
+.qn-fab-menu.open .qn-fab-row:nth-last-child(13){transition-delay:0.234s}
+.qn-fab-row:active{background:var(--surface2)}
+.qn-fab-row-ic{width:34px;height:34px;border-radius:11px;background:var(--surface2);color:var(--green-dark);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:15px;font-weight:800;transition:background .15s,color .15s}
+[data-theme="dark"] .qn-fab-row-ic{color:var(--green-light)}
+.qn-fab-row-tx{flex:1;min-width:0;white-space:nowrap}
+.qn-fab-row[data-fmt]::after{content:'';width:8px;height:8px;border-radius:50%;background:transparent;flex-shrink:0;transition:background .15s,transform .15s;transform:scale(.4)}
+.qn-fab-row.on .qn-fab-row-ic{background:linear-gradient(145deg,var(--green),var(--green-dark));color:#fff}
+.qn-fab-row.on[data-fmt]::after{background:var(--green);transform:none}
+.qn-fab-sep{height:1px;margin:6px 10px;background:var(--border);opacity:.8;flex-shrink:0}
+#notesPageOverlay.qn-force-light .qn-fab-menu{background:#FFFFFF;border-color:#E1DAC4;color:#12241C}
+#notesPageOverlay.qn-force-light .qn-fab-row{color:#12241C}
+#notesPageOverlay.qn-force-light .qn-fab-row-ic{background:#F2EEDD}
+@media (prefers-reduced-motion:reduce){.qn-fab,.qn-fab-menu,.qn-fab-menu.open,.qn-fab-row,.qn-fab-menu.open .qn-fab-row,.qn-fab-scrim,.qn-fab .qn-fab-ic,.qn-fab .qn-fab-x{transition:none}}
 
 .qn-body{
   flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;
@@ -44087,29 +44140,26 @@ function _renderNoteEditorUnlocked(n){
         <button type="button" class="icon-btn" onclick="_notesCloseFind()" aria-label="${L('Close','إغلاق')}">${ic('close',15)}</button>
       </div>
     </div>
+    <div class="qn-fab-scrim" id="qnFabScrim" onclick="_notesCloseFabMenu()"></div>
     <div class="qn-toolbar" id="qnToolbar">
-      <button type="button" class="qn-fmt-btn" onclick="_notesOpenStyleMenu()" aria-label="${L('Text style','نمط النص')}" style="font-weight:800;border-radius:var(--radius-xs);width:auto;min-width:30px">Aa</button>
-      <span class="qn-toolbar-sep"></span>
-      <button type="button" class="qn-fmt-btn" onclick="_notesFormat('bold')" aria-label="Bold"><b>B</b></button>
-      <button type="button" class="qn-fmt-btn" onclick="_notesFormat('italic')" aria-label="Italic"><i>I</i></button>
-      <button type="button" class="qn-fmt-btn" onclick="_notesFormat('underline')" aria-label="Underline"><u>U</u></button>
-      <button type="button" class="qn-fmt-btn" onclick="_notesFormat('strikeThrough')" aria-label="Strikethrough"><s>S</s></button>
-      <span class="qn-toolbar-sep"></span>
-      <button type="button" class="qn-fmt-btn" onclick="_notesInsertChecklist()" aria-label="${L('Checklist','قائمة تأشير')}">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="6" height="6" rx="1"/><path d="M4.5 8l1 1 2-2"/><rect x="3" y="14" width="6" height="6" rx="1"/><path d="M12 8h9M12 17h9"/></svg>
-      </button>
-      <button type="button" class="qn-fmt-btn" onclick="_notesInsertTable()" aria-label="${L('Table','جدول')}">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="1"/><path d="M3 10h18M3 16h18M9 4v16M15 4v16"/></svg>
-      </button>
-      <button type="button" class="qn-fmt-btn" onclick="_notesOpenAttachMenu()" aria-label="${L('Attach','إرفاق')}">${ic('attach',16)}</button>
-      <button type="button" class="qn-fmt-btn" onclick="_notesInsertLink()" aria-label="${L('Link','رابط')}">${ic('link',16)}</button>
-      <button type="button" class="qn-fmt-btn" onclick="_notesOpenDraw()" aria-label="${L('Draw','رسم')}">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><path d="M2 2l7.586 7.586"/><circle cx="11" cy="11" r="2"/></svg>
-      </button>
-      <span class="qn-toolbar-sep"></span>
-      <button type="button" class="qn-fmt-btn" onclick="_notesOpenMovePicker()" aria-label="${L('Move to folder','نقل إلى مجلد')}">
-        ${ic('folder',16)}
-      </button>
+      <div class="qn-fab-wrap" id="qnFabWrap">
+        <div class="qn-fab-menu" id="qnFabMenu" role="menu">
+          <button type="button" class="qn-fab-row" role="menuitem" data-act="style" onclick="_notesFabRun('style')"><span class="qn-fab-row-ic">${ic('type',18)}</span><span class="qn-fab-row-tx">${L('Text style','نمط النص')}</span></button>
+          <button type="button" class="qn-fab-row" role="menuitem" data-act="bold" data-fmt="1" onclick="_notesFabRun('bold')"><span class="qn-fab-row-ic"><b>B</b></span><span class="qn-fab-row-tx">${L('Bold','عريض')}</span></button>
+          <button type="button" class="qn-fab-row" role="menuitem" data-act="italic" data-fmt="1" onclick="_notesFabRun('italic')"><span class="qn-fab-row-ic"><i style="font-family:Georgia,serif">I</i></span><span class="qn-fab-row-tx">${L('Italic','مائل')}</span></button>
+          <button type="button" class="qn-fab-row" role="menuitem" data-act="underline" data-fmt="1" onclick="_notesFabRun('underline')"><span class="qn-fab-row-ic"><u>U</u></span><span class="qn-fab-row-tx">${L('Underline','تسطير')}</span></button>
+          <button type="button" class="qn-fab-row" role="menuitem" data-act="strikeThrough" data-fmt="1" onclick="_notesFabRun('strikeThrough')"><span class="qn-fab-row-ic"><s>S</s></span><span class="qn-fab-row-tx">${L('Strikethrough','شطب')}</span></button>
+          <div class="qn-fab-sep"></div>
+          <button type="button" class="qn-fab-row" role="menuitem" data-act="checklist" onclick="_notesFabRun('checklist')"><span class="qn-fab-row-ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="6" height="6" rx="1"/><path d="M4.5 8l1 1 2-2"/><rect x="3" y="14" width="6" height="6" rx="1"/><path d="M12 8h9M12 17h9"/></svg></span><span class="qn-fab-row-tx">${L('Checklist','قائمة تأشير')}</span></button>
+          <button type="button" class="qn-fab-row" role="menuitem" data-act="table" onclick="_notesFabRun('table')"><span class="qn-fab-row-ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="1"/><path d="M3 10h18M3 16h18M9 4v16M15 4v16"/></svg></span><span class="qn-fab-row-tx">${L('Table','جدول')}</span></button>
+          <button type="button" class="qn-fab-row" role="menuitem" data-act="attach" onclick="_notesFabRun('attach')"><span class="qn-fab-row-ic">${ic('attach',18)}</span><span class="qn-fab-row-tx">${L('Attach','إرفاق')}</span></button>
+          <button type="button" class="qn-fab-row" role="menuitem" data-act="link" onclick="_notesFabRun('link')"><span class="qn-fab-row-ic">${ic('link',18)}</span><span class="qn-fab-row-tx">${L('Link','رابط')}</span></button>
+          <button type="button" class="qn-fab-row" role="menuitem" data-act="draw" onclick="_notesFabRun('draw')"><span class="qn-fab-row-ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><path d="M2 2l7.586 7.586"/><circle cx="11" cy="11" r="2"/></svg></span><span class="qn-fab-row-tx">${L('Draw','رسم')}</span></button>
+          <div class="qn-fab-sep"></div>
+          <button type="button" class="qn-fab-row" role="menuitem" data-act="move" onclick="_notesFabRun('move')"><span class="qn-fab-row-ic">${ic('folder',18)}</span><span class="qn-fab-row-tx">${L('Move to folder','نقل إلى مجلد')}</span></button>
+        </div>
+        <button type="button" class="qn-fab" id="qnFab" onclick="_notesToggleFabMenu(event)" aria-label="${L('Formatting','التنسيق')}" aria-haspopup="menu" aria-expanded="false"><span class="qn-fab-ic">${ic('type',26)}</span><span class="qn-fab-x">${ic('close',24)}</span></button>
+      </div>
     </div>
     <input type="file" id="qnPhotoInput" accept="image/*" multiple style="display:none" onchange="_notesHandlePhotoFile(this.files)">
     <input type="file" id="qnFileInput" style="display:none" onchange="_notesHandleGenericFile(this.files)">`;
@@ -44118,6 +44168,54 @@ function _renderNoteEditorUnlocked(n){
   document.getElementById('qnBody').addEventListener('paste', _notesPaste);
   _notesAttachKeyboardTracking();
   _notesUpdateChkProgress();
+}
+
+// ── Notes format FAB: one button that opens a grouped vertical list of the editing tools ──
+let _qnFabOutside = null;
+function _notesFabSync(){
+  // highlight Bold / Italic / Underline / Strike when they are active at the caret / selection
+  const m=document.getElementById('qnFabMenu'); if(!m) return;
+  m.querySelectorAll('.qn-fab-row[data-fmt]').forEach(r=>{
+    let on=false; try{ on=document.queryCommandState(r.dataset.act); }catch(e){}
+    r.classList.toggle('on', !!on);
+  });
+}
+function _notesCloseFabMenu(){
+  const m=document.getElementById('qnFabMenu'), f=document.getElementById('qnFab'), sc=document.getElementById('qnFabScrim');
+  if(m) m.classList.remove('open');
+  if(sc) sc.classList.remove('open');
+  if(f){ f.classList.remove('open'); f.setAttribute('aria-expanded','false'); }
+  if(_qnFabOutside){ document.removeEventListener('pointerdown', _qnFabOutside, true); _qnFabOutside=null; }
+}
+function _notesToggleFabMenu(e){
+  if(e) e.stopPropagation();
+  const m=document.getElementById('qnFabMenu'), f=document.getElementById('qnFab'), sc=document.getElementById('qnFabScrim');
+  if(!m||!f) return;
+  if(m.classList.contains('open')){ _notesCloseFabMenu(); return; }
+  _notesFabSync();
+  m.classList.add('open'); f.classList.add('open'); f.setAttribute('aria-expanded','true');
+  if(sc) sc.classList.add('open');
+  _qnFabOutside = ev => {
+    const w=document.getElementById('qnFabWrap');
+    if(!w){ _notesCloseFabMenu(); return; }
+    if(!w.contains(ev.target)) _notesCloseFabMenu();
+  };
+  document.addEventListener('pointerdown', _qnFabOutside, true);
+}
+function _notesFabRun(act){
+  // bold / italic / underline / strike stay open so several can be applied in a row; everything else closes the list first
+  const keep = act==='bold'||act==='italic'||act==='underline'||act==='strikeThrough';
+  if(!keep) _notesCloseFabMenu();
+  switch(act){
+    case 'style': _notesOpenStyleMenu(); break;
+    case 'bold': case 'italic': case 'underline': case 'strikeThrough': _notesFormat(act); _notesFabSync(); break;
+    case 'checklist': _notesInsertChecklist(); break;
+    case 'table': _notesInsertTable(); break;
+    case 'attach': _notesOpenAttachMenu(); break;
+    case 'link': _notesInsertLink(); break;
+    case 'draw': _notesOpenDraw(); break;
+    case 'move': _notesOpenMovePicker(); break;
+  }
 }
 
 // ── Keyboard-aware floating toolbar: track the on-screen keyboard via
@@ -44177,6 +44275,7 @@ function _notesDetachKeyboardTracking(){
   _qnKbCleanup = null; _qnViewportHandler = null;
 }
 function closeNoteEditor(){
+  _notesCloseFabMenu();
   _notesDetachKeyboardTracking();
   _notesAutosave();
   // Drop it silently if the person leaves it completely empty (no title,
@@ -48009,6 +48108,9 @@ const ATT=(function(){
   function scopePrefix(){ return scope==='month'?(vy+'-'+pad(vm+1)):(scope==='year'?String(vy):''); }
   // ── time helpers: check-in / check-out are optional "HH:MM" strings (r.i / r.o) ──
   const WORKING=s=>s==='present'||s==='late';
+  // A day whose note says "إذن …" (e.g. "إذن ساعتين") is a permission day: it counts as a full normal day
+  // (full daily hours, no short-hours deduction) even if the person left early.
+  const hasPerm=r=>!!(r&&r.n&&/[إأا]ذن|permission|excuse/i.test(String(r.n)));
   const validT=v=>/^([01]\d|2[0-3]):[0-5]\d$/.test(String(v||''))?String(v):'';
   const nowT=()=>{ const t=new Date(); return pad(t.getHours())+':'+pad(t.getMinutes()); };
   const fmtT=t=>{ const m=/^(\d{2}):(\d{2})$/.exec(t||''); if(!m) return ''; try{ return new Date(2000,0,1,+m[1],+m[2]).toLocaleTimeString(loc(),{hour:'numeric',minute:'2-digit'}); }catch(e){ return t; } };
@@ -48027,7 +48129,7 @@ const ATT=(function(){
       const r=db.days[k];
       if(r&&c[r.s]!==undefined){
         c[r.s]++; total++;
-        if(WORKING(r.s)&&r.i&&r.o){ const d=durMin(r.i,r.o); if(d>0){ mins+=d; hdays++; } }
+        if(WORKING(r.s)&&r.i&&r.o){ let d=durMin(r.i,r.o); if(d>0&&hasPerm(r)) d=Math.max(d,Math.round((payCfg().hpd||8)*60)); if(d>0){ mins+=d; hdays++; } }
       }
     });
     return {c,total,mins,hdays};
@@ -48118,10 +48220,11 @@ const ATT=(function(){
         if(has){
           let wp=w, om=Math.max(0,w-std);               // wp = regular minutes, om = overtime minutes
           if(cfg.win){ const sp=winSplit(cfg,rec.i,live?nowT():rec.o); wp=sp.reg; om=sp.ot; }
+          if(hasPerm(rec)&&wp<std) wp=std;               // permission day → full normal day, no deduction
           v=(cfg.short||live)?dayVal*Math.min(1,wp/std):dayVal;
           if(om>0&&cfg.ot>0) ot=om/60*hourly*cfg.ot;
           fin=(live?dayVal:v);
-          if(upTo){ r.workMin+=w; }
+          if(upTo){ r.workMin+=(hasPerm(rec)?Math.max(w,std):w); }
           if(!live&&cfg.short&&wp<std&&upTo){ r.shortMin+=std-wp; r.shortDed+=dayVal-v; r.items.push({k,t:'short',min:std-wp,amt:-(dayVal-v)}); }
           if(live&&v<dayVal) r.items.push({k,t:'live',min:w,amt:v-dayVal});
           if(ot>0){ if(upTo){ r.otMin+=om; r.otAdd+=ot; } r.items.push({k,t:'ot',min:om,amt:ot}); }
@@ -48462,7 +48565,7 @@ const ATT=(function(){
           <div class="atd-time-hd">${ic('clock',15)}<span>${L('Working hours','ساعات العمل')}</span><span class="atd-dur" id="attDur" hidden></span></div>
           <div class="atd-time-grid">${tbox('in','attIn',r&&r.i?r.i:'')}${tbox('out','attOut',r&&r.o?r.o:'')}</div>
         </div>`;
-    const NOTES=[['Site visit','زيارة موقع'],['Doctor visit','كشف دكتور'],['Overtime','أوفر تايم'],['Mission','مأمورية']];
+    const NOTES=[['Site visit','زيارة موقع'],['Doctor visit','كشف دكتور'],['Overtime','أوفر تايم'],['Mission','مأمورية'],['Permission (full day)','إذن']];
     const curNote=(r&&r.n)||'';
     const qn=NOTES.map(n=>{ const t=L(n[0],n[1]); return `<button type="button" data-v="${esc(t)}" class="${curNote.split(' · ').includes(t)?'on':''}" onclick="ATT.noteChip(this)">${esc(t)}</button>`; }).join('');
     document.getElementById('modalContent').innerHTML=`<div class="modal-handle"></div>
