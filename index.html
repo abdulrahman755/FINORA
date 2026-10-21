@@ -1845,6 +1845,7 @@ tbody tr:hover{background:var(--surface2)}
 .qn-fmt-btn:active{background:var(--surface2)}
 .qn-fmt-btn.active{color:var(--gold-dark);background:var(--gold-tint)}
 .qn-toolbar-sep{width:1px;height:18px;background:var(--border);margin:0 5px;flex-shrink:0}
+.qn-toolbar{transition:transform .12s ease-out;will-change:transform}
 
 .qn-body{
   flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;
@@ -1866,6 +1867,19 @@ tbody tr:hover{background:var(--surface2)}
 }
 .qn-chk.checked .qn-chk-text{color:var(--muted);text-decoration:line-through}
 .qn-chk-text{flex:1;min-width:0}
+.qn-chk-box::before{content:'';position:absolute;inset:-9px}   /* bigger tap target, same look */
+.qn-chk{transition:opacity .18s ease}
+.qn-prog{display:flex;align-items:center;gap:8px;margin-top:5px}
+.qn-prog-bar{flex:1;height:4px;border-radius:99px;background:var(--border);overflow:hidden}
+.qn-prog-bar i{display:block;height:100%;border-radius:99px;background:var(--green);transition:width .25s ease}
+.qn-prog-n{font-size:calc(11px*var(--app-text-scale,1));font-weight:800;color:var(--muted);font-variant-numeric:tabular-nums}
+.qn-prog.done .qn-prog-n{color:var(--green)}
+.qn-grid-card .qn-prog{margin:2px 10px 0}
+.qn-chk-progress{display:flex;align-items:center;gap:10px;padding:6px var(--sp4) 8px;flex-shrink:0}
+.qn-cp-bar{flex:1;height:5px;border-radius:99px;background:var(--border);overflow:hidden}
+.qn-cp-bar i{display:block;height:100%;border-radius:99px;background:var(--green);transition:width .25s ease}
+.qn-cp-txt{font-size:calc(11.5px*var(--app-text-scale,1));font-weight:800;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+.qn-chk-progress.done .qn-cp-txt{color:var(--green)}
 [dir="rtl"] .qn-chk.checked .qn-chk-box::after{left:auto;right:5px}
 
 /* ── Notes — richer text styles (Aa menu: Title/Heading/Subheading + lists) ── */
@@ -11728,6 +11742,14 @@ function fpInitSmartHeader(){
 .mat-kb:active{transform:scale(.95)}
 .mat-ib{width:30px;height:30px;border-radius:10px;border:1px solid var(--border);background:var(--surface2);color:var(--text);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;padding:0}
 .mat-ib.sm{width:26px;height:26px;border-radius:8px}
+.mat-live-tag{font-style:normal;font-size:calc(9.5px*var(--app-text-scale,1));font-weight:800;color:var(--green);background:var(--success-tint);padding:1px 6px;border-radius:99px}
+.mat-pick-h{margin:12px 0 6px;font-size:calc(12px*var(--app-text-scale,1));font-weight:800;color:var(--sub)}
+.mat-pick-grid{display:flex;flex-wrap:wrap;gap:8px}
+.mat-pick{display:inline-flex;align-items:baseline;gap:6px;padding:8px 12px;border-radius:12px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font:inherit;font-size:calc(13px*var(--app-text-scale,1));font-weight:700;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.mat-pick small{font-size:calc(10.5px*var(--app-text-scale,1));font-weight:700;color:var(--muted)}
+.mat-pick:active{background:var(--surface3);transform:scale(.97)}
+.mat-pick-or{display:flex;align-items:center;gap:10px;margin:16px 0 12px;color:var(--muted);font-size:calc(11.5px*var(--app-text-scale,1));font-weight:700}
+.mat-pick-or::before,.mat-pick-or::after{content:'';flex:1;height:1px;background:var(--border)}
 .mat-ib:active{background:var(--surface3)}
 .mat-row{display:grid;grid-template-columns:auto 1fr auto;grid-template-areas:"ico main side" "ico main spark";align-items:center;column-gap:10px;row-gap:2px;width:100%;text-align:start;background:transparent;border:0;border-top:1px solid var(--border);padding:11px 10px;color:var(--text);font:inherit;cursor:pointer}
 .mat-row:first-of-type{border-top:0}
@@ -17657,7 +17679,61 @@ function renderPurchasesDashCard(){
 // included in backups via data.extras). Touches no existing dashboard code.
 // ══════════════════════════════════════════════════════════════════════════════
 const MAT_KEY='wdp_materials_v1';
-const MAT_UNITS={g:['g','جرام'],kg:['kg','كجم'],ton:['ton','طن'],bag:['bag','شيكارة'],m3:['m³','م³'],pc:['pc','قطعة'],m:['m','متر']};
+const MAT_UNITS={g:['g','جرام'],kg:['kg','كجم'],ton:['ton','طن'],bag:['bag','شيكارة'],m3:['m³','م³'],m2:['m²','م²'],pc:['pc','قطعة'],k:['1000 pcs','ألف قطعة'],m:['m','متر'],l:['L','لتر'],sheet:['sheet','لوح']};
+// Ready-made materials you can start tracking with one tap (each keeps its own price history)
+const MAT_PRESETS=[
+ {id:'p_sand',    g:0,en:'Sand',                 ar:'رمل',                 unit:'m3'},
+ {id:'p_gravel',  g:0,en:'Gravel / Aggregate',   ar:'زلط / دولوميت',       unit:'m3'},
+ {id:'p_rmc',     g:0,en:'Ready-mix Concrete',   ar:'خرسانة جاهزة',        unit:'m3'},
+ {id:'p_cembag',  g:0,en:'Cement (bag)',         ar:'أسمنت (شيكارة)',      unit:'bag'},
+ {id:'p_brick',   g:0,en:'Red Bricks',           ar:'طوب أحمر',            unit:'k'},
+ {id:'p_asphalt', g:0,en:'Asphalt',              ar:'أسفلت',               unit:'ton'},
+ {id:'p_copper',  g:1,en:'Copper',               ar:'نحاس',                unit:'kg'},
+ {id:'p_alum',    g:1,en:'Aluminum',             ar:'ألومنيوم',            unit:'kg'},
+ {id:'p_cable',   g:1,en:'Electrical Cable',     ar:'كابلات كهرباء',       unit:'m'},
+ {id:'p_silver',  g:1,en:'Silver',               ar:'فضة',                 unit:'g'},
+ {id:'p_tiles',   g:2,en:'Ceramic / Porcelain',  ar:'سيراميك / بورسلين',   unit:'m2'},
+ {id:'p_marble',  g:2,en:'Marble / Granite',     ar:'رخام / جرانيت',       unit:'m2'},
+ {id:'p_glass',   g:2,en:'Glass',                ar:'زجاج',                unit:'m2'},
+ {id:'p_paint',   g:2,en:'Paint (bucket)',       ar:'دهان (جردل)',         unit:'pc'},
+ {id:'p_gypsum',  g:2,en:'Gypsum Board',         ar:'ألواح جبس',           unit:'sheet'},
+ {id:'p_timber',  g:2,en:'Timber',               ar:'خشب',                 unit:'m3'},
+ {id:'p_plywood', g:2,en:'Plywood (formwork)',   ar:'ألواح خشب (فورمة)',   unit:'sheet'},
+ {id:'p_pvc',     g:2,en:'PVC Pipes',            ar:'مواسير PVC',          unit:'m'},
+ {id:'p_diesel',  g:3,en:'Diesel',               ar:'سولار',               unit:'l'}
+];
+// Materials with a real world-market feed. Everything else (rebar, cement, sand, bricks…) has no public price feed → manual.
+const MAT_LIVE={
+  p_silver:{sym:'XAG', conv:(usd,r)=>usd/GRAMS_PER_TROY_OZ/r},      // USD / troy oz → EGP / g
+  p_copper:{sym:'HG',  conv:(usd,r)=>usd*2.2046226218/r}            // USD / lb      → EGP / kg
+};
+let _matLiveBusy=false, _matLiveTried=0;
+function matFetchLive(force, retried){
+  const st=_matLoad(), ids=Object.keys(MAT_LIVE).filter(id=>st.items.some(x=>x.id===id));
+  if(!ids.length||_matLiveBusy) return;
+  const now=Date.now();
+  if(now-_matLiveTried<(force?15000:120000)) return;                 // never hammer the free API
+  if(!force && now-(st.liveAt||0)<60*60*1000) return;                // refreshes itself at most hourly
+  try{ if(typeof FX_STATE!=='undefined' && !FX_STATE) fxLoadCached(); }catch(e){}
+  const r=(typeof FX_STATE!=='undefined' && FX_STATE && FX_STATE.rates) ? FX_STATE.rates.USD : null;   // USD per 1 EGP
+  if(!r){ if(!retried){ try{ fxEnsureRates(); }catch(e){} setTimeout(()=>matFetchLive(force,true),3500); } return; }
+  _matLiveBusy=true; _matLiveTried=now;
+  Promise.all(ids.map(id=>fetch('https://api.gold-api.com/price/'+MAT_LIVE[id].sym)
+      .then(x=>x.ok?x.json():Promise.reject(x.status)).then(d=>({id:id,usd:d&&d.price})).catch(()=>null)))
+    .then(res=>{
+      let ok=0; const d=_matToday();
+      res.forEach(o=>{
+        if(!o||!(o.usd>0)) return; const it=_matItem(o.id); if(!it) return;
+        const p=Math.round(MAT_LIVE[o.id].conv(o.usd,r)*100)/100, last=it.history[it.history.length-1];
+        if(last&&last.d===d) last.p=p; else it.history.push({d:d,p:p});
+        if(it.history.length>180) it.history=it.history.slice(-180);
+        ok++;
+      });
+      if(ok){ st.liveAt=Date.now(); _matSave(); _matRefresh(); }
+    })
+    .finally(()=>{ _matLiveBusy=false; });
+}
+const MAT_PRESET_GROUPS=[['Structure','هيكل وإنشاء'],['Metals & Electrical','معادن وكهرباء'],['Finishes & Carpentry','تشطيبات ونجارة'],['Fuel','وقود']];
 const MAT_KARATS=[24,21,18,14];
 let MAT_STATE=null, _matPolled=false, _matDelArm=null, _matKaratDirty=false;
 function _matToday(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
@@ -17708,7 +17784,7 @@ function matRefreshGold(){
     if(typeof fxEnsureRates==='function') fxEnsureRates();
     if(typeof GOLD_STATE!=='undefined' && GOLD_STATE) GOLD_STATE.fetchedAt=0;
     if(typeof goldEnsurePrice==='function') goldEnsurePrice();
-    showToast(L('Updating gold price…','جاري تحديث سعر الذهب…'));
+    showToast(L('Updating live prices…','جاري تحديث الأسعار اللحظية…')); matFetchLive(true);
   }catch(e){}
   setTimeout(()=>{ if(_matSnapGold() && currentView==='wsdash') renderView(); },3500);
 }
@@ -17735,7 +17811,7 @@ function _matRow(it){
     const pct=(last.p-prev.p)/prev.p*100; dir=pct>0.005?1:(pct<-0.005?-1:0);
     chip=`<span class="mat-chip ${dir>0?'up':dir<0?'dn':''}" dir="ltr">${dir>0?'▲':dir<0?'▼':'•'} ${Math.abs(pct).toFixed(2)}%</span>`;
   }
-  const stale=!gold&&last&&_matDaysAgo(last.d)>3;
+  const live=!!MAT_LIVE[it.id], stale=!gold&&last&&_matDaysAgo(last.d)>(live?1:3);
   const unit=gold?L('EGP / g','ج.م / جرام'):(curLabel()+' / '+_matUnit(it));
   let sub='';
   if(gold&&last){
@@ -17743,7 +17819,7 @@ function _matRow(it){
     const sk=_matKarat();
     sub=`<div class="mat-sub2">${[24,21,18].filter(k=>k!==sk).map(k=>`${k}K <b dir="ltr">${fmt(Math.round(p*k/24))}</b>`).join(' · ')} · ${L('Pound','الجنيه')} <b dir="ltr">${fmt(Math.round(p*21/24*8))}</b></div>`;
   }
-  const when=last?`<span class="mat-when${stale?' stale':''}">${gold?L('Auto','تلقائي')+' · ':''}${_matAgo(last.d)}${stale?' · '+L('update','حدّث'):''}</span>`:`<span class="mat-when stale">${gold?L('Tap refresh to fetch','اضغط تحديث للجلب'):L('Tap to enter price','اضغط لإدخال السعر')}</span>`;
+  const when=last?`<span class="mat-when${stale?' stale':''}">${gold?L('Auto','تلقائي')+' · ':live?L('Live','لايف')+' · ':''}${_matAgo(last.d)}${stale?' · '+L('update','حدّث'):''}</span>`:`<span class="mat-when stale">${gold||live?L('Tap refresh to fetch','اضغط تحديث للجلب'):L('Tap to enter price','اضغط لإدخال السعر')}</span>`;
   return `<button type="button" class="mat-row" onclick="matOpen('${it.id}')">
     <span class="mat-ico">${ic(gold?'cash':'package',16,'aria-hidden="true"')}</span>
     <span class="mat-main"><span class="mat-nm">${esc(_matName(it))}</span>${when}${sub}</span>
@@ -17765,7 +17841,7 @@ function matSetKarat(k){
 }
 function renderMaterialsDashCard(){
   try{ if(typeof fxEnsureRates==='function') fxEnsureRates(); if(typeof goldEnsurePrice==='function') goldEnsurePrice(); }catch(e){}
-  _matSnapGold(); _matPollGold();
+  _matSnapGold(); _matPollGold(); matFetchLive(false);
   const rows=_matLoad().items.map(_matRow).join('');
   return `<div class="sc-card mat-card">
     <div class="mat-head"><span class="mat-hint">${L('Daily prices · tap a row to update','أسعار يومية · اضغط على الخامة للتحديث')}</span>
@@ -17797,6 +17873,7 @@ function matOpen(id){
       <input id="matPrice" type="text" inputmode="decimal" placeholder="0.00"></div>
     <div class="field"><label>${L('Date','التاريخ')}</label><input id="matDate" type="date" value="${_matToday()}" max="${_matToday()}"></div>
     ${gold?`<div class="mat-hempty" style="text-align:start;margin:-4px 0 8px">${L('Gold fetches automatically; a manual entry is replaced by the market price when it refreshes the same day.','الذهب بيتحدث لوحده، وأي سعر تدخله يدويًا هيتبدل بسعر السوق لو اتحدث في نفس اليوم.')}</div>`:''}
+    ${MAT_LIVE[id]?`<div class="mat-hempty" style="text-align:start;margin:-4px 0 8px">${L('Live world-market price (not the local market). A manual entry is replaced when it refreshes the same day.','سعر البورصة العالمية اللحظي (مش سعر السوق المحلي). أي سعر يدوي هيتبدل لما يتحدّث في نفس اليوم.')}</div>`:''}
     <div class="mat-hist">${rows}</div>
     <div class="modal-btns">
       <button type="button" class="mbtn save" onclick="matSave('${id}')">${L('Save price','حفظ السعر')}</button>
@@ -17815,21 +17892,44 @@ function matSave(id){
   if(it.history.length>180) it.history=it.history.slice(-180);
   _matSave(); _matDelArm=null; closeModal();
   showToast(L('Price saved','تم حفظ السعر'),'success');
-  if(currentView==='wsdash') renderView();
+  _matRefresh();
 }
 function matDelEntry(id,idx){
   const it=_matItem(id); if(!it) return;
   it.history.splice(idx,1); _matSave(); matOpen(id);
-  if(currentView==='wsdash') renderView();
+  _matRefresh();
 }
 function matDelItem(id){
   if(_matDelArm!==id){ _matDelArm=id; matOpen(id); return; }
   const st=_matLoad(); st.items=st.items.filter(x=>x.id!==id||x.sys); _matSave(); _matDelArm=null; closeModal();
-  if(currentView==='wsdash') renderView();
+  _matRefresh();
+}
+function _matRefresh(){
+  document.querySelectorAll('.mat-card').forEach(el=>{ try{ el.outerHTML=renderMaterialsDashCard(); }catch(e){} });
+  if(typeof _wdashSheetId!=='undefined' && _wdashSheetId){ _matKaratDirty=true; }
+  else if(currentView==='wsdash'){ try{ renderView(); }catch(e){} }
+}
+function matAddPreset(pid){
+  const d=MAT_PRESETS.find(x=>x.id===pid); if(!d) return;
+  const st=_matLoad();
+  if(!st.items.some(x=>x.id===pid)) st.items.push({id:d.id,en:d.en,ar:d.ar,unit:d.unit,history:[]});
+  _matSave(); closeModal(); _matRefresh();
+  if(MAT_LIVE[pid]){ matFetchLive(true); showToast(L('Fetching live price…','جاري جلب السعر اللحظي…')); }
+  else setTimeout(()=>matOpen(pid),220);   // straight to the price entry
+}
+function _matPickerHtml(){
+  const have=new Set(_matLoad().items.map(x=>x.id));
+  const sec=MAT_PRESET_GROUPS.map((g,i)=>{
+    const chips=MAT_PRESETS.filter(x=>x.g===i&&!have.has(x.id))
+      .map(x=>`<button type="button" class="mat-pick" onclick="matAddPreset('${x.id}')">${esc(L(x.en,x.ar))}<small>${esc(L(MAT_UNITS[x.unit][0],MAT_UNITS[x.unit][1]))}</small>${MAT_LIVE[x.id]?`<i class="mat-live-tag">${L('Live','لايف')}</i>`:''}</button>`).join('');
+    return chips?`<div class="mat-pick-h">${L(g[0],g[1])}</div><div class="mat-pick-grid">${chips}</div>`:'';
+  }).join('');
+  return sec?`<div class="mat-pick-wrap"><div class="mat-hempty" style="text-align:start;margin:0 0 2px">${L('Tap to start tracking','اضغط على الخامة عشان تبدأ تتابعها')}</div>${sec}</div><div class="mat-pick-or"><span>${L('or add your own','أو ضيف خامة بنفسك')}</span></div>`:'';
 }
 function matAddOpen(){
   _matModal(`
     <div class="modal-title">${ic('plus',14)} ${L('Add material','إضافة خامة')}</div>
+    ${_matPickerHtml()}
     <div class="field"><label>${L('Name','الاسم')}</label><input id="matNewName" type="text" placeholder="${L('e.g. Sand, Bricks, Copper','مثال: رمل، طوب، نحاس')}"></div>
     <div class="field"><label>${L('Unit','الوحدة')}</label><select id="matNewUnit">${Object.keys(MAT_UNITS).map(k=>`<option value="${k}"${k==='ton'?' selected':''}>${esc(L(MAT_UNITS[k][0],MAT_UNITS[k][1]))}</option>`).join('')}</select></div>
     <div class="field"><label>${L('Today\'s price (optional)','سعر اليوم (اختياري)')}</label><input id="matNewPrice" type="text" inputmode="decimal" placeholder="0.00"></div>
@@ -17845,7 +17945,7 @@ function matAddSave(){
   const st=_matLoad();
   st.items.push({id:'c'+Date.now().toString(36),name:name,unit:unit,history:p?[{d:_matToday(),p:p}]:[]});
   _matSave(); closeModal();
-  if(currentView==='wsdash') renderView();
+  _matRefresh();
 }
 function renderWorkspaceDashboard(m){
   if(!_frHasAnyData()) return _frStartCard();   // brand-new app: 3 big choices instead of a wall of zeros
@@ -43393,9 +43493,22 @@ async function _notesIdbGet(key){
     try{ showToast(L('Notes restored from backup','تم استرجاع الملاحظات من النسخة الاحتياطية'),'success'); }catch(e){}
   }catch(e){ _logErr('_notesBootRestore',e); }
 })();
+// Checklist progress for a note, read straight from its saved HTML (cheap: no DOM parsing).
+function _notesChkStats(n){
+  if(!n || n.locked || !n.bodyHTML) return {t:0, d:0};
+  const h = n.bodyHTML;
+  return { t:(h.match(/class="qn-chk[\s"]/g)||[]).length, d:(h.match(/class="qn-chk(?:\s[^"]*)?\bchecked\b/g)||[]).length };
+}
+function _notesProgHtml(n){
+  const {t,d} = _notesChkStats(n); if(!t) return '';
+  const pct = Math.round(d/t*100);
+  return `<div class="qn-prog${d===t?' done':''}"><span class="qn-prog-bar"><i style="width:${pct}%"></i></span><span class="qn-prog-n">${d===t?'✓ ':''}${d}/${t}</span></div>`;
+}
 function _notesSorted(){
   let list = _notesLoad();
-  if(_notesActiveFolder !== 'all'){
+  if(_notesActiveFolder === 'chk') list = list.filter(n => _notesChkStats(n).t > 0);
+  else if(_notesActiveFolder === 'pin') list = list.filter(n => n.pinned);
+  else if(_notesActiveFolder !== 'all'){
     list = list.filter(n => (n.folderId||null) === (_notesActiveFolder==='none' ? null : _notesActiveFolder));
   }
   if(_notesSearchQuery && _notesSearchQuery.trim()){
@@ -43779,7 +43892,7 @@ function _notesRowItemHtml(n){
       </div>
       <div class="qn-row-date">${dateStr}</div>
     </div>
-    </div>`;
+    </div>`.replace('</div>\n      </div>\n      <div class="qn-row-date">', _notesProgHtml(n)+'</div>\n      </div>\n      <div class="qn-row-date">');
 }
 function _notesGridItemHtml(n){
   const {title} = _notesTitleAndPreview(n);
@@ -43794,6 +43907,7 @@ function _notesGridItemHtml(n){
       <div class="qn-grid-card${sel?' qn-sel-active':''}" ${openAttr} role="button" tabindex="0">
         ${sel ? `<span class="qn-sel-dot${checked?' checked':''}"></span>` : (n.pinned ? `<svg class="qn-grid-pin" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2c-.6 0-1 .4-1 1v6.2L7.6 12.4c-.4.3-.6.8-.6 1.3v1.3c0 .5.4 1 1 1h3v6l1 2 1-2v-6h3c.6 0 1-.5 1-1v-1.3c0-.5-.2-1-.6-1.3L13 9.2V3c0-.6-.4-1-1-1z"/></svg>` : '')}
         ${previewHtml}
+        ${_notesProgHtml(n)}
         <div class="qn-grid-title">${esc(title) || L('New Note','ملاحظة جديدة')}</div>
         <div class="qn-grid-date">${n.locked ? `${L('Locked','مقفلة')} · ` : ''}${dateStr}</div>
       </div>
@@ -43851,6 +43965,9 @@ function renderNotesList(){
     </div>
     <div class="qn-folder-chips">
       <button type="button" class="qn-folder-chip${_notesActiveFolder==='all'?' active':''}" onclick="_notesSwitchFolder('all')">${L('All','الكل')}</button>
+      ${(()=>{ const all=_notesLoad(); let open=0, any=false, pins=0; all.forEach(n=>{ const c=_notesChkStats(n); if(c.t){ any=true; open+=c.t-c.d; } if(n.pinned) pins++; });
+        return (any?`<button type="button" class="qn-folder-chip${_notesActiveFolder==='chk'?' active':''}" onclick="_notesSwitchFolder('chk')">${L('Checklists','القوائم')}${open?` · ${open}`:''}</button>`:'')
+             + (pins?`<button type="button" class="qn-folder-chip${_notesActiveFolder==='pin'?' active':''}" onclick="_notesSwitchFolder('pin')">${L('Pinned','المثبّتة')}</button>`:''); })()}
       <button type="button" class="qn-folder-chip${_notesActiveFolder==='none'?' active':''}" onclick="_notesSwitchFolder('none')">${L('No Folder','بدون مجلد')}</button>
       ${allFolders.map(f => `<button type="button" class="qn-folder-chip${_notesActiveFolder===f.id?' active':''}" onclick="_notesSwitchFolder('${f.id}')">${esc(f.name)}</button>`).join('')}
     </div>
@@ -43999,33 +44116,60 @@ function _renderNoteEditorUnlocked(n){
   document.getElementById('qnBody').addEventListener('keydown', _notesChecklistKeydown);
   document.getElementById('qnBody').addEventListener('paste', _notesPaste);
   _notesAttachKeyboardTracking();
+  _notesUpdateChkProgress();
 }
 
 // ── Keyboard-aware floating toolbar: track the on-screen keyboard via
 //    visualViewport so the pill toolbar floats just above it, the way the
 //    iOS Notes format bar sits right on top of the keyboard. Falls back to
 //    resting at the bottom of the screen on browsers without the API. ──
-let _qnViewportHandler = null;
+let _qnViewportHandler = null, _qnKbCleanup = null;
 function _notesAttachKeyboardTracking(){
   _notesDetachKeyboardTracking();
-  const bar = document.getElementById('qnToolbar');
-  if(!bar || !window.visualViewport) return;
-  const update = () => {
-    const vv = window.visualViewport;
-    const offset = Math.max(0, (window.innerHeight - vv.height - vv.offsetTop));
-    bar.style.transform = offset > 2 ? `translateY(-${offset}px)` : '';
+  const bar = document.getElementById('qnToolbar'), ov = document.getElementById('notesPageOverlay'), vv = window.visualViewport;
+  if(!bar || !ov || !vv) return;
+  const GAP = 8;                       // space between the pill and the keyboard's top edge
+  let base = Math.max(window.innerHeight, vv.height + vv.offsetTop), raf = 0, burst = 0, lastDy = null, timer = 0;
+  const editing = () => { const a = document.activeElement; return !!a && ov.contains(a) && (a.isContentEditable || /^(INPUT|TEXTAREA)$/.test(a.tagName)); };
+  // Measures where the keyboard really is on every call (nothing is remembered from a previous keyboard),
+  // so the pill follows any keyboard: Arabic / English / emoji / with or without the suggestion strip.
+  const place = () => {
+    raf = 0;
+    if(!bar.isConnected) return;
+    const bottom = vv.offsetTop + vv.height;                  // keyboard's top edge, in layout-viewport coordinates
+    if(!editing()){ base = Math.max(window.innerHeight, bottom); if(lastDy!==null){ lastDy = null; bar.style.transform = ''; } return; }
+    if(base - bottom < 100){ if(lastDy!==null){ lastDy = null; bar.style.transform = ''; } return; }   // hardware keyboard / no on-screen keyboard
+    const natural = ov.getBoundingClientRect().top + bar.offsetTop + bar.offsetHeight;   // pill's bottom edge with no transform
+    const dy = Math.round((bottom - GAP) - natural);
+    if(dy !== lastDy){ lastDy = dy; bar.style.transform = `translateY(${dy}px)`; }
   };
-  _qnViewportHandler = update;
-  window.visualViewport.addEventListener('resize', update);
-  window.visualViewport.addEventListener('scroll', update);
-  update();
+  const req = () => { if(!raf) raf = requestAnimationFrame(place); };
+  // keyboard animations / layout switches settle over a few hundred ms and iOS does not always fire a resize
+  // for them, so keep re-measuring for a short burst after every trigger.
+  const settle = () => { burst = 40; const tick = () => { place(); if(--burst > 0) requestAnimationFrame(tick); }; requestAnimationFrame(tick); };
+  const onTrigger = () => { req(); settle(); };
+  vv.addEventListener('resize', onTrigger);
+  vv.addEventListener('scroll', req);
+  window.addEventListener('resize', onTrigger);
+  window.addEventListener('orientationchange', onTrigger);
+  document.addEventListener('focusin', onTrigger, true);
+  document.addEventListener('focusout', onTrigger, true);
+  document.addEventListener('selectionchange', req);
+  timer = setInterval(() => { if(editing()) place(); }, 400);   // catches silent keyboard-type switches
+  _qnViewportHandler = onTrigger;
+  _qnKbCleanup = () => {
+    vv.removeEventListener('resize', onTrigger); vv.removeEventListener('scroll', req);
+    window.removeEventListener('resize', onTrigger); window.removeEventListener('orientationchange', onTrigger);
+    document.removeEventListener('focusin', onTrigger, true); document.removeEventListener('focusout', onTrigger, true);
+    document.removeEventListener('selectionchange', req);
+    clearInterval(timer); burst = 0; if(raf) cancelAnimationFrame(raf);
+    if(bar) bar.style.transform = '';
+  };
+  place();
 }
 function _notesDetachKeyboardTracking(){
-  if(_qnViewportHandler && window.visualViewport){
-    window.visualViewport.removeEventListener('resize', _qnViewportHandler);
-    window.visualViewport.removeEventListener('scroll', _qnViewportHandler);
-  }
-  _qnViewportHandler = null;
+  if(_qnKbCleanup){ try{ _qnKbCleanup(); }catch(e){} }
+  _qnKbCleanup = null; _qnViewportHandler = null;
 }
 function closeNoteEditor(){
   _notesDetachKeyboardTracking();
@@ -44052,6 +44196,7 @@ function _notesAutosave(){
   if(bodyEl) n.bodyHTML = bodyEl.innerHTML;
   n.updatedAt = Date.now();
   _notesSave(list);
+  _notesUpdateChkProgress();
   // keep the (grey) title placeholder in step with the heading the list will show
   if(titleEl && !titleEl.value.trim()) titleEl.placeholder = _notesTitleAndPreview(n).title || L('Title','العنوان');
 }
@@ -44103,8 +44248,69 @@ function _notesChecklistClick(e){
   const box = e.target.closest('.qn-chk-box');
   if(!box) return;
   e.preventDefault();
-  box.closest('.qn-chk').classList.toggle('checked');
+  const line = box.closest('.qn-chk');
+  line.classList.toggle('checked');
+  if(_notesChkAutoSort()) _notesChkReposition(line);
+  try{ if(navigator.vibrate) navigator.vibrate(8); }catch(_){}
   _notesAutosave();
+}
+function _notesChkAutoSort(){ try{ return localStorage.getItem('qn_chk_autosort')==='1'; }catch(_){ return false; } }
+function _notesToggleChkAutoSort(){ try{ localStorage.setItem('qn_chk_autosort', _notesChkAutoSort()?'0':'1'); }catch(_){} _notesOpenMoreMenu(); }
+// the contiguous run of checklist rows around a row (separate lists stay separate)
+function _notesChkRun(line){
+  let first = line, last = line;
+  while(first.previousElementSibling && first.previousElementSibling.classList.contains('qn-chk')) first = first.previousElementSibling;
+  while(last.nextElementSibling && last.nextElementSibling.classList.contains('qn-chk')) last = last.nextElementSibling;
+  const run = []; for(let x = first; ; x = x.nextElementSibling){ run.push(x); if(x === last) break; }
+  return run;
+}
+// checked rows drop to the bottom of their own list; unchecking sends a row back up above the done ones
+function _notesChkReposition(line){
+  const others = _notesChkRun(line).filter(x => x !== line);
+  if(line.classList.contains('checked')){
+    const lastOpen = others.filter(x => !x.classList.contains('checked')).pop();
+    if(lastOpen) lastOpen.after(line);
+  } else {
+    const firstDone = others.find(x => x.classList.contains('checked'));
+    if(firstDone) firstDone.before(line);
+  }
+}
+function _notesChecklistAction(kind){
+  const body = document.getElementById('qnBody'); if(!body) return;
+  if(kind === 'clear'){
+    const n = body.querySelectorAll('.qn-chk.checked').length;
+    if(!n){ closeModal(); return; }
+    showConfirm(L(`Delete ${n} completed item${n===1?'':'s'}?`,`تحذف ${n} عنصر مكتمل؟`), ()=>{
+      body.querySelectorAll('.qn-chk.checked').forEach(x => x.remove());
+      _notesAutosave(); closeModal();
+    });
+    return;
+  }
+  if(kind === 'uncheck') body.querySelectorAll('.qn-chk.checked').forEach(x => x.classList.remove('checked'));
+  if(kind === 'sort'){
+    const seen = new Set();
+    body.querySelectorAll('.qn-chk').forEach(l => {
+      if(seen.has(l)) return;
+      const run = _notesChkRun(l); run.forEach(r => seen.add(r));
+      const anchor = document.createComment(''); run[0].before(anchor);
+      [...run.filter(r => !r.classList.contains('checked')), ...run.filter(r => r.classList.contains('checked'))]
+        .forEach(r => anchor.parentNode.insertBefore(r, anchor));
+      anchor.remove();
+    });
+  }
+  _notesAutosave(); closeModal();
+}
+// slim progress bar above the editor: done / total of every checklist row in the note
+function _notesUpdateChkProgress(){
+  const body = document.getElementById('qnBody'); if(!body) return;
+  let el = document.getElementById('qnChkProgress');
+  const t = body.querySelectorAll('.qn-chk').length, d = body.querySelectorAll('.qn-chk.checked').length;
+  if(!t){ if(el) el.style.display = 'none'; return; }
+  if(!el){ el = document.createElement('div'); el.id = 'qnChkProgress'; el.className = 'qn-chk-progress'; body.parentNode.insertBefore(el, body); }
+  const pct = Math.round(d/t*100);
+  el.style.display = 'flex';
+  el.classList.toggle('done', d === t);
+  el.innerHTML = `<span class="qn-cp-bar"><i style="width:${pct}%"></i></span><span class="qn-cp-txt">${d===t?L('All done','خلصت كلها')+' · ':''}${d}/${t} · ${pct}%</span>`;
 }
 // The native contenteditable Enter-split doesn't know how to divide a
 // display:flex row that has a contenteditable="false" checkbox span in it —
@@ -44653,6 +44859,14 @@ function _notesOpenMoreMenu(){
       ${row('photo','Attachments','المرفقات',"_notesOpenAttachmentView()")}
       ${row(n&&n.forceLight?'sun':'moon', n&&n.forceLight?'Use Dark/System Background':'Use Light Background', n&&n.forceLight?'استخدام الخلفية الافتراضية':'استخدام خلفية فاتحة',"_notesToggleForceLight()")}
     </div>
+    ${(()=>{ const cb=document.getElementById('qnBody'); if(!cb||!cb.querySelector('.qn-chk')) return '';
+      const on=_notesChkAutoSort();
+      return `<div class="stt-card" style="margin-top:10px">
+      ${row('arrow_down','Move Completed to Bottom','نقل المكتمل لأسفل',"_notesChecklistAction('sort')")}
+      ${row('close','Uncheck All','إلغاء تأشير الكل',"_notesChecklistAction('uncheck')")}
+      ${row('trash','Delete Completed','حذف المكتمل',"_notesChecklistAction('clear')")}
+      ${row('check', on?'Auto-move checked items: On':'Auto-move checked items: Off', on?'ترتيب تلقائي للمؤشّر: شغّال':'ترتيب تلقائي للمؤشّر: مقفول',"_notesToggleChkAutoSort()")}
+    </div>`; })()}
     <div class="stt-card" style="margin-top:10px">
       <div class="qn-style-row qn-danger" onclick="closeModal();_notesDeleteCurrent()"><span class="qn-style-row-label" style="display:flex;align-items:center;gap:10px"><span class="qn-more-row-icon">${ic('trash',18)}</span>${L('Delete','حذف')}</span></div>
     </div>`;
