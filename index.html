@@ -20,7 +20,8 @@
 <link rel="icon" type="image/png" sizes="512x512" href="icons/icon-512.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&display=swap" rel="stylesheet"></noscript>
 <script>
 /* In-app browser (Facebook/Instagram/Messenger/TikTok/Line WebViews) detection.
    These WKWebViews have a known compositing bug: elements using
@@ -60,7 +61,7 @@ html.ls-skip #lockScreen{display:none!important}
 #finoraSplash{position:fixed;inset:0;z-index:100000;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;cursor:pointer;
   padding:env(safe-area-inset-top) 24px env(safe-area-inset-bottom);
   background:radial-gradient(90% 60% at 50% 38%,#0d5c40 0%,#07382a 52%,#03170f 100%);
-  transition:opacity .35s ease;animation:fspAutoHide .35s 2.3s forwards}
+  transition:opacity .35s ease;animation:fspAutoHide .35s 1.6s forwards}
 #finoraSplash.fsp-out{opacity:0;pointer-events:none}
 @keyframes fspAutoHide{to{opacity:0;visibility:hidden;pointer-events:none}}
 .fsp-mark{position:relative;width:112px;height:112px;opacity:0;transform:scale(.9);animation:fspIn .7s .05s cubic-bezier(.16,1,.3,1) forwards}
@@ -2418,6 +2419,32 @@ tbody tr:hover{background:var(--surface2)}
 .rem-acts{gap:7px}
 .rem-act{width:38px;height:38px;transition:transform .12s,background .2s,color .2s}
 .rem-act.del:active{color:var(--red);background:color-mix(in srgb,var(--red) 12%,var(--surface))}
+/* ── Reminders sheet — simplified / compact pass (scoped to #modalContent) ── */
+#modalContent .rem-hero{padding:14px 16px;border-radius:22px;margin:2px 0 12px;gap:12px}
+#modalContent .rem-hero-n{min-width:66px;width:66px;height:66px}
+#modalContent .rem-hero-n strong{font-size:calc(26px*var(--app-text-scale,1))}
+#modalContent .rem-hero-tx b{font-size:calc(17px*var(--app-text-scale,1))}
+#modalContent .rem-add{gap:16px;padding:16px 14px 14px;border-radius:22px}
+#modalContent .rem-field{gap:8px}
+#modalContent .rem-lbl{font-size:calc(13px*var(--app-text-scale,1));gap:8px}
+#modalContent .rem-add .rem-lbl::before{width:19px;height:19px;font-size:10.5px}
+#modalContent .rem-add .fin-inp.rem-inp,
+#modalContent .rem-add .rem-datepick .date-wrap-auto,
+#modalContent .rem-add .rem-datepick .date-wrap-auto:has(>.fin-inp){height:48px;border-radius:14px}
+#modalContent .rem-add .rem-datepick .date-label-auto{font-size:calc(15px*var(--app-text-scale,1))}
+#modalContent .rem-chips.rem-days{gap:7px}
+#modalContent .rem-chip.rem-day{min-height:54px;border-radius:14px;gap:3px;padding:7px 2px}
+#modalContent .rem-day b{font-size:calc(12px*var(--app-text-scale,1))}
+#modalContent .rem-day small{font-size:calc(10.5px*var(--app-text-scale,1))}
+/* "Remind me" options: wrap so every option is visible (no sideways scrolling / clipped chips) */
+#modalContent .rem-chips.rem-seg{flex-wrap:wrap;overflow:visible;margin:0;padding:0;gap:7px;scroll-snap-type:none}
+#modalContent .rem-seg .rem-chip{flex:1 1 auto;height:38px;padding:0 14px;display:inline-flex;align-items:center;justify-content:center}
+#modalContent .rem-preview{padding:10px 12px;border-radius:14px;gap:10px;font-size:calc(12.5px*var(--app-text-scale,1));line-height:1.45}
+#modalContent .rem-pv-ic{width:26px;height:26px}
+#modalContent .rem-submit{height:50px;border-radius:16px;font-size:calc(15px*var(--app-text-scale,1))}
+#modalContent .rem-os{padding:12px 14px;border-radius:18px}
+#modalContent .rem-os-ic{width:38px;height:38px}
+#modalContent .rem-sec{margin:20px 4px 10px}
 @media (prefers-reduced-motion:reduce){
   .rem-item,.rem-sec.attn span::before,.rem-preview.ok .rem-pv-ic svg{animation:none}
   .rem-chip,.rem-act{transition:none}
@@ -12440,7 +12467,7 @@ function fpInitSmartHeader(){
   function close(){ if(done) return; done=true; el.classList.add('fsp-out'); setTimeout(function(){ if(el.parentNode) el.parentNode.removeChild(el); },400); }
   el.addEventListener('click',close);
   var reduce=false; try{ reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches; }catch(e){}
-  setTimeout(close,reduce?500:1500);
+  setTimeout(close,reduce?500:900);
 })();
 </script>
 
