@@ -12157,6 +12157,36 @@ function fpInitSmartHeader(){
 #modalContent #txSum:not(.open) .tx-sum-label::after{content:" ›";opacity:.6}
 #modalContent #txSum.open .tx-sum-bar{margin-top:10px}
 .txm-btns .mbtn.cancel{border:0;background:transparent;min-width:84px;color:var(--muted)}
+/* ── Today's Target sheet: calmer hero, even quick-pick tiles, one-row footer ── */
+#modalContent .dt-hero{padding:16px 16px 14px;border-radius:26px;margin:2px 0 18px}
+#modalContent .dt-title{margin:12px 2px 14px;font-size:calc(17px*var(--app-text-scale,1));font-weight:700;color:rgba(255,255,255,.94)}
+#modalContent .dt-step{width:46px;height:46px}
+#modalContent .dt-hint{margin-top:12px;font-weight:600;color:rgba(255,255,255,.72)}
+#modalContent .dt-sec{margin:0 2px 10px;font-weight:700;letter-spacing:.2px}
+#modalContent .dt-chips{gap:8px}
+#modalContent .dt-chip{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-height:58px;border-radius:16px;
+  background:var(--surface);border:1px solid var(--border);box-shadow:var(--shadow-sm)}
+#modalContent .dt-chip b{font-size:calc(17px*var(--app-text-scale,1));font-weight:800}
+#modalContent .dt-chip.sug{background:color-mix(in srgb,var(--gold-light) 10%,var(--surface));border-color:color-mix(in srgb,var(--gold) 40%,var(--border))}
+#modalContent .dt-chip.on{border-color:transparent}
+#modalContent .dt-btns{flex-direction:row;align-items:stretch;gap:10px;margin-top:16px}
+#modalContent .dt-btns .mbtn{min-height:52px;margin:0}
+#modalContent .dt-btns .mbtn.save{flex:1 1 auto;order:2}
+#modalContent .dt-btns .mbtn.cancel{flex:0 0 auto;min-width:88px;order:1;border:0;background:transparent;color:var(--muted)}
+[dir="rtl"] #modalContent .dt-btns .mbtn.save{order:1}
+[dir="rtl"] #modalContent .dt-btns .mbtn.cancel{order:2}
+/* ── Today's Target: friendly first-open look ── */
+#modalContent .dt-title{display:flex;flex-direction:column;gap:4px;margin:14px 2px 16px;font-size:calc(22px*var(--app-text-scale,1));font-weight:800;line-height:1.25}
+#modalContent .dt-title .dt-greet{font-size:calc(13px*var(--app-text-scale,1));font-weight:600;color:rgba(255,255,255,.7)}
+#modalContent .dt-chips{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+#modalContent .dt-chip{min-height:64px;border-radius:18px}
+#modalContent .dt-chip b{font-size:calc(20px*var(--app-text-scale,1))}
+#modalContent .dt-chip small{font-size:calc(11px*var(--app-text-scale,1))}
+@keyframes dtPop{0%{transform:scale(1)}40%{transform:scale(1.035)}100%{transform:scale(1)}}
+#modalContent .dt-amt.pop{animation:dtPop .22s ease-out}
+@media (prefers-reduced-motion:reduce){#modalContent .dt-amt.pop{animation:none}}
+
+
 
 [dir="rtl"] .txm-btns .mbtn.save{order:1}
 [dir="rtl"] .txm-btns .mbtn.cancel{order:2}
@@ -32553,7 +32583,7 @@ const _DTP_TITLES=[
 function _dtpTitle(){
   const d=new Date(), n=Math.floor((Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())-Date.UTC(d.getFullYear(),0,0))/86400000);
   const t=_DTP_TITLES[n%_DTP_TITLES.length];
-  return L(t[0],t[1]);
+  return L(t[0],t[1]).replace(/^[^\p{L}\p{N}]+/u,'');
 }
 // ── Today's Target sheet (also the daily auto-prompt) ───────────────────────
 // Premium layout: a hero with a big amount + −/+ steppers, a live "what this
@@ -32583,6 +32613,7 @@ function _dtVal(){
 }
 function _dtSync(){
   const v=_dtVal();
+  try{ const bx=document.querySelector('.dt-amt'); if(bx){ bx.classList.remove('pop'); void bx.offsetWidth; bx.classList.add('pop'); } }catch(e){}
   document.querySelectorAll('#dtChips .dt-chip').forEach(c=>c.classList.toggle('on',v>0&&parseFloat(c.dataset.v)===v));
   const el=document.getElementById('dtHint'); if(!el) return;
   const n=new Date(), left=new Date(n.getFullYear(),n.getMonth()+1,0).getDate()-n.getDate()+1;
@@ -32614,7 +32645,9 @@ function openDailyTargetModal(auto){
   if(S.last) add(S.last,L('Last target','آخر تارجت'));
   if(S.avg)  add(S.avg,L('Your average','متوسط صرفك'));
   [100,200,300,500,800].forEach(v=>add(v,''));
-  const chips=picks.slice(0,6);
+  const chips=picks.slice(0,4);
+  const _h=new Date().getHours();
+  const greet=_h<12?L('☀️ Good morning','☀️ صباح الخير'):_h<18?L('🌤️ Good afternoon','🌤️ نهارك سعيد'):L('🌙 Good evening','🌙 مساء الخير');
   let dLabel=dateStr;
   try{ dLabel=new Date().toLocaleDateString(lang==='ar'?'ar-EG-u-nu-latn':'en-GB',{weekday:'long',day:'numeric',month:'long'}); }catch(e){}
   document.getElementById('modalContent').innerHTML = `
@@ -32624,7 +32657,7 @@ function openDailyTargetModal(auto){
         <span class="dt-badge">${ic(auto===true?'sun':'target',14)} ${auto===true?L('New day','يوم جديد'):L("Today's Target",'تارجت اليوم')}</span>
         <span class="dt-date">${esc(dLabel)}</span>
       </div>
-      <div class="dt-title">${auto===true?_dtpTitle():L('How much can you spend today?','كام تقدر تصرف النهاردة؟')}</div>
+      <div class="dt-title">${auto===true?`<small class="dt-greet">${greet}</small>${L('What\'s today\'s budget?','كام ميزانية النهاردة؟')}`:L('How much can you spend today?','كام تقدر تصرف النهاردة؟')}</div>
       <div class="dt-amt-row">
         <button type="button" class="dt-step" onclick="_dtStep(-1)" aria-label="${L('Decrease','نقّص')}">${ic('minus',20)}</button>
         <div class="dt-amt">
