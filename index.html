@@ -12116,6 +12116,50 @@ function fpInitSmartHeader(){
 .att-pay-sum{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 14px;border-radius:12px;background:var(--green-tint);color:var(--green);font-size:calc(13px*var(--app-text-scale,1));font-weight:800}
 .att-pay-sum b{font-variant-numeric:tabular-nums}
 .att-pg .att-seg-row{width:100%}
+
+/* ── New Transaction sheet: cleaner hierarchy (presentation-only; ids/handlers untouched) ── */
+#modalContent .txm-hdr{margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--border)}
+#modalContent .txm-datecard{padding:4px 14px 14px;border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);box-shadow:var(--shadow-sm)}
+#modalContent .txm-datecard .txm-date{border-bottom:0;min-height:46px}
+#modalContent .txm-datecard .txm-date-quick{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin:0;padding:3px;border-radius:14px;background:var(--surface2)}
+#modalContent .txm-datecard .txm-dq{min-height:36px;padding:0 10px;border:0;border-radius:11px;background:transparent;color:var(--muted)}
+#modalContent .txm-datecard .txm-dq.on{background:var(--surface);color:var(--tx-accent);box-shadow:0 1px 3px color-mix(in srgb,var(--text) 14%,transparent)}
+#txEntries .tx-entry .tx-amt label{display:flex;align-items:center;justify-content:space-between;gap:8px}
+#txEntries .tx-entry .tx-amt .tx-hint{font-size:calc(11px*var(--app-text-scale,1));font-weight:500;color:var(--muted);opacity:.8}
+#txEntries .tx-entry .tx-amt .tx-hint.is-calc{opacity:1}
+#txEntries .tx-entry .tx-prod .tx-prod-txt{display:flex;flex-direction:column;gap:1px;line-height:1.3}
+#txEntries .tx-entry .tx-prod .tx-prod-txt b{font-size:calc(13.5px*var(--app-text-scale,1));font-weight:700;color:var(--text)}
+#txEntries .tx-entry .tx-prod .tx-prod-txt small{font-size:calc(11.5px*var(--app-text-scale,1));font-weight:500;color:var(--muted)}
+#modalContent .tx-add-btn{display:flex;width:fit-content;margin:12px auto;padding:0 18px;min-height:40px;justify-content:center;
+  border:1px solid color-mix(in srgb,var(--tx-accent) 32%,var(--border));border-radius:99px;
+  background:color-mix(in srgb,var(--tx-accent) 8%,var(--surface))}
+#modalContent #txSum{margin:0 0 10px;padding:14px 16px}
+#modalContent #txSum input.tx-sum-val{font-size:calc(24px*var(--app-text-scale,1));margin:2px 0 8px}
+#txSum .tx-sum-stats > div + div{border-inline-start:1px solid var(--border);padding-inline-start:10px}
+.modal-btns.txm-btns{flex-direction:row;align-items:stretch;gap:10px;margin-top:6px}
+.txm-btns .mbtn{min-height:52px;margin:0}
+.txm-btns .mbtn.save{flex:1 1 auto;order:2}
+.txm-btns .mbtn.cancel{flex:0 0 auto;min-width:104px;order:1}
+/* ── New Transaction sheet: simple mode — essentials first, details on tap ── */
+#modalContent .txm-datecard{padding:0;border:0;background:transparent;box-shadow:none}
+#modalContent .txm-datecard .txm-date{min-height:40px;border-bottom:1px solid var(--border)}
+#modalContent .txm-datecard .txm-date-quick{margin-top:10px}
+#txEntries .tx-entry .tx-amt .tx-hint:not(.is-calc){display:none}
+#txEntries .tx-entry .tx-prod .tx-prod-txt small{display:none}
+#txEntries .tx-entry .tx-prod{background:transparent;border-top:1px solid var(--border);margin-top:4px}
+#modalContent .tx-add-btn{border:0;background:transparent;min-height:36px;margin:6px auto}
+#modalContent #txSum{padding:12px 16px;cursor:pointer}
+#modalContent #txSum .tx-sum-top{margin-bottom:0}
+#modalContent #txSum input.tx-sum-val{margin:2px 0 0;pointer-events:none}
+#modalContent #txSum:not(.open) .tx-sum-bar,
+#modalContent #txSum:not(.open) .tx-sum-stats,
+#modalContent #txSum:not(.open) .tx-sum-hint{display:none}
+#modalContent #txSum:not(.open) .tx-sum-label::after{content:" ›";opacity:.6}
+#modalContent #txSum.open .tx-sum-bar{margin-top:10px}
+.txm-btns .mbtn.cancel{border:0;background:transparent;min-width:84px;color:var(--muted)}
+
+[dir="rtl"] .txm-btns .mbtn.save{order:1}
+[dir="rtl"] .txm-btns .mbtn.cancel{order:2}
 </style>
 </head>
 <body>
@@ -15857,7 +15901,8 @@ function renderFinanceSummaryHeroV3(m){
 
   // Same "Net Balance (after Custody)" formula as renderBankSummaryCompactV3:
   // all banks + wallets, minus whatever custody cash is still sitting on-site.
-  const netBalance = allTotal - custodyOnSiteForBalance;
+  // Total Net Balance = every bank + wallet balance combined (no custody deduction).
+  const netBalance = allTotal;
   const up = netBalance>=0;
 
   // Net Profit = (Total Banks+Wallets this month) − (Total Banks+Wallets last
@@ -15879,7 +15924,7 @@ function renderFinanceSummaryHeroV3(m){
     for(let i=0;i<_prevCustDeps.length;i++){ const d=_prevCustDeps[i]; if(d.type==='with') _prevCustOut+=(d.amount||0); else _prevCustIn+=(d.amount||0); }
     const _prevCustodySpent = (_fsPrevMonth.site_expenses||[]).reduce((s,e)=>s+(e.amount||0),0);
     const _prevCustodyOnSite = Math.max(_prevCustIn - _prevCustOut - _prevCustodySpent, 0);
-    prevNetBalance = prevAllTotal - _prevCustodyOnSite;
+    prevNetBalance = prevAllTotal; // same definition as netBalance (banks + wallets) so Monthly Change = Total - Last Month
   }
 
   // Real Profit (التوفير الحقيقي) — per explicit instruction, this is a
@@ -27784,8 +27829,8 @@ function renderBanks(m){
 
   // Hero figures — presentation-only, built from `total`/`banks` above via
   // the helpers near the top of this section (see comments there).
-  const changeInfo = bnkMonthlyChangeInfo(banks, total);
-  const spark = bnkSparklineSVG(bnkDailyTrendSeries(m, banks));
+  const changeInfo = bnkMonthlyChangeInfo(bankOnly, totalBanks);
+  const spark = bnkSparklineSVG(bnkDailyTrendSeries(m, bankOnly));
   const _flowTotal = _aggDep + _aggWith;
   const _depPct = _flowTotal>0 ? Math.round((_aggDep/_flowTotal)*100) : 0;
   const _withPct = _flowTotal>0 ? 100-_depPct : 0;
@@ -27800,8 +27845,9 @@ ${_pgHdr('Finance','المالية','Accounts','الحسابات','Banks and e-w
       <div class="bnk-hero-eyebrow">${L('Banks & Wallets','البنوك والمحافظ')}</div>
       <div class="bnk-hero-month-pill">${esc(_monthDisplayLabel(activeMonth))}</div>
     </div>
-    <div class="bnk-hero-total-lbl">${L('Total Balance','إجمالي الرصيد')}</div>
-    <div class="bnk-hero-total">${sigNumHTML(total)}</div>
+    <div class="bnk-hero-total-lbl">${L('Banks Balance','رصيد البنوك')}</div>
+    <div class="bnk-hero-total">${sigNumHTML(totalBanks)}</div>
+    ${wallets.length?`<div class="bnk-hero-wallets" style="position:relative;z-index:1;font-size:calc(11.5px*var(--app-text-scale,1));font-weight:700;color:var(--muted);margin-top:4px">${L('Wallets','المحافظ')}: ${fmt(totalWallets)} ${curLabel()}</div>`:''}
     <div class="bnk-hero-row">
       ${changeInfo?`<div class="bnk-hero-chip ${changeInfo.delta>=0?'up':'down'}">
         ${ic(changeInfo.delta>=0?'trend_up':'trend_down',11)}
@@ -42013,7 +42059,7 @@ function _txEntryHTML(sfx, d){
       <div class="field tx-prod">
         <label class="chk-row" for="mIsProduct${sfx}">
           <input type="checkbox" id="mIsProduct${sfx}" class="chk-box" ${d.isProduct?'checked':''}>
-          <span style="display:flex;align-items:center;gap:8px">${ic('shopping_bag',16)} ${L('Product purchase — add to My Purchases','منتج — يضاف لقائمة مشترياتي')}</span>
+          <span style="display:flex;align-items:center;gap:10px">${ic('shopping_bag',18)}<span class="tx-prod-txt"><b>${L('Product purchase','شراء منتج')}</b><small>${L('Add to My Purchases','يضاف لقائمة مشترياتي')}</small></span></span>
         </label>
       </div>
     </div>`;
@@ -42065,11 +42111,13 @@ function showTxModal(tx){
         <div class="modal-hdr-sub">${L('Daily spending log','سجل الإنفاق اليومي')}</div>
       </div>
     </div>
+    <div class="txm-datecard">
     <label class="txm-date" for="mDate">${ic('calendar',18)}<span class="txm-date-lbl">${L('Date','التاريخ')}</span><input type="date" id="mDate" value="${tx?.date||today()}" onchange="_txCalcProvided();_txSyncDay()"></label>
     <div class="txm-date-quick" id="txDateQuick" role="group" aria-label="${L('Quick date','تاريخ سريع')}"><button type="button" class="txm-dq" data-off="0" onclick="_txSetDay(0)">${L('Today','اليوم')}</button><button type="button" class="txm-dq" data-off="-1" onclick="_txSetDay(-1)">${L('Yesterday','أمس')}</button></div>
+    </div>
     <div id="txEntries">${_txEntryHTML('', tx)}</div>
     ${tx ? '' : `<button type="button" class="tx-add-btn" onclick="_txAddRow()">${ic('plus',18)} ${L('Add new','إضافة معاملة جديدة')}</button>`}
-    <div class="tx-sum" id="txSum" data-state="">
+    <div class="tx-sum" id="txSum" data-state="" onclick="this.classList.toggle('open')">
       <div class="tx-sum-top">
         <span class="tx-sum-label">${L('Provided (Auto)','المتوفر (تلقائي)')}</span>
         <span id="mProvidedBadge" class="tx-sum-badge"></span>
@@ -42084,7 +42132,7 @@ function showTxModal(tx){
       <div id="mProvidedHint" class="tx-sum-hint"></div>
     </div>
     <div id="txStatusCard" style="display:none;padding:12px 2px 0;margin-bottom:4px;font-size:calc(12px*var(--app-text-scale,1));line-height:1.6"></div>
-    <div class="modal-btns"><button class="mbtn save" onclick="saveTx()">${L('Save','حفظ')}</button><button class="mbtn cancel" onclick="closeModal()">${L('Cancel','إلغاء')}</button></div>`;
+    <div class="modal-btns txm-btns"><button class="mbtn save" onclick="saveTx()">${L('Save','حفظ')}</button><button class="mbtn cancel" onclick="closeModal()">${L('Cancel','إلغاء')}</button></div>`;
   document.getElementById('modalOverlay').style.display='flex';
   setTimeout(attachCalcKb,60);
   _txSyncRowsUI();
