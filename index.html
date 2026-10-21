@@ -7980,6 +7980,9 @@ body.fp-nav-away .fab,body.fp-nav-away .sc-bottom{translate:0 calc(var(--bottom-
    in ink so the page isn't a wall of red. The gauge (limit tick + overrun) is
    the single distinctive element. */
 .cx-wrap{gap:20px;padding-bottom:150px}
+/* My Job: project card + tab bar sit at the same height on all four tabs (CV/Attendance have tighter flex gaps) */
+.cv-wrap>.prj-bar{margin:10px 0 12px}
+.att.atp>.prj-bar{margin:6px 0 8px}
 .cx-wrap .cx-mn{display:inline-flex;align-items:baseline;gap:4px;direction:ltr;unicode-bidi:isolate;white-space:nowrap}
 .cx-wrap .cx-mn b{font-weight:800;font-variant-numeric:tabular-nums}
 .cx-wrap .cx-mn small{font-size:calc(var(--fs-caption)*var(--app-text-scale,1));font-weight:700;color:var(--muted)}
@@ -11717,6 +11720,12 @@ function fpInitSmartHeader(){
 .mat-head{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:4px 10px 6px}
 .mat-hint{font-size:calc(11.5px*var(--app-text-scale,1));color:var(--muted);font-weight:600}
 .mat-acts{display:flex;gap:6px}
+.mat-karat{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:6px 10px 10px}
+.mat-karat-l{font-size:calc(12px*var(--app-text-scale,1));font-weight:700;color:var(--sub)}
+.mat-karat-seg{display:inline-flex;gap:2px;padding:3px;border-radius:12px;background:var(--surface2);border:1px solid var(--border)}
+.mat-kb{min-width:44px;height:32px;padding:0 10px;border:0;border-radius:9px;background:transparent;color:var(--muted);font:inherit;font-size:calc(12.5px*var(--app-text-scale,1));font-weight:800;cursor:pointer;font-variant-numeric:tabular-nums}
+.mat-kb.on{background:#a16207;color:#fff;box-shadow:0 1px 4px color-mix(in srgb,#a16207 40%,transparent)}
+.mat-kb:active{transform:scale(.95)}
 .mat-ib{width:30px;height:30px;border-radius:10px;border:1px solid var(--border);background:var(--surface2);color:var(--text);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;padding:0}
 .mat-ib.sm{width:26px;height:26px;border-radius:8px}
 .mat-ib:active{background:var(--surface3)}
@@ -16591,58 +16600,6 @@ function _fdDashboardSignalsCompute(m){
   return { s, prevKey, prevStats, banks, balByKey, totalBal, rankedBanks, topBank, topPct, custodyRemaining, custodyDeposit, custodySpent };
 }
 
-function renderAIInsightsCard(m, sig){
-  sig = sig || fdDashboardSignals(m);
-  const { s, prevStats, topBank, topPct } = sig;
-
-  // priority: 'warn' | 'opp' | 'pos'
-  const items = [];
-
-  if(prevStats){
-    if(s.totalExpMonth > prevStats.totalExpMonth){
-      items.push({p:'warn', icon:'trend_up', text:L('Expenses increased this month vs last month','المصروفات زادت هذا الشهر مقارنة بالشهر السابق')});
-    }
-    if(s.monthlyProfit > prevStats.monthlyProfit && s.monthlyProfit>0){
-      items.push({p:'pos', icon:'trend_up', text:L('Profit improved compared to last month','الربح تحسّن مقارنة بالشهر السابق')});
-    }
-  }
-  if(topBank && topPct >= 60){
-    items.push({p:'opp', icon:'bank', text:L(`Bank balance is concentrated in ${esc(topBank.name)} (${topPct}%)`, `رصيد البنوك مركّز في ${esc(topBank.name)} (${topPct}%)`)});
-  }
-  if(s.netCashFlow >= 0){
-    items.push({p:'pos', icon:'cash', text:L('Cash flow is healthy this month','التدفق النقدي صحي هذا الشهر')});
-  } else {
-    items.push({p:'warn', icon:'cash', text:L('Cash flow is negative this month','التدفق النقدي سالب هذا الشهر')});
-  }
-
-  const order = {warn:0, opp:1, pos:2};
-  items.sort((a,z)=>order[a.p]-order[z.p]);
-
-  const styleFor = p => p==='warn'
-    ? {bg:'var(--danger-tint)', fg:'var(--danger)', lbl:L('Warning','تحذير')}
-    : p==='opp'
-    ? {bg:'var(--purple-tint)', fg:'var(--purple)', lbl:L('Opportunity','فرصة')}
-    : {bg:'var(--success-tint)', fg:'var(--success)', lbl:L('Positive','إيجابي')};
-
-  const rows = items.map(it=>{
-    const st = styleFor(it.p);
-    return `<div class="dfp-insight-row">
-      <div class="dfp-activity-icon" style="background:${st.bg};color:${st.fg}">${ic(it.icon, 15, 'aria-hidden="true"')}</div>
-      <div class="dfp-activity-mid">
-        <div class="dfp-activity-title">${it.text}</div>
-      </div>
-      <span class="dfp-insight-badge" style="background:${st.bg};color:${st.fg}">${st.lbl}</span>
-    </div>`;
-  }).join('') || `<div class="empty"><div class="ei">${ic('bulb', 28, 'aria-hidden="true"')}</div>${L('Nothing to flag this month','لا يوجد ملاحظات هذا الشهر')}</div>`;
-
-  return `<div class="sc-card" style="border-top:3px solid var(--green)">
-    <div class="dfp-card-head">
-      <div class="dfp-card-title">${ic('sparkle', 13, 'aria-hidden="true"')} ${L('AI Insights','تحليلات ذكية')}</div>
-    </div>
-    <div class="dfp-activity-list">${rows}</div>
-  </div>`;
-}
-
 // ══════════════════════════════════════════════════════════════════════════
 // DASHBOARD V2 — PHASE 3 (Smart Analytics)
 // Every function below reads fdDashboardSignals() / fdFinanceStats() /
@@ -16657,58 +16614,6 @@ function renderAIInsightsCard(m, sig){
 // the app (no config value for it) — the only zero-new-data-model reading is
 // custodyRemaining < 0 (i.e. the site has overspent its deposits), so that's
 // the signal used here rather than inventing a magic number.
-function renderSmartAlertsCard(m, sig){
-  sig = sig || fdDashboardSignals(m);
-  const { s, prevStats, topBank, topPct, custodyRemaining } = sig;
-  const alerts = [];
-  // severity: success | warning | danger | info
-  if(prevStats && s.totalExpMonth > prevStats.totalExpMonth){
-    alerts.push({sev:'warning', icon:'trend_up',
-      title:L('Expenses Increased','زادت المصروفات'),
-      desc:L('Higher than last month','أعلى من الشهر الماضي')});
-  }
-  if(prevStats && s.monthlyProfit > prevStats.monthlyProfit && s.monthlyProfit>0){
-    alerts.push({sev:'success', icon:'trend_up',
-      title:L('Profit Increased','زاد الربح'),
-      desc:L('Improved vs last month','تحسّن عن الشهر الماضي')});
-  }
-  if(s.netCashFlow < 0){
-    alerts.push({sev:'danger', icon:'cash',
-      title:L('Negative Cash Flow','تدفق نقدي سالب'),
-      desc:L('Cash out exceeded cash in this month','الصادر تجاوز الوارد هذا الشهر')});
-  }
-  if(topBank && topPct >= 60){
-    alerts.push({sev:'info', icon:'bank',
-      title:L('Liquidity Concentration','تركّز السيولة'),
-      desc:L(`${esc(topBank.name)} holds ${topPct}% of total balance`, `${esc(topBank.name)} تحتفظ بـ ${topPct}% من إجمالي الرصيد`)});
-  }
-  if(custodyRemaining < 0){
-    alerts.push({sev:'danger', icon:'lock',
-      title:L('My Job Overspent','تجاوز في My Job'),
-      desc:L('Site expenses exceeded deposited custody','مصروفات الموقع تجاوزت العهدة المودعة')});
-  }
-
-  const sevStyle = {
-    success:{bg:'var(--success-tint)',fg:'var(--success)'}, warning:{bg:'var(--warning-tint)',fg:'var(--warning)'},
-    danger:{bg:'var(--danger-tint)',fg:'var(--danger)'}, info:{bg:'var(--info-tint)',fg:'var(--info)'}
-  };
-  const rows = alerts.map(a=>{
-    const st = sevStyle[a.sev];
-    return `<div class="dfp-alert-row">
-      <div class="dfp-activity-icon" style="background:${st.bg};color:${st.fg}">${ic(a.icon, 15, 'aria-hidden="true"')}</div>
-      <div class="dfp-activity-mid">
-        <div class="dfp-activity-title">${a.title}</div>
-        <div class="dfp-activity-sub">${a.desc}</div>
-      </div>
-    </div>`;
-  }).join('') || `<div class="empty"><div class="ei">${ic('check', 28, 'aria-hidden="true"')}</div>${L('No alerts — everything looks fine','لا توجد تنبيهات — كل شيء تمام')}</div>`;
-
-  return `<div class="sc-card">
-    <div class="dfp-card-head"><div class="dfp-card-title">${ic('warning', 13, 'aria-hidden="true"')} ${L('Smart Alerts','تنبيهات ذكية')}</div></div>
-    <div class="dfp-activity-list">${rows}</div>
-  </div>`;
-}
-
 // ── 2) Financial Health Score ───────────────────────────────────────────────
 // Deterministic, presentation-only weighted checklist over already-computed
 // signals (loss/negative cash flow/concentration/custody overspend/high
@@ -16716,36 +16621,184 @@ function renderSmartAlertsCard(m, sig){
 // same "threshold over existing numbers" pattern as the alerts above, just
 // accumulated into one number instead of a list. Never written back to any
 // engine or storage; purely a display label.
+// ── System Intelligence engine — one reading of the month shared by Health / Alerts / Insights ──
+// Reads only numbers the app already computes (fdFinanceStats, bank balances, custody, budget, My Finances debts/income).
+// Context-aware: no data → no verdicts; part-way through a month → pace-based, not "total so far"; single account → no
+// "concentration" scare; runway/budget rules only fire when a budget exists; every message carries the actual amounts.
+function _fdIntelCompute(m, sig){
+  const { s, prevStats, banks, balByKey, totalBal, topBank, topPct, custodyRemaining } = sig;
+  const f = fmtEGP, pct = (a,b)=>b>0?Math.round(a/b*100):0, t = today();
+  const inProgress = s.daysPassed < s.daysInMonth;
+  const hasData = s.totalExpMonth>0 || s.totalIncomeMonth>0 || s.cashInTotal>0 || s.cashOutTotal>0;
+  const prevHas = !!prevStats && (prevStats.totalExpMonth>0 || prevStats.totalIncomeMonth>0);
+  const funded = (banks||[]).filter(b=>(balByKey.get(b.key)||0)>0).length;
+  const bud = s.budget||{}, usage = bud.oldBudget>0 ? bud.totalSpend/bud.oldBudget*100 : null;
+  const coverDays = (s.burnRate>0 && s.daysPassed>=3) ? Math.floor(Math.max(0,totalBal)/s.burnRate) : null;
+  const projected = (inProgress && s.daysPassed>=7) ? Math.round(s.burnRate*s.daysInMonth) : null;
+  let P = null;
+  try{
+    const S = (typeof SAVINGS!=='undefined' && SAVINGS) || {};
+    const vis = (a)=>(a||[]).filter(x=>_savDateInView(x.date));
+    const sum = (a)=>a.reduce((q,x)=>q+(x.amount||0),0);
+    const debts = vis(S.debts), over = (dir)=>debts.filter(x=>x.direction===dir && x.dueDate && x.dueDate<t);
+    P = { inc:sum(vis(S.incomes)), out:sum(vis(S.outcomes)), byMe:over('by_me'), toMe:over('to_me') };
+  }catch(e){ P = null; }
+  const A = [], I = [], D = [];   // alerts, insights, score deductions
+  const net = s.netCashFlow;
+
+  if(hasData && net<0){
+    A.push({sev:'danger', icon:'cash', title:L('Negative cash flow','تدفق نقدي سالب'),
+      desc:L(`Out ${f(s.cashOutTotal)} vs in ${f(s.cashInTotal)} — short by ${f(-net)}`, `الصادر ${f(s.cashOutTotal)} مقابل الوارد ${f(s.cashInTotal)} — عجز ${f(-net)}`)});
+    D.push([L('Cash flow','التدفق النقدي'), Math.round(8+22*Math.min(1,-net/Math.max(s.cashOutTotal,1)))]);
+    I.push({p:'tip', icon:'bulb', text:L(`To break even this month you need ${f(-net)} more cash in, or that much less out`, `للتعادل هذا الشهر محتاج ${f(-net)} وارد زيادة أو صادر أقل بنفس المبلغ`)});
+  }
+  if(hasData && s.monthlyProfit<0){
+    D.push([L('Profit','الربح'), Math.round(6+16*Math.min(1,-s.monthlyProfit/Math.max(s.totalIncomeMonth,s.totalExpMonth,1)))]);
+  }
+  if(usage!=null){
+    if(usage>100){
+      A.push({sev:'danger', icon:'warning', title:L('Budget exceeded','تجاوزت الميزانية'),
+        desc:L(`Spent ${f(bud.totalSpend)} of ${f(bud.oldBudget)} (${Math.round(usage)}%)`, `صرفت ${f(bud.totalSpend)} من ${f(bud.oldBudget)} (${Math.round(usage)}%)`)});
+      D.push([L('Budget','الميزانية'), Math.round(Math.min(15,5+(usage-100)/4))]);
+    } else if(usage>=85 && s.daysPassed/s.daysInMonth<0.85){
+      A.push({sev:'warning', icon:'warning', title:L('Budget almost used','الميزانية قربت تخلص'),
+        desc:L(`${Math.round(usage)}% used (${f(bud.totalSpend)} of ${f(bud.oldBudget)}) with ${s.daysInMonth-s.daysPassed} days left`, `استهلكت ${Math.round(usage)}% (${f(bud.totalSpend)} من ${f(bud.oldBudget)}) وفاضل ${s.daysInMonth-s.daysPassed} يوم`)});
+      D.push([L('Budget','الميزانية'), 5]);
+    }
+  }
+  if(prevHas && prevStats.totalExpMonth>0 && s.totalExpMonth>0){
+    const pe = prevStats.totalExpMonth, d = s.totalExpMonth-pe;
+    if(d>0 && (!inProgress || s.daysPassed>=3)){
+      A.push({sev:'warning', icon:'trend_up', title:L('Spending above last month','المصروفات أعلى من الشهر الماضي'),
+        desc:L(`${f(s.totalExpMonth)} vs ${f(pe)} (+${pct(d,pe)}%)${inProgress?' — and the month isn\'t over':''}`, `${f(s.totalExpMonth)} مقابل ${f(pe)} (+${pct(d,pe)}%)${inProgress?' — والشهر لسه مخلصش':''}`)});
+    } else if(projected!=null && projected>pe*1.15){
+      A.push({sev:'info', icon:'trend_up', title:L('Spending pace is high','معدل الصرف مرتفع'),
+        desc:L(`On pace for ~${f(projected)} by month end (+${pct(projected-pe,pe)}% vs last month)`, `بالمعدل ده هتوصل لحوالي ${f(projected)} آخر الشهر (+${pct(projected-pe,pe)}% عن الشهر الماضي)`)});
+    }
+  }
+  if(coverDays!=null && coverDays<30){
+    const sevC = totalBal<=0 || coverDays<7 ? 'danger' : 'warning';
+    A.push({sev:sevC, icon:'bank', title:L('Low cash cover','رصيد السيولة قليل'),
+      desc:totalBal<=0 ? L('No positive balance left while spending continues','مفيش رصيد متاح والصرف مستمر')
+        : L(`Your ${f(totalBal)} balance covers ~${coverDays} day${coverDays===1?'':'s'} at the current spending rate`, `رصيدك ${f(totalBal)} يكفي حوالي ${coverDays} يوم بمعدل الصرف الحالي`)});
+    D.push([L('Cash cover','تغطية السيولة'), coverDays<7?12:coverDays<15?8:4]);
+  }
+  if(custodyRemaining<0){
+    A.push({sev:'danger', icon:'lock', title:L('My Job overspent','تجاوز في My Job'),
+      desc:L(`Site expenses exceeded the deposited custody by ${f(-custodyRemaining)}`, `مصروفات الموقع تجاوزت العهدة المودعة بمقدار ${f(-custodyRemaining)}`)});
+    D.push([L('Custody','العهدة'), 12]);
+  }
+  if(P && P.byMe.length){
+    const amt = P.byMe.reduce((q,x)=>q+(x.amount||0),0);
+    A.push({sev:'warning', icon:'scale', title:L('Overdue debts you owe','مديونيات عليك متأخرة'),
+      desc:L(`${P.byMe.length} past due, ${f(amt)} in total`, `${P.byMe.length} متأخرة بإجمالي ${f(amt)}`)});
+    D.push([L('Debts','المديونيات'), Math.min(16, 8*P.byMe.length)]);
+  }
+  if(P && P.toMe.length){
+    const amt = P.toMe.reduce((q,x)=>q+(x.amount||0),0);
+    A.push({sev:'info', icon:'scale', title:L('Money owed to you is overdue','فلوس ليك متأخرة'),
+      desc:L(`${P.toMe.length} past due, ${f(amt)} to collect`, `${P.toMe.length} متأخرة بإجمالي ${f(amt)} لازم تتحصّل`)});
+  }
+  if(P && P.inc>0 && P.out>P.inc){
+    A.push({sev:'warning', icon:'trend_down', title:L('Personal spending exceeds income','مصروفاتك الشخصية أعلى من دخلك'),
+      desc:L(`Recorded expenses ${f(P.out)} vs income ${f(P.inc)}`, `المصروفات المسجلة ${f(P.out)} مقابل الدخل ${f(P.inc)}`)});
+  }
+  if(funded>=2 && topBank && topPct>=70){
+    A.push({sev:'info', icon:'bank', title:L('Liquidity concentration','تركّز السيولة'),
+      desc:L(`${esc(topBank.name)} holds ${topPct}% of your ${f(totalBal)} balance`, `${esc(topBank.name)} تحتفظ بـ ${topPct}% من رصيدك ${f(totalBal)}`)});
+    D.push([L('Concentration','التركّز'), topPct>=90?6:3]);
+  }
+
+  // ── insights: context + positives + next steps (never a repeat of an alert) ──
+  if(hasData && net>=0){
+    I.push({p:'pos', icon:'cash', text:L(`Net cash flow is +${f(net)} (in ${f(s.cashInTotal)} · out ${f(s.cashOutTotal)})`, `صافي التدفق النقدي +${f(net)} (وارد ${f(s.cashInTotal)} · صادر ${f(s.cashOutTotal)})`)});
+  }
+  if(prevHas && s.monthlyProfit>0 && s.monthlyProfit>prevStats.monthlyProfit){
+    I.push({p:'pos', icon:'trend_up', text:L(`Profit is up ${f(s.monthlyProfit-prevStats.monthlyProfit)} on last month`, `الربح أعلى بـ ${f(s.monthlyProfit-prevStats.monthlyProfit)} عن الشهر الماضي`)});
+  }
+  if(P && P.inc>0 && P.out<=P.inc){
+    const kept = P.inc-P.out, rate = Math.round(kept/P.inc*100);
+    if(rate>=20) I.push({p:'pos', icon:'check', text:L(`You keep ${rate}% of recorded personal income (${f(kept)})`, `بتحتفظ بـ ${rate}% من دخلك الشخصي المسجّل (${f(kept)})`)});
+    else I.push({p:'tip', icon:'bulb', text:L(`Savings rate is ${rate}% — about ${f(Math.round(P.inc*0.2-kept))} more would reach 20%`, `معدل الادخار ${rate}% — محتاج حوالي ${f(Math.round(P.inc*0.2-kept))} زيادة عشان توصل 20%`)});
+  }
+  if(coverDays!=null && coverDays>=60){
+    I.push({p:'pos', icon:'bank', text:L(`Your balance covers ~${Math.floor(coverDays/30)} months at the current spending rate`, `رصيدك يكفي حوالي ${Math.floor(coverDays/30)} شهر بمعدل الصرف الحالي`)});
+  }
+  if(!hasData){
+    I.push({p:'tip', icon:'bulb', text:L('Nothing recorded this month yet — add transactions to unlock insights','مفيش حاجة متسجلة الشهر ده — سجّل معاملات عشان تظهر التحليلات')});
+  }
+  const rank = {danger:0,warning:1,info:2}; A.sort((a,z)=>rank[a.sev]-rank[z.sev]);
+  const ord = {warn:0,tip:1,opp:1,pos:2}; I.sort((a,z)=>ord[a.p]-ord[z.p]);
+  let score = null, why = [];
+  if(hasData){
+    why = D.slice().sort((a,z)=>z[1]-a[1]);
+    score = Math.max(0, Math.min(100, 100 - D.reduce((q,x)=>q+x[1],0)));
+  }
+  return { alerts:A, insights:I, score, why, hasData };
+}
 function fdHealthScore(sig){
-  const { s, custodyRemaining } = sig;
-  let score = 100;
-  if(s.monthlyProfit < 0) score -= 30;
-  if(s.netCashFlow < 0) score -= 20;
-  if(sig.topPct >= 60) score -= 15;
-  if(custodyRemaining < 0) score -= 15;
-  if(s.runwayDays!=null && s.runwayDays < 7) score -= 10;
-  score = Math.max(0, Math.min(100, score));
-  const label = score>=85 ? L('Excellent','ممتاز') : score>=70 ? L('Good','جيد') : score>=50 ? L('Fair','مقبول') : L('Needs Attention','يحتاج انتباه');
-  const color = score>=85 ? 'var(--success)' : score>=70 ? 'var(--success)' : score>=50 ? 'var(--warning)' : 'var(--danger)';
-  return { score, label, color };
+  const r = _fdIntelCompute(DATA[activeMonth]||{}, sig), sc = r.score;
+  if(sc==null) return { score:null, label:L('Not enough data','لا توجد بيانات كافية'), color:'var(--muted)', why:[], hasData:false };
+  const label = sc>=85 ? L('Excellent','ممتاز') : sc>=70 ? L('Good','جيد') : sc>=50 ? L('Fair','مقبول') : L('Needs Attention','يحتاج انتباه');
+  const color = sc>=70 ? 'var(--success)' : sc>=50 ? 'var(--warning)' : 'var(--danger)';
+  return { score:sc, label, color, why:r.why, hasData:true };
 }
 function renderHealthScoreCard(m, sig){
   sig = sig || fdDashboardSignals(m);
-  const h = fdHealthScore(sig);
+  const h = fdHealthScore(sig), C = 2*Math.PI*34;
+  const val = h.score==null ? '<span>—</span>' : `<span data-dfp-count="${h.score}">0</span><small>/100</small>`;
+  const ring = h.score==null ? '' : `<circle cx="40" cy="40" r="34" fill="none" stroke="${h.color}" stroke-width="8" stroke-linecap="round" stroke-dasharray="${C}" stroke-dashoffset="${C}" data-dfp-ring="${h.score}" transform="rotate(-90 40 40)"/>`;
+  const chips = h.why.map(w=>`<span class="dfp-why">${esc(w[0])} <b>−${w[1]}</b></span>`).join('');
+  const cap = !h.hasData ? L('Add this month\'s transactions to get a score','سجّل معاملات الشهر عشان تظهر الدرجة')
+    : h.why.length ? L('What pulled the score down','اللي نزّل الدرجة') : L('No risk factors found this month','مفيش عوامل خطر الشهر ده');
   return `<div class="sc-card">
     <div class="dfp-card-head"><div class="dfp-card-title">${ic('check', 13, 'aria-hidden="true"')} ${L('Financial Health','الصحة المالية')}</div></div>
     <div class="dfp-health-row" role="status">
       <div class="dfp-health-ring-wrap">
         <svg viewBox="0 0 80 80" class="dfp-health-ring" aria-hidden="true">
-          <circle cx="40" cy="40" r="34" fill="none" stroke="var(--border)" stroke-width="8"/>
-          <circle cx="40" cy="40" r="34" fill="none" stroke="${h.color}" stroke-width="8" stroke-linecap="round"
-            stroke-dasharray="${2*Math.PI*34}" stroke-dashoffset="${2*Math.PI*34}"
-            data-dfp-ring="${h.score}" transform="rotate(-90 40 40)"/>
+          <circle cx="40" cy="40" r="34" fill="none" stroke="var(--border)" stroke-width="8"/>${ring}
         </svg>
-        <div class="dfp-health-ring-val" style="color:${h.color}"><span data-dfp-count="${h.score}">0</span><small>/100</small></div>
+        <div class="dfp-health-ring-val" style="color:${h.color}">${val}</div>
       </div>
       <div class="dfp-health-lbl" style="color:${h.color}">${h.label}</div>
     </div>
+    <div class="dfp-health-cap">${cap}</div>${chips?`<div class="dfp-health-why">${chips}</div>`:''}
+  </div>`;
+}
+function renderSmartAlertsCard(m, sig){
+  sig = sig || fdDashboardSignals(m);
+  const r = _fdIntelCompute(m, sig);
+  const sevStyle = { danger:{bg:'var(--danger-tint)',fg:'var(--danger)'}, warning:{bg:'var(--warning-tint)',fg:'var(--warning)'}, info:{bg:'var(--info-tint)',fg:'var(--info)'} };
+  const rows = r.alerts.map(a=>{
+    const st = sevStyle[a.sev];
+    return `<div class="dfp-alert-row">
+      <div class="dfp-activity-icon" style="background:${st.bg};color:${st.fg}">${ic(a.icon, 15, 'aria-hidden="true"')}</div>
+      <div class="dfp-activity-mid"><div class="dfp-activity-title">${a.title}</div><div class="dfp-activity-sub">${a.desc}</div></div>
+    </div>`;
+  }).join('') || (r.hasData
+    ? `<div class="empty"><div class="ei">${ic('check', 28, 'aria-hidden="true"')}</div>${L('No alerts — everything looks fine','لا توجد تنبيهات — كل شيء تمام')}</div>`
+    : `<div class="empty"><div class="ei">${ic('bulb', 28, 'aria-hidden="true"')}</div>${L('Nothing to check yet — no activity this month','مفيش حاجة تتراجع لسه — مفيش نشاط الشهر ده')}</div>`);
+  return `<div class="sc-card">
+    <div class="dfp-card-head"><div class="dfp-card-title">${ic('warning', 13, 'aria-hidden="true"')} ${L('Smart Alerts','تنبيهات ذكية')}</div></div>
+    <div class="dfp-activity-list">${rows}</div>
+  </div>`;
+}
+function renderAIInsightsCard(m, sig){
+  sig = sig || fdDashboardSignals(m);
+  const r = _fdIntelCompute(m, sig);
+  const styleFor = p => p==='pos' ? {bg:'var(--success-tint)', fg:'var(--success)', lbl:L('Positive','إيجابي')}
+    : {bg:'var(--purple-tint)', fg:'var(--purple)', lbl:p==='tip'?L('Tip','نصيحة'):L('Opportunity','فرصة')};
+  const rows = r.insights.map(it=>{
+    const st = styleFor(it.p);
+    return `<div class="dfp-insight-row">
+      <div class="dfp-activity-icon" style="background:${st.bg};color:${st.fg}">${ic(it.icon, 15, 'aria-hidden="true"')}</div>
+      <div class="dfp-activity-mid"><div class="dfp-activity-title">${it.text}</div></div>
+      <span class="dfp-insight-badge" style="background:${st.bg};color:${st.fg}">${st.lbl}</span>
+    </div>`;
+  }).join('') || `<div class="empty"><div class="ei">${ic('bulb', 28, 'aria-hidden="true"')}</div>${L('Nothing to flag this month','لا يوجد ملاحظات هذا الشهر')}</div>`;
+  return `<div class="sc-card" style="border-top:3px solid var(--green)">
+    <div class="dfp-card-head"><div class="dfp-card-title">${ic('sparkle', 13, 'aria-hidden="true"')} ${L('AI Insights','تحليلات ذكية')}</div></div>
+    <div class="dfp-activity-list">${rows}</div>
   </div>`;
 }
 
@@ -17605,7 +17658,8 @@ function renderPurchasesDashCard(){
 // ══════════════════════════════════════════════════════════════════════════════
 const MAT_KEY='wdp_materials_v1';
 const MAT_UNITS={g:['g','جرام'],kg:['kg','كجم'],ton:['ton','طن'],bag:['bag','شيكارة'],m3:['m³','م³'],pc:['pc','قطعة'],m:['m','متر']};
-let MAT_STATE=null, _matPolled=false, _matDelArm=null;
+const MAT_KARATS=[24,21,18,14];
+let MAT_STATE=null, _matPolled=false, _matDelArm=null, _matKaratDirty=false;
 function _matToday(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
 function _matDaysAgo(d){ const a=new Date(d+'T00:00:00'), b=new Date(_matToday()+'T00:00:00'); return Math.round((b-a)/86400000); }
 function _matSave(){ try{ localStorage.setItem(MAT_KEY,JSON.stringify(MAT_STATE)); }catch(e){ try{_logErr('materials:save',e);}catch(_){} } }
@@ -17614,6 +17668,7 @@ function _matLoad(){
   let st=null;
   try{ const r=localStorage.getItem(MAT_KEY); if(r) st=JSON.parse(r); }catch(e){}
   if(!st||!Array.isArray(st.items)) st={items:[]};
+  if(MAT_KARATS.indexOf(st.karat)<0) st.karat=24;   // chosen gold karat (prices are stored per gram of 24K)
   [{id:'gold',en:'Gold 24K',ar:'ذهب عيار 24',unit:'g',sys:true},
    {id:'rebar',en:'Rebar Steel',ar:'حديد التسليح',unit:'ton',sys:true},
    {id:'cement',en:'Cement',ar:'الأسمنت',unit:'ton',sys:true}].forEach(d=>{
@@ -17625,7 +17680,8 @@ function _matLoad(){
   MAT_STATE=st; return st;
 }
 function _matItem(id){ return _matLoad().items.find(x=>x.id===id); }
-function _matName(it){ return it.name||L(it.en||'',it.ar||''); }
+function _matKarat(){ return _matLoad().karat||24; }
+function _matName(it){ if(it.id==='gold'){ const k=_matKarat(); return L('Gold '+k+'K','ذهب عيار '+k); } return it.name||L(it.en||'',it.ar||''); }
 function _matUnit(it){ const u=MAT_UNITS[it.unit]; return u?L(u[0],u[1]):(it.unit||''); }
 function _matNum(v){
   let t=String(v==null?'':v).trim();
@@ -17658,7 +17714,7 @@ function matRefreshGold(){
 }
 function _matSummary(){
   const g=_matItem('gold'); const l=g&&g.history[g.history.length-1];
-  return l?('24K '+fmt(l.p)):'';
+  const k=_matKarat(); return l?(k+'K '+fmt(l.p*k/24)):'';
 }
 function _matSpark(h,up){
   const pts=h.slice(-30).map(x=>x.p); if(pts.length<2) return '';
@@ -17684,15 +17740,28 @@ function _matRow(it){
   let sub='';
   if(gold&&last){
     const p=last.p;
-    sub=`<div class="mat-sub2">21K <b dir="ltr">${fmt(Math.round(p*21/24))}</b> · 18K <b dir="ltr">${fmt(Math.round(p*18/24))}</b> · ${L('Pound','الجنيه')} <b dir="ltr">${fmt(Math.round(p*21/24*8))}</b></div>`;
+    const sk=_matKarat();
+    sub=`<div class="mat-sub2">${[24,21,18].filter(k=>k!==sk).map(k=>`${k}K <b dir="ltr">${fmt(Math.round(p*k/24))}</b>`).join(' · ')} · ${L('Pound','الجنيه')} <b dir="ltr">${fmt(Math.round(p*21/24*8))}</b></div>`;
   }
   const when=last?`<span class="mat-when${stale?' stale':''}">${gold?L('Auto','تلقائي')+' · ':''}${_matAgo(last.d)}${stale?' · '+L('update','حدّث'):''}</span>`:`<span class="mat-when stale">${gold?L('Tap refresh to fetch','اضغط تحديث للجلب'):L('Tap to enter price','اضغط لإدخال السعر')}</span>`;
   return `<button type="button" class="mat-row" onclick="matOpen('${it.id}')">
     <span class="mat-ico">${ic(gold?'cash':'package',16,'aria-hidden="true"')}</span>
     <span class="mat-main"><span class="mat-nm">${esc(_matName(it))}</span>${when}${sub}</span>
-    <span class="mat-side"><span class="mat-pr"><span dir="ltr">${last?fmt(last.p):'—'}</span><small>${esc(unit)}</small></span>${chip}</span>
+    <span class="mat-side"><span class="mat-pr"><span dir="ltr">${last?fmt(gold?last.p*_matKarat()/24:last.p):'—'}</span><small>${esc(unit)}</small></span>${chip}</span>
     ${_matSpark(h,dir)}
   </button>`;
+}
+function _matKaratBar(){
+  const k=_matKarat();
+  return `<div class="mat-karat" role="group" aria-label="${L('Gold karat','عيار الذهب')}"><span class="mat-karat-l">${L('Gold karat','عيار الذهب')}</span><span class="mat-karat-seg">${MAT_KARATS.map(x=>`<button type="button" class="mat-kb${x===k?' on':''}" aria-pressed="${x===k?'true':'false'}" onclick="matSetKarat(${x})">${x}K</button>`).join('')}</span></div>`;
+}
+function matSetKarat(k){
+  if(MAT_KARATS.indexOf(k)<0) return;
+  const st=_matLoad(); st.karat=k; _matSave();
+  // refresh the card in place (it may be parked inside the dashboard sheet, where a full re-render would leave it stale)
+  document.querySelectorAll('.mat-card').forEach(el=>{ try{ el.outerHTML=renderMaterialsDashCard(); }catch(e){ _logErr('matSetKarat',e); } });
+  if(typeof _wdashSheetId!=='undefined' && _wdashSheetId){ _matKaratDirty=true; }   // dashboard header line refreshes when the sheet closes
+  else if(currentView==='wsdash'){ try{ renderView(); }catch(e){} }
 }
 function renderMaterialsDashCard(){
   try{ if(typeof fxEnsureRates==='function') fxEnsureRates(); if(typeof goldEnsurePrice==='function') goldEnsurePrice(); }catch(e){}
@@ -17704,6 +17773,7 @@ function renderMaterialsDashCard(){
         <button type="button" class="mat-ib" onclick="matRefreshGold()" aria-label="${L('Refresh gold','تحديث الذهب')}">${ic('refresh',14,'aria-hidden="true"')}</button>
         <button type="button" class="mat-ib" onclick="matAddOpen()" aria-label="${L('Add material','إضافة خامة')}">${ic('plus',14,'aria-hidden="true"')}</button>
       </span></div>
+    ${_matKaratBar()}
     ${rows}
     <div class="mat-note">${L('Gold updates automatically from the world spot price (local jewelers may differ slightly). Steel, cement and other materials: enter the price from your supplier.','الذهب بيتحدث تلقائيًا من السعر العالمي (وممكن يختلف شوية عن سعر الصاغة). الحديد والأسمنت وباقي الخامات: ادخل السعر من المورد.')}</div>
   </div>`;
@@ -18004,7 +18074,7 @@ function wdashSheetClose(){
   sh.setAttribute('aria-hidden','true');
   document.documentElement.classList.remove('wdash-sheet-lock');
   try{ SoundManager.play('bottomsheet_close'); }catch(e){}
-  setTimeout(function(){ if(!_wdashSheetId) _wdashSheetStash(); }, 260);
+  setTimeout(function(){ if(!_wdashSheetId){ _wdashSheetStash(); if(_matKaratDirty){ _matKaratDirty=false; try{ if(currentView==='wsdash') renderView(); }catch(e){} } } }, 260);
 }
 function wdashSheetColor(){ if(_wdashSheetId) wdashOpenColorPicker(_wdashSheetId); }
 // Called after every renderView(): the dashboard was rebuilt, so swap the
@@ -21847,7 +21917,7 @@ function renderSavings(){
           <div class="sav-row-title" dir="auto">${esc(x.source||L('Income','دخل'))}</div>
           <div class="sav-row-meta">${esc(x.date||'—')}${x.note?' · '+esc(x.note):''}</div>
         </div>
-        <div class="sav-row-amount" style="color:var(--fin-income)">${fmtEGP(x.amount)}</div>
+        <div class="sav-row-amount" style="color:var(--fin-income)">${fmt(x.amount||0)}<span class="sav-cur">${curLabel()}</span></div>
       </div>
       <div class="sav-row-actions">
         <div class="sav-drag-handle" data-savtype="inc" title="${L('Hold to reorder','اسحب لإعادة الترتيب')}">${_SAV_DRAG_DOTS}</div>
@@ -21867,7 +21937,7 @@ function renderSavings(){
           <div class="sav-row-title" dir="auto">${esc(x.source||L('Expense','مصروف'))}</div>
           <div class="sav-row-meta">${esc(x.date||'—')}${x.note?' · '+esc(x.note):''}</div>
         </div>
-        <div class="sav-row-amount" style="color:var(--fin-outcome)">${fmtEGP(x.amount)}</div>
+        <div class="sav-row-amount" style="color:var(--fin-outcome)">${fmt(x.amount||0)}<span class="sav-cur">${curLabel()}</span></div>
       </div>
       <div class="sav-row-actions">
         <div class="sav-drag-handle" data-savtype="out" title="${L('Hold to reorder','اسحب لإعادة الترتيب')}">${_SAV_DRAG_DOTS}</div>
@@ -21933,7 +22003,7 @@ function renderSavings(){
           <div class="sav-row-title" dir="auto">${esc(x.person||L('Debt','مديونية'))}</div>
           <div class="sav-row-meta sav-debt-meta">${metaBits.join('<span class="sav-debt-dot">·</span>')}${dueBadge}</div>
         </div>
-        <div class="sav-row-amount" style="color:${accent}">${fmtEGP(x.amount)}</div>
+        <div class="sav-row-amount" style="color:${accent}">${fmt(x.amount||0)}<span class="sav-cur">${curLabel()}</span></div>
       </div>
       <div class="sav-row-actions">
         <div class="sav-drag-handle" data-savtype="debt" title="${L('Hold to reorder','اسحب لإعادة الترتيب')}">${_SAV_DRAG_DOTS}</div>
@@ -21963,7 +22033,7 @@ function renderSavings(){
     ${_frHero({icon:'wallet',title:L('Track your personal money','تابع فلوسك الشخصية'),sub:L('Start with an income or an expense. Assets and debts can wait.','ابدأ بدخل أو مصروف. الأصول والديون وقت تاني.'),btn:{label:L('Add income','أضف دخل'),on:'savAddIncome()'},link:{label:L('Add expense instead','أو أضف مصروف'),on:'savAddOutcome()'}})}
     </div>`;
   }
-  return `<div class="screen-wrap">
+  return `<div class="screen-wrap fin-page">
     <div class="sc-header sav-plain-header">
       <div class="sc-header-eyebrow">${L('Finance','المالية')}</div>
       <div class="sc-header-title">${L('My Finances','أموالي')}</div>
@@ -21990,7 +22060,7 @@ function renderSavings(){
             <div class="fin-card-icon">${ic('cash',13)}</div>
             ${_savChangeBadge(incomeDelta)}
           </div>
-          <div class="fin-card-amount">${fmtEGP(totalIncome)}</div>
+          <div class="fin-card-amount"><span class="fin-num">${fmt(totalIncome||0)}</span><span class="fin-cur">${curLabel()}</span></div>
           <div class="fin-card-title">${L('Income','الدخل')}</div>
           <div class="fin-card-sub">${_cnt(visIncomes.length,'entry','entries','سجل','سجلان','سجلات','سجلاً')}</div>
         </div>
@@ -21999,7 +22069,7 @@ function renderSavings(){
             <div class="fin-card-icon">${ic('trend_down',13)}</div>
             ${_savChangeBadge(outcomeDelta)}
           </div>
-          <div class="fin-card-amount">${fmtEGP(totalOutcome)}</div>
+          <div class="fin-card-amount"><span class="fin-num">${fmt(totalOutcome||0)}</span><span class="fin-cur">${curLabel()}</span></div>
           <div class="fin-card-title">${L('Expenses','المصروفات')}</div>
           <div class="fin-card-sub">${_cnt(visOutcomes.length,'entry','entries','سجل','سجلان','سجلات','سجلاً')}</div>
         </div>
@@ -22008,7 +22078,7 @@ function renderSavings(){
             <div class="fin-card-icon">${ic('gem',13)}</div>
             ${_savChangeBadge(assetDelta)}
           </div>
-          <div class="fin-card-amount">${fmtEGP(totalAssets)}</div>
+          <div class="fin-card-amount"><span class="fin-num">${fmt(totalAssets||0)}</span><span class="fin-cur">${curLabel()}</span></div>
           <div class="fin-card-title">${L('Assets','الأصول')}</div>
           <div class="fin-card-sub">${_cnt(visAssets.length,'item','items','عنصر','عنصران','عناصر','عنصراً')}</div>
         </div>
@@ -22033,7 +22103,7 @@ function renderSavings(){
     <div class="sc-card">
       <div class="fin-sec-hd" style="--sc:var(--fin-income)">
         <span class="fin-sec-ic">${ic('cash',16)}</span>
-        <span class="fin-sec-t">${L('Income','الدخل')}</span>
+        <span class="fin-sec-t">${L('Income','الدخل')}<small>${fmtEGP(totalIncome)}</small></span>
         <span class="fin-sec-n">${visIncomes.length}</span>
         <button type="button" onclick="savAddIncome()" class="fin-sec-add" aria-label="${L('Add','إضافة')}">${ic('plus',15)}</button>
       </div>
@@ -22043,7 +22113,7 @@ function renderSavings(){
     <div class="sc-card">
       <div class="fin-sec-hd" style="--sc:var(--fin-outcome)">
         <span class="fin-sec-ic">${ic('trend_down',16)}</span>
-        <span class="fin-sec-t">${L('Expenses','المصروفات')}</span>
+        <span class="fin-sec-t">${L('Expenses','المصروفات')}<small>${fmtEGP(totalOutcome)}</small></span>
         <span class="fin-sec-n">${visOutcomes.length}</span>
         <button type="button" onclick="savAddOutcome()" class="fin-sec-add" aria-label="${L('Add','إضافة')}">${ic('plus',15)}</button>
       </div>
@@ -22053,7 +22123,7 @@ function renderSavings(){
     <div class="sc-card">
       <div class="fin-sec-hd" style="--sc:var(--fin-assets)">
         <span class="fin-sec-ic">${ic('gem',16)}</span>
-        <span class="fin-sec-t">${L('Assets','الأصول')} <small>${L('gold, real estate, car…','ذهب، عقار، سيارة…')}</small></span>
+        <span class="fin-sec-t">${L('Assets','الأصول')}<small>${fmtEGP(totalAssets)}</small></span>
         <span class="fin-sec-n">${visAssets.length}</span>
         <button type="button" onclick="savAddAsset()" class="fin-sec-add" aria-label="${L('Add','إضافة')}">${ic('plus',15)}</button>
       </div>
@@ -22064,7 +22134,7 @@ function renderSavings(){
     <div class="sc-card">
       <div class="fin-sec-hd" style="--sc:#b45309">
         <span class="fin-sec-ic">${ic('scale',16)}</span>
-        <span class="fin-sec-t">${L('Debts','المديونيات')}</span>
+        <span class="fin-sec-t">${L('Debts','المديونيات')}<small>${visDebts.length?L('Net','الصافي')+' '+fmtEGP(netDebt):L('Money owed to / by you','فلوس ليك / عليك')}</small></span>
         <span class="fin-sec-n">${visDebts.length}</span>
         <button type="button" onclick="savAddDebt()" class="fin-sec-add" aria-label="${L('Add','إضافة')}">${ic('plus',15)}</button>
       </div>
@@ -34737,7 +34807,7 @@ function _cvEntries(cv){
   const out=_PRJ.list.map(p=>{
     const e=cv.projects[p.id]||{}, st=_cvStats(p.id);
     const from=e.from||st.first||(e.created?new Date(e.created).toISOString().slice(0,10):'');
-    return {kind:'p',id:p.id,name:_prjName(p),logo:p.logo,company:e.client||'',role:e.role||'',loc:e.loc||'',from,to:e.to||'',desc:_cvNormDesc(e.desc),hide:!!e.hide,noauto:!!e.noauto,st};
+    return {kind:'p',id:p.id,name:_prjName(p),logo:(typeof e.logo==='string'?e.logo:p.logo),company:e.client||'',role:e.role||'',loc:e.loc||'',from,to:e.to||'',desc:_cvNormDesc(e.desc),hide:!!e.hide,noauto:!!e.noauto,st};
   });
   (cv.extra||[]).forEach(x=>out.push({kind:'x',id:x.id,logo:x.logo||'',name:x.project||'',company:x.company||'',role:x.role||'',loc:x.loc||'',from:x.from||'',to:x.to||'',desc:_cvNormDesc(x.desc),hide:!!x.hide,noauto:true,st:null}));
   return out.sort((a,b)=>String(b.from||'').localeCompare(String(a.from||'')));
@@ -34759,6 +34829,24 @@ function _cvPeriodEN(e){
   const fut=f.length>7?f>now:f>now.slice(0,7);
   if(fut&&!e.to) return 'Starting '+_cvLong(f,true);
   return _cvLong(f)+' to '+(e.to?_cvLong(e.to):'Present');
+}
+// Period shown right under the company name: "Jan 2024 – Sep 2026" + duration "2 yrs 8 mos"
+function _cvShortEN(d){
+  const q=_cvDateParts(d); if(!q) return '';
+  try{ return new Date(q.y,q.mo-1,q.d||1).toLocaleDateString('en-US',{month:'short',year:'numeric'}); }catch(e){ return d; }
+}
+function _cvPeriodParts(e){
+  const f=e.from; if(!f) return {range:'',dur:''};
+  const now=new Date().toISOString().slice(0,10);
+  const fut=f.length>7?f>now:f>now.slice(0,7);
+  if(fut&&!e.to) return {range:'Starting '+_cvLong(f,true),dur:''};
+  const a=_cvDateParts(f), b=e.to?_cvDateParts(e.to):{y:+now.slice(0,4),mo:+now.slice(5,7)};
+  let dur='';
+  if(a&&b&&e.to){   // no duration badge for the current (Present) job
+    const mo=Math.max(1,(b.y-a.y)*12+(b.mo-a.mo)), y=Math.floor(mo/12), r=mo%12;
+    dur=[y?y+(y===1?' yr':' yrs'):'', r?r+(r===1?' mo':' mos'):''].filter(Boolean).join(' ');
+  }
+  return {range:_cvShortEN(f)+' – '+(e.to?_cvShortEN(e.to):'Present'),dur};
 }
 // pasted text → clean lines: removes markdown escapes (\. \-), splits on bullet glyphs, drops list dashes / numbering
 function _cvClean(t){ return String(t==null?'':t).replace(/\r/g,'').replace(/\\([\\`*_{}\[\]()#+\-.!|>~:])/g,'$1'); }
@@ -34805,11 +34893,12 @@ function _cvModel(cvIn){
   const jobs=_cvEntries(cv).filter(e=>!e.hide).map(e=>{
     const head=e.company||e.name||'';
     const company=[head,e.loc].filter(Boolean).join(', ');
-    const roleLine=[e.role,e.company?e.name:'',_cvPeriodEN(e)].filter(Boolean).join(' | ');
+    const roleLine=[e.role,e.company?e.name:''].filter(Boolean).join(' | ');
+    const pp=_cvPeriodParts(e), period=pp.range, dur=pp.dur;
     const bullets=String(e.desc||'').split('\n').map(x=>_cvUrlShort(x.trim())).filter(Boolean).map(t=>t.startsWith('# ')?{sub:t.slice(2).trim()}:{t});
     if(e.st&&!e.noauto){ const a=_cvAutoCV(e.st); if(a) bullets.push({t:a}); }
-    return {company,roleLine,bullets};
-  }).filter(j=>j.company||j.roleLine||j.bullets.length);
+    return {company,roleLine,period,dur,bullets};
+  }).filter(j=>j.company||j.roleLine||j.period||j.bullets.length);
   const edu=String(p.edu||'').split(/\n\s*\n/).map(b=>b.split('\n').map(x=>_cvUrlShort(x.trim())).filter(Boolean)).filter(b=>b.length);
   return {
     name:(p.name||'').trim(),
@@ -34829,7 +34918,7 @@ function _cvText(){
   if(m.skills.length){ o.push('','CORE SKILLS'); m.skills.forEach(x=>o.push('• '+x)); }
   if(m.jobs.length){
     o.push('','WORK EXPERIENCE');
-    m.jobs.forEach((j,i)=>{ if(i) o.push(''); if(j.company) o.push(j.company); if(j.roleLine) o.push(j.roleLine); j.bullets.forEach(b=>o.push(b.sub?b.sub:'• '+b.t)); });
+    m.jobs.forEach((j,i)=>{ if(i) o.push(''); if(j.company) o.push(j.company); if(j.period) o.push(j.period+(j.dur?' ('+j.dur+')':'')); if(j.roleLine) o.push(j.roleLine); j.bullets.forEach(b=>o.push(b.sub?b.sub:'• '+b.t)); });
   }
   if(m.edu.length){ o.push('','EDUCATION'); m.edu.forEach(b=>b.forEach(x=>o.push(x))); }
   if(m.certs.length){ o.push('','CERTIFICATIONS & TRAINING'); m.certs.forEach(x=>o.push('• '+x)); }
@@ -34856,7 +34945,7 @@ function cvPrint(){
     const flush=()=>{ if(run.length){ body+=li(run); run=[]; } };
     j.bullets.forEach(b=>{ if(b.sub){ flush(); body+=`<div class="sub" dir="auto">${subLine(b.sub)}</div>`; } else run.push(b.t); });
     flush();
-    return `<div class="job">${j.company?`<div class="co" dir="auto">${esc(j.company)}</div>`:''}${j.roleLine?`<div class="rl" dir="auto">${esc(j.roleLine)}</div>`:''}${body}</div>`;
+    return `<div class="job">${j.company?`<div class="co" dir="auto">${esc(j.company)}</div>`:''}${j.period?`<div class="dt" dir="ltr"><span class="dr">${esc(j.period)}</span>${j.dur?`<span class="dd">${esc(j.dur)}</span>`:''}</div>`:''}${j.roleLine?`<div class="rl" dir="auto">${esc(j.roleLine)}</div>`:''}${body}</div>`;
   }).join('');
   const eduHTML=m.edu.map(b=>`<div class="ed"><b dir="auto">${esc(b[0])}</b>${b.slice(1).map(x=>`<div dir="auto">${esc(x)}</div>`).join('')}</div>`).join('');
   const R='#cvPrintRoot ';
@@ -34916,7 +35005,8 @@ function renderMyCV(){
     </article>`;
   }).join('');
   return `<div class="screen-wrap cx-wrap cv-wrap">
-  ${_pgHdr('Site','الموقع','My Job','My Job','Receipts log and custody money','سجل الاستلامات وعهدة الموقع')}
+  ${_pgHdr('Site','الموقع','My Job','My Job','Receipts log and custody money','سجل الاستلامات وفلوس العهدة')}
+  ${_prjBarHTML()}
   ${_cxTabsHTML()}
   <div class="cv-live"><span class="cv-live-dot"></span><span>${L('Auto-updating','بتتحدّث تلقائيًا')}</span><em>${L(`${shown}/${ents.length} in CV`,`${shown}/${ents.length} في السيرة`)}</em>
     <button type="button" class="cv-prev-top" onclick="cvPreview(false)">${ic('eye',14)} ${L('Preview','معاينة')}</button></div>
@@ -35074,8 +35164,10 @@ function _cvEditProj(id){
   const p=_PRJ.list.find(x=>x.id===id); if(!p) return;
   const e=_cvEntries(_cvLoad()).find(x=>x.kind==='p'&&x.id===id)||{};
   _cvCtx={t:'proj',id};
+  _cvxCurLogo=e.logo||''; _cvxPendingLogo=undefined;   // effective logo (CV override, else the project's own)
   _cvSheet('briefcase',esc(_prjName(p)),L('How this project appears in your CV','إزاي المشروع ده يظهر في سيرتك'),
     _cvField('cvpCompany',L('Company / employer (bold line)','الشركة / جهة العمل (السطر البولد)'),e.company,{ph:'DMA – Engineering Consultancy'})+
+    _cvxLogoRowHTML()+
     _cvField('cvpRole',L('Role (first part of the line under the company)','المسمى الوظيفي (أول السطر تحت الشركة)'),e.role,{ph:'Structure Engineer – Supervision Department'})+
     _cvField('cvpLoc',L('Location (added after the company)','المكان (بيتضاف بعد الشركة)'),e.loc,{ph:'New Administrative Capital, Egypt'})+
     _cvDateRow(e)+
@@ -35091,6 +35183,9 @@ function _cvReadProj(){
 function _cvSaveProj(id){
   const cv=_cvLoad(), old=cv.projects[id]||{created:Date.now()};
   cv.projects[id]=Object.assign({created:old.created||Date.now()},_cvReadProj());
+  // logo: untouched → keep what was saved; new image → store it; removed → '' (no logo for this entry)
+  if(_cvxPendingLogo===undefined){ if(typeof old.logo==='string') cv.projects[id].logo=old.logo; }
+  else cv.projects[id].logo=_cvxPendingLogo||'';
   if(!_cvSave(cv)) return;
   try{ closeModal(); }catch(e){}
   try{ renderView(); }catch(e){ _logErr('_cvSaveProj',e); }
@@ -35244,6 +35339,9 @@ ${D} .sk li::before,${D} .bl li::before{content:'•';position:absolute;inset-in
 ${D} .job{margin-bottom:calc(2pt*var(--g,1))}
 ${D} .co{margin:calc(7pt*var(--g,1)) 0 calc(3pt*var(--g,1));font-size:calc(8.8pt*var(--fs,1));font-weight:700;color:var(--acc);break-after:avoid}
 ${D} .rl{margin-bottom:calc(4pt*var(--g,1));font-size:calc(8pt*var(--fs,1));color:#5e6d79;break-after:avoid}
+${D} .dt{display:flex;flex-wrap:wrap;align-items:center;gap:4pt 7pt;margin:0 0 calc(3pt*var(--g,1));break-after:avoid}
+${D} .dt .dr{font-size:calc(8.4pt*var(--fs,1));font-weight:700;color:var(--acc);letter-spacing:.1pt}
+${D} .dt .dd{font-size:calc(7.4pt*var(--fs,1));font-weight:600;color:var(--acc);padding:1pt 6pt;border-radius:8pt;background:color-mix(in srgb,var(--acc) 11%,#fff);border:.5pt solid color-mix(in srgb,var(--acc) 35%,#fff)}
 ${D} .bl{list-style:none;margin:0;padding:0}
 ${D} .bl li{position:relative;padding-inline-start:10pt;margin-bottom:calc(3.6pt*var(--g,1));break-inside:avoid}
 ${D} .sub{margin:calc(7pt*var(--g,1)) 0 calc(4pt*var(--g,1));font-size:calc(8.2pt*var(--fs,1));break-after:avoid}
@@ -35323,7 +35421,7 @@ function _cvDocHTML(m,stIn){
     const flush=()=>{ if(run.length){ body+=li(run); run=[]; } };
     j.bullets.forEach(b=>{ if(b.sub){ flush(); body+=`<div class="sub" dir="auto">${subLine(b.sub)}</div>`; } else run.push(b.t); });
     flush();
-    return `<div class="job">${j.company?`<div class="co" dir="auto">${esc(j.company)}</div>`:''}${j.roleLine?`<div class="rl" dir="auto">${esc(j.roleLine)}</div>`:''}${body}</div>`;
+    return `<div class="job">${j.company?`<div class="co" dir="auto">${esc(j.company)}</div>`:''}${j.period?`<div class="dt" dir="ltr"><span class="dr">${esc(j.period)}</span>${j.dur?`<span class="dd">${esc(j.dur)}</span>`:''}</div>`:''}${j.roleLine?`<div class="rl" dir="auto">${esc(j.roleLine)}</div>`:''}${body}</div>`;
   }).join('');
   const edu=m.edu.map(b=>`<div class="ed"><b dir="auto">${esc(b[0])}</b>${b.slice(1).map(x=>`<div dir="auto">${esc(x)}</div>`).join('')}</div>`).join('');
   const skills=m.skills.length?`<ul class="sk${(side||+st.cols===1)?' c1':''}">${m.skills.map(x=>`<li dir="auto">${esc(x)}</li>`).join('')}</ul>`:'';
@@ -48044,11 +48142,8 @@ const ATT=(function(){
     const subLine = [db.project,db.location].filter(Boolean).map(esc).join(' · ');
     const tiles = stats + `<div class="att-stat att-st-rec"><span class="att-stat-ic">${ic('calendar',14)}</span><span class="att-stat-n">${total}</span><span class="att-stat-l">${L('Recorded','المسجّل')}</span></div>`;
     return `<div class="screen-wrap cx-wrap att atp">
-      <div class="sc-header">
-        <div class="sc-header-eyebrow">${L('Site','الموقع')}</div>
-        <div class="sc-header-title">${L('My Job','My Job')}</div>
-        <div class="sc-header-sub" dir="auto">${[db.company,db.project,db.location].filter(Boolean).map(esc).join(' · ')||L('Track your attendance, absence and leave','تابع حضورك وغيابك وإجازاتك')}</div>
-      </div>
+      ${_pgHdr('Site','الموقع','My Job','My Job','Receipts log and custody money','سجل الاستلامات وفلوس العهدة')}
+      ${typeof _prjBarHTML==='function'?_prjBarHTML():''}
       ${typeof _cxTabsHTML==='function'?_cxTabsHTML():''}
 
       <nav class="att-jump" aria-label="${L('Jump to section','انتقال سريع')}">${[['att-s-today','clock',L('Today','النهاردة')],['att-s-sum','chart',L('Summary','الملخص')],['att-s-cal','calendar',L('Calendar','التقويم')],['att-s-leave','leave',L('Leave','الإجازات')],['att-s-pay','wallet',L('Salary','المرتب')]].map(x=>`<button type="button" onclick="ATT.jump('${x[0]}')">${ic(x[1],14)}<span>${x[2]}</span></button>`).join('')}</nav>
@@ -55288,6 +55383,47 @@ function mioraDismissGreetToast(){
 .txlg-wrap .txlg-amt .txlg-cur{font-size:calc(10.5px*var(--app-text-scale,1));font-weight:700;letter-spacing:.2px;color:var(--muted)}
 .txlg-wrap .txlg-viewall{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;min-height:46px;border:0;border-top:1px solid var(--border);background:var(--surface);color:var(--green);font:inherit;font-size:calc(13px*var(--app-text-scale,1));font-weight:800;cursor:pointer}
 .txlg-wrap .txlg-viewall:active{background:var(--surface2)}
+</style>
+<style id="fin-page-polish">
+/* My Finances — professional layout pass (presentation only: no ids, handlers or calculations touched) */
+.fin-page{gap:14px;padding-bottom:150px}
+.fin-page .fin-summary-grid{gap:10px;margin-bottom:0}
+.fin-page .fin-secondary-grid{gap:8px}
+.fin-page .fin-card{display:flex;flex-direction:column;min-width:0;padding:12px 11px 11px;border-radius:16px}
+.fin-page .fin-card-amount{display:flex;flex-direction:column;align-items:flex-start;gap:1px;white-space:nowrap;font-variant-numeric:tabular-nums;line-height:1.12}
+.fin-page .fin-card-amount .fin-num{font-size:calc(15px*var(--app-text-scale,1));font-weight:900;letter-spacing:-.2px;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+.fin-page .fin-card-amount .fin-cur{font-size:calc(9.5px*var(--app-text-scale,1));font-weight:700;letter-spacing:.4px;color:var(--muted)}
+.fin-page .fin-card-title{font-size:calc(11px*var(--app-text-scale,1));margin-top:7px}
+.fin-page .fin-card-sub{font-size:calc(10px*var(--app-text-scale,1))}
+/* quick actions: 3 x 2 grid instead of a clipped sideways strip */
+.fin-page .fin-qa-row,.fin-page .fin-qa-row.sav-qa-scroll{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;overflow:visible;margin:0;padding:0}
+.fin-page .fin-qa-chip,.fin-page .fin-qa-row.sav-qa-scroll .fin-qa-chip{flex:none;display:flex;align-items:center;justify-content:center;gap:6px;width:100%;min-height:40px;padding:8px 6px;border-radius:14px;font-size:calc(12px*var(--app-text-scale,1));white-space:nowrap}
+.fin-page .fin-qa-chip:not(.fin-qa-chip-primary){background:var(--surface);border-width:1.5px}
+/* section cards */
+.fin-page .sc-card{margin:0;padding:0;overflow:hidden;border-radius:22px}
+.fin-page .fin-sec-hd{gap:12px;padding:15px 16px 13px;border-bottom:1px solid color-mix(in srgb,var(--border) 70%,transparent)}
+.fin-page .fin-sec-ic{width:40px;height:40px;border-radius:13px}
+.fin-page .fin-sec-t{flex:1;min-width:0;font-size:calc(16px*var(--app-text-scale,1));line-height:1.2}
+.fin-page .fin-sec-t small{margin-top:3px;font-size:calc(12.5px*var(--app-text-scale,1));font-weight:800;color:var(--sc);font-variant-numeric:tabular-nums}
+.fin-page .fin-sec-n{margin:0;min-width:26px;height:26px;padding:0 9px;border-radius:99px;display:grid;place-items:center;background:color-mix(in srgb,var(--sc) 12%,transparent);color:var(--sc);font-size:calc(12px*var(--app-text-scale,1))}
+.fin-page .fin-sec-add{width:36px;height:36px}
+/* rows */
+.fin-page .sc-card .tx-rows{padding:2px 16px 8px}
+.fin-page .sc-card .tx-rows.asset-card-grid{padding:12px 14px 16px}
+.fin-page .sav-row:not(.asset-card){padding:12px 0;gap:6px}
+.fin-page .sav-row:not(.asset-card) .sav-row-main{gap:12px}
+.fin-page .sav-row:not(.asset-card) .sav-row-icon{width:40px;height:40px;border-radius:12px}
+.fin-page .sav-row:not(.asset-card) .sav-row-title{font-size:calc(14.5px*var(--app-text-scale,1));font-weight:700}
+.fin-page .sav-row:not(.asset-card) .sav-row-meta{font-size:calc(12px*var(--app-text-scale,1))}
+.fin-page .sav-row:not(.asset-card) .sav-row-amount{display:flex;align-items:baseline;gap:4px;font-size:calc(14.5px*var(--app-text-scale,1));letter-spacing:-.2px;font-variant-numeric:tabular-nums}
+.fin-page .sav-cur{font-size:calc(10px*var(--app-text-scale,1));font-weight:700;letter-spacing:.3px;color:var(--muted)}
+.fin-page .sav-row:not(.asset-card) .sav-drag-handle{opacity:.32}
+.fin-page .sav-row:not(.asset-card) .tx-del{opacity:.5}
+.fin-page .sav-debt-summary{margin:0;padding:12px 16px 2px}
+.dfp-health-cap{margin:10px 4px 0;font-size:calc(11.5px*var(--app-text-scale,1));font-weight:700;color:var(--muted)}
+.dfp-health-why{display:flex;flex-wrap:wrap;gap:6px;margin:8px 4px 2px}
+.dfp-why{font-size:calc(11.5px*var(--app-text-scale,1));font-weight:700;padding:3px 10px;border-radius:99px;background:var(--danger-tint);color:var(--danger)}
+.dfp-why b{font-weight:900;font-variant-numeric:tabular-nums}
 </style>
 </body>
 </html>
