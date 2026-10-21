@@ -7671,7 +7671,8 @@ body .fab{transition:box-shadow .18s,transform .22s cubic-bezier(.34,1.56,.64,1)
 body.fp-nav-away .fab{transition:box-shadow .18s,transform .22s cubic-bezier(.34,1.56,.64,1),background .2s ease,translate .30s cubic-bezier(.4,0,.2,1)}
 body.fp-nav-away .sc-bottom{transition:translate .30s cubic-bezier(.4,0,.2,1)}
 body.fp-nav-away .fab.dragging{transition:none}
-body.fp-nav-away .fab,body.fp-nav-away .sc-bottom{translate:0 calc(var(--bottom-nav-h,80px) - 44px)}
+body.fp-nav-away .sc-bottom{translate:0 calc(var(--bottom-nav-h,80px) - 44px)}
+body.fp-nav-away .fab{translate:none}
 @media (prefers-reduced-motion:reduce){.bottom-nav,.bottom-nav.fp-nav-hidden,body .fab,body.fp-nav-away .fab,.sc-bottom,body.fp-nav-away .sc-bottom{transition:none}}
 /* Never hide the header while any dropdown/menu anchored to it is open,
    or mid-scroll inside a modal/sheet — those already stopPropagation their
@@ -44129,6 +44130,10 @@ function _notesAttachKeyboardTracking(){
   const bar = document.getElementById('qnToolbar'), ov = document.getElementById('notesPageOverlay'), vv = window.visualViewport;
   if(!bar || !ov || !vv) return;
   const GAP = 8;                       // space between the pill and the keyboard's top edge
+  // iOS 26+ draws its own floating accessory pill (↑ ↓ ✓) on top of the keyboard and it is NOT subtracted from
+  // visualViewport.height, so without this the format bar slides in underneath it. Tweak this number if the
+  // bar sits too high / too low on your phone.
+  const IOS_ACC = (/iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)) ? 72 : 0;
   let base = Math.max(window.innerHeight, vv.height + vv.offsetTop), raf = 0, burst = 0, lastDy = null, timer = 0;
   const editing = () => { const a = document.activeElement; return !!a && ov.contains(a) && (a.isContentEditable || /^(INPUT|TEXTAREA)$/.test(a.tagName)); };
   // Measures where the keyboard really is on every call (nothing is remembered from a previous keyboard),
@@ -44140,7 +44145,7 @@ function _notesAttachKeyboardTracking(){
     if(!editing()){ base = Math.max(window.innerHeight, bottom); if(lastDy!==null){ lastDy = null; bar.style.transform = ''; } return; }
     if(base - bottom < 100){ if(lastDy!==null){ lastDy = null; bar.style.transform = ''; } return; }   // hardware keyboard / no on-screen keyboard
     const natural = ov.getBoundingClientRect().top + bar.offsetTop + bar.offsetHeight;   // pill's bottom edge with no transform
-    const dy = Math.round((bottom - GAP) - natural);
+    const dy = Math.round((bottom - GAP - IOS_ACC) - natural);
     if(dy !== lastDy){ lastDy = dy; bar.style.transform = `translateY(${dy}px)`; }
   };
   const req = () => { if(!raf) raf = requestAnimationFrame(place); };
@@ -48905,9 +48910,16 @@ const WDP_IDB = (function(){
 
   var applyPos = function(fab, x, y){
     var W = window.innerWidth, H = window.innerHeight;
-    var sz = 56;
+    var sz = fab.offsetHeight || 56;
+    // Vertical limits: never above the top header, never lower than the top edge of the bottom nav bar.
+    var hdr = document.querySelector('.app-header');
+    var hb = (hdr && hdr.offsetParent !== null) ? Math.round(hdr.getBoundingClientRect().bottom) : 0;
+    var nav = document.querySelector('.bottom-nav');
+    var navH = (nav && nav.offsetHeight) || parseInt(getComputedStyle(document.documentElement).getPropertyValue('--bottom-nav-h')) || 90;
+    var minY = Math.max(8, hb + 8);
+    var maxY = Math.max(minY, H - navH - sz - 8);
     x = Math.max(8, Math.min(W - sz - 8, x));
-    y = Math.max(8, Math.min(H - sz - 8, y));
+    y = Math.max(minY, Math.min(maxY, y));
     fab.style.left   = x + 'px';
     fab.style.top    = y + 'px';
     fab.style.right  = 'auto';
@@ -48928,6 +48940,13 @@ const WDP_IDB = (function(){
   };
 
   window._fabRestorePos = loadPos;
+  // keep the FAB inside its limits when the screen size / nav height changes (rotation, etc.)
+  var _fabReclamp = function(){
+    var fab = getFab(); if(!fab || fab.style.top==='' || fab.style.display==='none' || _dragging) return;
+    applyPos(fab, parseInt(fab.style.left), parseInt(fab.style.top));
+  };
+  window.addEventListener('resize', _fabReclamp);
+  window.addEventListener('orientationchange', function(){ setTimeout(_fabReclamp, 250); });
 
   document.addEventListener('DOMContentLoaded', loadPos);
 
