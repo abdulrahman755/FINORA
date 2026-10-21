@@ -10897,6 +10897,25 @@ button.rq-st{cursor:pointer;padding:3px}
 [dir="rtl"] .pur2-go{transform:scaleX(-1)}
 .pur2-chips{margin-bottom:2px}
 
+/* ── My Purchases: swipeable product cards instead of one long list ── */
+.pur2-card .pur2-chip.on{background:var(--green);border-color:var(--green);color:#fff;box-shadow:0 4px 12px -5px color-mix(in srgb,var(--green) 70%,transparent)}
+.pur2-card .pur2-grid{display:flex!important;grid-template-columns:none!important;gap:12px;overflow-x:auto;scroll-snap-type:x proximity;
+  padding:2px 16px 8px;margin-inline:-16px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.pur2-card .pur2-grid::-webkit-scrollbar{display:none}
+.pur2-card .pur2-i{flex:0 0 140px;flex-direction:column;align-items:stretch;gap:0;padding:0;border:1px solid var(--border);border-radius:18px;
+  background:var(--surface);box-shadow:var(--shadow-sm);overflow:hidden;scroll-snap-align:start}
+.pur2-card .pur2-i:last-child{border-bottom:1px solid var(--border)}
+.pur2-card .pur2-i:active{transform:scale(.97);background:var(--surface)}
+.pur2-card .pur2-stage{width:100%;height:auto;aspect-ratio:1;border-radius:0;box-shadow:none;border-bottom:1px solid var(--border)}
+.pur2-card .pur2-img{object-fit:contain;padding:10px;box-sizing:border-box}
+.pur2-card .pur2-ring{width:52px;height:52px}
+.pur2-card .pur2-ring svg{width:24px;height:24px}
+.pur2-card .pur2-info{flex:none;padding:10px 12px 2px;gap:2px;justify-content:flex-start}
+.pur2-card .pur2-nm{font-size:calc(13.5px*var(--app-text-scale,1));min-height:calc(2.7em);-webkit-line-clamp:2}
+.pur2-card .pur2-dt{font-size:calc(11px*var(--app-text-scale,1))}
+.pur2-card .pur2-i > .pur2-pr{padding:4px 12px 12px;font-size:calc(16px*var(--app-text-scale,1))}
+.pur2-card .pur2-go{display:none}
+
 /* ===== Attendance fingerprint — premium (visual only) ===== */
 .att-fp{gap:9px;padding:4px 8px 2px;--fp:#0f8a5f;--fp2:#06543a;--fp-hi:#6fe3b3}
 .att-fp.out{--fp:#e0b84a;--fp2:#9a7414;--fp-hi:#fff0b8;--fp-ink:#2b2106}
@@ -18525,7 +18544,7 @@ function _buyRemoveItem(monthKey, idx){
 // (this view re-renders on nearly every interaction) via localStorage, a
 // device-level display preference like theme/language, not month data.
 const BUY_FOLD_KEY='wdp_buy_collapsed_v1';
-function _buyIsCollapsed(){ try{ return localStorage.getItem(BUY_FOLD_KEY)==='1'; }catch(e){ return false; } }
+function _buyIsCollapsed(){ try{ return localStorage.getItem(BUY_FOLD_KEY)!=='0'; }catch(e){ return true; } }
 // Mirrors the existing .sc-collapse-chev/.sc-collapsible toggle used
 // elsewhere in this file (plain inline onclick on the header), just also
 // remembering the open/closed state in localStorage so it survives this
@@ -18575,7 +18594,7 @@ function _buyRowClick(ev){
 // removes through the same _buyRemoveItem. The kind (icon/colour) is guessed
 // from the item name purely for looks — nothing is stored.
 // ══════════════════════════════════════════════════════════════════════════
-const PUR_PREVIEW = 8;
+const PUR_PREVIEW = 60;
 const _PUR_KINDS = {
   snack:  { icon:'popcorn',      color:'#D9822B', en:'Snacks',        ar:'سناكس' },
   drink:  { icon:'droplet',      color:'#2F8FC4', en:'Drinks',        ar:'مشروبات' },
