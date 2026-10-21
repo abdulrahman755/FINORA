@@ -34662,6 +34662,7 @@ function cvPrint(){
   // print() on an iframe, so a hidden-iframe approach gave blank / wrong output there). Everything is
   // added just for the print job and removed again afterwards.
   const m=_cvModel();
+  const cvSt=_cvStyleGet(), cvMg=_cvMarg(cvSt), cvFoot=cvSt.foot!==false;
   const upd=new Date().toLocaleDateString('en-US',{month:'long',year:'numeric'});
   const ios=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
   const sec=(t,body)=>body?`<h2>${t}</h2>${body}`:'';
@@ -34678,7 +34679,7 @@ function cvPrint(){
   const R='#cvPrintRoot ';
   const css=`
 #cvPrintRoot{display:none}
-@page{size:A4;margin:14mm 16mm 17mm;${ios?'':`@bottom-right{content:"Updated ${upd} | Page " counter(page);font:7pt Helvetica,Arial,sans-serif;color:#6a7680}`}}
+@page{size:A4;margin:${cvMg[0]}mm ${cvMg[1]}mm ${cvMg[2]}mm ${cvMg[3]}mm;${(ios||!cvFoot)?'':`@bottom-right{content:"Updated ${upd} | Page " counter(page);font:7pt Helvetica,Arial,sans-serif;color:#6a7680}`}}
 @media print{
   html{color-scheme:light!important}
   html,body{background:#fff!important;margin:0!important;padding:0!important;height:auto!important;min-height:0!important;overflow:visible!important}
@@ -34687,7 +34688,7 @@ function cvPrint(){
   ${_cvTplCSS(R)}
   ${R}.ft{position:fixed;right:0;bottom:0;font-size:7pt;color:#6a7680}
 }`;
-  const html=`${ios?`<div class="ft">Updated ${upd}</div>`:''}
+  const html=`${(ios&&cvFoot)?`<div class="ft">Updated ${upd}</div>`:''}
 ${_cvDocHTML(m)}`;
   const cleanup=()=>{ ['cvPrintRoot','cvPrintStyle'].forEach(id=>{ const e=document.getElementById(id); if(e) e.remove(); }); window.removeEventListener('afterprint',cleanup); };
   try{
@@ -35028,11 +35029,15 @@ const _CV_TPL={
 const _CV_ACCENTS=['#17324d','#0f7a55','#0369a1','#6d28d9','#9a3412','#1f2937'];
 const _CV_SP={compact:{g:.75,lh:1.26},normal:{g:1,lh:1.36},relaxed:{g:1.4,lh:1.58}};
 const _CV_FS={s:.93,m:1,l:1.1};
-function _cvStyleGet(){ let s={}; try{ s=_cvLoad().style||{}; }catch(e){} return Object.assign({tpl:'classic',acc:'',sp:'normal',fs:'m',cols:2,photo:true,shape:'circle'},s); }
+function _cvStyleGet(){ let s={}; try{ s=_cvLoad().style||{}; }catch(e){} return Object.assign({tpl:'classic',acc:'',sp:'normal',fs:'m',cols:2,photo:true,shape:'circle',font:'auto',caps:'auto',hs:'auto',bu:'dot',mg:'normal',ps:'m',na:'auto',foot:true,hide:[]},s); }
+const _CV_FONTS={sans:"Helvetica,Arial,'Helvetica Neue',sans-serif",serif:"Georgia,'Times New Roman',serif",humanist:"'Trebuchet MS','Segoe UI',Verdana,sans-serif"};
+const _CV_PS={s:.8,m:1,l:1.3};
+const _CV_MG={narrow:[9,10,11,10],normal:[14,16,17,16],wide:[20,22,23,22]};   // mm: top,right,bottom,left
+function _cvMarg(st){ return _CV_MG[st.mg]||_CV_MG.normal; }
 function _cvStyleVars(st){
   const T=_CV_TPL[st.tpl]||_CV_TPL.classic, sp=_CV_SP[st.sp]||_CV_SP.normal;
   const acc=/^#[0-9a-f]{6}$/i.test(st.acc||'')?st.acc:T.acc;
-  return `--acc:${acc};--fs:${_CV_FS[st.fs]||1};--lh:${sp.lh};--g:${sp.g}`;
+  return `--acc:${acc};--fs:${_CV_FS[st.fs]||1};--lh:${sp.lh};--g:${sp.g};--ps:${_CV_PS[st.ps]||1}${_CV_FONTS[st.font]?`;--ff:${_CV_FONTS[st.font]}`:''}`;
 }
 // One stylesheet for the on-screen preview (R='.cvp-paper ') and the print job (R='#cvPrintRoot ')
 function _cvTplCSS(R){
@@ -35060,7 +35065,7 @@ ${D} .ed b{display:block;margin-bottom:3pt}
 ${D} .ed div{margin-bottom:3pt}
 ${D} .hd{display:flex;align-items:center;gap:14pt}
 ${D} .hi{flex:1;min-width:0}
-${D} .ph{width:62pt;height:62pt;object-fit:cover;border-radius:50%;flex:none;border:2pt solid var(--acc)}
+${D} .ph{width:calc(62pt*var(--ps,1));height:calc(62pt*var(--ps,1));object-fit:cover;border-radius:50%;flex:none;border:2pt solid var(--acc)}
 ${D} .ph.sq{border-radius:6pt}
 /* Modern */
 ${R}.cvt-modern h1{text-align:left;text-transform:none;font-size:calc(20pt*var(--fs,1));letter-spacing:-.2pt}
@@ -35083,7 +35088,7 @@ ${R}.cvt-banner .hd{background:var(--acc);color:#fff;padding:13pt 15pt;border-ra
 ${R}.cvt-banner h1{color:#fff;text-align:left;font-size:calc(19pt*var(--fs,1))}
 ${R}.cvt-banner .hl{color:rgba(255,255,255,.88);margin:2pt 0 4pt}
 ${R}.cvt-banner .ct{color:rgba(255,255,255,.92)}
-${R}.cvt-banner .ph{border-color:#fff;width:66pt;height:66pt}
+${R}.cvt-banner .ph{border-color:#fff;width:calc(66pt*var(--ps,1));height:calc(66pt*var(--ps,1))}
 ${R}.cvt-banner h2{border-bottom:1.4pt solid var(--acc);padding-bottom:2pt}
 /* Minimal */
 ${R}.cvt-minimal h1{text-align:left;font-weight:300;letter-spacing:2pt;font-size:calc(19pt*var(--fs,1));color:#0f172a}
@@ -35096,16 +35101,29 @@ ${R}.cvt-minimal .ph{border-color:#cbd5e1;border-width:1pt}
 ${R}.cvt-sidebar .tb{display:table;width:100%;table-layout:fixed}
 ${R}.cvt-sidebar .sd{display:table-cell;width:31%;vertical-align:top;padding:12pt 10pt;background:color-mix(in srgb,var(--acc) 9%,#fff);overflow-wrap:anywhere}
 ${R}.cvt-sidebar .mn{display:table-cell;vertical-align:top;padding:12pt 0 0 15pt}
-${R}.cvt-sidebar .ph{display:block;width:84pt;height:84pt;margin:0 auto 10pt}
+${R}.cvt-sidebar .ph{display:block;width:calc(84pt*var(--ps,1));height:calc(84pt*var(--ps,1));margin:0 auto 10pt}
 ${R}.cvt-sidebar h1{text-align:left;text-transform:none;font-size:calc(19pt*var(--fs,1));margin-bottom:2pt}
 ${R}.cvt-sidebar .hl{color:var(--acc);font-weight:600;margin:0 0 6pt}
 ${R}.cvt-sidebar .sd h2{font-size:calc(8.8pt*var(--fs,1));border-bottom:.8pt solid var(--acc);padding-bottom:2pt;margin-top:calc(9pt*var(--g,1))}
 ${R}.cvt-sidebar .cl div{margin-bottom:3pt}
 ${R}.cvt-sidebar .cl b{display:block;font-size:calc(6.8pt*var(--fs,1));text-transform:uppercase;color:var(--acc);letter-spacing:.4pt}
+/* user options (win over the template defaults) */
+${D}.cp-upper h1,${D}.cp-upper h2{text-transform:uppercase}
+${D}.cp-title h1,${D}.cp-title h2{text-transform:none}
+${D}.hs-plain h2{border:0;padding-inline-start:0;padding-bottom:0}
+${D}.hs-line h2{border:0;border-bottom:.8pt solid var(--acc);padding-inline-start:0;padding-bottom:2pt}
+${D}.hs-bar h2{border:0;border-inline-start:3pt solid var(--acc);padding-inline-start:6pt;padding-bottom:0;line-height:1.15}
+${D}.bu-dash .sk li::before,${D}.bu-dash .bl li::before{content:'–'}
+${D}.bu-sq .sk li::before,${D}.bu-sq .bl li::before{content:'▪'}
+${D}.bu-none .sk li,${D}.bu-none .bl li{padding-inline-start:0}
+${D}.bu-none .sk li::before,${D}.bu-none .bl li::before{content:none}
+${D}.na-left h1,${D}.na-left .hl,${D}.na-left .ct{text-align:left}
+${D}.na-center h1,${D}.na-center .hl,${D}.na-center .ct{text-align:center}
 `;
 }
 function _cvDocHTML(m,stIn){
   const st=stIn||_cvStyleGet(), key=_CV_TPL[st.tpl]?st.tpl:'classic', T=_CV_TPL[key], side=T.layout==='side';
+  const hide=Array.isArray(st.hide)?st.hide:[];
   const sec=(t,body)=>body?`<section class="sc"><h2>${t}</h2>${body}</section>`:'';
   const li=a=>`<ul class="bl">${a.map(x=>`<li dir="auto">${esc(x)}</li>`).join('')}</ul>`;
   const subLine=t=>{ const i=t.indexOf(' — '); return i<0?`<b>${esc(t)}</b>`:`<b>${esc(t.slice(0,i))}</b> — ${esc(t.slice(i+3))}`; };
@@ -35119,19 +35137,25 @@ function _cvDocHTML(m,stIn){
   const edu=m.edu.map(b=>`<div class="ed"><b dir="auto">${esc(b[0])}</b>${b.slice(1).map(x=>`<div dir="auto">${esc(x)}</div>`).join('')}</div>`).join('');
   const skills=m.skills.length?`<ul class="sk${(side||+st.cols===1)?' c1':''}">${m.skills.map(x=>`<li dir="auto">${esc(x)}</li>`).join('')}</ul>`:'';
   const photo=(st.photo!==false&&m.photo)?`<img class="ph${st.shape==='square'?' sq':''}" src="${m.photo}" alt="">`:'';
+  const H=k=>hide.indexOf(k)>=0;
   const S={
-    sum:sec('Summary',m.summary?`<p dir="auto">${esc(m.summary).replace(/\n/g,'<br>')}</p>`:''),
-    sk:sec('Core Skills',skills), jobs:sec('Work Experience',jobs), edu:sec('Education',edu),
-    certs:sec('Certifications &amp; Training',m.certs.length?li(m.certs):''),
-    langs:sec('Languages',m.langs.length?`<p dir="auto">${esc(m.langs.join(' | '))}</p>`:'')
+    sum:H('sum')?'':sec('Summary',m.summary?`<p dir="auto">${esc(m.summary).replace(/\n/g,'<br>')}</p>`:''),
+    sk:H('sk')?'':sec('Core Skills',skills), jobs:sec('Work Experience',jobs), edu:H('edu')?'':sec('Education',edu),
+    certs:H('certs')?'':sec('Certifications &amp; Training',m.certs.length?li(m.certs):''),
+    langs:H('langs')?'':sec('Languages',m.langs.length?`<p dir="auto">${esc(m.langs.join(' | '))}</p>`:'')
   };
-  const vars=_cvStyleVars(st);
+  const cls=['cvd','cvt-'+key];
+  if(st.caps==='upper'||st.caps==='title') cls.push('cp-'+st.caps);
+  if(st.hs==='plain'||st.hs==='line'||st.hs==='bar') cls.push('hs-'+st.hs);
+  if(st.bu==='dash'||st.bu==='sq'||st.bu==='none') cls.push('bu-'+st.bu);
+  if(st.na==='left'||st.na==='center') cls.push('na-'+st.na);
+  const open=`<div class="${cls.join(' ')}" style="${_cvStyleVars(st)}">`;
   if(side){
-    const cl=(m.ctl&&m.ctl.length)?sec('Contact',`<div class="cl">${m.ctl.map(x=>`<div dir="auto"><b>${esc(x[0])}</b>${esc(x[1])}</div>`).join('')}</div>`):'';
-    return `<div class="cvd cvt-${key}" style="${vars}"><div class="tb"><div class="sd">${photo}${cl}${S.sk}${S.edu}${S.certs}${S.langs}</div><div class="mn">${m.name?`<h1>${esc(m.name)}</h1>`:''}<div class="hl">${esc(m.headline)}</div>${S.sum}${S.jobs}</div></div></div>`;
+    const cl=(!H('ct')&&m.ctl&&m.ctl.length)?sec('Contact',`<div class="cl">${m.ctl.map(x=>`<div dir="auto"><b>${esc(x[0])}</b>${esc(x[1])}</div>`).join('')}</div>`):'';
+    return `${open}<div class="tb"><div class="sd">${photo}${cl}${S.sk}${S.edu}${S.certs}${S.langs}</div><div class="mn">${m.name?`<h1>${esc(m.name)}</h1>`:''}<div class="hl">${esc(m.headline)}</div>${S.sum}${S.jobs}</div></div></div>`;
   }
-  return `<div class="cvd cvt-${key}" style="${vars}"><div class="hd">${photo}<div class="hi">${m.name?`<h1>${esc(m.name)}</h1>`:''}<div class="hl">${esc(m.headline)}</div>
-<div class="ct">${m.c1?`<div>${esc(m.c1)}</div>`:''}${m.c2?`<div>${esc(m.c2)}</div>`:''}</div></div></div>${S.sum}${S.sk}${S.jobs}${S.edu}${S.certs}${S.langs}</div>`;
+  const ct=H('ct')?'':`<div class="ct">${m.c1?`<div>${esc(m.c1)}</div>`:''}${m.c2?`<div>${esc(m.c2)}</div>`:''}</div>`;
+  return `${open}<div class="hd">${photo}<div class="hi">${m.name?`<h1>${esc(m.name)}</h1>`:''}<div class="hl">${esc(m.headline)}</div>${ct}</div></div>${S.sum}${S.sk}${S.jobs}${S.edu}${S.certs}${S.langs}</div>`;
 }
 // ---- design drawer (inside the CV preview) ---------------------------------
 function _cvThumb(k,a){
@@ -35147,26 +35171,48 @@ function _cvThumb(k,a){
   else b=R(8,8,26,3,'#334155')+R(8,14,18,1.5,g)+R(8,24,14,2,'#64748b')+R(8,27.5,44,.5,'#cbd5e1',0)+ln(8,32,44,3)+R(8,50,14,2,'#64748b')+R(8,53.5,44,.5,'#cbd5e1',0)+ln(8,58,44,3);
   return `<svg viewBox="0 0 60 78" width="100%" height="100%" aria-hidden="true"><rect x=".5" y=".5" width="59" height="77" rx="3" fill="#fff" stroke="#d5dbe1"/>${b}</svg>`;
 }
+let _cvDzCur='style';
+function cvDzTab(k){ _cvDzCur=k; _cvDzRender(); }
 function _cvDzHTML(){
   const st=_cvStyleGet(), cur=_CV_TPL[st.tpl]?st.tpl:'classic', acc=st.acc||_CV_TPL[cur].acc;
   const ph=(_cvLoad().profile||{}).photo, hasPh=/^data:image\//.test(ph||'');
+  const hide=Array.isArray(st.hide)?st.hide:[];
   const arg=v=>typeof v==='string'?`'${v}'`:String(v);
   const seg=(k,opts)=>`<div class="dz-seg">${opts.map(o=>`<button type="button" class="${String(st[k])===String(o[0])?'on':''}" onclick="cvStyleSet('${k}',${arg(o[0])})">${o[1]}</button>`).join('')}</div>`;
-  const tpls=Object.keys(_CV_TPL).map(k=>`<button type="button" class="dz-tp${k===cur?' on':''}" onclick="cvStyleSet('tpl','${k}')"><span class="th">${_cvThumb(k,acc)}</span><small>${L(_CV_TPL[k].en,_CV_TPL[k].ar)}</small></button>`).join('');
-  const sw=_CV_ACCENTS.map(c=>`<button type="button" class="${acc.toLowerCase()===c?'on':''}" style="background:${c}" onclick="cvStyleSet('acc','${c}')" aria-label="${c}"></button>`).join('');
-  return `<div class="dz-h"><span>${L('Design & photo','التصميم والصورة')}</span><button type="button" onclick="cvDzToggle(false)" aria-label="${L('Close','إغلاق')}">${ic('close',16)}</button></div>
-  <div class="dz-b">
-    <div class="dz-l">${L('Template','القالب')}</div><div class="dz-tpls">${tpls}</div>
-    <div class="dz-l">${L('Colour','اللون')}</div><div class="dz-sw">${sw}</div>
-    <div class="dz-l">${L('Line spacing','المسافات بين الأسطر')}</div>${seg('sp',[['compact',L('Tight','مضغوط')],['normal',L('Normal','عادي')],['relaxed',L('Spacious','واسع')]])}
-    <div class="dz-l">${L('Text size','حجم الخط')}</div>${seg('fs',[['s',L('Small','صغير')],['m',L('Medium','متوسط')],['l',L('Large','كبير')]])}
-    <div class="dz-l">${L('Skills columns','أعمدة المهارات')}</div>${seg('cols',[[1,L('1 column','عمود')],[2,L('2 columns','عمودين')]])}
-    <div class="dz-l">${L('Profile photo','الصورة الشخصية')}</div>
-    <div class="dz-ph">${hasPh?`<img src="${ph}" alt="">`:`<span class="dz-ph0">${ic('photo',18)}</span>`}
+  const lb=(en,ar)=>`<div class="dz-l">${L(en,ar)}</div>`;
+  const sw=(label,on,fn)=>`<div class="dz-row"><span>${label}</span><button type="button" class="stt-switch${on?' on':''}" role="switch" aria-checked="${on}" aria-label="${label}" onclick="${fn}"><span class="stt-switch-dot"></span></button></div>`;
+  const tabs=[['style',L('Style','الشكل')],['layout',L('Layout','التخطيط')],['text',L('Text','النص')],['sections',L('Sections','الأقسام')],['photo',L('Photo','الصورة')]];
+  let body='';
+  if(_cvDzCur==='style'){
+    const tpls=Object.keys(_CV_TPL).map(k=>`<button type="button" class="dz-tp${k===cur?' on':''}" onclick="cvStyleSet('tpl','${k}')"><span class="th">${_cvThumb(k,acc)}</span><small>${L(_CV_TPL[k].en,_CV_TPL[k].ar)}</small></button>`).join('');
+    const sws=_CV_ACCENTS.map(c=>`<button type="button" class="${acc.toLowerCase()===c?'on':''}" style="background:${c}" onclick="cvStyleSet('acc','${c}')" aria-label="${c}"></button>`).join('');
+    body=lb('Template','القالب')+`<div class="dz-tpls">${tpls}</div>`+lb('Colour','اللون')+`<div class="dz-sw">${sws}</div>`;
+  }else if(_cvDzCur==='layout'){
+    body=lb('Line spacing','المسافات بين الأسطر')+seg('sp',[['compact',L('Tight','مضغوط')],['normal',L('Normal','عادي')],['relaxed',L('Spacious','واسع')]])
+      +lb('Page margins','هوامش الصفحة')+seg('mg',[['narrow',L('Narrow','ضيق')],['normal',L('Normal','عادي')],['wide',L('Wide','واسع')]])
+      +lb('Skills columns','أعمدة المهارات')+seg('cols',[[1,L('1 column','عمود')],[2,L('2 columns','عمودين')]]);
+  }else if(_cvDzCur==='text'){
+    body=lb('Text size','حجم الخط')+seg('fs',[['s',L('Small','صغير')],['m',L('Medium','متوسط')],['l',L('Large','كبير')]])
+      +lb('Font','نوع الخط')+seg('font',[['auto',L('Template','القالب')],['sans','Sans'],['serif','Serif'],['humanist','Humanist']])
+      +lb('Heading case','حالة العناوين')+seg('caps',[['auto',L('Template','القالب')],['upper','ABC'],['title','Abc']])
+      +lb('Section headings','شكل عناوين الأقسام')+seg('hs',[['auto',L('Template','القالب')],['plain',L('Plain','سادة')],['line',L('Line','خط')],['bar',L('Bar','شريط')]])
+      +lb('Bullets','شكل النقاط')+seg('bu',[['dot','•'],['dash','–'],['sq','▪'],['none',L('None','بدون')]])
+      +lb('Name alignment','محاذاة الاسم')+seg('na',[['auto',L('Template','القالب')],['left',L('Left','يسار')],['center',L('Center','وسط')]]);
+  }else if(_cvDzCur==='sections'){
+    const secs=[['ct',L('Contact details','بيانات التواصل')],['sum',L('Summary','النبذة')],['sk',L('Core skills','المهارات')],['edu',L('Education','التعليم')],['certs',L('Certifications & training','الشهادات والتدريب')],['langs',L('Languages','اللغات')]];
+    body=lb('Show in the CV','إظهار في السيرة')+secs.map(s=>sw(s[1],hide.indexOf(s[0])<0,`cvSecToggle('${s[0]}')`)).join('')
+      +lb('PDF','ملف PDF')+sw(L('Date & page number footer','تذييل التاريخ ورقم الصفحة'),st.foot!==false,`cvStyleSet('foot',${st.foot===false})`);
+  }else{
+    body=`<div class="dz-ph">${hasPh?`<img src="${ph}" alt="">`:`<span class="dz-ph0">${ic('photo',18)}</span>`}
       <label class="dz-btn">${ic('upload',13)} ${hasPh?L('Change','تغيير'):L('Upload photo','رفع صورة')}<input type="file" accept="image/*" style="display:none" onchange="cvPhotoPick(this)"></label>
-      ${hasPh?`<button type="button" class="dz-btn" onclick="cvPhotoRemove()">${ic('trash',13)} ${L('Remove','حذف')}</button>`:''}</div>
-    ${hasPh?`<div style="margin-top:8px">${seg('photo',[[true,L('Show photo','إظهار الصورة')],[false,L('Hide photo','إخفاء الصورة')]])}</div><div style="margin-top:8px">${seg('shape',[['circle',L('Circle','دائرة')],['square',L('Square','مربع')]])}</div>`:''}
-  </div>`;
+      ${hasPh?`<button type="button" class="dz-btn" onclick="cvPhotoRemove()">${ic('trash',13)} ${L('Remove','حذف')}</button>`:''}</div>`
+      +(hasPh?lb('Visibility','الظهور')+seg('photo',[[true,L('Show photo','إظهار الصورة')],[false,L('Hide photo','إخفاء الصورة')]])
+        +lb('Shape','الشكل')+seg('shape',[['circle',L('Circle','دائرة')],['square',L('Square','مربع')]])
+        +lb('Size','الحجم')+seg('ps',[['s',L('Small','صغير')],['m',L('Medium','متوسط')],['l',L('Large','كبير')]]):'');
+  }
+  return `<div class="dz-h"><span>${L('Design & photo','التصميم والصورة')}</span><span class="dz-hb"><button type="button" class="dz-rs" onclick="cvStyleReset()">${L('Reset','إعادة ضبط')}</button><button type="button" onclick="cvDzToggle(false)" aria-label="${L('Close','إغلاق')}">${ic('close',16)}</button></span></div>
+  <div class="dz-tabs">${tabs.map(x=>`<button type="button" class="${x[0]===_cvDzCur?'on':''}" onclick="cvDzTab('${x[0]}')">${x[1]}</button>`).join('')}</div>
+  <div class="dz-b">${body}</div>`;
 }
 function _cvDzRender(){
   const d=document.getElementById('cvpDz'); if(!d) return;
@@ -35178,12 +35224,46 @@ function cvDzToggle(f){
   const ov=document.getElementById('cvPrev'); if(!ov) return;
   ov.classList.toggle('dz-open',typeof f==='boolean'?f:!ov.classList.contains('dz-open'));
 }
+// A4 pagination for the preview: the CV is laid out in a fixed-height multi-column box (one column = one page), so
+// breaks follow the same break-inside / break-after rules the print engine uses; each page shows its own column.
+function _cvBuildPages(m){
+  const host=document.getElementById('cvpPaper'); if(!host) return 0;
+  const st=_cvStyleGet(), mg=_cvMarg(st), K=3.7795, PW=793.7, PH=1122.5, GAP=48;
+  const CW=Math.round((PW-(mg[1]+mg[3])*K)*10)/10, CH=Math.round((PH-(mg[0]+mg[2])*K)*10)/10;
+  const doc=_cvDocHTML(m,st);
+  const stripCss=`width:${CW}px;height:${CH}px;column-width:${CW}px;column-gap:${GAP}px`;
+  const meas=document.createElement('div'); meas.className='cvp-pgs';
+  meas.style.cssText='position:fixed;left:-99999px;top:0;visibility:hidden;pointer-events:none;zoom:1;width:'+PW+'px';
+  meas.innerHTML=`<div class="cvp-strip" style="${stripCss}">${doc}</div>`;
+  document.body.appendChild(meas);
+  let n=1; try{ n=Math.max(1,Math.round((meas.firstChild.scrollWidth+GAP)/(CW+GAP))); }catch(e){}
+  meas.remove();
+  const upd=new Date().toLocaleDateString('en-US',{month:'long',year:'numeric'});
+  let out='';
+  for(let i=0;i<n;i++){
+    out+=`<div class="cvp-sheet" style="width:${PW}px;height:${PH}px;padding:${mg[0]*K}px ${mg[1]*K}px ${mg[2]*K}px ${mg[3]*K}px"><div class="cvp-clip" style="width:${CW}px;height:${CH}px"><div class="cvp-strip" style="${stripCss};left:${-i*(CW+GAP)}px">${doc}</div></div>${st.foot===false?'':`<div class="cvp-pn">Updated ${upd} | Page ${i+1}</div>`}</div><div class="cvp-pl">${L('Page','صفحة')} ${i+1} / ${n}</div>`;
+  }
+  host.innerHTML=out; return n;
+}
 function _cvRerender(){
   const pa=document.getElementById('cvpPaper'); if(!pa) return;
   try{
-    const m=_cvModel(_cvPrevDraft?_cvDraft():null), upd=new Date().toLocaleDateString('en-US',{month:'long',year:'numeric'});
-    pa.innerHTML=_cvDocHTML(m)+`<div class="cvp-ft">Updated ${upd}</div>`;
+    const m=_cvModel(_cvPrevDraft?_cvDraft():null), n=_cvBuildPages(m);
+    const c=document.getElementById('cvpCount');
+    if(c) c.innerHTML=`${ic('cv',13)} <b>${n===1?L('1 page','صفحة واحدة'):(n===2?L('2 pages','صفحتين'):n+' '+L('pages','صفحات'))}</b> · A4`;
   }catch(e){ _logErr('_cvRerender',e); }
+}
+function cvSecToggle(k){
+  const cv=_cvLoad(), h=new Set((cv.style&&cv.style.hide)||[]);
+  if(h.has(k)) h.delete(k); else h.add(k);
+  cv.style=Object.assign({},cv.style||{},{hide:Array.from(h)});
+  if(!_cvSave(cv)) return;
+  _cvRerender(); _cvDzRender();
+}
+function cvStyleReset(){
+  const cv=_cvLoad(); cv.style={};
+  if(!_cvSave(cv)) return;
+  _cvRerender(); _cvDzRender();
 }
 function cvStyleSet(k,v){
   const cv=_cvLoad(); cv.style=Object.assign({},cv.style||{}); cv.style[k]=v;
@@ -35231,10 +35311,11 @@ function cvPreview(fromSheet,openDesign){
       <span class="cvp-zoom"><button type="button" data-z="fit" onclick="_cvPrevZoom('fit')">${L('Fit','ملائم')}</button><button type="button" data-z="0.8" onclick="_cvPrevZoom(0.8)">80%</button><button type="button" data-z="1.1" onclick="_cvPrevZoom(1.1)">110%</button></span>
       ${fromSheet?'':`<button type="button" class="cvp-pdf" onclick="cvPrint()">${ic('print',15)} PDF</button>`}
       <button type="button" class="cvp-x" onclick="cvPreviewClose()" aria-label="${L('Close','إغلاق')}">${ic('close',18)}</button></div>
-    <div class="cvp-stage"><div class="cvp-paper" id="cvpPaper">${_cvDocHTML(m)}<div class="cvp-ft">Updated ${upd}</div></div></div>
+    <div class="cvp-stage"><div class="cvp-count" id="cvpCount"></div><div class="cvp-pgs" id="cvpPaper"></div></div>
     <button type="button" class="cvp-dzbtn" onclick="cvDzToggle()">${ic('sparkle',15)} ${L('Design & photo','التصميم والصورة')}</button>
-    <div class="cvp-dz" id="cvpDz"></div><style>${_cvTplCSS('.cvp-paper ')}</style>`;
+    <div class="cvp-dz" id="cvpDz"></div><style>${_cvTplCSS('.cvp-pgs ')}</style>`;
   document.body.appendChild(ov);
+  _cvRerender();
   _cvPrevZoom('fit');
   _cvDzRender(); if(openDesign) cvDzToggle(true);
 }
@@ -54941,6 +55022,27 @@ function mioraDismissGreetToast(){
 .cv-proj-av .cv-logo-box{display:block;width:56px;height:56px;border-radius:14px;background:#fff;border:1px solid var(--border);overflow:hidden;box-shadow:var(--shadow-xs)}
 .cv-proj-av .cv-logo-box img{display:block;width:100%;height:100%;object-fit:contain}
 .cv-proj-av .de-av{border-radius:14px}
+</style>
+
+<style id="cv-pages-css">
+.cvp-pgs{width:793.7px;margin:0 auto}
+.cvp-sheet{position:relative;margin:0 auto;background:#fff;box-shadow:0 6px 30px rgba(0,0,0,.45);box-sizing:border-box;overflow:hidden}
+.cvp-pgs .cvp-clip{position:relative;overflow:hidden}
+.cvp-pgs .cvp-strip{column-fill:auto;box-sizing:content-box}
+.cvp-pgs .cvp-clip .cvp-strip{position:absolute;top:0}
+.cvp-pn{position:absolute;right:60px;bottom:20px;font:7pt Helvetica,Arial,sans-serif;color:#6a7680}
+.cvp-pl{text-align:center;color:#aab3bc;font:800 13px/1 system-ui,-apple-system,sans-serif;margin:10px 0 22px}
+.cvp-count{position:sticky;top:0;z-index:2;width:fit-content;margin:0 auto 12px;display:flex;align-items:center;gap:6px;padding:7px 14px;border-radius:99px;background:rgba(28,32,36,.94);color:#fff;font-size:12.5px;font-weight:700;box-shadow:0 4px 14px rgba(0,0,0,.35)}
+.cvp-count b{font-weight:900}
+.cvp-dz{height:46vh;max-height:none}
+.cvp-ov.dz-open .cvp-stage{padding-bottom:calc(46vh + 20px)}
+.dz-b{flex:1;min-height:0}
+.dz-hb{display:flex;align-items:center;gap:8px}
+.dz-h .dz-rs{width:auto;height:34px;padding:0 12px;font:inherit;font-size:12.5px;font-weight:800;color:var(--sub,#555)}
+.dz-tabs{display:flex;gap:6px;padding:0 16px 8px;overflow-x:auto;flex:none}
+.dz-tabs button{flex:1 0 auto;min-height:34px;padding:0 14px;border:0;border-radius:99px;background:var(--surface2,#eee);color:var(--text2,#444);font:inherit;font-size:12.5px;font-weight:800;cursor:pointer;white-space:nowrap}
+.dz-tabs button.on{background:var(--green);color:#fff}
+.dz-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 12px;margin-bottom:8px;border-radius:13px;background:var(--surface2,#f1f1f1);font-size:13.5px;font-weight:700;color:var(--text,#222)}
 </style>
 </body>
 </html>
