@@ -1855,19 +1855,20 @@ tbody tr:hover{background:var(--surface2)}
 @keyframes qnFabPopUp{from{opacity:0;transform:translateY(14px) scale(.94)}to{opacity:1;transform:none}}
 @keyframes qnFabPopDown{from{opacity:0;transform:translateY(-14px) scale(.94)}to{opacity:1;transform:none}}
 @keyframes qnFabRow{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
-.qn-fab-wrap{position:absolute;left:0;top:0;width:58px;height:58px;z-index:20;transition:top .14s ease-out,left .14s ease-out}
-.qn-fab-wrap.dragging{transition:none}
+.qn-fab-wrap{position:absolute;left:0;top:0;width:48px;height:48px;z-index:20;transform:translate3d(0,0,0);transition:transform .32s cubic-bezier(.22,1,.36,1)}
+.qn-fab-wrap.dragging{transition:none;will-change:transform}
 .qn-fab-wrap.dragging .qn-fab{transform:scale(1.08);box-shadow:0 16px 32px -8px var(--ws-fab-shadow,var(--green-glow)),0 4px 10px rgba(0,0,0,.32),inset 0 1px 0 rgba(255,255,255,.22)}
 .qn-fab-wrap.qn-below .qn-fab-menu{bottom:auto;top:calc(100% + 12px);transform-origin:top right}
 .qn-fab-wrap.qn-below .qn-fab-menu.open{animation-name:qnFabPopDown}
 .qn-fab-wrap.qn-left .qn-fab-menu{right:auto;left:0;transform-origin:bottom left}
 .qn-fab-wrap.qn-below.qn-left .qn-fab-menu{transform-origin:top left}
-.qn-fab{position:relative;touch-action:none;-webkit-user-select:none;user-select:none;width:58px;height:58px;border-radius:18px;border:1px solid rgba(255,255,255,.16);color:#fff;
+.qn-fab{position:relative;touch-action:none;-webkit-user-select:none;user-select:none;width:48px;height:48px;border-radius:15px;border:1px solid rgba(255,255,255,.16);color:#fff;
   background:linear-gradient(145deg,var(--green),var(--green-dark));
-  box-shadow:0 10px 24px -6px var(--ws-fab-shadow,var(--green-glow)),0 2px 6px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.22);
+  box-shadow:0 8px 20px -6px var(--ws-fab-shadow,var(--green-glow)),0 2px 5px rgba(0,0,0,.26),inset 0 1px 0 rgba(255,255,255,.22);
   display:flex;align-items:center;justify-content:center;cursor:pointer;-webkit-tap-highlight-color:transparent;
   transition:transform .22s cubic-bezier(.34,1.56,.64,1),box-shadow .2s,border-radius .22s}
 .qn-fab:active{transform:scale(.92)}
+.qn-fab{transition:transform .2s cubic-bezier(.22,1,.36,1),box-shadow .2s,border-radius .22s}
 .qn-fab .qn-fab-ic,.qn-fab .qn-fab-x{display:flex;align-items:center;justify-content:center;transition:transform .22s ease,opacity .18s ease}
 .qn-fab .qn-fab-x{position:absolute;opacity:0;transform:rotate(-90deg) scale(.6)}
 .qn-fab.open{border-radius:50%}
@@ -1941,6 +1942,29 @@ tbody tr:hover{background:var(--surface2)}
 .qn-chk-progress.done .qn-cp-txt{color:var(--green)}
 [dir="rtl"] .qn-chk.checked .qn-chk-box::after{left:auto;right:5px}
 
+/* ── Notes editor — refined page (header, progress, typography, checklist) ── */
+#notesPageOverlay .qn-header:has(#qnTitleInput){gap:4px;padding:8px var(--sp3,12px);background:var(--bg);border-bottom:1px solid var(--border)}
+#notesPageOverlay .qn-header:has(#qnTitleInput) .icon-btn{width:40px;height:40px;border-radius:14px;transition:background .15s,transform .15s}
+#notesPageOverlay .qn-header:has(#qnTitleInput) .icon-btn:active{transform:scale(.9)}
+#notesPageOverlay .qn-title-input{font-size:calc(18px*var(--app-text-scale,1));font-weight:900;letter-spacing:-.1px;caret-color:var(--green);padding:0 6px}
+#notesPageOverlay .qn-chk-progress{margin:10px var(--sp4) 0;padding:10px 14px;gap:14px;border-radius:16px;background:var(--surface);border:1px solid var(--border);box-shadow:0 1px 2px rgba(0,0,0,.12)}
+#notesPageOverlay .qn-cp-bar{height:7px;background:var(--surface2)}
+#notesPageOverlay .qn-cp-bar i{background:linear-gradient(90deg,var(--green-dark),var(--green));transition:width .55s cubic-bezier(.22,1,.36,1)}
+#notesPageOverlay .qn-cp-txt{display:flex;align-items:center;gap:8px}
+#notesPageOverlay .qn-cp-txt b{font-weight:900;color:var(--text);font-size:calc(13px*var(--app-text-scale,1))}
+#notesPageOverlay .qn-cp-txt em{font-style:normal;font-weight:800;padding:3px 9px;border-radius:99px;background:var(--surface2);color:var(--green-dark);font-size:calc(11px*var(--app-text-scale,1))}
+[data-theme="dark"] #notesPageOverlay .qn-cp-txt em{color:var(--green-light)}
+#notesPageOverlay .qn-chk-progress.done .qn-cp-txt em{background:var(--green);color:#fff}
+#notesPageOverlay #qnBody{padding:12px 22px calc(110px + env(safe-area-inset-bottom));font-size:calc(16px*var(--app-text-scale,1));line-height:1.75;caret-color:var(--green);scroll-padding-bottom:140px;width:100%;max-width:780px;margin-inline:auto;box-sizing:border-box;overscroll-behavior:contain}
+#notesPageOverlay #qnBody .qn-chk{gap:12px;margin:0;padding:6px 0;align-items:flex-start}
+#notesPageOverlay #qnBody .qn-chk-box{width:22px;height:22px;margin-top:4px;border-width:2px;transition:background .2s,border-color .2s,transform .15s}
+#notesPageOverlay #qnBody .qn-chk-box:active{transform:scale(.86)}
+#notesPageOverlay #qnBody .qn-chk.checked .qn-chk-box::after{left:6.5px;top:2.5px;width:5px;height:10px}
+#notesPageOverlay [dir="rtl"] #qnBody .qn-chk.checked .qn-chk-box::after,#notesPageOverlay #qnBody[dir="rtl"] .qn-chk.checked .qn-chk-box::after{left:auto;right:6.5px}
+#notesPageOverlay #qnBody .qn-chk.checked .qn-chk-text{opacity:.55}
+#notesPageOverlay #qnBody h1{margin:20px 0 8px}
+#notesPageOverlay #qnBody h2{margin:16px 0 6px}
+#notesPageOverlay #qnBody ::selection{background:color-mix(in srgb,var(--green) 35%,transparent)}
 /* ── Notes — richer text styles (Aa menu: Title/Heading/Subheading + lists) ── */
 .qn-body h1{font-size:calc(22px*var(--app-text-scale,1));font-weight:900;line-height:1.3;margin:14px 0 6px;font-family:var(--font-display);color:var(--text)}
 .qn-body h2{font-size:calc(18px*var(--app-text-scale,1));font-weight:800;line-height:1.35;margin:12px 0 5px;color:var(--text)}
@@ -44163,7 +44187,7 @@ function _renderNoteEditorUnlocked(n){
           <div class="qn-fab-sep"></div>
           <button type="button" class="qn-fab-row" role="menuitem" data-act="move" onclick="_notesFabRun('move')"><span class="qn-fab-row-ic">${ic('folder',18)}</span><span class="qn-fab-row-tx">${L('Move to folder','نقل إلى مجلد')}</span></button>
         </div>
-        <button type="button" class="qn-fab" id="qnFab" onclick="_notesToggleFabMenu(event)" aria-label="${L('Formatting','التنسيق')}" aria-haspopup="menu" aria-expanded="false"><span class="qn-fab-ic">${ic('type',26)}</span><span class="qn-fab-x">${ic('close',24)}</span></button>
+        <button type="button" class="qn-fab" id="qnFab" onclick="_notesToggleFabMenu(event)" aria-label="${L('Formatting','التنسيق')}" aria-haspopup="menu" aria-expanded="false"><span class="qn-fab-ic">${ic('type',22)}</span><span class="qn-fab-x">${ic('close',20)}</span></button>
     </div>
     <input type="file" id="qnPhotoInput" accept="image/*" multiple style="display:none" onchange="_notesHandlePhotoFile(this.files)">
     <input type="file" id="qnFileInput" style="display:none" onchange="_notesHandleGenericFile(this.files)">`;
@@ -44242,7 +44266,7 @@ function _notesFabLayout(){ try{ _notesFabLayoutRaw(); }catch(e){ try{ _logErr('
 function _notesFabLayoutRaw(){
   const w = document.getElementById('qnFabWrap'), ov = document.getElementById('notesPageOverlay'), m = document.getElementById('qnFabMenu');
   if(!w || !ov) return;
-  const sz = 58, W = ov.clientWidth || window.innerWidth, H = window.innerHeight;
+  const sz = 48, W = ov.clientWidth || window.innerWidth, H = window.innerHeight;
   const ovTop = ov.getBoundingClientRect().top;
   const r = _qnFabRegion || {top:0, bottom:H};
   const safeT = parseFloat(getComputedStyle(ov).paddingTop) || 0;
@@ -44250,10 +44274,12 @@ function _notesFabLayoutRaw(){
   const pos = _qnFabPos;
   const x = pos ? 8 + pos.fx * (W - sz - 16) : W - sz - 16;
   const y = pos ? Math.min(maxY, Math.max(minY, pos.fy * (H - sz))) : maxY;
-  w.style.left = Math.round(x) + 'px';
-  w.style.top = Math.round(y - ovTop) + 'px';
+  const tx = Math.round(x), ty = Math.round(y - ovTop);
+  if(!w._qnPlaced){ w.style.transition = 'none'; w.style.transform = `translate3d(${tx}px,${ty}px,0)`; w.getBoundingClientRect(); w.style.transition = ''; w._qnPlaced = true; }
+  else if(w._qnTx !== tx || w._qnTy !== ty) w.style.transform = `translate3d(${tx}px,${ty}px,0)`;
+  w._qnTx = tx; w._qnTy = ty;
   w.classList.toggle('qn-left', x + sz / 2 < W / 2);
-  if(m){
+  if(m && !w.classList.contains('dragging')){
     const above = y - (r.top + safeT) - 12, below = r.bottom - (y + sz) - 12, need = m.classList.contains('open') ? m.scrollHeight : 560;
     const useBelow = above < need && below > above;
     w.classList.toggle('qn-below', useBelow);
@@ -44263,28 +44289,34 @@ function _notesFabLayoutRaw(){
 function _notesFabInitDrag(){
   const f = document.getElementById('qnFab'), w = document.getElementById('qnFabWrap'), ov = document.getElementById('notesPageOverlay');
   if(!f || !w || !ov) return;
-  let sx = 0, sy = 0, r0 = null, down = false, moved = false, pid = null;
+  let sx = 0, sy = 0, r0 = null, down = false, moved = false, pid = null, ldx = 0, ldy = 0, raf = 0;
+  const apply = () => {
+    raf = 0;
+    const sz = 48, W = ov.clientWidth || window.innerWidth, H = window.innerHeight;
+    _qnFabPos = {fx:_qnClamp01((r0.left + ldx - 8) / (W - sz - 16)), fy:_qnClamp01((r0.top + ldy) / (H - sz))};
+    _notesFabLayout();
+  };
   f.addEventListener('pointerdown', e => {
     if(e.button > 0) return;
-    sx = e.clientX; sy = e.clientY; r0 = f.getBoundingClientRect(); down = true; moved = false; pid = e.pointerId;
+    sx = e.clientX; sy = e.clientY; r0 = f.getBoundingClientRect(); down = true; moved = false; pid = e.pointerId; ldx = 0; ldy = 0;
   });
   f.addEventListener('pointermove', e => {
     if(!down || e.pointerId !== pid) return;
     const dx = e.clientX - sx, dy = e.clientY - sy;
     if(!moved){
-      if(Math.hypot(dx, dy) < 8) return;
+      if(Math.hypot(dx, dy) < 6) return;
       moved = true; _notesCloseFabMenu(); w.classList.add('dragging');
       try{ f.setPointerCapture(pid); }catch(_){}
     }
-    const sz = 58, W = ov.clientWidth || window.innerWidth, H = window.innerHeight;
-    _qnFabPos = {fx:_qnClamp01((r0.left + dx - 8) / (W - sz - 16)), fy:_qnClamp01((r0.top + dy) / (H - sz))};
-    _notesFabLayout();
+    ldx = dx; ldy = dy;
+    if(!raf) raf = requestAnimationFrame(apply);      // one layout write per frame → smooth, no jank
     if(e.cancelable) e.preventDefault();
   });
   const end = e => {
     if(!down || (e && e.pointerId !== pid)) return;
     down = false;
     if(moved){
+      if(raf){ cancelAnimationFrame(raf); apply(); }
       w.classList.remove('dragging');
       try{ localStorage.setItem(_QN_FAB_KEY, JSON.stringify(_qnFabPos)); }catch(_){}
       _qnFabJust = true; setTimeout(() => { _qnFabJust = false; }, 350);
@@ -44482,7 +44514,7 @@ function _notesUpdateChkProgress(){
   const pct = Math.round(d/t*100);
   el.style.display = 'flex';
   el.classList.toggle('done', d === t);
-  el.innerHTML = `<span class="qn-cp-bar"><i style="width:${pct}%"></i></span><span class="qn-cp-txt">${d===t?L('All done','خلصت كلها')+' · ':''}${d}/${t} · ${pct}%</span>`;
+  el.innerHTML = `<span class="qn-cp-bar"><i style="width:${pct}%"></i></span><span class="qn-cp-txt"><b>${d}/${t}</b><em>${d===t?'✓ ':''}${pct}%</em></span>`;
 }
 // The native contenteditable Enter-split doesn't know how to divide a
 // display:flex row that has a contenteditable="false" checkbox span in it —
