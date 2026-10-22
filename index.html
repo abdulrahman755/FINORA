@@ -80,7 +80,6 @@ html.ls-skip #lockScreen{display:none!important}
 @media (prefers-reduced-motion:reduce){
   #finoraSplash,#finoraSplash *{animation-duration:.01s!important;animation-delay:0s!important}
 }
-}
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 :root{
   /* Native browser UI (date/time pickers, <select> dropdowns, scrollbars)
@@ -2485,7 +2484,8 @@ tbody tr:hover{background:var(--surface2)}
   position:relative;
 }
 /* drag pill */
-.bs-chrome>.bs-auto-x{position:absolute;top:6px;inset-inline-end:var(--sp4);margin:0;z-index:2}
+.bs-chrome>.bs-auto-x{position:absolute;top:8px;inset-inline-end:var(--sp4);margin:0;z-index:2}
+.bs-chrome:has(>.bs-auto-x){min-height:46px;box-sizing:border-box}
 .bs-chrome .modal-hdr>.bs-auto-x{flex-shrink:0}
 .bs-chrome::before{
   content:'';display:block;
@@ -11972,7 +11972,7 @@ function fpInitSmartHeader(){
 .stt-sheet .stt-card-label{font-size:calc(11.5px*var(--app-text-scale,1));font-weight:800;letter-spacing:.7px;color:var(--muted);padding:0 8px 2px;margin-top:16px}
 .stt-sheet .stt-body>.stt-card-label:first-child{margin-top:4px}
 .stt-sheet .stt-card{border-radius:18px;box-shadow:none}
-.stt-sheet .stt-row{min-height:56px;padding:9px 14px 9px 12px;gap:12px}
+.stt-sheet .stt-row{box-sizing:border-box;min-height:56px;padding:8px 14px 8px 12px;gap:12px}
 .stt-sheet .stt-row:not(:last-child)::after{inset-inline-start:62px;inset-inline-end:0}
 .stt-sheet .stt-row-icon:not([style*="gradient"]){width:36px;height:36px;border-radius:11px;background:color-mix(in srgb,var(--green) 12%,transparent)!important;color:var(--green)!important;box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--green) 14%,transparent)!important}
 [data-theme="dark"] .stt-sheet .stt-row-icon:not([style*="gradient"]){color:var(--green-light)!important}
@@ -11985,6 +11985,45 @@ function fpInitSmartHeader(){
 .stt-sheet .stt-chevron{opacity:.45}
 .stt-sheet .stt-chevron svg{width:15px;height:15px}
 .stt-sheet .stt-switch.on{box-shadow:inset 0 1px 2px rgba(0,0,0,.18),0 0 0 3px color-mix(in srgb,var(--green) 18%,transparent)}
+/* ── First-run / Settings PIN setup (scoped .fpc-*) ── */
+.fpc-ov{position:fixed;inset:0;z-index:99990;display:flex;align-items:center;justify-content:center;padding:calc(20px + env(safe-area-inset-top,0px)) 20px calc(20px + env(safe-area-inset-bottom,0px));background:var(--bg);animation:fpcIn .28s ease both;overflow-y:auto}
+.fpc-ov.fpc-out{opacity:0;transition:opacity .22s ease;pointer-events:none}
+@keyframes fpcIn{from{opacity:0}to{opacity:1}}
+.fpc-card{width:100%;max-width:360px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px}
+.fpc-ic{width:68px;height:68px;border-radius:22px;display:flex;align-items:center;justify-content:center;color:#fff;background:linear-gradient(145deg,var(--green) 0%,var(--green-dark) 100%);box-shadow:0 14px 28px -12px color-mix(in srgb,var(--green) 70%,transparent),inset 0 1px 0 rgba(255,255,255,.25);margin-bottom:6px}
+.fpc-ic svg{width:30px;height:30px}
+.fpc-h{font-size:calc(22px*var(--app-text-scale,1));font-weight:800;color:var(--text);letter-spacing:.1px}
+.fpc-p{font-size:calc(14px*var(--app-text-scale,1));line-height:1.55;color:var(--muted);max-width:300px}
+.fpc-btns{width:100%;display:flex;flex-direction:column;gap:10px;margin-top:18px}
+.fpc-btn{height:50px;border-radius:16px;border:none;font:inherit;font-size:calc(15px*var(--app-text-scale,1));font-weight:700;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:transform .12s}
+.fpc-btn:active{transform:scale(.98)}
+.fpc-btn.pri{color:#fff;background:linear-gradient(180deg,var(--green) 0%,var(--green-dark) 100%);box-shadow:0 10px 22px -10px color-mix(in srgb,var(--green) 70%,transparent)}
+.fpc-btn.ghost{background:transparent;color:var(--sub,var(--muted));border:1px solid var(--border)}
+.fpc-note{font-size:calc(12px*var(--app-text-scale,1));color:var(--muted);margin-top:4px}
+.fpc-dots{display:flex;gap:16px;margin:14px 0 4px;height:16px}
+.fpc-dots i{width:14px;height:14px;border-radius:50%;border:2px solid var(--border);transition:background .12s,border-color .12s,transform .12s}
+.fpc-dots i.on{background:var(--green);border-color:var(--green);transform:scale(1.08)}
+.fpc-dots.err{animation:fpcShake .4s}
+.fpc-dots.err i{border-color:var(--red);background:var(--red)}
+@keyframes fpcShake{20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
+.fpc-err{min-height:18px;font-size:calc(12.5px*var(--app-text-scale,1));color:var(--red);font-weight:600}
+.fpc-pad{display:grid;grid-template-columns:repeat(3,72px);gap:12px 18px;margin-top:10px;direction:ltr}
+.fpc-k{width:72px;height:60px;border-radius:18px;border:1px solid var(--border);background:var(--surface);color:var(--text);font:inherit;font-size:calc(22px*var(--app-text-scale,1));font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent;transition:background .1s,transform .1s}
+.fpc-k:active{background:var(--surface2);transform:scale(.95)}
+.fpc-k.nb{border-color:transparent;background:transparent}
+.fpc-k svg{width:22px;height:22px}
+.fpc-back{align-self:flex-start;background:none;border:none;color:var(--muted);font:inherit;font-size:calc(13px*var(--app-text-scale,1));font-weight:600;cursor:pointer;padding:6px 2px;margin-bottom:4px}
+/* ── Small-screen overflow fixes ── */
+/* Finance KPI row: 1fr has a min-content floor, so big numbers pushed the 3rd card off-screen → let columns shrink and wrap digits */
+.dfp-kpi3-row:not(.dv3-kpi-row){grid-template-columns:repeat(3,minmax(0,1fr))}
+.dfp-kpi3-row:not(.dv3-kpi-row) .dfp-kpi3-card{min-width:0}
+.dfp-kpi3-row:not(.dv3-kpi-row) .dfp-kpi3-val,.dfp-kpi3-row:not(.dv3-kpi-row) .dfp-kpi3-lbl{overflow-wrap:anywhere}
+/* Big amounts (e.g. 1,500,000.00): wrap the currency under the figure instead of clipping it */
+.cx-fig{flex-wrap:wrap;row-gap:0}
+.cx-fig .cx-amt{min-width:0;overflow-wrap:anywhere}
+/* 3-tab switcher (My Requests / Custody / Attendance) on narrow phones */
+.cx-mn{min-width:0;max-width:100%;overflow-wrap:anywhere}
+@media(max-width:380px){.cx-tabs .cx-seg-btn{min-width:0;font-size:calc(11px*var(--app-text-scale,1));padding:0 3px;overflow:hidden;text-overflow:ellipsis}}
 /* sheets & nav */
 .modal{border-radius:28px 28px 0 0;box-shadow:0 -18px 50px -12px rgba(18,36,28,.28),0 -1px 0 var(--border)}
 .modal-handle{width:42px;height:4px;border-radius:4px;background:var(--border-strong);opacity:.75}
@@ -19254,6 +19293,7 @@ const heroAmountHTML=(n,full)=>{
 // every call site keeps working unchanged except at that boundary, where it
 // now returns the correct date. See today_boundary_test.js for the proof.
 const today=()=>{ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); };
+const _wdpLocalISO=(d)=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 const esc=s=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 
 // ══════════════════════════════════════════════════════════════════════════
@@ -22042,9 +22082,9 @@ function brandOrFallbackHTML(name, size, fallbackHTML){
 // against, in which case the calling card simply omits the change badge).
 function _savMonthDelta(list, dateField, amtField){
   const now = new Date();
-  const curKey  = now.toISOString().slice(0,7);
+  const curKey  = _wdpLocalISO(now).slice(0,7);
   const prevD   = new Date(now.getFullYear(), now.getMonth()-1, 1);
-  const prevKey = prevD.toISOString().slice(0,7);
+  const prevKey = _wdpLocalISO(prevD).slice(0,7);
   let curSum=0, prevSum=0;
   (list||[]).forEach(x=>{
     const d = (x[dateField]||'').slice(0,7);
@@ -22065,9 +22105,9 @@ function _savChangeBadge(delta){
 // of a single field. Does not touch how netTotal itself is computed.
 function _savNetWorthDelta(incomeList, outcomeList, assetList){
   const now = new Date();
-  const curKey  = now.toISOString().slice(0,7);
+  const curKey  = _wdpLocalISO(now).slice(0,7);
   const prevD   = new Date(now.getFullYear(), now.getMonth()-1, 1);
-  const prevKey = prevD.toISOString().slice(0,7);
+  const prevKey = _wdpLocalISO(prevD).slice(0,7);
   const sumFor = (list, dateField, amtField, key)=>(list||[]).reduce((s,x)=>{
     const d=(x[dateField]||'').slice(0,7);
     return d===key ? s+(x[amtField]||0) : s;
@@ -27329,7 +27369,7 @@ function bnkDateBucket(dateStr){
   if(!dateStr) return 'earlier';
   if(dateStr===today()) return 'today';
   const y=new Date(); y.setDate(y.getDate()-1);
-  if(dateStr===y.toISOString().slice(0,10)) return 'yesterday';
+  if(dateStr===_wdpLocalISO(y)) return 'yesterday';
   return 'earlier';
 }
 
@@ -28889,6 +28929,8 @@ function persistLockEnabled(val){
   catch(e){ console.warn('Could not save lock setting', e); }
 }
 async function toggleLockEnabled(){
+  // Turning the lock ON when no PIN was ever chosen: create one first (no default PIN is used).
+  if(!lockEnabled && !_hasCustomPin()){ _pinSetupOpen('settings'); return; }
   if(lockEnabled){
     // Turning the lock OFF: first make the data readable without a PIN.
     const ok = await _decryptToPlain();
@@ -29079,6 +29121,7 @@ function sttToggleCurrGroup(){
 }
 let _sttPinExpanded = false;
 function sttTogglePinGroup(){
+  if(!lockEnabled && !_hasCustomPin()){ _pinSetupOpen('settings'); return; }
   _sttPinExpanded = !_sttPinExpanded;
   refreshSettingsSheet();
 }
@@ -29379,7 +29422,7 @@ function openSettings(){
         </div>
         <div class="stt-row" onclick="sttTogglePinGroup()" role="button" tabindex="0">
           ${sttMakeIcon('lock')}
-          <div class="stt-row-body"><div class="stt-row-title">${L('Change PIN','تغيير الـ PIN')}</div><div class="stt-row-sub">${L('Update your 4-digit access code','تحديث رمز الوصول المكون من 4 أرقام')}</div></div>
+          <div class="stt-row-body"><div class="stt-row-title">${(!lockEnabled&&!_hasCustomPin())?L('Set PIN','تعيين PIN'):L('Change PIN','تغيير الـ PIN')}</div><div class="stt-row-sub">${(!lockEnabled&&!_hasCustomPin())?L('Create a 4-digit access code','إنشاء رمز وصول من 4 أرقام'):L('Update your 4-digit access code','تحديث رمز الوصول المكون من 4 أرقام')}</div></div>
           <div class="stt-row-trail"><span style="display:inline-flex;transform:rotate(${_sttPinExpanded?90:0}deg);transition:transform .2s">${sttChevron()}</span></div>
         </div>
         ${_sttPinExpanded ? `
@@ -32360,7 +32403,7 @@ function computeSmartAI(activeMonthKey){
   if(allDays.length < 30) return null; // need at least 30 days
 
   const now = new Date();
-  const todayStr = now.toISOString().slice(0,10);
+  const todayStr = _wdpLocalISO(now);
 
   // ── Core stats (all history) ──────────────────────────────────────────────
   const totals = allDays.map(d=>d.total);
@@ -32377,8 +32420,8 @@ function computeSmartAI(activeMonthKey){
   // Last 7 / 30 days
   const cutoff7  = new Date(now); cutoff7.setDate(cutoff7.getDate()-7);
   const cutoff30 = new Date(now); cutoff30.setDate(cutoff30.getDate()-30);
-  const cut7str  = cutoff7.toISOString().slice(0,10);
-  const cut30str = cutoff30.toISOString().slice(0,10);
+  const cut7str  = _wdpLocalISO(cutoff7);
+  const cut30str = _wdpLocalISO(cutoff30);
   const last7    = allDays.filter(d=>d.date>=cut7str && d.date<=todayStr);
   const last30   = allDays.filter(d=>d.date>=cut30str && d.date<=todayStr);
   const avg7     = last7.length  ? last7.reduce((s,d)=>s+d.total,0)/last7.length   : avgDaily;
@@ -32643,7 +32686,7 @@ function generateInsights(activeMonthKey){
   if(curTxns.length > 0){
     const txDates = [...new Set(curTxns.map(t=>t.date))].sort();
     let streak = 0, maxStreak = 0;
-    const lastDate = new Date((isCurrentMonth ? now.toISOString().slice(0,10) : `${yr}-${String(moIdx+1).padStart(2,'0')}-${String(daysInMonth).padStart(2,'0')}`));
+    const lastDate = new Date((isCurrentMonth ? _wdpLocalISO(now) : `${yr}-${String(moIdx+1).padStart(2,'0')}-${String(daysInMonth).padStart(2,'0')}`));
     for(let d=new Date(`${yr}-${String(moIdx+1).padStart(2,'0')}-01`); d<=lastDate; d.setDate(d.getDate()+1)){
       const ds = d.toISOString().slice(0,10);
       if(!txDates.includes(ds)){ streak++; maxStreak = Math.max(maxStreak, streak); }
@@ -35061,7 +35104,7 @@ function _cvStats(pid){
 function _cvEntries(cv){
   const out=_PRJ.list.map(p=>{
     const e=cv.projects[p.id]||{}, st=_cvStats(p.id);
-    const from=e.from||st.first||(e.created?new Date(e.created).toISOString().slice(0,10):'');
+    const from=e.from||st.first||(e.created?_wdpLocalISO(new Date(e.created)):'');
     return {kind:'p',id:p.id,name:_prjName(p),logo:(typeof e.logo==='string'?e.logo:p.logo),company:e.client||'',role:e.role||'',loc:e.loc||'',from,to:e.to||'',desc:_cvNormDesc(e.desc),hide:!!e.hide,noauto:!!e.noauto,st};
   });
   (cv.extra||[]).forEach(x=>out.push({kind:'x',id:x.id,logo:x.logo||'',name:x.project||'',company:x.company||'',role:x.role||'',loc:x.loc||'',from:x.from||'',to:x.to||'',desc:_cvNormDesc(x.desc),hide:!!x.hide,noauto:true,st:null}));
@@ -35080,7 +35123,7 @@ function _cvLong(d,withDay){   // always English, for the CV itself
 }
 function _cvPeriodEN(e){
   const f=e.from; if(!f) return '';
-  const now=new Date().toISOString().slice(0,10);
+  const now=_wdpLocalISO(new Date());
   const fut=f.length>7?f>now:f>now.slice(0,7);
   if(fut&&!e.to) return 'Starting '+_cvLong(f,true);
   return _cvLong(f)+' to '+(e.to?_cvLong(e.to):'Present');
@@ -35092,7 +35135,7 @@ function _cvShortEN(d){
 }
 function _cvPeriodParts(e){
   const f=e.from; if(!f) return {range:'',dur:''};
-  const now=new Date().toISOString().slice(0,10);
+  const now=_wdpLocalISO(new Date());
   const fut=f.length>7?f>now:f>now.slice(0,7);
   if(fut&&!e.to) return {range:'Starting '+_cvLong(f,true),dur:''};
   const a=_cvDateParts(f), b=e.to?_cvDateParts(e.to):{y:+now.slice(0,4),mo:+now.slice(5,7)};
@@ -45190,7 +45233,7 @@ function closeModal(e){
       }
 
       // --- Dismiss control check (before footer buttons are pulled out): does this sheet already give the user a way out? ---
-      const _hasDismiss = !!tmp.querySelector('.sheet-close-btn,.stt-close-btn,.bs-auto-x,button[onclick^="closeModal()"],button[onclick^="closeModal(event)"],button.cancel');
+      const _hasDismiss = !!tmp.querySelector('.sheet-close-btn,.stt-close-btn,.bs-auto-x,button[onclick="closeModal()"],button[onclick="closeModal();"],button[onclick="closeModal(event)"],button.cancel,button.mbtn.cancel');
 
       // --- Extract .modal-btns (legacy buttons) ---
       const btnsEl = tmp.querySelector('.modal-btns');
@@ -49420,7 +49463,99 @@ const WDP_IDB = (function(){
 <script>
 // ── Workspace / Onboarding / Lock / Direct launch ────────────────────────────
 // Runs after ALL functions are defined
+
+// ── First-run / Settings PIN setup ──────────────────────────────────────────
+// First launch on a fresh install: the person decides whether to protect the app with a PIN.
+// No default PIN is applied. "Fresh" = nothing stored yet (no lock/PIN setting and no saved data),
+// so existing users keep their current lock behaviour untouched.
+function _isFirstRunNoPinChoice(){
+  try{
+    const ls = localStorage;
+    return [LOCK_ENABLED_KEY, PIN_KEY, STORAGE_KEY, MONTHS_KEY, ENCRYPTED_DATA_KEY, ENCRYPTED_MONTHS_KEY, 'wdp_meta_v1'].every(k => ls.getItem(k) === null);
+  }catch(e){ return false; }
+}
+function _hasCustomPin(){ try{ return localStorage.getItem(PIN_KEY) !== null; }catch(e){ return true; } }
+
+function _pinSetupOpen(mode){
+  if(document.getElementById('fpcOverlay')) return;
+  const first = mode === 'first';
+  let step = first ? 'choose' : 'create', entry = '', firstPin = '', busy = false;
+  const ov = document.createElement('div');
+  ov.id = 'fpcOverlay'; ov.className = 'fpc-ov'; ov.setAttribute('role','dialog'); ov.setAttribute('aria-modal','true');
+  document.body.appendChild(ov);
+  const shield = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 3v6c0 4.5-3.2 7.9-8 9-4.8-1.1-8-4.5-8-9V6l8-3z"/><path d="M9 12l2 2 4-4"/></svg>';
+  const bksp = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 5H9l-6 7 6 7h12a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1z"/><path d="M17 9l-4 6M13 9l4 6"/></svg>';
+  const close = () => { document.removeEventListener('keydown', onKey, true); ov.classList.add('fpc-out'); setTimeout(() => ov.remove(), 240); };
+  function dots(err){ return '<div class="fpc-dots'+(err?' err':'')+'">'+[0,1,2,3].map(i=>'<i class="'+(i<entry.length?'on':'')+'"></i>').join('')+'</div>'; }
+  function render(err){
+    if(step === 'choose'){
+      ov.innerHTML = '<div class="fpc-card"><div class="fpc-ic">'+shield+'</div>'
+        + '<div class="fpc-h">'+L('Protect your data?','حماية بياناتك؟')+'</div>'
+        + '<div class="fpc-p">'+L('Lock FINORA with a 4-digit PIN, or continue without one. You can change this anytime in Settings.','اقفل التطبيق برمز PIN من 4 أرقام، أو كمّل من غير رمز. تقدر تغيّر ده في أي وقت من الإعدادات.')+'</div>'
+        + '<div class="fpc-btns"><button class="fpc-btn pri" data-act="set">'+L('Set a PIN','تحديد رمز PIN')+'</button>'
+        + '<button class="fpc-btn ghost" data-act="skip">'+L('Continue without PIN','المتابعة بدون PIN')+'</button></div></div>';
+      return;
+    }
+    const confirming = step === 'confirm';
+    const keys = [1,2,3,4,5,6,7,8,9].map(n=>'<button class="fpc-k" data-k="'+n+'">'+n+'</button>').join('')
+      + '<button class="fpc-k nb" data-act="'+(first?'back':'cancel')+'" aria-label="'+L('Back','رجوع')+'" style="font-size:13px;font-weight:600;color:var(--muted)">'+(first?L('Back','رجوع'):L('Cancel','إلغاء'))+'</button>'
+      + '<button class="fpc-k" data-k="0">0</button>'
+      + '<button class="fpc-k nb" data-act="del" aria-label="'+L('Delete','حذف')+'">'+bksp+'</button>';
+    ov.innerHTML = '<div class="fpc-card"><div class="fpc-ic">'+shield+'</div>'
+      + '<div class="fpc-h">'+(confirming ? L('Confirm your PIN','أكّد رمز PIN') : L('Create your PIN','أنشئ رمز PIN'))+'</div>'
+      + '<div class="fpc-p">'+(confirming ? L('Enter the same 4 digits again.','أدخل نفس الأرقام الأربعة مرة تانية.') : L('Choose 4 digits you will remember.','اختر 4 أرقام تفتكرها.'))+'</div>'
+      + dots(err) + '<div class="fpc-err">'+(err||'')+'</div><div class="fpc-pad">'+keys+'</div></div>';
+  }
+  async function finish(pin){
+    busy = true;
+    try{
+      CORRECT_PIN = pin; persistPin(pin); lockEnabled = true; persistLockEnabled(true);
+      if(first){
+        // same sequence the unlock screen runs after a correct PIN, then enter the app
+        await initCrypto(pin); await migrateToEncryptedStorage(); await loadEncryptedDataAfterPin();
+        try{ renderMonthTabs(); }catch(e){}
+        const ls = document.getElementById('lockScreen'), app = document.getElementById('app');
+        if(ls) ls.style.display = 'none';
+        if(app){ app.style.display = 'flex'; app.style.flexDirection = 'column'; }
+        document.documentElement.classList.remove('ls-skip');
+        close(); initApp(); _resetSessionTimer();
+      } else {
+        close();
+        const sw = document.getElementById('sttLockSwitch'); if(sw) sw.classList.add('on');
+        showToast(L('PIN set — lock screen enabled','تم تعيين الـ PIN وتفعيل شاشة القفل'), 'success');
+        try{ refreshSettingsSheet(); }catch(e){}
+      }
+    }catch(e){ busy = false; console.warn('[WDP] PIN setup failed:', e); showToast(L('Could not set PIN','تعذّر تعيين الـ PIN'), 'warn'); }
+  }
+  function press(d){
+    if(busy || entry.length >= 4) return;
+    entry += d; render();
+    if(entry.length < 4) return;
+    if(step === 'create'){ firstPin = entry; entry = ''; step = 'confirm'; setTimeout(render, 160); }
+    else if(entry === firstPin){ setTimeout(() => finish(entry), 160); }
+    else { const e = L('PINs do not match — try again','الرمزان غير متطابقين — حاول مرة تانية'); step = 'create'; firstPin = ''; entry = ''; setTimeout(() => render(e), 160); }
+  }
+  function onKey(ev){
+    if(step === 'choose') return;
+    if(/^[0-9]$/.test(ev.key)){ press(ev.key); ev.preventDefault(); }
+    else if(ev.key === 'Backspace'){ if(!busy){ entry = entry.slice(0,-1); render(); } ev.preventDefault(); }
+  }
+  ov.addEventListener('click', ev => {
+    const b = ev.target.closest('[data-k],[data-act]'); if(!b || busy) return;
+    if(b.dataset.k !== undefined){ press(b.dataset.k); return; }
+    const act = b.dataset.act;
+    if(act === 'set'){ step = 'create'; entry = ''; render(); }
+    else if(act === 'del'){ entry = entry.slice(0,-1); render(); }
+    else if(act === 'back'){ step = 'choose'; entry = ''; firstPin = ''; render(); }
+    else if(act === 'cancel'){ close(); }
+    else if(act === 'skip'){ persistLockEnabled(false); lockEnabled = false; close(); _wsProceedToApp(); }
+  });
+  document.addEventListener('keydown', onKey, true);
+  render();
+}
 function _wsProceedToApp(){
+  // Brand-new install: let the person choose whether to use a PIN before anything else.
+  if(_isFirstRunNoPinChoice()){ _pinSetupOpen('first'); return; }
   const ls  = document.getElementById('lockScreen');
   const app = document.getElementById('app');
 
@@ -53054,7 +53189,7 @@ let _aiaSelectedDate = '';
 function _aiaResolveDate(monthKey){
   if(_aiaSelectedDate) return _aiaSelectedDate;
   if(txFilterDate) return txFilterDate;
-  const today = new Date().toISOString().slice(0,10);
+  const today = _wdpLocalISO(new Date());
   const txns = DATA[monthKey]?.transactions || [];
   if(txns.some(t=>t.date===today)) return today;
   const dates = txns.map(t=>t.date).filter(Boolean).sort();
