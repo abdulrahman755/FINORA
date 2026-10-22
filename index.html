@@ -12485,6 +12485,76 @@ function fpInitSmartHeader(){
 [dir="rtl"] .txm-btns .mbtn.save{order:1}
 [dir="rtl"] .txm-btns .mbtn.cancel{order:2}
 </style>
+<style id="jp-style">
+/* ══ My Job → Profile tab (jp-*) ══ */
+.cx-tabs{overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.cx-tabs::-webkit-scrollbar{display:none}
+.cx-tabs .cx-seg-btn{flex:1 0 auto}
+.jp-wrap{display:flex;flex-direction:column;gap:12px}
+.jp-hero{position:relative;overflow:hidden;border-radius:24px;padding:18px 18px 16px;color:#fff;
+  background:radial-gradient(120% 90% at 100% 0%,rgba(212,175,55,.26),transparent 58%),linear-gradient(150deg,#0d5c40 0%,#07382a 55%,#03170f 100%);
+  border:1px solid rgba(243,213,128,.28);box-shadow:0 18px 34px -18px rgba(3,23,15,.75),inset 0 1px 0 rgba(255,255,255,.12)}
+.jp-hero::before{content:'';position:absolute;inset-inline-end:-58px;top:-58px;width:190px;height:190px;border-radius:50%;border:1px solid rgba(243,213,128,.22);box-shadow:0 0 0 26px rgba(243,213,128,.05),0 0 0 54px rgba(243,213,128,.03);pointer-events:none}
+.jp-hero-top{position:relative;display:flex;align-items:center;gap:14px}
+.jp-ph{position:relative;flex:none;width:80px;height:80px;border-radius:50%;padding:3px;cursor:pointer;display:block;
+  background:linear-gradient(135deg,#F3D580,#A97C1F 60%,#F3D580);box-shadow:0 8px 18px -6px rgba(0,0,0,.55)}
+.jp-ph-in{width:100%;height:100%;border-radius:50%;overflow:hidden;background:#0a4a34;display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-size:30px;font-weight:700;color:#F3D580}
+.jp-ph-in img{width:100%;height:100%;object-fit:cover;display:block}
+.jp-cam{position:absolute;inset-inline-end:-2px;bottom:-2px;width:26px;height:26px;border-radius:50%;background:#F3D580;color:#07382a;display:flex;align-items:center;justify-content:center;border:2px solid #07382a}
+.jp-id{flex:1;min-width:0}
+.jp-nm{font-family:var(--font-display);font-size:calc(20px*var(--app-text-scale,1));font-weight:700;line-height:1.25;overflow-wrap:anywhere}
+.jp-tt{margin-top:3px;font-size:calc(12.5px*var(--app-text-scale,1));color:rgba(255,255,255,.74);font-weight:600}
+.jp-co{margin-top:8px;display:inline-flex;align-items:center;gap:6px;max-width:100%;padding:4px 10px;border-radius:999px;background:rgba(243,213,128,.14);border:1px solid rgba(243,213,128,.3);color:#F3D580;font-size:calc(11.5px*var(--app-text-scale,1));font-weight:800}
+.jp-co span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.jp-edit{position:absolute;inset-inline-end:0;top:-4px;width:34px;height:34px;border-radius:50%;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.1);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:1}
+.jp-hero-bot{position:relative;margin-top:16px;display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.jp-chip{padding:10px 12px;border-radius:14px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);min-width:0}
+.jp-chip small{display:block;font-size:calc(10.5px*var(--app-text-scale,1));font-weight:800;letter-spacing:.4px;color:#F3D580;margin-bottom:3px}
+.jp-chip b{display:block;font-size:calc(14px*var(--app-text-scale,1));font-weight:800;overflow-wrap:anywhere}
+.jp-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:6px 14px;box-shadow:var(--shadow-sm)}
+.jp-card.pad{padding:14px}
+.jp-sec{display:flex;align-items:center;gap:8px;padding:10px 0 4px;font-weight:800;font-size:calc(14px*var(--app-text-scale,1));color:var(--text)}
+.jp-sec svg{color:var(--gold)}
+.jp-sec .sp{flex:1}
+.jp-row{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)}
+.jp-row:last-child{border-bottom:0}
+.jp-ric{flex:none;width:38px;height:38px;border-radius:12px;background:var(--green-tint);color:var(--green);display:flex;align-items:center;justify-content:center}
+.jp-ric.gold{background:var(--gold-tint);color:var(--gold)}
+.jp-rtx{flex:1;min-width:0}
+.jp-rtx small{display:block;font-size:calc(11.5px*var(--app-text-scale,1));font-weight:700;color:var(--muted);margin-bottom:2px}
+.jp-rtx b{display:block;font-size:calc(14px*var(--app-text-scale,1));font-weight:700;color:var(--text);overflow-wrap:anywhere}
+.jp-rtx b.empty{color:var(--sub);font-weight:600}
+.jp-rtx b bdi{unicode-bidi:isolate}
+.jp-rb{flex:none;width:34px;height:34px;border-radius:50%;border:0;background:var(--surface2);color:var(--muted);display:flex;align-items:center;justify-content:center;cursor:pointer}
+.jp-rb:active{transform:scale(.94)}
+.jp-add{display:inline-flex;align-items:center;gap:5px;height:32px;padding:0 12px;border-radius:999px;border:1px solid var(--border);background:var(--surface2);color:var(--green);font:inherit;font-weight:800;font-size:calc(12px*var(--app-text-scale,1));cursor:pointer}
+.jp-scope{display:inline-flex;padding:3px;border-radius:999px;background:var(--surface2)}
+.jp-scope button{border:0;background:transparent;color:var(--muted);font:inherit;font-weight:800;font-size:calc(11.5px*var(--app-text-scale,1));padding:5px 12px;border-radius:999px;cursor:pointer}
+.jp-scope button.on{background:var(--surface);color:var(--text);box-shadow:var(--shadow-xs)}
+.jp-att-top{display:flex;align-items:center;gap:14px;margin-top:6px}
+.jp-ring{position:relative;flex:none;width:92px;height:92px}
+.jp-ring svg{width:100%;height:100%;transform:rotate(-90deg)}
+.jp-ring .tr{stroke:var(--surface3)}
+.jp-ring .pg{stroke:var(--green);transition:stroke-dashoffset .6s ease}
+.jp-ring-c{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.1}
+.jp-ring-c b{font-size:calc(20px*var(--app-text-scale,1));font-weight:800;color:var(--text)}
+.jp-ring-c small{font-size:calc(10px*var(--app-text-scale,1));font-weight:700;color:var(--muted);margin-top:2px}
+.jp-stats{flex:1;min-width:0;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.jp-st{padding:9px 10px;border-radius:13px;background:var(--st-t);border:1px solid transparent}
+.jp-st b{display:block;font-size:calc(19px*var(--app-text-scale,1));font-weight:800;color:var(--st-c);line-height:1.1}
+.jp-st small{display:block;margin-top:2px;font-size:calc(11px*var(--app-text-scale,1));font-weight:800;color:var(--st-c);opacity:.85}
+.jp-wk{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:14px;padding-top:14px;border-top:1px solid var(--border)}
+.jp-d{display:flex;flex-direction:column;align-items:center;gap:6px;font-size:calc(10.5px*var(--app-text-scale,1));font-weight:700;color:var(--muted)}
+.jp-d i{width:26px;height:26px;border-radius:9px;display:flex;align-items:center;justify-content:center;background:var(--surface2);border:1px dashed var(--border-strong);color:#fff}
+.jp-d i.on{border:0}
+.jp-d.today{color:var(--text)}
+.jp-d.today i{box-shadow:0 0 0 2px var(--surface),0 0 0 4px var(--gold-light)}
+.jp-link{margin-top:12px;width:100%;height:40px;border-radius:12px;border:1px solid var(--border);background:var(--surface2);color:var(--green);font:inherit;font-weight:800;font-size:calc(13px*var(--app-text-scale,1));cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px}
+.jp-empty{margin:8px 0 12px;padding:18px 14px;border-radius:14px;border:1.5px dashed var(--border-strong);text-align:center;color:var(--muted);font-size:calc(12.5px*var(--app-text-scale,1));font-weight:600;line-height:1.7}
+.jp-chips{display:flex;flex-wrap:wrap;gap:6px;margin:-2px 0 10px}
+.jp-chips button{border:1px solid var(--border);background:var(--surface2);color:var(--text2);font:inherit;font-weight:700;font-size:calc(12px*var(--app-text-scale,1));padding:6px 11px;border-radius:999px;cursor:pointer}
+.jp-photo-rm{background:none;border:0;color:var(--red);font:inherit;font-weight:700;font-size:calc(12.5px*var(--app-text-scale,1));padding:6px 0;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+</style>
 </head>
 <body>
 
@@ -34020,6 +34090,7 @@ function generateExpenseAIInsights(exps, groups){
 function renderExpenses(m){
   if(_cxTab==='attendance') return ATT.render();
   if(_cxTab==='cv') return renderMyCV();
+  if(_cxTab==='profile') return renderJobProfile();
   if(_cxTab==='requests') return renderMyRequests();
   const allRaw=m?.site_expenses||[];
   const all=allRaw.filter(_prjMine);
@@ -35037,14 +35108,240 @@ async function _rqRunTranslate(id,targetLang){
 
 function _cxTabsHTML(){
   const t=(k,lbl)=>`<button type="button" role="tab" class="cx-seg-btn${_cxTab===k?' on':''}" aria-selected="${_cxTab===k?'true':'false'}" onclick="_cxSetTab('${k}')">${lbl}</button>`;
-  return `<div class="cx-seg cx-tabs" role="tablist">${t('requests',L('My Receipts','استلاماتي'))}${t('custody',L('Custody','العهدة'))}${t('attendance',L('Attendance','الحضور'))}${t('cv',L('My CV','سيرتي'))}</div>`;
+  return `<div class="cx-seg cx-tabs" role="tablist">${t('requests',L('My Receipts','استلاماتي'))}${t('custody',L('Custody','العهدة'))}${t('attendance',L('Attendance','الحضور'))}${t('cv',L('My CV','سيرتي'))}${t('profile',L('Profile','ملفي'))}</div>`;
 }
 function _cxSetTab(k){
-  const nk=(k==='requests'||k==='attendance'||k==='cv')?k:'custody';
+  const nk=(k==='requests'||k==='attendance'||k==='cv'||k==='profile')?k:'custody';
   if(nk===_cxTab) return;
-  _cxTab=nk; searchQ='';
+  _cxTab=nk; searchQ=''; _jpShowId=false;
   renderView();
+  try{ requestAnimationFrame(()=>{ const b=document.querySelector('.cx-tabs .cx-seg-btn.on'); if(b&&b.scrollIntoView) b.scrollIntoView({inline:'center',block:'nearest'}); }); }catch(e){}
 }
+// ══════════════════════════════════════════════════════════════════════════
+// MY JOB → PROFILE tab. Work identity card (name, national ID, company & medical-insurance
+// e-mails, employee code, photo, joining date → time at the company), the current project
+// (taken from the app's active project), an attendance dashboard (read-only view of the
+// existing Attendance data) and physical custody (laptop, charger, …).
+// Own localStorage key (wdp_jobprofile_v1) — included in the app's backup automatically,
+// touches no finance / receipts / attendance data.
+// ══════════════════════════════════════════════════════════════════════════
+const _JP_KEY='wdp_jobprofile_v1';
+let _jpScope='month', _jpShowId=false, _jpEditId=null;
+function _jpLoad(){
+  const o={name:'',title:'',company:'',nid:'',email:'',medEmail:'',code:'',start:'',photo:'',custody:[]};
+  try{
+    const p=JSON.parse(localStorage.getItem(_JP_KEY)||'null');
+    if(p&&typeof p==='object'){
+      ['name','title','company','nid','email','medEmail','code','start'].forEach(k=>{ o[k]=String(p[k]||''); });
+      o.photo=/^data:image\//.test(p.photo||'')?p.photo:'';
+      if(Array.isArray(p.custody)) o.custody=p.custody.filter(x=>x&&typeof x==='object').map(x=>({id:String(x.id||''),name:String(x.name||''),note:String(x.note||''),date:String(x.date||'')}));
+    }
+  }catch(e){ _logErr('_jpLoad',e); }
+  return o;
+}
+function _jpSave(o){
+  try{ localStorage.setItem(_JP_KEY,JSON.stringify(o)); return true; }
+  catch(e){ _logErr('_jpSave',e); try{ showToast(L('⚠️ Could not save (storage full)','⚠️ تعذّر الحفظ (التخزين ممتلئ)'),'warn'); }catch(_){} return false; }
+}
+function _jpAtt(){ try{ const p=JSON.parse(localStorage.getItem('wdp_attendance_v1')||'null')||{}; return {days:(p.days&&typeof p.days==='object')?p.days:{}, company:String(p.company||''), hire:String((p.leave&&p.leave.hire)||'')}; }catch(e){ return {days:{},company:'',hire:''}; } }
+const _jpLoc=()=>L('en-US','ar-EG-u-nu-latn');
+function _jpAr(n,f){ return n+' '+(n===1?f[0]:n===2?f[1]:(n>=3&&n<=10)?f[2]:f[3]); }
+function _jpTenure(s){
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(s||'')) return null;
+  const a=new Date(s+'T12:00:00'), b=new Date(); if(isNaN(a)||a>b) return null;
+  let y=b.getFullYear()-a.getFullYear(), m=b.getMonth()-a.getMonth(), d=b.getDate()-a.getDate();
+  if(d<0){ m--; d+=new Date(b.getFullYear(),b.getMonth(),0).getDate(); }
+  if(m<0){ y--; m+=12; }
+  const parts=lang==='ar'
+    ?[y&&_jpAr(y,['سنة','سنتين','سنين','سنة']),m&&_jpAr(m,['شهر','شهرين','شهور','شهر']),d&&_jpAr(d,['يوم','يومين','أيام','يوم'])]
+    :[y&&y+(y===1?' year':' years'),m&&m+(m===1?' month':' months'),d&&d+(d===1?' day':' days')];
+  const f=parts.filter(Boolean); if(!f.length) return {short:L('Today','النهاردة'),full:L('Joined today','بدأت النهاردة')};
+  const sep=lang==='ar'?' و':', ';
+  return {short:f.slice(0,2).join(sep), full:f.join(sep)};
+}
+function _jpDate(s){ if(!/^\d{4}-\d{2}-\d{2}$/.test(s||'')) return ''; try{ return new Date(s+'T12:00:00').toLocaleDateString(_jpLoc(),{day:'numeric',month:'long',year:'numeric'}); }catch(e){ return s; } }
+function _jpCustIc(n){
+  n=String(n||'').toLowerCase();
+  if(/laptop|لاب|notebook|حاسب|كمبيوتر|pc/.test(n)) return 'laptop';
+  if(/phone|mobile|موبايل|تليفون|هاتف|جوال/.test(n)) return 'smartphone';
+  if(/screen|monitor|شاشة/.test(n)) return 'monitor';
+  if(/car|عربية|سيارة|vehicle/.test(n)) return 'car';
+  if(/helmet|خوذة|خوذه|safety|سيفتي/.test(n)) return 'hardhat';
+  if(/key|مفتاح|كارت|card|badge/.test(n)) return 'key';
+  return 'package';
+}
+function _jpVal(v,ltr){ return v?(ltr?`<b><bdi dir="ltr">${esc(v)}</bdi></b>`:`<b dir="auto">${esc(v)}</b>`):`<b class="empty">${L('Not added','غير مضاف')}</b>`; }
+function _jpRow(ico,label,valHtml,btn,gold){
+  return `<div class="jp-row"><span class="jp-ric${gold?' gold':''}">${ic(ico,18)}</span><div class="jp-rtx"><small>${label}</small>${valHtml}</div>${btn||''}</div>`;
+}
+function _jpCopyBtn(v){ return v?`<button type="button" class="jp-rb" onclick="_jpCopy(this)" data-v="${esc(v)}" aria-label="${L('Copy','نسخ')}">${ic('copy',15)}</button>`:''; }
+function _jpCopy(btn){
+  const t=btn.getAttribute('data-v')||''; if(!t) return;
+  const ok=()=>{ try{ showToast(L('Copied','تم النسخ'),'success'); }catch(_){} };
+  const fb=()=>{ try{ const a=document.createElement('textarea'); a.value=t; a.style.cssText='position:fixed;opacity:0'; document.body.appendChild(a); a.select(); document.execCommand('copy'); a.remove(); ok(); }catch(e){} };
+  if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(ok,fb); else fb();
+}
+function _jpMask(v){ const s=String(v||''); return s.length>4?'•'.repeat(Math.max(s.length-4,4))+s.slice(-4):s; }
+function _jpToggleId(){
+  _jpShowId=!_jpShowId;
+  const p=_jpLoad(), el=document.getElementById('jpNid'), b=document.getElementById('jpNidEye');
+  if(el) el.textContent=_jpShowId?p.nid:_jpMask(p.nid);
+  if(b) b.innerHTML=ic(_jpShowId?'eyeoff':'eye',15);
+}
+function _jpAttStats(){
+  const a=_jpAtt(), now=new Date(), pad=n=>(n<10?'0':'')+n;
+  const pre=_jpScope==='month'?(now.getFullYear()+'-'+pad(now.getMonth()+1)):String(now.getFullYear());
+  const c={present:0,late:0,absent:0,leave:0};
+  Object.keys(a.days).forEach(k=>{
+    if(k.indexOf(pre)!==0) return;
+    const s=(a.days[k]||{}).s;
+    if(s==='present') c.present++; else if(s==='late') c.late++; else if(s==='absent') c.absent++; else if(s==='sick'||s==='leave') c.leave++;
+  });
+  const base=c.present+c.late+c.absent;
+  return {c,rate:base?Math.round((c.present+c.late)/base*100):null,days:a.days,label:_jpScope==='month'?now.toLocaleDateString(_jpLoc(),{month:'long',year:'numeric'}):String(now.getFullYear())};
+}
+function _jpSetScope(k){ _jpScope=(k==='year')?'year':'month'; try{ renderView(); }catch(e){ _logErr('_jpSetScope',e); } }
+function _jpAttHTML(){
+  const s=_jpAttStats(), c=s.c, R=38, C=2*Math.PI*R, off=C*(1-(s.rate==null?0:s.rate/100));
+  const tile=(n,lbl,col,tint)=>`<div class="jp-st" style="--st-c:var(${col});--st-t:var(${tint})"><b>${n}</b><small>${lbl}</small></div>`;
+  const colors={present:['--green'],late:['--orange'],absent:['--red'],sick:['--blue'],leave:['--blue'],holiday:['--purple'],off:['--sub']};
+  const icons={present:'check',late:'clock',absent:'close',sick:'sick',leave:'leave',holiday:'holiday',off:'minus'};
+  const pad=n=>(n<10?'0':'')+n; let wk='';
+  for(let i=6;i>=0;i--){
+    const d=new Date(); d.setDate(d.getDate()-i);
+    const key=d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()), st=(s.days[key]||{}).s, cl=colors[st];
+    wk+=`<div class="jp-d${i===0?' today':''}"><i class="${cl?'on':''}"${cl?` style="background:var(${cl[0]})"`:''}>${cl?ic(icons[st],13):''}</i><span>${esc(d.toLocaleDateString(_jpLoc(),{weekday:'short'}))}</span></div>`;
+  }
+  return `<section class="jp-card pad">
+    <div class="jp-sec" style="padding-top:0">${ic('attendance',17)}<span>${L('Attendance','الحضور والغياب')}</span><span class="sp"></span>
+      <span class="jp-scope" role="tablist"><button type="button" class="${_jpScope==='month'?'on':''}" onclick="_jpSetScope('month')">${L('Month','الشهر')}</button><button type="button" class="${_jpScope==='year'?'on':''}" onclick="_jpSetScope('year')">${L('Year','السنة')}</button></span></div>
+    <div style="font-size:calc(11.5px*var(--app-text-scale,1));color:var(--muted);font-weight:700" dir="auto">${esc(s.label)}</div>
+    <div class="jp-att-top">
+      <div class="jp-ring"><svg viewBox="0 0 92 92"><circle class="tr" cx="46" cy="46" r="${R}" fill="none" stroke-width="9"/><circle class="pg" cx="46" cy="46" r="${R}" fill="none" stroke-width="9" stroke-linecap="round" stroke-dasharray="${C.toFixed(1)}" stroke-dashoffset="${off.toFixed(1)}"/></svg>
+        <div class="jp-ring-c"><b>${s.rate==null?'—':s.rate+'%'}</b><small>${L('Attendance','الالتزام')}</small></div></div>
+      <div class="jp-stats">${tile(c.present,L('Present','حضور'),'--green','--green-tint')}${tile(c.late,L('Late','تأخير'),'--orange','--orange-tint')}${tile(c.absent,L('Absent','غياب'),'--red','--red-tint')}${tile(c.leave,L('Leaves','إجازات'),'--blue','--blue-tint')}</div>
+    </div>
+    <div class="jp-wk">${wk}</div>
+    <button type="button" class="jp-link" onclick="_cxSetTab('attendance')">${ic('calendar',15)} ${L('Open full attendance log','فتح سجل الحضور الكامل')}</button>
+  </section>`;
+}
+function _jpCustHTML(p){
+  const items=p.custody.map(x=>`<div class="jp-row" style="cursor:pointer" onclick="_jpEditCustody('${esc(x.id)}')"><span class="jp-ric gold">${ic(_jpCustIc(x.name),18)}</span><div class="jp-rtx"><b dir="auto">${esc(x.name||L('Item','عنصر'))}</b>${x.note?`<small dir="auto" style="margin:3px 0 0">${esc(x.note)}</small>`:''}${x.date?`<small style="margin:3px 0 0">${ic('calendar',11)} ${esc(_jpDate(x.date))}</small>`:''}</div><button type="button" class="jp-rb" onclick="event.stopPropagation();_jpEditCustody('${esc(x.id)}')" aria-label="${L('Edit','تعديل')}">${ic('edit',15)}</button></div>`).join('');
+  return `<section class="jp-card">
+    <div class="jp-sec">${ic('package',17)}<span>${L('My custody','العهدة اللي معايا')}</span>${p.custody.length?`<em style="font-style:normal;font-size:12px;color:var(--muted);font-weight:700">${p.custody.length}</em>`:''}<span class="sp"></span><button type="button" class="jp-add" onclick="_jpEditCustody(null)">${ic('plus',14)} ${L('Add','إضافة')}</button></div>
+    ${items||`<div class="jp-empty">${L('No items yet — add your laptop, charger, mouse, bag…','لسه مفيش عهدة — ضيف اللاب توب والشاحن والماوس والشنطة…')}</div>`}
+  </section>`;
+}
+function renderJobProfile(){
+  const p=_jpLoad(), att=_jpAtt();
+  const company=p.company||att.company, start=p.start||att.hire, ten=_jpTenure(start);
+  let prj=''; try{ prj=_prjName(_prjCur()); }catch(e){}
+  const ini=(p.name||'').trim().charAt(0).toUpperCase();
+  const nidShown=p.nid?(_jpShowId?p.nid:_jpMask(p.nid)):'';
+  const nidRow=_jpRow('id',L('National ID','الرقم القومي'),p.nid?`<b><bdi dir="ltr" id="jpNid">${esc(nidShown)}</bdi></b>`:_jpVal(''),
+    p.nid?`<button type="button" class="jp-rb" id="jpNidEye" onclick="_jpToggleId()" aria-label="${L('Show / hide','إظهار / إخفاء')}">${ic(_jpShowId?'eyeoff':'eye',15)}</button>${_jpCopyBtn(p.nid)}`:'');
+  return `<div class="screen-wrap cx-wrap jp-wrap">
+  ${_pgHdr('Site','الموقع','My Job','My Job','Your work profile and attendance','بياناتك الوظيفية والحضور')}
+  ${_prjBarHTML()}
+  ${_cxTabsHTML()}
+  <section class="jp-hero">
+    <button type="button" class="jp-edit" onclick="_jpEditProfile()" aria-label="${L('Edit','تعديل')}">${ic('edit',15)}</button>
+    <div class="jp-hero-top">
+      <label class="jp-ph" for="jpPhotoIn" aria-label="${L('Change photo','تغيير الصورة')}"><span class="jp-ph-in">${p.photo?`<img src="${p.photo}" alt="">`:(ini?esc(ini):ic('photo',26))}</span><span class="jp-cam">${ic('photo',13)}</span></label>
+      <input type="file" id="jpPhotoIn" accept="image/*" style="display:none" onchange="_jpPhotoPick(this)">
+      <div class="jp-id" style="padding-inline-end:36px"><div class="jp-nm" dir="auto">${p.name?esc(p.name):L('Add your name','أضف اسمك')}</div>
+        ${p.title?`<div class="jp-tt" dir="auto">${esc(p.title)}</div>`:''}
+        ${company?`<div class="jp-co">${ic('building',13)}<span dir="auto">${esc(company)}</span></div>`:''}</div>
+    </div>
+    <div class="jp-hero-bot">
+      <div class="jp-chip"><small>${L('EMPLOYEE CODE','كود التوظيف')}</small><b dir="ltr" style="text-align:start">${p.code?esc(p.code):'—'}</b></div>
+      <div class="jp-chip"><small>${L('TIME AT COMPANY','مدة الشغل')}</small><b dir="auto">${ten?esc(ten.short):'—'}</b></div>
+    </div>
+  </section>
+  <section class="jp-card">
+    <div class="jp-sec">${ic('briefcase',17)}<span>${L('Work details','بيانات الشغل')}</span></div>
+    ${_jpRow('building2',L('Current project','المشروع الحالي'),_jpVal(prj),'',false)}
+    ${_jpRow('join',L('Joined','تاريخ الالتحاق'),start?`<b dir="auto">${esc(_jpDate(start))}</b>${ten?`<small style="margin:3px 0 0;color:var(--green)">${esc(ten.full)}</small>`:''}`:_jpVal(''))}
+    ${nidRow}
+    ${_jpRow('mail',L('Company e-mail','إيميل الشركة'),_jpVal(p.email,true),_jpCopyBtn(p.email))}
+    ${_jpRow('shield',L('Medical insurance e-mail','إيميل التأمين الطبي'),_jpVal(p.medEmail,true),_jpCopyBtn(p.medEmail))}
+  </section>
+  ${_jpAttHTML()}
+  ${_jpCustHTML(p)}
+  </div>`;
+}
+function _jpSheet(icon,title,sub,body,saveFn,delFn){
+  document.getElementById('modalContent').innerHTML=`<div class="modal-handle"></div><div class="rq-modal de-sheet prj-sheet">
+    <div class="modal-hdr"><div class="modal-hdr-icon" style="background:linear-gradient(135deg,#0f7a55,#0a5c40)">${ic(icon,22)}</div>
+      <div style="flex:1;min-width:0"><div class="modal-hdr-title">${title}</div><div class="modal-hdr-sub">${sub}</div></div>
+      <button type="button" class="sheet-close-btn sq" onclick="closeModal()" aria-label="${L('Close','إغلاق')}">${ic('close',16)}</button></div>
+    ${body}
+    ${delFn?`<button type="button" class="prj-del-link" onclick="${delFn}">${ic('trash',14)} ${L('Delete this item','حذف العنصر ده')}</button>`:''}
+    <div class="modal-btns"><button class="mbtn cancel" onclick="closeModal()">${L('Cancel','إلغاء')}</button><button class="mbtn save" onclick="${saveFn}">${L('Save','حفظ')}</button></div></div>`;
+  document.getElementById('modalOverlay').style.display='flex';
+}
+function _jpEditProfile(){
+  const p=_jpLoad(), att=_jpAtt();
+  _jpSheet('id',L('My work profile','بياناتي الوظيفية'),L('Stored on this device only','متخزنة على الجهاز ده بس'),
+    _cvField('jpName',L('Full name','الاسم بالكامل'),p.name)+
+    _cvField('jpTitle',L('Job title','المسمى الوظيفي'),p.title,{ph:L('e.g. Site Civil Engineer','مثال: مهندس مدني موقع')})+
+    _cvField('jpCompany',L('Company','الشركة'),p.company||att.company)+
+    _cvField('jpNid',L('National ID','الرقم القومي'),p.nid,{dir:'ltr',type:'tel',ph:'14 digits'})+
+    _cvField('jpEmail',L('Company e-mail','إيميل الشركة'),p.email,{type:'email',dir:'ltr'})+
+    _cvField('jpMed',L('Medical insurance e-mail','إيميل التأمين الطبي'),p.medEmail,{type:'email',dir:'ltr'})+
+    `<div class="cv-2col">${_cvField('jpCode',L('Employee code','كود التوظيف'),p.code,{dir:'ltr'})}${_cvField('jpStart',L('Joining date','تاريخ الالتحاق'),p.start||att.hire,{type:'date',dir:'ltr'})}</div>`+
+    (p.photo?`<button type="button" class="jp-photo-rm" onclick="_jpPhotoRemove()">${ic('trash',14)} ${L('Remove photo','حذف الصورة')}</button>`:''),
+    '_jpSaveProfile()');
+}
+function _jpSaveProfile(){
+  const g=id=>(document.getElementById(id)?.value||'').trim(), p=_jpLoad();
+  p.name=g('jpName'); p.title=g('jpTitle'); p.company=g('jpCompany'); p.nid=g('jpNid').replace(/\s+/g,''); p.email=g('jpEmail'); p.medEmail=g('jpMed'); p.code=g('jpCode'); p.start=g('jpStart');
+  if(!_jpSave(p)) return;
+  try{ closeModal(); }catch(e){}
+  try{ renderView(); }catch(e){ _logErr('_jpSaveProfile',e); }
+  showToast(L('Profile saved','تم حفظ البيانات'),'success');
+  if(p.nid&&!/^\d{14}$/.test(p.nid)) setTimeout(()=>{ try{ showToast(L('National ID is usually 14 digits — double-check it','الرقم القومي عادةً ١٤ رقم — راجعه'),'warn'); }catch(_){} },700);
+}
+function _jpPhotoPick(inp){
+  const f=inp&&inp.files&&inp.files[0]; if(!f) return;
+  if(f.size>12*1024*1024){ showToast(L('⚠️ Image too large (max 12MB)','⚠️ الصورة كبيرة جداً (١٢ ميجا كحد أقصى)'),'warn'); inp.value=''; return; }
+  const rd=new FileReader();
+  rd.onload=async ()=>{
+    try{ const url=await _cvPhotoPrep(rd.result), p=_jpLoad(); p.photo=url; if(_jpSave(p)) renderView(); }
+    catch(e){ _logErr('_jpPhotoPick',e); showToast(L('⚠️ Could not read image','⚠️ تعذّرت قراءة الصورة'),'warn'); }
+  };
+  rd.onerror=()=>{ showToast(L('⚠️ Could not read image','⚠️ تعذّرت قراءة الصورة'),'warn'); };
+  rd.readAsDataURL(f);
+}
+function _jpPhotoRemove(){ const p=_jpLoad(); p.photo=''; if(_jpSave(p)){ try{ closeModal(); }catch(e){} renderView(); } }
+function _jpEditCustody(id){
+  const p=_jpLoad(), x=id?p.custody.find(c=>c.id===id):null; if(id&&!x) return;
+  _jpEditId=x?x.id:null;
+  const sug=[['Laptop','لاب توب'],['Charger','شاحن'],['Mouse','ماوس'],['Laptop bag','شنطة لاب'],['Phone','موبايل'],['Safety helmet','خوذة']];
+  _jpSheet(x?_jpCustIc(x.name):'package',x?L('Edit item','تعديل العنصر'):L('Add custody item','إضافة عهدة'),L('Anything you received from the company','أي حاجة استلمتها من الشركة'),
+    (x?'':`<div class="jp-chips">${sug.map(s=>`<button type="button" onclick="document.getElementById('jpcName').value='${L(s[0],s[1])}'">${L(s[0],s[1])}</button>`).join('')}</div>`)+
+    _cvField('jpcName',L('Item','العنصر'),x?x.name:'',{ph:L('e.g. Dell Latitude laptop','مثال: لاب توب Dell Latitude')})+
+    _cvField('jpcNote',L('Details (serial no., condition, accessories…)','تفاصيل (سيريال، الحالة، المشتملات…)'),x?x.note:'',{ta:1,rows:2})+
+    _cvField('jpcDate',L('Received on','تاريخ الاستلام'),x?x.date:'',{type:'date',dir:'ltr'}),
+    '_jpSaveCustody()',x?`_jpDelCustody('${esc(x.id)}')`:'');
+}
+function _jpSaveCustody(){
+  const g=id=>(document.getElementById(id)?.value||'').trim(), name=g('jpcName');
+  if(!name){ showToast(L('Enter the item name','اكتب اسم العنصر'),'warn'); return; }
+  const p=_jpLoad(), rec={id:_jpEditId||('c'+Date.now().toString(36)+Math.random().toString(36).slice(2,5)),name,note:g('jpcNote'),date:g('jpcDate')};
+  const i=p.custody.findIndex(c=>c.id===rec.id); if(i>=0) p.custody[i]=rec; else p.custody.push(rec);
+  if(!_jpSave(p)) return;
+  try{ closeModal(); }catch(e){}
+  try{ renderView(); }catch(e){ _logErr('_jpSaveCustody',e); }
+  showToast(L('Saved','تم الحفظ'),'success');
+}
+function _jpDelCustody(id){
+  showConfirm(L('Delete this item?','حذف العنصر ده؟'),()=>{
+    const p=_jpLoad(); p.custody=p.custody.filter(c=>c.id!==id);
+    if(_jpSave(p)){ try{ closeModal(); }catch(e){} try{ renderView(); }catch(e){} }
+  });
+}
+
 
 // ══════════════════════════════════════════════════════════════════════════
 // MY CV — 4th tab inside My Job. Work experience is built from the project list,
@@ -39148,6 +39445,7 @@ function openExpPicker(e){
   if(_cxTab==='attendance'){ ATT.openDay(today()); return; }
   if(_cxTab==='requests'){ openRequestModal(null); return; }
   if(_cxTab==='cv'){ _prjOpen(); return; }
+  if(_cxTab==='profile'){ _jpEditCustody(null); return; }
   _fpFabPickerRemoveNow();
   const picker=document.createElement('div');
   picker.className='fab-picker';
@@ -39232,7 +39530,7 @@ function closeFabPicker(){
   setTimeout(()=>{ picker?.remove(); bd?.remove(); },130);
 }
 function openAddTx(){openAdd();}
-function openAdd(){editTarget=null;if(currentView==='transactions') showTxModal(null);else if(currentView==='expenses'){ if(_cxTab==='attendance') ATT.openDay(today()); else if(_cxTab==='requests') openRequestModal(null); else if(_cxTab==='cv') _prjOpen(); else showExpModal(null); }}
+function openAdd(){editTarget=null;if(currentView==='transactions') showTxModal(null);else if(currentView==='expenses'){ if(_cxTab==='attendance') ATT.openDay(today()); else if(_cxTab==='requests') openRequestModal(null); else if(_cxTab==='cv') _prjOpen(); else if(_cxTab==='profile') _jpEditCustody(null); else showExpModal(null); }}
 function openEdit(type,idx){editTarget={type,idx};if(type==='tx') showTxModal(DATA[activeMonth].transactions[idx]);else showExpModal(DATA[activeMonth].site_expenses[idx]);}
 
 // ── AI Quick Entry (UI only — no AI parsing yet) ────────────────────────────
