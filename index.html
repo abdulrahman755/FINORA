@@ -12554,6 +12554,56 @@ function fpInitSmartHeader(){
 .jp-chips{display:flex;flex-wrap:wrap;gap:6px;margin:-2px 0 10px}
 .jp-chips button{border:1px solid var(--border);background:var(--surface2);color:var(--text2);font:inherit;font-weight:700;font-size:calc(12px*var(--app-text-scale,1));padding:6px 11px;border-radius:999px;cursor:pointer}
 .jp-photo-rm{background:none;border:0;color:var(--red);font:inherit;font-weight:700;font-size:calc(12.5px*var(--app-text-scale,1));padding:6px 0;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+/* ══ Employment & Project History (ca-*) ══ */
+.ca-manage{width:100%;display:flex;align-items:center;gap:12px;padding:13px 14px;border-radius:var(--radius);border:1px solid var(--border);background:var(--surface);box-shadow:var(--shadow-sm);color:var(--text);font:inherit;cursor:pointer;text-align:start}
+.ca-manage:active{transform:scale(.99)}
+.ca-manage .ic{flex:none;width:40px;height:40px;border-radius:13px;background:var(--gold-tint);color:var(--gold);display:flex;align-items:center;justify-content:center}
+.ca-manage .tx{flex:1;min-width:0}
+.ca-manage .tx b{display:block;font-size:calc(14px*var(--app-text-scale,1));font-weight:800}
+.ca-manage .tx small{display:block;margin-top:2px;font-size:calc(11.5px*var(--app-text-scale,1));font-weight:600;color:var(--muted)}
+.ca-manage>svg{color:var(--muted);flex:none}
+.ca-b{display:inline-flex;align-items:center;padding:2px 9px;border-radius:999px;font-size:calc(10.5px*var(--app-text-scale,1));font-weight:800;white-space:nowrap}
+.ca-b.on{background:var(--green-tint);color:var(--green)}
+.ca-b.done{background:var(--surface2);color:var(--muted)}
+.ca-b.rev{background:var(--orange-tint);color:var(--orange);margin-inline-start:6px}
+.ca-filters{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:6px 0 12px}
+.ca-filters select,.ca-filters input{width:100%;min-width:0;height:38px;padding:0 10px;border-radius:11px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font:inherit;font-size:calc(12px*var(--app-text-scale,1));font-weight:700}
+.ca-tl-wrap{padding-bottom:10px}
+.ca-tl{position:relative;display:flex;gap:12px;padding:0 0 14px;cursor:pointer}
+.ca-tl::before{content:'';position:absolute;inset-inline-start:6px;top:16px;bottom:-2px;width:2px;background:var(--border)}
+.ca-tl:last-child{padding-bottom:0}.ca-tl:last-child::before{display:none}
+.ca-dot{position:relative;flex:none;width:14px;height:14px;margin-top:3px;border-radius:50%;background:var(--surface3);border:2px solid var(--border-strong);z-index:1}
+.ca-dot.on{background:var(--green);border-color:var(--green);box-shadow:0 0 0 4px var(--green-tint)}
+.ca-tl-b{flex:1;min-width:0}
+.ca-tl-t{display:flex;align-items:center;gap:8px;justify-content:space-between}
+.ca-tl-t b{font-size:calc(14px*var(--app-text-scale,1));font-weight:800;overflow-wrap:anywhere}
+.ca-tl-b small{display:block;margin-top:2px;font-size:calc(11.5px*var(--app-text-scale,1));font-weight:600;color:var(--muted)}
+.ca-empty{margin:6px 0 10px;padding:12px;border-radius:12px;border:1.5px dashed var(--border-strong);text-align:center;color:var(--muted);font-size:calc(12.5px*var(--app-text-scale,1));font-weight:600}
+.ca-sec{margin:16px 0 8px;font-size:calc(11px*var(--app-text-scale,1));font-weight:800;letter-spacing:.5px;color:var(--muted)}
+.ca-cur,.ca-lr{display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:14px;border:1px solid var(--border);background:var(--surface2);margin-bottom:8px;cursor:pointer}
+.ca-cur{flex-direction:column;align-items:flex-start;gap:2px;border-color:var(--green);background:var(--green-tint)}
+.ca-cur b,.ca-lr-b b{font-size:calc(14.5px*var(--app-text-scale,1));font-weight:800;color:var(--text);overflow-wrap:anywhere}
+.ca-cur small,.ca-lr-b small{display:block;font-size:calc(11.5px*var(--app-text-scale,1));font-weight:600;color:var(--muted)}
+.ca-lr-b{flex:1;min-width:0}.ca-lr>svg{color:var(--muted);flex:none}
+.ca-acts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0 4px}
+.ca-acts button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-height:68px;padding:10px 6px;border-radius:14px;border:1px solid var(--green);background:var(--green);color:#fff;font:inherit;font-weight:800;font-size:calc(12px*var(--app-text-scale,1));text-align:center;cursor:pointer}
+.ca-acts button.alt{background:var(--surface2);border-color:var(--border);color:var(--text)}
+.ca-note{margin:4px 0 12px;padding:11px 13px;border-radius:12px;background:var(--gold-tint);color:var(--text2);font-size:calc(12.5px*var(--app-text-scale,1));font-weight:600;line-height:1.7}
+.ca-note.small{font-size:calc(11.5px*var(--app-text-scale,1));padding:9px 12px;margin:2px 0 10px;display:flex;gap:8px;align-items:flex-start}
+.ca-kv{display:flex;justify-content:space-between;gap:14px;padding:10px 0;border-bottom:1px solid var(--border)}
+.ca-kv small{flex:none;font-size:calc(12px*var(--app-text-scale,1));font-weight:700;color:var(--muted)}
+.ca-kv b{text-align:end;font-size:calc(13.5px*var(--app-text-scale,1));font-weight:700;color:var(--text);overflow-wrap:anywhere}
+.ca-ck{margin:12px 0;padding:12px;border-radius:14px;border:1px solid var(--border);background:var(--surface2)}
+.ca-ck-t{display:flex;align-items:center;gap:6px;font-weight:800;font-size:calc(13px*var(--app-text-scale,1));margin-bottom:4px}
+.ca-ck-h{font-size:calc(11.5px*var(--app-text-scale,1));color:var(--muted);font-weight:600;line-height:1.6;margin-bottom:8px}
+.ca-ck-i{padding:10px 0;border-top:1px solid var(--border)}
+.ca-ck-i b{display:block;font-size:calc(13px*var(--app-text-scale,1));font-weight:800;margin-bottom:6px}
+.ca-ck-r{display:grid;grid-template-columns:1.2fr 1fr;gap:8px;margin-bottom:6px}
+.ca-ck select,.ca-ck input{width:100%;min-width:0;height:38px;padding:0 10px;border-radius:11px;border:1px solid var(--border);background:var(--surface);color:var(--text);font:inherit;font-size:calc(12.5px*var(--app-text-scale,1))}
+.ca-steps{margin:6px 0 12px}
+.ca-step{width:100%;display:flex;align-items:center;justify-content:center;gap:8px;height:44px;border-radius:12px;border:1px solid var(--green);background:var(--surface);color:var(--green);font:inherit;font-weight:800;cursor:pointer}
+.ca-step.done{background:var(--green-tint)}
+.ca-reset{display:block;margin:22px auto 6px;background:none;border:0;color:var(--red);font:inherit;font-size:calc(12px*var(--app-text-scale,1));font-weight:700;cursor:pointer;opacity:.85}
 </style>
 </head>
 <body>
@@ -34513,6 +34563,7 @@ function _pswCancel(){
 function _prjAskDelete(id){
   const p=_PRJ.list.find(x=>x.id===id); if(!p) return;
   if(id===_PRJ_DEFAULT){ showToast(L('The main project cannot be deleted','المشروع الأساسي مينفعش يتحذف'),'warn'); return; }
+  if(_caProjectLocked(id)){ showToast(L('This project is part of your work history, so it cannot be deleted','المشروع ده جزء من سجلك الوظيفي، فمينفعش يتحذف'),'warn'); return; }
   const nm=_prjName(p);
   showConfirm(
     L(`Delete project "${nm}"? Its receipts, saved companies and plots will be removed. Its custody and site expenses move to the main project so bank balances stay the same.`,
@@ -34521,6 +34572,7 @@ function _prjAskDelete(id){
 }
 function _prjDelete(id){
   if(id===_PRJ_DEFAULT) return;
+  if(_caProjectLocked(id)) return;
   const idx=_PRJ.list.findIndex(x=>x.id===id); if(idx<0) return;
   const removed=_PRJ.list.splice(idx,1)[0];
   const wasActive=_PRJ.active===id;
@@ -35226,20 +35278,502 @@ function _jpAttHTML(){
   </section>`;
 }
 function _jpCustHTML(p){
+  if(_caState()==='ok') return _caCustHTML();
   const items=p.custody.map(x=>`<div class="jp-row" style="cursor:pointer" onclick="_jpEditCustody('${esc(x.id)}')"><span class="jp-ric gold">${ic(_jpCustIc(x.name),18)}</span><div class="jp-rtx"><b dir="auto">${esc(x.name||L('Item','عنصر'))}</b>${x.note?`<small dir="auto" style="margin:3px 0 0">${esc(x.note)}</small>`:''}${x.date?`<small style="margin:3px 0 0">${ic('calendar',11)} ${esc(_jpDate(x.date))}</small>`:''}</div><button type="button" class="jp-rb" onclick="event.stopPropagation();_jpEditCustody('${esc(x.id)}')" aria-label="${L('Edit','تعديل')}">${ic('edit',15)}</button></div>`).join('');
   return `<section class="jp-card">
     <div class="jp-sec">${ic('package',17)}<span>${L('My custody','العهدة اللي معايا')}</span>${p.custody.length?`<em style="font-style:normal;font-size:12px;color:var(--muted);font-weight:700">${p.custody.length}</em>`:''}<span class="sp"></span><button type="button" class="jp-add" onclick="_jpEditCustody(null)">${ic('plus',14)} ${L('Add','إضافة')}</button></div>
     ${items||`<div class="jp-empty">${L('No items yet — add your laptop, charger, mouse, bag…','لسه مفيش عهدة — ضيف اللاب توب والشاحن والماوس والشنطة…')}</div>`}
   </section>`;
 }
+// ══════════════════════════════════════════════════════════════════════════
+// EMPLOYMENT & PROJECT HISTORY (My Job → Profile). Phase 1.
+// One NEW key (wdp_career_v1) — additive: no existing key is renamed, rewritten or deleted.
+// Periods are append-only records: a transition CLOSES the previous period (end date) and
+// OPENS a new one; nothing is overwritten. Company / project names are copied into each period,
+// so renaming something later never changes history. Custody is a ledger (received → returned /
+// transferred, with dates) and is never moved or closed automatically.
+// Included in the app's backup automatically (see _bkExtrasCollect). Rollback = restore the
+// backup taken at setup, or "Reset history" (removes only this key).
+// ══════════════════════════════════════════════════════════════════════════
+const _CA_KEY='wdp_career_v1';
+const _caIsD=s=>/^\d{4}-\d{2}-\d{2}$/.test(s||'')&&!isNaN(new Date(s+'T12:00:00'));
+const _caP2=n=>(n<10?'0':'')+n;
+const _caFmtD=d=>d.getFullYear()+'-'+_caP2(d.getMonth()+1)+'-'+_caP2(d.getDate());
+const _caTodayS=()=>_caFmtD(new Date());
+function _caDayBefore(s){ const d=new Date(s+'T12:00:00'); d.setDate(d.getDate()-1); return _caFmtD(d); }
+function _caId(p){ return p+Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
+const _caD=s=>_caIsD(s)?String(s):'';
+const _caT=(s,n)=>String(s==null?'':s).replace(/\s+/g,' ').trim().slice(0,n||120);
+function _caState(){
+  let raw=null; try{ raw=localStorage.getItem(_CA_KEY); }catch(e){ return 'none'; }
+  if(raw===null) return 'none';
+  try{ const o=JSON.parse(raw); return (o&&o.v===1&&Array.isArray(o.employments)&&Array.isArray(o.assignments))?'ok':'bad'; }catch(e){ return 'bad'; }
+}
+function _caLoad(){
+  let o=null; try{ o=JSON.parse(localStorage.getItem(_CA_KEY)||'null'); }catch(e){}
+  o=(o&&typeof o==='object')?o:{};
+  const arr=x=>Array.isArray(x)?x.filter(r=>r&&typeof r==='object'&&r.id):[];
+  return {v:1,
+    employments:arr(o.employments).map(e=>({id:String(e.id),company:_caT(e.company),title:_caT(e.title),code:_caT(e.code,40),email:_caT(e.email,120),medEmail:_caT(e.medEmail,120),start:_caD(e.start),end:_caD(e.end),notes:_caT(e.notes,400)})),
+    assignments:arr(o.assignments).map(a=>({id:String(a.id),empId:String(a.empId||''),projectId:String(a.projectId||''),name:_caT(a.name),location:_caT(a.location),start:_caD(a.start),end:_caD(a.end),notes:_caT(a.notes,400)})),
+    custody:arr(o.custody).map(k=>({id:String(k.id),name:_caT(k.name),note:_caT(k.note,400),empId:String(k.empId||''),asgId:String(k.asgId||''),receivedOn:_caD(k.receivedOn),condition:_caT(k.condition,20),status:(k.status==='returned'||k.status==='transferred')?k.status:'with',closedOn:_caD(k.closedOn),handoverNote:_caT(k.handoverNote,400),review:!!k.review})),
+    log:(Array.isArray(o.log)?o.log:[]).filter(x=>x&&typeof x==='object').slice(-500),
+    createdAt:+o.createdAt||Date.now(), updatedAt:+o.updatedAt||0};
+}
+function _caSave(c,entry){
+  if(entry) c.log.push(Object.assign({t:Date.now()},entry));
+  c.updatedAt=Date.now();
+  try{ const j=JSON.stringify(c); localStorage.setItem(_CA_KEY,j); return localStorage.getItem(_CA_KEY)===j; }
+  catch(e){ _logErr('_caSave',e); try{ showToast(L('⚠️ Could not save (storage full)','⚠️ تعذّر الحفظ (التخزين ممتلئ)'),'warn'); }catch(_){} return false; }
+}
+function _caCur(c){ const emp=c.employments.find(e=>!e.end)||null; const asg=c.assignments.find(a=>!a.end)||null; return {emp,asg}; }
+function _caOverlap(a,b){ return (a.end===''||b.start===''||b.start<=a.end)&&(b.end===''||a.start===''||a.start<=b.end); }
+const _caEmpName=(c,id)=>{ const e=c.employments.find(x=>x.id===id); return e?e.company:''; };
+// Integrity rules, checked before every save. Returns '' or a message.
+function _caValidateAll(c){
+  const E=c.employments, A=c.assignments;
+  for(const e of E){
+    if(!e.company) return L('Company name is required','اسم الشركة مطلوب');
+    if(e.start&&e.end&&e.end<e.start) return L('An employment end date is before its start','تاريخ نهاية التوظيف قبل بدايته');
+  }
+  if(E.filter(e=>!e.end).length>1) return L('Only one employment can be current','لا يمكن وجود أكثر من شركة حالية');
+  for(let i=0;i<E.length;i++) for(let j=i+1;j<E.length;j++) if(_caOverlap(E[i],E[j])) return L(`Employment periods overlap: ${E[i].company} / ${E[j].company}`,`فترات التوظيف متداخلة: ${E[i].company} / ${E[j].company}`);
+  for(const a of A){
+    const e=E.find(x=>x.id===a.empId);
+    if(!e) return L('A project period has no employment','فترة مشروع بدون فترة توظيف');
+    if(!a.name) return L('Project name is required','اسم المشروع مطلوب');
+    if(a.start&&a.end&&a.end<a.start) return L(`Project "${a.name}": end date is before its start`,`مشروع "${a.name}": تاريخ النهاية قبل البداية`);
+    if(!a.end&&e.end) return L(`Project "${a.name}" must end with its employment`,`مشروع "${a.name}" لازم ينتهي مع فترة التوظيف`);
+    if(e.start&&a.start&&a.start<e.start) return L(`Project "${a.name}" starts before its employment`,`مشروع "${a.name}" بيبدأ قبل فترة التوظيف`);
+    if(e.end&&a.end&&a.end>e.end) return L(`Project "${a.name}" ends after its employment`,`مشروع "${a.name}" بينتهي بعد فترة التوظيف`);
+  }
+  if(A.filter(a=>!a.end).length>1) return L('Only one project can be current','لا يمكن وجود أكثر من مشروع حالي');
+  const oa=A.find(a=>!a.end), oe=E.find(e=>!e.end);
+  if(oa&&(!oe||oa.empId!==oe.id)) return L('The current project must belong to the current company','المشروع الحالي لازم يتبع الشركة الحالية');
+  for(let i=0;i<A.length;i++) for(let j=i+1;j<A.length;j++) if(_caOverlap(A[i],A[j])) return L(`Project periods overlap: ${A[i].name} / ${A[j].name}`,`فترات المشروعات متداخلة: ${A[i].name} / ${A[j].name}`);
+  for(const k of c.custody){
+    if(!k.name) return L('Custody item name is required','اسم العنصر مطلوب');
+    if(k.status!=='with'&&!k.closedOn) return L(`"${k.name}": enter the return / transfer date`,`"${k.name}": اكتب تاريخ التسليم / النقل`);
+    if(k.receivedOn&&k.closedOn&&k.closedOn<k.receivedOn) return L(`"${k.name}": return date is before receipt`,`"${k.name}": تاريخ التسليم قبل الاستلام`);
+  }
+  return '';
+}
+// ── core operations: mutate a freshly loaded copy c, return '' or an error (caller saves only on '') ──
+function _caCustodyDecisions(c,list,d){
+  (list||[]).forEach(x=>{
+    const k=c.custody.find(z=>z.id===x.id&&z.status==='with'); if(!k) return;
+    if(x.mode==='returned'||x.mode==='transferred'){ k.status=x.mode; k.closedOn=_caD(x.date); k.handoverNote=_caT(x.note,400); k.review=false; }
+    else k.review=true; // undecided: stays with me, flagged — never auto-closed
+  });
+}
+function _caApplySetup(p){
+  const c={v:1,employments:[],assignments:[],custody:[],log:[],createdAt:Date.now(),updatedAt:0};
+  const e={id:_caId('e'),company:_caT(p.company),title:_caT(p.title),code:_caT(p.code,40),email:_caT(p.email,120),medEmail:_caT(p.medEmail,120),start:_caD(p.empStart),end:'',notes:''};
+  const a={id:_caId('a'),empId:e.id,projectId:String(p.projectId||''),name:_caT(p.projName),location:_caT(p.location),start:_caD(p.asgStart),end:'',notes:''};
+  c.employments.push(e); c.assignments.push(a);
+  (p.custody||[]).forEach(k=>{ if(k&&k.name) c.custody.push({id:_caId('k'),name:_caT(k.name),note:_caT(k.note,400),empId:e.id,asgId:a.id,receivedOn:_caD(k.date),condition:'',status:'with',closedOn:'',handoverNote:'',review:false}); });
+  c.log.push({t:Date.now(),type:'setup',detail:`${e.company} / ${a.name}`});
+  return c;
+}
+function _caApplyProjectMove(c,p){
+  const cur=_caCur(c); if(!cur.emp) return L('No current company','مفيش شركة حالية');
+  const name=_caT(p.name); if(!name) return L('Enter the project name','اكتب اسم المشروع');
+  if(!_caIsD(p.start)) return L('Enter the start date of the new project','اكتب تاريخ بداية المشروع الجديد');
+  let prevEnd='';
+  if(cur.asg){
+    prevEnd=_caIsD(p.prevEnd)?p.prevEnd:_caDayBefore(p.start);
+    if(prevEnd>=p.start) return L('The previous project must end before the new one starts','المشروع السابق لازم ينتهي قبل بداية الجديد');
+    if(cur.asg.start&&prevEnd<cur.asg.start) return L('The previous project end date is before its start','نهاية المشروع السابق قبل بدايته');
+    cur.asg.end=prevEnd;
+  }
+  c.assignments.push({id:_caId('a'),empId:cur.emp.id,projectId:String(p.projectId||''),name,location:_caT(p.location),start:p.start,end:'',notes:_caT(p.notes,400)});
+  _caCustodyDecisions(c,p.custody);
+  c.log.push({t:Date.now(),type:'project-move',detail:`${cur.asg?cur.asg.name:'—'} → ${name}`,from:cur.asg?cur.asg.id:'',date:p.start});
+  return _caValidateAll(c);
+}
+function _caApplyCompanyMove(c,p){
+  const cur=_caCur(c);
+  const company=_caT(p.company); if(!company) return L('Enter the company name','اكتب اسم الشركة');
+  const pn=_caT(p.projName); if(!pn) return L('Enter the first project at the new company','اكتب أول مشروع في الشركة الجديدة');
+  if(!_caIsD(p.start)) return L('Enter the start date at the new company','اكتب تاريخ البداية في الشركة الجديدة');
+  if(cur.emp){
+    const pe=_caIsD(p.prevEnd)?p.prevEnd:_caDayBefore(p.start);
+    if(pe>=p.start) return L('The previous employment must end before the new one starts','فترة التوظيف السابقة لازم تنتهي قبل بداية الجديدة');
+    if(cur.emp.start&&pe<cur.emp.start) return L('The previous employment end date is before its start','نهاية التوظيف السابق قبل بدايته');
+    if(cur.asg){ if(cur.asg.start&&pe<cur.asg.start) return L('The previous project end date is before its start','نهاية المشروع السابق قبل بدايته'); cur.asg.end=pe; }
+    cur.emp.end=pe;
+  }
+  const e={id:_caId('e'),company,title:_caT(p.title),code:_caT(p.code,40),email:_caT(p.email,120),medEmail:_caT(p.medEmail,120),start:p.start,end:'',notes:_caT(p.notes,400)};
+  c.employments.push(e);
+  c.assignments.push({id:_caId('a'),empId:e.id,projectId:String(p.projectId||''),name:pn,location:_caT(p.location),start:p.start,end:'',notes:''});
+  _caCustodyDecisions(c,p.custody);
+  c.log.push({t:Date.now(),type:'company-move',detail:`${cur.emp?cur.emp.company:'—'} → ${company}`,from:cur.emp?cur.emp.id:'',date:p.start});
+  return _caValidateAll(c);
+}
+function _caApplyPast(c,p){
+  if(!_caIsD(p.end)) return L('A past period needs an end date','الفترة السابقة لازم لها تاريخ نهاية');
+  if(p.kind==='emp'){
+    c.employments.push({id:_caId('e'),company:_caT(p.company),title:_caT(p.title),code:_caT(p.code,40),email:_caT(p.email,120),medEmail:_caT(p.medEmail,120),start:_caD(p.start),end:p.end,notes:_caT(p.notes,400)});
+    c.log.push({t:Date.now(),type:'past-employment',detail:_caT(p.company)});
+  }else{
+    c.assignments.push({id:_caId('a'),empId:String(p.empId||''),projectId:'',name:_caT(p.name),location:_caT(p.location),start:_caD(p.start),end:p.end,notes:_caT(p.notes,400)});
+    c.log.push({t:Date.now(),type:'past-project',detail:_caT(p.name)});
+  }
+  return _caValidateAll(c);
+}
+function _caApplyEdit(c,p){
+  const rec=(p.kind==='emp'?c.employments:c.assignments).find(x=>x.id===p.id); if(!rec) return L('Record not found','السجل مش موجود');
+  const was=!rec.end, changes=[];
+  const set=(k,v)=>{ if(rec[k]!==v){ changes.push({field:k,from:rec[k],to:v}); rec[k]=v; } };
+  if(p.kind==='emp'){ set('company',_caT(p.company)); set('title',_caT(p.title)); set('code',_caT(p.code,40)); set('email',_caT(p.email,120)); set('medEmail',_caT(p.medEmail,120)); }
+  else{ set('name',_caT(p.name)); set('location',_caT(p.location)); }
+  set('start',_caD(p.start)); set('notes',_caT(p.notes,400));
+  if(!was) set('end',_caD(p.end)); // a current period is only ever closed through a transition
+  if(!was&&!rec.end) return L('A closed period must keep its end date','الفترة المنتهية لازم يفضل ليها تاريخ نهاية');
+  if(!changes.length) return 'nochange';
+  c.log.push({t:Date.now(),type:'edit-'+p.kind,id:rec.id,changes});
+  return _caValidateAll(c);
+}
+function _caApplyCustody(c,p){
+  const name=_caT(p.name); if(!name) return L('Enter the item name','اكتب اسم العنصر');
+  const status=(p.status==='returned'||p.status==='transferred')?p.status:'with';
+  let k=p.id?c.custody.find(x=>x.id===p.id):null;
+  if(p.id&&!k) return L('Record not found','السجل مش موجود');
+  const isNew=!k;
+  if(isNew){ const cur=_caCur(c); k={id:_caId('k'),empId:cur.emp?cur.emp.id:'',asgId:cur.asg?cur.asg.id:''}; c.custody.push(k); }
+  const prev=isNew?'':k.status;
+  Object.assign(k,{name,note:_caT(p.note,400),receivedOn:_caD(p.receivedOn),condition:_caT(p.condition,20),status,closedOn:status==='with'?'':_caD(p.closedOn),handoverNote:status==='with'?'':_caT(p.handoverNote,400),review:false});
+  c.log.push({t:Date.now(),type:isNew?'custody-add':(prev!==status?'custody-'+status:'custody-edit'),detail:name,id:k.id});
+  return _caValidateAll(c);
+}
+
+// ── Employment & Project History: screens (My Job → Profile) ──
+let _caF={co:'',pj:'',em:'',mo:''}, _caShowHist=false, _caBkDone=false, _caEd=null, _caCustId=null;
+const _caAttRaw=()=>{ try{ return JSON.parse(localStorage.getItem('wdp_attendance_v1')||'null')||{}; }catch(e){ return {}; } };
+function _caRange(s,e){ return (s?_jpDate(s):L('Start not set','البداية غير محددة'))+' → '+(e?_jpDate(e):L('Present','حاليًا')); }
+function _caBadge(active){ return `<span class="ca-b ${active?'on':'done'}">${active?L('Active','نشط'):L('Completed','منتهي')}</span>`; }
+function _caSel(id,label,opts,val,extra){ return `<div class="field"><label>${label}</label><select id="${id}" ${extra||''}>${opts.map(o=>`<option value="${esc(o[0])}"${String(o[0])===String(val)?' selected':''}>${esc(o[1])}</option>`).join('')}</select></div>`; }
+function _caKV(l,v){ return `<div class="ca-kv"><small>${l}</small><b dir="auto">${v||'—'}</b></div>`; }
+function _caSheet(icon,title,sub,body,footer){
+  document.getElementById('modalContent').innerHTML=`<div class="modal-handle"></div><div class="rq-modal de-sheet prj-sheet">
+    <div class="modal-hdr"><div class="modal-hdr-icon" style="background:linear-gradient(135deg,#0f7a55,#0a5c40)">${ic(icon,22)}</div>
+      <div style="flex:1;min-width:0"><div class="modal-hdr-title">${title}</div><div class="modal-hdr-sub">${sub}</div></div>
+      <button type="button" class="sheet-close-btn sq" onclick="closeModal()" aria-label="${L('Close','إغلاق')}">${ic('close',16)}</button></div>
+    ${body}${footer||''}</div>`;
+  document.getElementById('modalOverlay').style.display='flex';
+}
+const _caFoot=(saveFn,cancelFn,saveLbl)=>`<div class="modal-btns"><button class="mbtn cancel" onclick="${cancelFn||'closeModal()'}">${L('Cancel','إلغاء')}</button><button class="mbtn save" onclick="${saveFn}">${saveLbl||L('Save','حفظ')}</button></div>`;
+const _caV=id=>(document.getElementById(id)?.value||'').trim();
+function _caWarn(m){ try{ showToast(m,'warn'); }catch(e){} }
+function _caAfter(msg){ try{ closeModal(); }catch(e){} try{ renderView(); }catch(e){ _logErr('_caAfter',e); } if(msg) showToast(msg,'success'); }
+function _caProjOpts(sel){
+  const o=[['new',L('Create a new project in the app (recommended)','إنشاء مشروع جديد في التطبيق (موصى به)')]];
+  _PRJ.list.forEach(p=>o.push([p.id,L('Link to: ','ربط بـ: ')+_prjName(p)]));
+  o.push(['none',L('No link — history only','بدون ربط — سجل تاريخي فقط')]);
+  return _caSel('caApp',L('App project (receipts & site money)','مشروع التطبيق (الاستلامات وفلوس الموقع)'),o,sel||'new');
+}
+function _caResolveApp(sel,name){
+  if(sel==='none') return {id:'',create:false};
+  if(sel==='new'){ const ex=_PRJ.list.find(x=>_prjName(x).toLowerCase()===String(name).toLowerCase()); if(ex) return {id:ex.id,create:false}; return {id:'p'+Date.now().toString(36)+Math.random().toString(36).slice(2,4),create:true,name}; }
+  return {id:sel,create:false};
+}
+function _caAppCommit(r){ if(!r.create) return true; _PRJ.list.push({id:r.id,name:r.name}); if(_prjSave()) return true; _PRJ.list.pop(); return false; }
+function _caAppRollback(r){ if(r.create){ const i=_PRJ.list.findIndex(x=>x.id===r.id); if(i>=0){ _PRJ.list.splice(i,1); _prjSave(); } } }
+function _caAppFinish(r,msg){
+  if(r.create){ try{ _cvTouch(r.id); }catch(e){} }
+  if(r.id&&r.id!==_PRJ.active){ try{ _prjSwitch(r.id,!!r.create); return; }catch(e){ _logErr('_caAppFinish',e); } }
+  _caAfter(msg);
+}
+// ── custody checklist (shown when closing a period; never auto-decided) ──
+function _caCkHTML(c){
+  const items=c.custody.filter(k=>k.status==='with'); if(!items.length) return '';
+  return `<div class="ca-ck"><div class="ca-ck-t">${ic('package',15)} ${L('Custody you still hold — decide each item','العهدة اللي لسه معاك — قرّر لكل عنصر')}</div>
+    <div class="ca-ck-h">${L('Nothing is returned or moved automatically. “Still with me” keeps it, flagged for review.','مفيش حاجة بتتسلّم أو بتتنقل لوحدها. "لسه معايا" بتفضل معاك وبتتعلّم للمراجعة.')}</div>
+    ${items.map(k=>`<div class="ca-ck-i"><b dir="auto">${esc(k.name)}</b>
+      <div class="ca-ck-r"><select id="ckm_${k.id}"><option value="keep">${L('Still with me','لسه معايا')}</option><option value="returned">${L('Returned','تم تسليمها')}</option><option value="transferred">${L('Transferred','تم نقلها')}</option></select>
+      <input type="date" id="ckd_${k.id}" dir="ltr" value="${_caTodayS()}"></div>
+      <input type="text" id="ckn_${k.id}" dir="auto" maxlength="120" placeholder="${L('Handover note (optional)','ملاحظة التسليم (اختياري)')}"></div>`).join('')}</div>`;
+}
+function _caCkCollect(c){
+  const out=[]; let err='';
+  c.custody.filter(k=>k.status==='with').forEach(k=>{
+    const mode=_caV('ckm_'+k.id)||'keep', date=_caV('ckd_'+k.id);
+    if(mode!=='keep'&&!_caIsD(date)) err=L(`Enter the date for "${k.name}"`,`اكتب التاريخ لـ "${k.name}"`);
+    out.push({id:k.id,mode,date,note:_caV('ckn_'+k.id)});
+  });
+  return {list:out,err};
+}
+// ── Setup (first time): preview → backup → confirm ──
+function _caSetupOpen(){
+  _caBkDone=false;
+  const p=_jpLoad(), a=_caAttRaw(), cp=_prjCur();
+  const nm=(cp&&String(cp.name||'').trim())||String(a.project||'');
+  const hire=String((a.leave&&a.leave.hire)||'');
+  _caSheet('briefcase',L('Start work history','بدء السجل الوظيفي'),L('Preview — nothing is saved yet','معاينة — لسه مفيش حاجة اتحفظت'),
+    `<div class="ca-note">${L('This creates ONE employment and ONE project period from what the app already holds. Your attendance, receipts, finance and other data are not touched or moved. Leave a date empty if you do not know it — nothing is invented.','هيتعمل فترة توظيف واحدة وفترة مشروع واحدة من اللي موجود في التطبيق. الحضور والاستلامات والمالية وباقي البيانات مش هتتلمس ولا هتتنقل. سيب التاريخ فاضي لو مش فاكره — مفيش حاجة بتتخترع.')}</div>`+
+    `<div class="ca-steps"><button type="button" class="ca-step" id="caBkBtn" onclick="_caBackupNow()">${ic('save',16)} ${L('1) Download a full backup first','١) نزّل نسخة احتياطية كاملة الأول')}</button></div>`+
+    _cvField('caCo',L('Company *','الشركة *'),p.company||a.company||'')+
+    _cvField('caTt',L('Job title','المسمى الوظيفي'),p.title)+
+    `<div class="cv-2col">${_cvField('caCd',L('Employee code','كود التوظيف'),p.code,{dir:'ltr'})}${_cvField('caEs',L('Joined company','تاريخ الالتحاق'),p.start||hire,{type:'date',dir:'ltr'})}</div>`+
+    _cvField('caEm',L('Company e-mail','إيميل الشركة'),p.email,{type:'email',dir:'ltr'})+
+    _cvField('caMd',L('Medical insurance e-mail','إيميل التأمين الطبي'),p.medEmail,{type:'email',dir:'ltr'})+
+    _cvField('caPn',L('Current project *','المشروع الحالي *'),nm)+
+    `<div class="cv-2col">${_cvField('caLc',L('Location','الموقع'),String(a.location||''))}${_cvField('caPs',L('Project start','بداية المشروع'),'',{type:'date',dir:'ltr'})}</div>`+
+    (p.custody.length?`<div class="ca-note small">${ic('package',14)} ${L(`${p.custody.length} custody item(s) will be copied as “with me”. The original list stays untouched.`,`${p.custody.length} عنصر عهدة هيتنسخوا بحالة "معايا". القايمة الأصلية بتفضل زي ما هي.`)}</div>`:''),
+    `<div class="modal-btns"><button class="mbtn cancel" onclick="closeModal()">${L('Cancel','إلغاء')}</button><button class="mbtn save" id="caGoBtn" disabled style="opacity:.45" onclick="_caSetupGo()">${L('2) Confirm & create','٢) تأكيد وإنشاء')}</button></div>`);
+}
+function _caBackupNow(){
+  try{ exportBackup(); }catch(e){ _logErr('_caBackupNow',e); _caWarn(L('Backup failed — try again','النسخة الاحتياطية فشلت — جرّب تاني')); return; }
+  _caBkDone=true;
+  const g=document.getElementById('caGoBtn'); if(g){ g.disabled=false; g.style.opacity='1'; }
+  const b=document.getElementById('caBkBtn'); if(b){ b.classList.add('done'); b.innerHTML=ic('check',16)+' '+L('Backup downloaded','تم تنزيل النسخة'); }
+}
+function _caSetupGo(){
+  if(!_caBkDone){ _caWarn(L('Download the backup first','نزّل النسخة الاحتياطية الأول')); return; }
+  if(_caState()!=='none'){ _caWarn(L('History already exists','السجل موجود بالفعل')); return; }
+  const co=_caV('caCo'), pn=_caV('caPn');
+  if(!co){ _caWarn(L('Enter the company name','اكتب اسم الشركة')); return; }
+  if(!pn){ _caWarn(L('Enter the current project','اكتب المشروع الحالي')); return; }
+  const jp=_jpLoad();
+  const c=_caApplySetup({company:co,title:_caV('caTt'),code:_caV('caCd'),email:_caV('caEm'),medEmail:_caV('caMd'),empStart:_caV('caEs'),projName:pn,projectId:_PRJ.active,location:_caV('caLc'),asgStart:_caV('caPs'),custody:jp.custody.map(k=>({name:k.name,note:k.note,date:k.date}))});
+  const err=_caValidateAll(c); if(err){ _caWarn(err); return; }
+  if(!_caSave(c)) return;
+  _caAfter(L('Work history started','تم بدء السجل الوظيفي'));
+}
+function _caBadOpen(){
+  _caSheet('shield',L('History data needs attention','بيانات السجل محتاجة مراجعة'),'',
+    `<div class="ca-note">${L('The stored work-history record could not be read, so nothing was changed and setup is blocked to avoid overwriting it. Restore your latest backup, or contact the developer. Your attendance, receipts and finance data are unaffected.','سجل العمل المخزّن مش قابل للقراءة، فمفيش حاجة اتغيّرت وتم إيقاف البدء من جديد عشان ما نكتبش فوقه. استرجع آخر نسخة احتياطية. بيانات الحضور والاستلامات والمالية مش متأثرة.')}</div>`,
+    `<div class="modal-btns"><button class="mbtn cancel" onclick="closeModal()">${L('Close','إغلاق')}</button></div>`);
+}
+// ── Manage Employment & Projects ──
+function _caManageOpen(){
+  const st=_caState(); if(st==='none'){ _caSetupOpen(); return; } if(st==='bad'){ _caBadOpen(); return; }
+  const c=_caLoad(), cur=_caCur(c), E=cur.emp, A=cur.asg, ten=E?_jpTenure(E.start):null;
+  const prevE=c.employments.filter(e=>e.end).sort((a,b)=>(b.end||'').localeCompare(a.end||''));
+  const prevA=c.assignments.filter(a=>a.end).sort((a,b)=>(b.end||'').localeCompare(a.end||''));
+  const row=(kind,id,t,s,d)=>`<div class="ca-lr" onclick="_caDetail('${kind}','${id}')"><div class="ca-lr-b"><b dir="auto">${esc(t)}</b><small dir="auto">${esc(s)}</small><small>${esc(d)}</small></div>${ic('chevron',16)}</div>`;
+  _caSheet('briefcase',L('Manage Employment & Projects','إدارة العمل والمشروعات'),L('Every period is kept — nothing is deleted','كل الفترات محفوظة — مفيش حاجة بتتحذف'),
+    `<div class="ca-sec">${L('CURRENT COMPANY','الشركة الحالية')}</div>
+     ${E?`<div class="ca-cur" onclick="_caDetail('e','${E.id}')"><b dir="auto">${esc(E.company)}</b><small dir="auto">${esc(E.title||'')}</small><small>${esc(_caRange(E.start,''))}${ten?' · '+esc(ten.short):''}</small></div>`:`<div class="ca-empty">${L('No current company','مفيش شركة حالية')}</div>`}
+     <div class="ca-sec">${L('CURRENT PROJECT','المشروع الحالي')}</div>
+     ${A?`<div class="ca-cur" onclick="_caDetail('a','${A.id}')"><b dir="auto">${esc(A.name)}</b><small dir="auto">${esc(A.location||'')}</small><small>${esc(_caRange(A.start,''))}</small></div>`:`<div class="ca-empty">${L('No current project','مفيش مشروع حالي')}</div>`}
+     <div class="ca-acts"><button type="button" onclick="_caProjMoveOpen()">${ic('building2',16)}<span>${L('Move to a new project','انتقال لمشروع جديد')}</span></button>
+       <button type="button" onclick="_caCoMoveOpen()">${ic('building',16)}<span>${L('Move to a new company','انتقال لشركة جديدة')}</span></button>
+       <button type="button" class="alt" onclick="_caPastOpen('emp')">${ic('plus',16)}<span>${L('Add a past company','إضافة شركة سابقة')}</span></button>
+       <button type="button" class="alt" onclick="_caPastOpen('asg')">${ic('plus',16)}<span>${L('Add a past project','إضافة مشروع سابق')}</span></button></div>
+     <div class="ca-sec">${L('PREVIOUS COMPANIES','الشركات السابقة')} · ${prevE.length}</div>
+     ${prevE.map(e=>row('e',e.id,e.company,e.title||'',_caRange(e.start,e.end))).join('')||`<div class="ca-empty">${L('None yet','لا يوجد')}</div>`}
+     <div class="ca-sec">${L('PREVIOUS PROJECTS','المشروعات السابقة')} · ${prevA.length}</div>
+     ${prevA.map(a=>row('a',a.id,a.name,_caEmpName(c,a.empId),_caRange(a.start,a.end))).join('')||`<div class="ca-empty">${L('None yet','لا يوجد')}</div>`}
+     <button type="button" class="ca-reset" onclick="_caResetAsk()">${L('Reset work history (rollback)','مسح السجل الوظيفي (رجوع للوضع السابق)')}</button>`,
+    `<div class="modal-btns"><button class="mbtn cancel" onclick="closeModal()" style="flex:1">${L('Close','إغلاق')}</button></div>`);
+}
+function _caResetAsk(){
+  showConfirm(L('Remove the whole work-history record? Only this record is removed — attendance, receipts, finance and custody money are untouched. This cannot be undone (restore a backup to get it back).','مسح السجل الوظيفي بالكامل؟ بيتمسح السجل ده بس — الحضور والاستلامات والمالية وفلوس العهدة مش هتتلمس. ماينفعش التراجع (استرجع نسخة احتياطية لو عايزه).'),()=>{
+    try{ localStorage.removeItem(_CA_KEY); }catch(e){ _logErr('_caReset',e); }
+    _caF={co:'',pj:'',em:'',mo:''}; _caAfter(L('Work history removed','تم مسح السجل الوظيفي'));
+  });
+}
+// ── transitions ──
+function _caProjMoveOpen(){
+  const c=_caLoad(), cur=_caCur(c); if(!cur.emp){ _caWarn(L('No current company','مفيش شركة حالية')); return; }
+  _caSheet('building2',L('Move to a new project','انتقال لمشروع جديد'),esc(cur.emp.company),
+    `<div class="ca-note small">${L('The previous project is kept as it is and gets an end date. Attendance, custody and reports are not copied to the new project.','المشروع السابق بيفضل زي ما هو وبياخد تاريخ نهاية. الحضور والعهدة والتقارير مش بتتنقل للمشروع الجديد.')}</div>`+
+    _cvField('pmName',L('New project name *','اسم المشروع الجديد *'),'')+
+    _cvField('pmLoc',L('Project location','موقع المشروع'),'')+
+    `<div class="cv-2col">${_cvField('pmStart',L('Start date *','تاريخ البداية *'),_caTodayS(),{type:'date',dir:'ltr'})}${cur.asg?_cvField('pmPrev',L('Previous project ended','نهاية المشروع السابق'),'',{type:'date',dir:'ltr'}):''}</div>`+
+    (cur.asg?`<div class="ca-note small">${L('Leave “ended” empty to use the day before the start date.','سيب "نهاية المشروع السابق" فاضي ليتحسب اليوم اللي قبل البداية.')}</div>`:'')+
+    _cvField('pmNote',L('Notes (optional)','ملاحظات (اختياري)'),'',{ta:1,rows:2})+
+    _caProjOpts('new')+_caCkHTML(c),
+    _caFoot('_caProjMoveSave()','_caManageOpen()',L('Confirm move','تأكيد الانتقال')));
+}
+function _caProjMoveSave(){
+  const c=_caLoad(), name=_caV('pmName'); if(!name){ _caWarn(L('Enter the project name','اكتب اسم المشروع')); return; }
+  const ck=_caCkCollect(c); if(ck.err){ _caWarn(ck.err); return; }
+  const r=_caResolveApp(_caV('caApp')||'new',name);
+  const err=_caApplyProjectMove(c,{name,location:_caV('pmLoc'),start:_caV('pmStart'),prevEnd:_caV('pmPrev'),notes:_caV('pmNote'),projectId:r.id,custody:ck.list});
+  if(err){ _caWarn(err); return; }
+  if(!_caAppCommit(r)) return;
+  if(!_caSave(c)){ _caAppRollback(r); return; }
+  _caAppFinish(r,L('Moved to the new project','تم الانتقال للمشروع الجديد'));
+}
+function _caCoMoveOpen(){
+  const c=_caLoad(), cur=_caCur(c);
+  _caSheet('building',L('Move to a new company','انتقال لشركة جديدة'),cur.emp?esc(cur.emp.company):'',
+    `<div class="ca-note small">${L('This starts a NEW employment period. The old company, its projects, code, e-mails and custody stay as they are — nothing is carried over to the new company.','ده بيبدأ فترة توظيف جديدة. الشركة القديمة ومشروعاتها وكودها وإيميلاتها وعهدتها بتفضل زي ما هي — ومفيش حاجة بتتنقل للشركة الجديدة.')}</div>`+
+    _cvField('cmCo',L('New company *','الشركة الجديدة *'),'')+
+    _cvField('cmTt',L('Job title','المسمى الوظيفي'),'')+
+    `<div class="cv-2col">${_cvField('cmCd',L('Employee code','كود التوظيف'),'',{dir:'ltr'})}${_cvField('cmStart',L('Start date *','تاريخ البداية *'),_caTodayS(),{type:'date',dir:'ltr'})}</div>`+
+    _cvField('cmEm',L('Company e-mail','إيميل الشركة'),'',{type:'email',dir:'ltr'})+
+    _cvField('cmMd',L('Medical insurance e-mail','إيميل التأمين الطبي'),'',{type:'email',dir:'ltr'})+
+    _cvField('cmPn',L('First project *','أول مشروع *'),'')+_cvField('cmLoc',L('Project location','موقع المشروع'),'')+
+    (cur.emp?`<div class="field"><label>${L('Previous employment ended','نهاية التوظيف السابق')}</label><input type="date" id="cmPrev" dir="ltr"></div><div class="ca-note small">${L('Leave empty to use the day before the start date.','سيبه فاضي ليتحسب اليوم اللي قبل البداية.')}</div>`:'')+
+    _cvField('cmNote',L('Notes (optional)','ملاحظات (اختياري)'),'',{ta:1,rows:2})+
+    _caProjOpts('new')+_caCkHTML(c),
+    _caFoot('_caCoMoveSave()','_caManageOpen()',L('Confirm move','تأكيد الانتقال')));
+}
+function _caCoMoveSave(){
+  const c=_caLoad(), pn=_caV('cmPn'); if(!_caV('cmCo')){ _caWarn(L('Enter the company name','اكتب اسم الشركة')); return; } if(!pn){ _caWarn(L('Enter the first project','اكتب أول مشروع')); return; }
+  const ck=_caCkCollect(c); if(ck.err){ _caWarn(ck.err); return; }
+  const r=_caResolveApp(_caV('caApp')||'new',pn);
+  const err=_caApplyCompanyMove(c,{company:_caV('cmCo'),title:_caV('cmTt'),code:_caV('cmCd'),email:_caV('cmEm'),medEmail:_caV('cmMd'),start:_caV('cmStart'),prevEnd:_caV('cmPrev'),notes:_caV('cmNote'),projName:pn,location:_caV('cmLoc'),projectId:r.id,custody:ck.list});
+  if(err){ _caWarn(err); return; }
+  if(!_caAppCommit(r)) return;
+  if(!_caSave(c)){ _caAppRollback(r); return; }
+  _caAppFinish(r,L('Moved to the new company','تم الانتقال للشركة الجديدة'));
+}
+function _caPastOpen(kind){
+  const c=_caLoad();
+  const body=kind==='emp'
+    ?_cvField('paCo',L('Company *','الشركة *'),'')+_cvField('paTt',L('Job title','المسمى الوظيفي'),'')+_cvField('paCd',L('Employee code','كود التوظيف'),'',{dir:'ltr'})+
+      _cvField('paEm',L('Work e-mail','إيميل الشركة'),'',{type:'email',dir:'ltr'})+
+      `<div class="cv-2col">${_cvField('paS',L('Start date','تاريخ البداية'),'',{type:'date',dir:'ltr'})}${_cvField('paE',L('End date *','تاريخ النهاية *'),'',{type:'date',dir:'ltr'})}</div>`
+    :_caSel('paEmp',L('Company *','الشركة *'),c.employments.map(e=>[e.id,e.company+' · '+_caRange(e.start,e.end)]),'')+_cvField('paNm',L('Project name *','اسم المشروع *'),'')+_cvField('paLc',L('Location','الموقع'),'')+
+      `<div class="cv-2col">${_cvField('paS',L('Start date','تاريخ البداية'),'',{type:'date',dir:'ltr'})}${_cvField('paE',L('End date *','تاريخ النهاية *'),'',{type:'date',dir:'ltr'})}</div>`;
+  _caSheet('briefcase',kind==='emp'?L('Add a past company','إضافة شركة سابقة'):L('Add a past project','إضافة مشروع سابق'),L('Only real history — an end date is required','تاريخ حقيقي فقط — تاريخ النهاية مطلوب'),
+    body+`<div class="ca-note small">${L('Periods cannot overlap other periods. No attendance or salary data is created for it.','الفترات ما ينفعش تتداخل مع فترات تانية. ومفيش بيانات حضور أو مرتب بتتعمل ليها.')}</div>`,
+    _caFoot(`_caPastSave('${kind}')`,'_caManageOpen()'));
+}
+function _caPastSave(kind){
+  const c=_caLoad();
+  const err=kind==='emp'
+    ?_caApplyPast(c,{kind:'emp',company:_caV('paCo'),title:_caV('paTt'),code:_caV('paCd'),email:_caV('paEm'),start:_caV('paS'),end:_caV('paE')})
+    :_caApplyPast(c,{kind:'asg',empId:_caV('paEmp'),name:_caV('paNm'),location:_caV('paLc'),start:_caV('paS'),end:_caV('paE')});
+  if(err){ _caWarn(err); return; }
+  if(!_caSave(c)) return;
+  _caManageOpen(); showToast(L('Saved','تم الحفظ'),'success');
+}
+// ── period detail (read-only) + explicit unlock to edit ──
+function _caAttRange(s,e){
+  const d=_jpAtt().days, n={present:0,late:0,absent:0,leave:0,total:0};
+  Object.keys(d).forEach(k=>{ if((s&&k<s)||(e&&k>e)) return; const st=(d[k]||{}).s;
+    if(st==='present')n.present++; else if(st==='late')n.late++; else if(st==='absent')n.absent++; else if(st==='sick'||st==='leave')n.leave++; else return; n.total++; });
+  return n;
+}
+function _caDetail(kind,id){
+  const c=_caLoad(), rec=(kind==='e'?c.employments:c.assignments).find(x=>x.id===id); if(!rec){ _caManageOpen(); return; }
+  const active=!rec.end, e=kind==='e'?rec:c.employments.find(x=>x.id===rec.empId);
+  const n=_caAttRange(rec.start,rec.end||_caTodayS());
+  const cust=c.custody.filter(k=>kind==='e'?k.empId===rec.id:k.asgId===rec.id);
+  let rc=''; if(kind==='a'&&rec.projectId){ try{ const rs=_cvRq(rec.projectId).filter(r=>(!rec.start||String(r.date||'')>=rec.start)&&(!rec.end||String(r.date||'')<=rec.end)); rc=_caKV(L('Receipts logged','استلامات مسجلة'),String(rs.length)); }catch(x){} }
+  const projs=kind==='e'?c.assignments.filter(a=>a.empId===rec.id).sort((a,b)=>(b.start||'').localeCompare(a.start||'')):[];
+  const body=(kind==='e'
+    ?_caKV(L('Company','الشركة'),esc(rec.company))+_caKV(L('Job title','المسمى'),esc(rec.title))+_caKV(L('Employee code','كود التوظيف'),rec.code?`<bdi dir="ltr">${esc(rec.code)}</bdi>`:'')+_caKV(L('Work e-mail','إيميل الشركة'),rec.email?`<bdi dir="ltr">${esc(rec.email)}</bdi>`:'')+_caKV(L('Medical insurance e-mail','إيميل التأمين الطبي'),rec.medEmail?`<bdi dir="ltr">${esc(rec.medEmail)}</bdi>`:'')
+    :_caKV(L('Project','المشروع'),esc(rec.name))+_caKV(L('Company','الشركة'),esc(e?e.company:''))+_caKV(L('Location','الموقع'),esc(rec.location)))
+    +_caKV(L('Period','الفترة'),esc(_caRange(rec.start,rec.end)))+_caKV(L('Status','الحالة'),_caBadge(active))+(rec.notes?_caKV(L('Notes','ملاحظات'),esc(rec.notes)):'')+rc+
+    `<div class="ca-sec">${L('RECORDS IN THIS PERIOD (REAL DATA ONLY)','سجلات الفترة دي (بيانات فعلية فقط)')}</div>`+
+    (n.total?`<div class="jp-stats" style="margin-bottom:8px"><div class="jp-st" style="--st-c:var(--green);--st-t:var(--green-tint)"><b>${n.present}</b><small>${L('Present','حضور')}</small></div><div class="jp-st" style="--st-c:var(--orange);--st-t:var(--orange-tint)"><b>${n.late}</b><small>${L('Late','تأخير')}</small></div><div class="jp-st" style="--st-c:var(--red);--st-t:var(--red-tint)"><b>${n.absent}</b><small>${L('Absent','غياب')}</small></div><div class="jp-st" style="--st-c:var(--blue);--st-t:var(--blue-tint)"><b>${n.leave}</b><small>${L('Leaves','إجازات')}</small></div></div>`:`<div class="ca-empty">${L('No attendance recorded in this period','لا توجد سجلات حضور في هذه الفترة')}</div>`)+
+    (projs.length?`<div class="ca-sec">${L('PROJECTS','المشروعات')}</div>`+projs.map(a=>`<div class="ca-lr" onclick="_caDetail('a','${a.id}')"><div class="ca-lr-b"><b dir="auto">${esc(a.name)}</b><small>${esc(_caRange(a.start,a.end))}</small></div>${ic('chevron',16)}</div>`).join(''):'')+
+    (cust.length?`<div class="ca-sec">${L('CUSTODY','العهدة')}</div>`+cust.map(k=>`<div class="ca-lr"><div class="ca-lr-b"><b dir="auto">${esc(k.name)}</b><small>${esc(_caCustLine(k))}</small></div></div>`).join(''):'');
+  _caSheet(kind==='e'?'building':'building2',kind==='e'?L('Employment period','فترة توظيف'):L('Project period','فترة مشروع'),active?L('Current','حالية'):L('Read-only history','سجل للعرض فقط'),body,
+    `<div class="modal-btns"><button class="mbtn cancel" onclick="_caManageOpen()">${L('Back','رجوع')}</button><button class="mbtn save" style="background:var(--surface2);color:var(--text);box-shadow:none;border:1px solid var(--border)" onclick="_caEditOpen('${kind}','${id}')">${ic('edit',14)} ${L('Unlock to edit','فتح للتعديل')}</button></div>`);
+}
+function _caEditOpen(kind,id){
+  const c=_caLoad(), r=(kind==='e'?c.employments:c.assignments).find(x=>x.id===id); if(!r) return;
+  _caEd={kind,id};
+  const body=(kind==='e'
+    ?_cvField('edCo',L('Company *','الشركة *'),r.company)+_cvField('edTt',L('Job title','المسمى'),r.title)+_cvField('edCd',L('Employee code','كود التوظيف'),r.code,{dir:'ltr'})+_cvField('edEm',L('Work e-mail','إيميل الشركة'),r.email,{type:'email',dir:'ltr'})+_cvField('edMd',L('Medical insurance e-mail','إيميل التأمين الطبي'),r.medEmail,{type:'email',dir:'ltr'})
+    :_cvField('edNm',L('Project name *','اسم المشروع *'),r.name)+_cvField('edLc',L('Location','الموقع'),r.location))+
+    `<div class="cv-2col">${_cvField('edS',L('Start date','تاريخ البداية'),r.start,{type:'date',dir:'ltr'})}${r.end?_cvField('edE',L('End date','تاريخ النهاية'),r.end,{type:'date',dir:'ltr'}):`<div class="field"><label>${L('End date','تاريخ النهاية')}</label><input type="text" disabled value="${L('Current — set by a move','حالية — بتتحدد بالانتقال')}"></div>`}</div>`+
+    _cvField('edNote',L('Notes','ملاحظات'),r.notes,{ta:1,rows:2})+`<div class="ca-note small">${L('Every change is written to the history log.','كل تعديل بيتسجل في سجل التغييرات.')}</div>`;
+  _caSheet('edit',L('Edit period','تعديل الفترة'),L('You unlocked this record','فتحت السجل ده للتعديل'),body,_caFoot('_caEditSave()',`_caDetail('${kind}','${id}')`));
+}
+function _caEditSave(){
+  if(!_caEd) return; const c=_caLoad(), k=_caEd.kind;
+  const err=_caApplyEdit(c,k==='e'
+    ?{kind:'emp',id:_caEd.id,company:_caV('edCo'),title:_caV('edTt'),code:_caV('edCd'),email:_caV('edEm'),medEmail:_caV('edMd'),start:_caV('edS'),end:_caV('edE'),notes:_caV('edNote')}
+    :{kind:'asg',id:_caEd.id,name:_caV('edNm'),location:_caV('edLc'),start:_caV('edS'),end:_caV('edE'),notes:_caV('edNote')});
+  if(err==='nochange'){ _caDetail(k,_caEd.id); return; }
+  if(err){ _caWarn(err); return; }
+  if(!_caSave(c)) return;
+  const id=_caEd.id; _caEd=null; try{ renderView(); }catch(e){} _caDetail(k,id); showToast(L('Saved','تم الحفظ'),'success');
+}
+// ── timeline (profile tab) ──
+function _caTlRows(c){
+  const f=_caF, byE=id=>c.employments.find(e=>e.id===id)||{company:''};
+  let rows=c.assignments.map(a=>({k:'a',r:a,e:byE(a.empId)}));
+  c.employments.forEach(e=>{ if(!c.assignments.some(a=>a.empId===e.id)) rows.push({k:'e',r:e,e}); });
+  rows=rows.filter(x=>(!f.co||x.e.company===f.co)&&(!f.pj||(x.k==='a'&&x.r.name===f.pj))&&(!f.em||x.e.id===f.em)&&(!f.mo||_caOverlap({start:x.r.start,end:x.r.end},{start:f.mo+'-01',end:f.mo+'-31'})));
+  rows.sort((a,b)=>((b.r.start||'0000')).localeCompare(a.r.start||'0000')||(a.r.end?1:0)-(b.r.end?1:0));
+  if(!rows.length) return `<div class="ca-empty">${L('No periods match these filters','لا توجد فترات مطابقة للفلاتر')}</div>`;
+  return rows.map(x=>{ const act=!x.r.end;
+    return `<div class="ca-tl" onclick="_caDetail('${x.k}','${x.r.id}')"><i class="ca-dot${act?' on':''}"></i><div class="ca-tl-b"><div class="ca-tl-t"><b dir="auto">${esc(x.k==='a'?x.r.name:x.e.company)}</b>${_caBadge(act)}</div><small dir="auto">${esc(x.k==='a'?x.e.company:L('Employment','فترة توظيف'))}${x.e.title?' · '+esc(x.e.title):''}</small><small>${esc(_caRange(x.r.start,x.r.end))}</small></div></div>`; }).join('');
+}
+function _caSetF(k,v){ _caF[k]=v; const el=document.getElementById('caTl'); if(el) el.innerHTML=_caTlRows(_caLoad()); }
+function _caTimelineHTML(c){
+  const uniq=a=>Array.from(new Set(a.filter(Boolean)));
+  const opt=(arr,val,all)=>`<option value="">${all}</option>`+arr.map(o=>`<option value="${esc(o[0])}"${o[0]===val?' selected':''}>${esc(o[1])}</option>`).join('');
+  const emps=c.employments.slice().sort((a,b)=>(b.start||'').localeCompare(a.start||'')).map(e=>[e.id,e.company+' ('+(e.start?e.start.slice(0,4):'?')+'–'+(e.end?e.end.slice(0,4):L('now','الآن'))+')']);
+  return `<section class="jp-card">
+    <div class="jp-sec">${ic('calendar',17)}<span>${L('Employment Timeline','السجل الوظيفي')}</span></div>
+    <div class="ca-filters">
+      <select aria-label="${L('Company','الشركة')}" onchange="_caSetF('co',this.value)">${opt(uniq(c.employments.map(e=>e.company)).map(x=>[x,x]),_caF.co,L('All companies','كل الشركات'))}</select>
+      <select aria-label="${L('Project','المشروع')}" onchange="_caSetF('pj',this.value)">${opt(uniq(c.assignments.map(a=>a.name)).map(x=>[x,x]),_caF.pj,L('All projects','كل المشروعات'))}</select>
+      <select aria-label="${L('Employment','فترة التوظيف')}" onchange="_caSetF('em',this.value)">${opt(emps,_caF.em,L('All employment periods','كل فترات التوظيف'))}</select>
+      <input type="month" dir="ltr" value="${esc(_caF.mo)}" aria-label="${L('Month','الشهر')}" onchange="_caSetF('mo',this.value)">
+    </div>
+    <div id="caTl" class="ca-tl-wrap">${_caTlRows(c)}</div></section>`;
+}
+// ── custody ledger ──
+function _caCustLine(k){
+  const c=_caLoad(), co=_caEmpName(c,k.empId);
+  const st=k.status==='with'?L('With me','معايا'):(k.status==='returned'?L('Returned','تم تسليمها'):L('Transferred','تم نقلها'));
+  return [co,k.receivedOn?L('Received ','استلام ')+_jpDate(k.receivedOn):'',st+(k.closedOn?' '+_jpDate(k.closedOn):'')].filter(Boolean).join(' · ');
+}
+function _caCustRow(k,c){
+  const gone=k.status!=='with';
+  return `<div class="jp-row" style="cursor:pointer" onclick="_caCustSheet('${k.id}')"><span class="jp-ric gold">${ic(_jpCustIc(k.name),18)}</span><div class="jp-rtx"><b dir="auto">${esc(k.name)}${k.review?` <span class="ca-b rev">${L('Needs review','يحتاج مراجعة')}</span>`:''}</b>${k.note?`<small dir="auto" style="margin:3px 0 0">${esc(k.note)}</small>`:''}<small style="margin:3px 0 0">${esc(_caCustLine(k))}</small>${gone&&k.handoverNote?`<small dir="auto" style="margin:3px 0 0">${esc(k.handoverNote)}</small>`:''}</div><button type="button" class="jp-rb" onclick="event.stopPropagation();_caCustSheet('${k.id}')" aria-label="${L('Edit','تعديل')}">${ic('edit',15)}</button></div>`;
+}
+function _caCustHTML(){
+  const c=_caLoad(), w=c.custody.filter(k=>k.status==='with').sort((a,b)=>(b.receivedOn||'').localeCompare(a.receivedOn||'')), h=c.custody.filter(k=>k.status!=='with').sort((a,b)=>(b.closedOn||'').localeCompare(a.closedOn||''));
+  return `<section class="jp-card">
+    <div class="jp-sec">${ic('package',17)}<span>${L('My custody','العهدة اللي معايا')}</span>${w.length?`<em style="font-style:normal;font-size:12px;color:var(--muted);font-weight:700">${w.length}</em>`:''}<span class="sp"></span><button type="button" class="jp-add" onclick="_caCustSheet(null)">${ic('plus',14)} ${L('Add','إضافة')}</button></div>
+    ${w.map(k=>_caCustRow(k,c)).join('')||`<div class="jp-empty">${L('Nothing with you right now','مفيش عهدة معاك دلوقتي')}</div>`}
+    ${h.length?`<button type="button" class="jp-link" style="margin:6px 0 10px" onclick="_caShowHist=!_caShowHist;renderView()">${ic('clock',15)} ${L('Handover history','سجل التسليم')} (${h.length}) ${_caShowHist?'▲':'▼'}</button>${_caShowHist?h.map(k=>_caCustRow(k,c)).join(''):''}`:''}
+  </section>`;
+}
+function _caCustSheet(id){
+  const c=_caLoad(), k=id?c.custody.find(x=>x.id===id):null; if(id&&!k) return;
+  _caCustId=k?k.id:null; const cur=_caCur(c);
+  const ctx=k?_caCustLine(k):(cur.emp?cur.emp.company+(cur.asg?' · '+cur.asg.name:''):'');
+  const sug=[['Laptop','لاب توب'],['Charger','شاحن'],['Mouse','ماوس'],['Laptop bag','شنطة لاب'],['Phone','موبايل'],['Safety helmet','خوذة']];
+  const cond=[['',L('— not set —','— غير محدد —')],['new',L('New','جديد')],['good',L('Good','جيد')],['fair',L('Fair','مقبول')],['repair',L('Needs repair','يحتاج صيانة')]];
+  const st=k?k.status:'with';
+  _caSheet(k?_jpCustIc(k.name):'package',k?L('Custody record','سجل عهدة'):L('Add custody item','إضافة عهدة'),esc(ctx),
+    (k?'':`<div class="jp-chips">${sug.map(s=>`<button type="button" onclick="document.getElementById('kName').value='${L(s[0],s[1])}'">${L(s[0],s[1])}</button>`).join('')}</div>`)+
+    _cvField('kName',L('Item','العنصر'),k?k.name:'',{ph:L('e.g. Dell Latitude laptop','مثال: لاب توب Dell Latitude')})+
+    _cvField('kNote',L('Details (serial no., accessories…)','تفاصيل (سيريال، المشتملات…)'),k?k.note:'',{ta:1,rows:2})+
+    `<div class="cv-2col">${_cvField('kRec',L('Received on','تاريخ الاستلام'),k?k.receivedOn:'',{type:'date',dir:'ltr'})}${_caSel('kCond',L('Condition','الحالة'),cond,k?k.condition:'')}</div>`+
+    _caSel('kSt',L('Status','الوضع'),[['with',L('With me','معايا')],['returned',L('Returned','تم تسليمها')],['transferred',L('Transferred','تم نقلها')]],st,`onchange="document.getElementById('kClose').style.display=this.value==='with'?'none':'block'"`)+
+    `<div id="kClose" style="display:${st==='with'?'none':'block'}">${_cvField('kCls',L('Return / transfer date *','تاريخ التسليم / النقل *'),k?k.closedOn:'',{type:'date',dir:'ltr'})}${_cvField('kHo',L('Handover note','ملاحظة التسليم'),k?k.handoverNote:'')}</div>`+
+    (k&&k.review?`<div class="ca-note small">${L('Saving clears the “needs review” flag.','الحفظ بيشيل علامة "يحتاج مراجعة".')}</div>`:'')+
+    `<div class="ca-note small">${L('Records are never deleted — change the status to log a return or transfer.','السجلات مبتتحذفش — غيّر الوضع لتسجيل تسليم أو نقل.')}</div>`,
+    _caFoot('_caCustSave()'));
+}
+function _caCustSave(){
+  const c=_caLoad();
+  const err=_caApplyCustody(c,{id:_caCustId||'',name:_caV('kName'),note:_caV('kNote'),receivedOn:_caV('kRec'),condition:_caV('kCond'),status:_caV('kSt'),closedOn:_caV('kCls'),handoverNote:_caV('kHo')});
+  if(err){ _caWarn(err); return; }
+  if(!_caSave(c)) return;
+  _caAfter(L('Saved','تم الحفظ'));
+}
+// A project that is part of the work history must never be deleted from the project list.
+function _caProjectLocked(id){ try{ return _caState()==='ok'&&_caLoad().assignments.some(a=>a.projectId===id); }catch(e){ return false; } }
+
 function renderJobProfile(){
-  const p=_jpLoad(), att=_jpAtt();
-  const company=p.company||att.company, start=p.start||att.hire, ten=_jpTenure(start);
-  let prj=''; try{ prj=_prjName(_prjCur()); }catch(e){}
+  const p=_jpLoad(), att=_jpAtt(), cs=_caState();
+  let c=null, E=null, A=null;
+  if(cs==='ok'){ c=_caLoad(); const cu=_caCur(c); E=cu.emp; A=cu.asg; }
+  const hist=!!E;
+  const company=hist?E.company:(p.company||att.company), title=hist?E.title:p.title, code=hist?E.code:p.code;
+  const email=hist?E.email:p.email, medEmail=hist?E.medEmail:p.medEmail, start=hist?E.start:(p.start||att.hire), ten=_jpTenure(start);
+  let prj=''; if(hist){ prj=A?A.name:''; } else { try{ prj=_prjName(_prjCur()); }catch(e){} }
   const ini=(p.name||'').trim().charAt(0).toUpperCase();
   const nidShown=p.nid?(_jpShowId?p.nid:_jpMask(p.nid)):'';
   const nidRow=_jpRow('id',L('National ID','الرقم القومي'),p.nid?`<b><bdi dir="ltr" id="jpNid">${esc(nidShown)}</bdi></b>`:_jpVal(''),
     p.nid?`<button type="button" class="jp-rb" id="jpNidEye" onclick="_jpToggleId()" aria-label="${L('Show / hide','إظهار / إخفاء')}">${ic(_jpShowId?'eyeoff':'eye',15)}</button>${_jpCopyBtn(p.nid)}`:'');
+  const prjVal=hist&&A?`<b dir="auto">${esc(A.name)}</b>${(A.location||A.start)?`<small style="margin:3px 0 0" dir="auto">${esc([A.location,A.start?L('since ','من ')+_jpDate(A.start):''].filter(Boolean).join(' · '))}</small>`:''}`:_jpVal(prj);
+  const manageSub=cs==='ok'?L('Move between projects & companies — history is kept','انتقال بين المشروعات والشركات — والتاريخ محفوظ'):(cs==='bad'?L('History data needs attention','بيانات السجل محتاجة مراجعة'):L('Start your work history','ابدأ السجل الوظيفي'));
   return `<div class="screen-wrap cx-wrap jp-wrap">
   ${_pgHdr('Site','الموقع','My Job','My Job','Your work profile and attendance','بياناتك الوظيفية والحضور')}
   ${_prjBarHTML()}
@@ -35250,26 +35784,29 @@ function renderJobProfile(){
       <label class="jp-ph" for="jpPhotoIn" aria-label="${L('Change photo','تغيير الصورة')}"><span class="jp-ph-in">${p.photo?`<img src="${p.photo}" alt="">`:(ini?esc(ini):ic('photo',26))}</span><span class="jp-cam">${ic('photo',13)}</span></label>
       <input type="file" id="jpPhotoIn" accept="image/*" style="display:none" onchange="_jpPhotoPick(this)">
       <div class="jp-id" style="padding-inline-end:36px"><div class="jp-nm" dir="auto">${p.name?esc(p.name):L('Add your name','أضف اسمك')}</div>
-        ${p.title?`<div class="jp-tt" dir="auto">${esc(p.title)}</div>`:''}
+        ${title?`<div class="jp-tt" dir="auto">${esc(title)}</div>`:''}
         ${company?`<div class="jp-co">${ic('building',13)}<span dir="auto">${esc(company)}</span></div>`:''}</div>
     </div>
     <div class="jp-hero-bot">
-      <div class="jp-chip"><small>${L('EMPLOYEE CODE','كود التوظيف')}</small><b dir="ltr" style="text-align:start">${p.code?esc(p.code):'—'}</b></div>
+      <div class="jp-chip"><small>${L('EMPLOYEE CODE','كود التوظيف')}</small><b dir="ltr" style="text-align:start">${code?esc(code):'—'}</b></div>
       <div class="jp-chip"><small>${L('TIME AT COMPANY','مدة الشغل')}</small><b dir="auto">${ten?esc(ten.short):'—'}</b></div>
     </div>
   </section>
+  <button type="button" class="ca-manage" onclick="_caManageOpen()"><span class="ic">${ic('briefcase',20)}</span><span class="tx"><b>${L('Manage Employment & Projects','إدارة العمل والمشروعات')}</b><small>${manageSub}</small></span>${ic('chevron',16)}</button>
   <section class="jp-card">
     <div class="jp-sec">${ic('briefcase',17)}<span>${L('Work details','بيانات الشغل')}</span></div>
-    ${_jpRow('building2',L('Current project','المشروع الحالي'),_jpVal(prj),'',false)}
-    ${_jpRow('join',L('Joined','تاريخ الالتحاق'),start?`<b dir="auto">${esc(_jpDate(start))}</b>${ten?`<small style="margin:3px 0 0;color:var(--green)">${esc(ten.full)}</small>`:''}`:_jpVal(''))}
+    ${_jpRow('building2',L('Current project','المشروع الحالي'),prjVal,'',false)}
+    ${_jpRow('join',L('Joined current company','الالتحاق بالشركة الحالية'),start?`<b dir="auto">${esc(_jpDate(start))}</b>${ten?`<small style="margin:3px 0 0;color:var(--green)">${esc(ten.full)}</small>`:''}`:_jpVal(''))}
     ${nidRow}
-    ${_jpRow('mail',L('Company e-mail','إيميل الشركة'),_jpVal(p.email,true),_jpCopyBtn(p.email))}
-    ${_jpRow('shield',L('Medical insurance e-mail','إيميل التأمين الطبي'),_jpVal(p.medEmail,true),_jpCopyBtn(p.medEmail))}
+    ${_jpRow('mail',L('Company e-mail','إيميل الشركة'),_jpVal(email,true),_jpCopyBtn(email))}
+    ${_jpRow('shield',L('Medical insurance e-mail','إيميل التأمين الطبي'),_jpVal(medEmail,true),_jpCopyBtn(medEmail))}
   </section>
+  ${c?_caTimelineHTML(c):''}
   ${_jpAttHTML()}
   ${_jpCustHTML(p)}
   </div>`;
 }
+
 function _jpSheet(icon,title,sub,body,saveFn,delFn){
   document.getElementById('modalContent').innerHTML=`<div class="modal-handle"></div><div class="rq-modal de-sheet prj-sheet">
     <div class="modal-hdr"><div class="modal-hdr-icon" style="background:linear-gradient(135deg,#0f7a55,#0a5c40)">${ic(icon,22)}</div>
@@ -35282,6 +35819,17 @@ function _jpSheet(icon,title,sub,body,saveFn,delFn){
 }
 function _jpEditProfile(){
   const p=_jpLoad(), att=_jpAtt();
+  if(_caState()==='ok'){
+    const cu=_caCur(_caLoad());
+    _jpSheet('id',L('My profile','بياناتي'),L('Stored on this device only','متخزنة على الجهاز ده بس'),
+      _cvField('jpName',L('Full name','الاسم بالكامل'),p.name)+
+      _cvField('jpNid',L('National ID','الرقم القومي'),p.nid,{dir:'ltr',type:'tel',ph:'14 digits'})+
+      `<div class="ca-note small">${L('Company, title, employee code and e-mails belong to the employment period, so they are edited there.','الشركة والمسمى والكود والإيميلات تابعة لفترة التوظيف، فبتتعدل من هناك.')}</div>`+
+      (cu.emp?`<button type="button" class="jp-link" style="margin:0 0 10px" onclick="_caDetail('e','${cu.emp.id}')">${ic('building',15)} ${L('Open current employment','فتح فترة التوظيف الحالية')}</button>`:'')+
+      (p.photo?`<button type="button" class="jp-photo-rm" onclick="_jpPhotoRemove()">${ic('trash',14)} ${L('Remove photo','حذف الصورة')}</button>`:''),
+      '_jpSaveProfile()');
+    return;
+  }
   _jpSheet('id',L('My work profile','بياناتي الوظيفية'),L('Stored on this device only','متخزنة على الجهاز ده بس'),
     _cvField('jpName',L('Full name','الاسم بالكامل'),p.name)+
     _cvField('jpTitle',L('Job title','المسمى الوظيفي'),p.title,{ph:L('e.g. Site Civil Engineer','مثال: مهندس مدني موقع')})+
@@ -35295,7 +35843,8 @@ function _jpEditProfile(){
 }
 function _jpSaveProfile(){
   const g=id=>(document.getElementById(id)?.value||'').trim(), p=_jpLoad();
-  p.name=g('jpName'); p.title=g('jpTitle'); p.company=g('jpCompany'); p.nid=g('jpNid').replace(/\s+/g,''); p.email=g('jpEmail'); p.medEmail=g('jpMed'); p.code=g('jpCode'); p.start=g('jpStart');
+  if(_caState()==='ok'){ p.name=g('jpName'); p.nid=g('jpNid').replace(/\s+/g,''); }
+  else{ p.name=g('jpName'); p.title=g('jpTitle'); p.company=g('jpCompany'); p.nid=g('jpNid').replace(/\s+/g,''); p.email=g('jpEmail'); p.medEmail=g('jpMed'); p.code=g('jpCode'); p.start=g('jpStart'); }
   if(!_jpSave(p)) return;
   try{ closeModal(); }catch(e){}
   try{ renderView(); }catch(e){ _logErr('_jpSaveProfile',e); }
@@ -35315,6 +35864,7 @@ function _jpPhotoPick(inp){
 }
 function _jpPhotoRemove(){ const p=_jpLoad(); p.photo=''; if(_jpSave(p)){ try{ closeModal(); }catch(e){} renderView(); } }
 function _jpEditCustody(id){
+  if(_caState()==='ok'){ _caCustSheet(id); return; }
   const p=_jpLoad(), x=id?p.custody.find(c=>c.id===id):null; if(id&&!x) return;
   _jpEditId=x?x.id:null;
   const sug=[['Laptop','لاب توب'],['Charger','شاحن'],['Mouse','ماوس'],['Laptop bag','شنطة لاب'],['Phone','موبايل'],['Safety helmet','خوذة']];
