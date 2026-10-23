@@ -30762,72 +30762,9 @@ function restoreData() {
     try {
       const result = await importBackup(file);
 
-      // ── Build rich preview summary ────────────────────────────────────────
-      let previewHTML = '';
-      if (result.version === '2.0') {
-        const d = result.payload.data;
-        const monthCount  = d.months?.order?.length || Object.keys(d.finance||{}).length;
-        const txCount     = Object.values(d.finance||{}).reduce((s,m)=>s+(m.transactions?.length||0),0);
-        const expCount    = Object.values(d.finance||{}).reduce((s,m)=>s+(m.site_expenses?.length||0),0);
-        const bankCount   = (d.customBanks||[]).length;
-        const exportDate  = result.payload.exportDate
-          ? new Date(result.payload.exportDate).toLocaleDateString(_dtLocale())
-          : L('Unknown','غير معروف');
-        const fileSizeKB  = (file.size / 1024).toFixed(1);
-        const backupSeq   = result.payload.backupSeq ? `#${result.payload.backupSeq}` : '—';
-        const bVersion    = result.payload.version || '?';
-        previewHTML = `
-          <div style="background:var(--surface2);border-radius:var(--radius-sm);padding:12px 14px;margin-bottom:14px;border:1px solid var(--border)">
-            <div style="font-size:calc(11px*var(--app-text-scale,1));font-weight:700;color:var(--muted);text-transform:none;letter-spacing:.3px;margin-bottom:8px">
-              ${ic('backup',14)} ${L('Backup Contents','محتويات النسخة الاحتياطية')}
-            </div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
-              ${[
-                [L('Backup #','النسخة رقم'),       backupSeq + '  (v' + bVersion + ')'],
-                [L('Export Date','تاريخ التصدير'), exportDate],
-                [L('File Size','حجم الملف'),       fileSizeKB + ' KB'],
-                [L('Months','الأشهر'),             monthCount],
-                [L('Transactions','معاملات'),      txCount],
-                [L('Site Expenses','مصروفات الموقع'),     expCount],
-                [L('Custom Banks','بنوك مخصصة'),  bankCount],
-                [L('Bank logos','شعارات البنوك'), Object.keys(d.bankLogos||{}).length],
-                [L('Receipts','الاستلامات'), (()=>{ try{ return JSON.parse((d.extras||{})[_RQ_KEY]||'[]').length; }catch(e){ return 0; } })()],
-                [L('Attendance days','أيام الحضور'), (()=>{ try{ return Object.keys(JSON.parse((d.extras||{})['wdp_attendance_v1']||'{}').days||{}).length; }catch(e){ return 0; } })()],
-                [L('Place photos','صور الأماكن'), (()=>{ try{ return JSON.parse((d.extras||{})['wdp_myloc_photos_v1']||'[]').length; }catch(e){ return 0; } })()],
-                [L('Other saved items','عناصر محفوظة أخرى'), Object.keys(d.extras||{}).length],
-              ].map(([k,v])=>`
-                <div style="font-size:calc(11px*var(--app-text-scale,1));color:var(--muted)">${k}</div>
-                <div style="font-size:calc(11px*var(--app-text-scale,1));font-weight:800;color:var(--text)">${v}</div>
-              `).join('')}
-            </div>
-          </div>`;
-      } else {
-        previewHTML = `<div style="background:#e07b3918;border-radius:var(--radius-sm);padding:10px 12px;margin-bottom:14px;font-size:calc(11px*var(--app-text-scale,1));color:#e07b39;font-weight:700">
-          ${ic('warning',15)} ${L('Legacy backup format — some settings may not be restored','نسخة احتياطية قديمة — بعض الإعدادات قد لا تُستعاد')}
-        </div>`;
-      }
-
-      // ── Show preview modal then confirm ───────────────────────────────────
-      document.getElementById('modalContent').innerHTML = `
-        <div class="modal-handle"></div>
-        <div class="modal-title">${ic('restore',14)} ${L('Restore Backup','استعادة النسخة الاحتياطية')}</div>
-        ${previewHTML}
-        <div style="font-size:calc(12px*var(--app-text-scale,1));color:#dc4f4f;font-weight:700;margin-bottom:14px">
-          ${ic('warning',15)} ${L('This will replace ALL current data. This cannot be undone.','سيتم استبدال جميع البيانات الحالية. لا يمكن التراجع.')}
-        </div>
-        <div class="modal-btns">
-          <button class="mbtn save" style="background:#dc4f4f" onclick="_doRestore()">
-            ${L('Yes, Restore','نعم، استعادة')}
-          </button>
-          <button class="mbtn save" onclick="_doRestoreBanksOnly()">
-            ${L('Restore Banks Only','استعادة البنوك فقط')}
-          </button>
-          <button class="mbtn cancel" onclick="closeModal()">${L('Cancel','إلغاء')}</button>
-        </div>`;
-      document.getElementById('modalOverlay').style.display = 'flex';
-
-      // Store result on window for _doRestore to access
+      // ── Premium restore sheet (choose what to restore) ───────────────────
       window._pendingRestore = result;
+      _rsOpen(result, file);
 
     } catch(e) {
       document.getElementById('modalContent').innerHTML = `
@@ -30878,6 +30815,7 @@ function _doRestore() {
       PLANNER            = d.planner             || PLANNER;
       // ── Added in v2.5: restore every other stored key verbatim ──
       const _extrasOk = _bkExtrasApply(d.extras);
+      try{ const _nr=localStorage.getItem(NOTES_KEY); let _nl=[]; try{ _nl=_nr?JSON.parse(_nr):[]; }catch(e){} window._notesMirrorSync=_notesIdbReplace(Array.isArray(_nl)?_nl:[]); }catch(e){}
       // Logos: restore them explicitly too (don't rely on the extras copy alone)
       // Start from whatever the extras restore just wrote, then lay the explicit copies on top
       try{ const _r=localStorage.getItem(BANK_CUSTOM_LOGOS_KEY); if(_r) bankCustomLogos=Object.assign({}, JSON.parse(_r), d.bankLogos||{}); }catch(e){}
@@ -30902,7 +30840,8 @@ function _doRestore() {
     if(window._restoreExtraFail) setTimeout(()=>showToast(L('⚠️ '+window._restoreExtraFail+' saved item(s) could not be restored (storage full)','⚠️ تعذّرت استعادة '+window._restoreExtraFail+' عنصر (التخزين ممتلئ)'),'warn'),1500);
     if(window._restoreLogoFail) setTimeout(()=>showToast(L('⚠️ Some logos could not be stored (storage full)','⚠️ بعض الشعارات لم تُخزَّن (التخزين ممتلئ)'),'warn'),900);
     closeModal(); closeSettings();
-    Promise.resolve(window._mlPhotosRestore).catch(function(){}).then(function(){ setTimeout(() => location.reload(), window._restoreExtraFail?3500:800); });
+    try{ _rsFreeze(); }catch(e){}
+    Promise.all([Promise.resolve(window._mlPhotosRestore).catch(function(){}),Promise.resolve(window._notesMirrorSync).catch(function(){})]).then(function(){ setTimeout(() => location.reload(), window._restoreExtraFail?3500:800); });
   } catch(e) {
     showToast(L('Restore failed: ','فشلت الاستعادة: ') + e.message, 'warn');
   }
@@ -30951,6 +30890,248 @@ function _doRestoreBanksOnly() {
     showToast(L('Banks restore failed: ','فشلت استعادة البنوك: ') + e.message, 'warn');
   }
 }
+// ══ Premium restore sheet: choose exactly what to bring back ═══════════════════════════════════════
+// Categories partition every stored item (state variables + raw localStorage keys), so selecting all of
+// them is identical to a full restore, and any key added to the app later lands in "Settings" by default.
+const _RS_RE={
+  banks:   /^wdp_(bank_|banks_|custom_banks|hidden_banks)/,
+  finance: /^wdp_(currency_v1|custom_categories|custody_note_options|financial_snapshots|monthly_reports_saved|work_items|sms_import|sde_|buy_collapsed|hero_collapsed)/,
+  plans:   /^wdp_(savings|timeline|planner|reminders|gold_market|pur_img)/,
+  notes:   /^wdp_(notes_|quick_notes|qn_fab_pos)/,
+  requests:/^wdp_(receipts_v1|rq_|materials_v1)/,
+  job:     /^wdp_(attendance|at_tm|career|cv_|jobprofile|projects|myloc_)/
+};
+const _RS_ORDER=['banks','finance','plans','notes','requests','job','settings'];
+function _rsCat(k){ for(const c in _RS_RE){ if(_RS_RE[c].test(k)) return c; } return 'settings'; }
+const _RS_ICON={
+  banks:'<path d="M3 10l9-6 9 6"/><path d="M5 10v8M9.5 10v8M14.5 10v8M19 10v8M3 20h18"/>',
+  finance:'<path d="M5 20V11M11 20V4M17 20v-6M3 20h18"/>',
+  plans:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.5"/><path d="M12 12l5-5"/>',
+  notes:'<path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 13h7M9 17h5"/>',
+  requests:'<path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/>',
+  job:'<rect x="3" y="7" width="18" height="13" rx="2"/><path d="M9 7V5a1 1 0 011-1h4a1 1 0 011 1v2M3 13h18"/>',
+  settings:'<path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/>'
+};
+const _RS_COL={banks:'#2563c4',finance:'#0f7a55',plans:'#A97C1F',notes:'#8a5cd6',requests:'#d9622b',job:'#0a8ea0',settings:'#6b7280'};
+function _rsMeta(c){
+  return ({
+    banks:   [L('Banks & Accounts','البنوك والحسابات'), L('Banks, logos, colors, balances & movements','البنوك والشعارات والألوان والأرصدة والحركات')],
+    finance: [L('Finance & Transactions','المعاملات المالية'), L('Months, transactions, site expenses, custody & reports','الأشهر والمعاملات ومصروفات الموقع والعُهدة والتقارير')],
+    plans:   [L('Savings, Plans & Reminders','المدخرات والخطط والتذكيرات'), L('My Savings, timeline, planner & reminders','مدخراتي والجدول الزمني والمخطط والتذكيرات')],
+    notes:   [L('Notes','الملاحظات'), L('All notes, folders & locks','كل الملاحظات والمجلدات والأقفال')],
+    requests:[L('Requests & Receipts','الطلبات والاستلامات'), L('Receipts, companies, floors & logos','الاستلامات والشركات والأدوار والشعارات')],
+    job:     [L('My Job & Places','وظيفتي والأماكن'), L('Attendance, CV, projects & place photos','الحضور والسيرة والمشاريع وصور الأماكن')],
+    settings:[L('Settings & Preferences','الإعدادات والتفضيلات'), L('Language, theme, sounds, dashboard layout & more','اللغة والمظهر والأصوات وترتيب الرئيسية وغيرها')]
+  })[c];
+}
+function _rsCss(){
+  if(document.getElementById('rsCss')) return;
+  const st=document.createElement('style'); st.id='rsCss';
+  st.textContent=`
+  .rs-wrap{display:flex;flex-direction:column;max-height:min(80dvh,740px);min-height:0}
+  .rs-hero{position:relative;border-radius:20px;padding:16px 16px 14px;margin:2px 0 12px;color:#fff;overflow:hidden;
+    background:radial-gradient(120% 140% at 100% 0%,rgba(212,175,55,.28),transparent 55%),linear-gradient(135deg,#0C2B21 0%,#0F6B4A 62%,#1c976a 100%);
+    box-shadow:0 10px 28px rgba(12,43,33,.28),inset 0 0 0 1px rgba(255,255,255,.08)}
+  .rs-hero:before{content:"";position:absolute;inset:0 0 auto 0;height:2px;background:linear-gradient(90deg,transparent,#F3D580,#D4AF37,transparent)}
+  .rs-hero-top{display:flex;align-items:center;gap:12px}
+  .rs-hero-ic{width:42px;height:42px;border-radius:14px;background:rgba(255,255,255,.12);display:flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,.18);flex:none}
+  .rs-hero h3{margin:0;font-size:calc(18px*var(--app-text-scale,1));font-weight:800;letter-spacing:.2px}
+  .rs-hero p{margin:2px 0 0;font-size:calc(12px*var(--app-text-scale,1));opacity:.78}
+  .rs-pills{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+  .rs-pill{font-size:calc(11px*var(--app-text-scale,1));font-weight:700;padding:5px 10px;border-radius:999px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.16)}
+  .rs-pill.gold{background:linear-gradient(135deg,#F3D580,#D4AF37);color:#3a2a05;border-color:transparent}
+  .rs-quick{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 10px;scrollbar-width:none}
+  .rs-quick::-webkit-scrollbar{display:none}
+  .rs-q{flex:none;padding:8px 14px;border-radius:999px;border:1px solid var(--border);background:var(--surface);color:var(--text);font:inherit;font-size:calc(12.5px*var(--app-text-scale,1));font-weight:700;cursor:pointer}
+  .rs-q:active{transform:scale(.97)}
+  .rs-list{flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:8px;padding:2px 2px 6px;-webkit-overflow-scrolling:touch}
+  .rs-row{display:flex;align-items:center;gap:12px;padding:12px;border-radius:16px;border:1.5px solid var(--border);background:var(--surface);cursor:pointer;transition:border-color .15s,background .15s,transform .1s;text-align:start}
+  .rs-row:active{transform:scale(.99)}
+  .rs-row.on{border-color:var(--green,#1c976a);background:linear-gradient(0deg,rgba(28,151,106,.08),rgba(28,151,106,.08)),var(--surface)}
+  .rs-row.off{opacity:.45;cursor:not-allowed}
+  .rs-ic{width:40px;height:40px;border-radius:13px;display:flex;align-items:center;justify-content:center;flex:none}
+  .rs-ic svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+  .rs-tx{flex:1;min-width:0}
+  .rs-t{font-weight:800;font-size:calc(14px*var(--app-text-scale,1));color:var(--text)}
+  .rs-d{font-size:calc(11.5px*var(--app-text-scale,1));color:var(--muted);margin-top:2px;line-height:1.35}
+  .rs-m{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap}
+  .rs-b{font-size:calc(10.5px*var(--app-text-scale,1));font-weight:800;padding:3px 8px;border-radius:999px;background:var(--surface2);color:var(--sub,var(--muted))}
+  .rs-chk{width:24px;height:24px;border-radius:50%;border:2px solid var(--border-strong,#ccc);display:flex;align-items:center;justify-content:center;flex:none;transition:all .15s}
+  .rs-row.on .rs-chk{background:var(--green,#1c976a);border-color:transparent}
+  .rs-chk svg{width:14px;height:14px;stroke:#fff;fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;opacity:0}
+  .rs-row.on .rs-chk svg{opacity:1}
+  .rs-safe{display:flex;align-items:center;gap:12px;padding:12px;border-radius:16px;background:var(--surface2);border:1px solid var(--border);margin-top:4px;cursor:pointer}
+  .rs-sw{width:44px;height:26px;border-radius:999px;background:var(--border-strong,#bbb);position:relative;flex:none;transition:background .2s}
+  .rs-sw:after{content:"";position:absolute;top:3px;inset-inline-start:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.3)}
+  .rs-sw.on{background:var(--green,#1c976a)}
+  .rs-sw.on:after{transform:translateX(18px)}
+  [dir="rtl"] .rs-sw.on:after{transform:translateX(-18px)}
+  .rs-note{font-size:calc(11.5px*var(--app-text-scale,1));font-weight:700;margin:10px 2px 0;line-height:1.45}
+  .rs-foot{padding-top:12px;display:flex;flex-direction:column;gap:8px}
+  .rs-go{border:0;border-radius:16px;padding:15px;font:inherit;font-size:calc(15px*var(--app-text-scale,1));font-weight:800;color:#fff;cursor:pointer;background:linear-gradient(135deg,#0F6B4A,#1c976a);box-shadow:0 8px 20px rgba(28,151,106,.35)}
+  .rs-go.danger{background:linear-gradient(135deg,#b83a3a,#dc4f4f);box-shadow:0 8px 20px rgba(220,79,79,.35)}
+  .rs-go:disabled{opacity:.45;box-shadow:none;cursor:not-allowed}
+  .rs-cancel{border:1px solid var(--border);background:transparent;color:var(--text);border-radius:16px;padding:13px;font:inherit;font-size:calc(14px*var(--app-text-scale,1));font-weight:700;cursor:pointer}
+  `;
+  document.head.appendChild(st);
+}
+function _rsFmtSize(b){ return b>=1048576?(b/1048576).toFixed(1)+' MB':Math.max(1,Math.round(b/1024))+' KB'; }
+function _rsBuild(d){
+  const ex=d.extras||{};
+  const cnt=x=>Array.isArray(x)?x.length:(x&&typeof x==='object'?Object.keys(x).length:0);
+  const jl=(k,fn)=>{ try{ return fn(JSON.parse(ex[k])); }catch(e){ return 0; } };
+  const bytes={}, keys={};
+  Object.keys(ex).forEach(k=>{ if(_BK_SKIP.test(k)||typeof ex[k]!=='string') return; const c=_rsCat(k); bytes[c]=(bytes[c]||0)+ex[k].length; keys[c]=(keys[c]||0)+1; });
+  const sj=o=>{ try{ return JSON.stringify(o||{}).length; }catch(e){ return 0; } };
+  if(!bytes.banks)   bytes.banks=sj([d.customBanks,d.bankLogos,d.bankColors]);
+  if(!bytes.finance) bytes.finance=sj(d.finance);
+  if(!bytes.plans)   bytes.plans=sj([d.savings,d.timeline,d.reminders,d.planner]);
+  const tx=Object.values(d.finance||{}).reduce((s,m)=>s+((m&&m.transactions||[]).length),0);
+  const xp=Object.values(d.finance||{}).reduce((s,m)=>s+((m&&m.site_expenses||[]).length),0);
+  const photos=jl('wdp_myloc_photos_v1',a=>Array.isArray(a)?a.length:0);
+  const info={
+    banks:   {n:[cnt(d.customBanks)+' '+L('banks','بنوك'), cnt(d.bankLogos)+' '+L('logos','شعارات')], avail:true},
+    finance: {n:[cnt(d.finance)+' '+L('months','أشهر'), (tx+xp)+' '+L('entries','قيد')], avail:true},
+    plans:   {n:[(cnt(d.savings)+cnt(d.timeline)+cnt(d.reminders)+cnt(d.planner))+' '+L('items','عنصر')], avail:true},
+    notes:   {n:[jl('wdp_notes_v2',a=>a.length)+' '+L('notes','ملاحظة')], avail:!!keys.notes},
+    requests:{n:[jl(_RQ_KEY,a=>a.length)+' '+L('receipts','استلام')], avail:!!keys.requests},
+    job:     {n:[jl('wdp_attendance_v1',a=>Object.keys((a&&a.days)||{}).length)+' '+L('attendance days','يوم حضور'), photos+' '+L('photos','صور')], avail:!!keys.job||photos>0},
+    settings:{n:[(keys.settings||0)+' '+L('settings','إعداد')], avail:!!keys.settings}
+  };
+  return _RS_ORDER.map(id=>({id,n:info[id].n,avail:info[id].avail,size:_rsFmtSize(bytes[id]||0)}));
+}
+function _rsOpen(result,file){
+  _rsCss();
+  const mc=document.getElementById('modalContent'), p=result.payload;
+  const ico=(path,w)=>`<svg viewBox="0 0 24 24" style="width:${w||22}px;height:${w||22}px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round">${path}</svg>`;
+  const heroIc=ico('<path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/><path d="M12 8v4l3 2"/>');
+  const when=p.exportDate?new Date(p.exportDate).toLocaleDateString(_dtLocale()):L('Unknown','غير معروف');
+  const size=_rsFmtSize(file.size);
+  if(result.version!=='2.0'){
+    mc.innerHTML=`<div class="modal-handle"></div><div class="rs-wrap">
+      <div class="rs-hero"><div class="rs-hero-top"><div class="rs-hero-ic">${heroIc}</div><div><h3>${L('Restore Backup','استعادة النسخة الاحتياطية')}</h3><p>${L('Legacy backup format','نسخة بصيغة قديمة')}</p></div></div>
+      <div class="rs-pills"><span class="rs-pill">${when}</span><span class="rs-pill">${size}</span></div></div>
+      <div class="rs-note" style="color:#e07b39">${L('Older backup — only finance data can be restored; some settings may be missing.','نسخة قديمة — تُستعاد البيانات المالية فقط وقد تنقص بعض الإعدادات.')}</div>
+      <div class="rs-note" style="color:#dc4f4f">${L('This will replace ALL current data.','سيتم استبدال جميع البيانات الحالية.')}</div>
+      <div class="rs-foot"><button class="rs-go danger" onclick="_rsGo()">${L('Restore Everything','استعادة كل شيء')}</button><button class="rs-cancel" onclick="closeModal()">${L('Cancel','إلغاء')}</button></div></div>`;
+    window._rsState={legacy:true,sel:new Set(),safe:true,cats:[]};
+    document.getElementById('modalOverlay').style.display='flex';
+    return;
+  }
+  const d=p.data, cats=_rsBuild(d);
+  window._rsState={legacy:false,sel:new Set(),safe:true,cats};
+  const seq=p.backupSeq?'#'+p.backupSeq:'—';
+  mc.innerHTML=`<div class="modal-handle"></div><div class="rs-wrap">
+    <div class="rs-hero">
+      <div class="rs-hero-top"><div class="rs-hero-ic">${heroIc}</div>
+        <div><h3>${L('Restore Backup','استعادة النسخة الاحتياطية')}</h3><p>${L('Choose exactly what to bring back','اختر بالظبط اللي عايز ترجّعه')}</p></div></div>
+      <div class="rs-pills"><span class="rs-pill gold">${L('Backup','نسخة')} ${seq}</span><span class="rs-pill">${when}</span><span class="rs-pill">${size}</span><span class="rs-pill">v${p.version||'?'}</span></div>
+    </div>
+    <div class="rs-quick">
+      <button class="rs-q" onclick="_rsPreset('all')">${L('Everything','كل شيء')}</button>
+      <button class="rs-q" onclick="_rsPreset('banks')">${L('Banks only','البنوك فقط')}</button>
+      <button class="rs-q" onclick="_rsPreset('money')">${L('Money data','البيانات المالية')}</button>
+      <button class="rs-q" onclick="_rsPreset('notes')">${L('Notes only','الملاحظات فقط')}</button>
+      <button class="rs-q" onclick="_rsPreset('none')">${L('Clear','مسح الاختيار')}</button>
+    </div>
+    <div class="rs-list" id="rsList"></div>
+    <div class="rs-safe" onclick="_rsSafe()"><div class="rs-tx"><div class="rs-t" style="font-size:calc(13px*var(--app-text-scale,1))">${L('Save a safety copy first','احفظ نسخة أمان أولاً')}</div><div class="rs-d">${L('Downloads your current data before replacing it','بينزّل بياناتك الحالية قبل الاستبدال')}</div></div><div class="rs-sw on" id="rsSw"></div></div>
+    <div class="rs-note" id="rsNote"></div>
+    <div class="rs-foot"><button class="rs-go" id="rsGo" onclick="_rsGo()"></button><button class="rs-cancel" onclick="closeModal()">${L('Cancel','إلغاء')}</button></div>
+  </div>`;
+  window._rsIco=ico;
+  _rsPaint();
+  document.getElementById('modalOverlay').style.display='flex';
+}
+function _rsPaint(){
+  const S=window._rsState; if(!S||S.legacy) return;
+  const el=document.getElementById('rsList'); if(!el) return;
+  el.innerHTML=S.cats.map(c=>{
+    const m=_rsMeta(c.id), on=S.sel.has(c.id), col=_RS_COL[c.id];
+    return `<div class="rs-row ${on?'on':''} ${c.avail?'':'off'}" onclick="_rsToggle('${c.id}')">
+      <div class="rs-ic" style="background:${col}1f;color:${col}"><svg viewBox="0 0 24 24">${_RS_ICON[c.id]}</svg></div>
+      <div class="rs-tx"><div class="rs-t">${m[0]}</div><div class="rs-d">${m[1]}</div>
+        <div class="rs-m">${c.avail?c.n.map(x=>`<span class="rs-b">${x}</span>`).join('')+`<span class="rs-b">${c.size}</span>`:`<span class="rs-b">${L('Not in this backup','غير موجود في النسخة')}</span>`}</div></div>
+      <div class="rs-chk"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div></div>`;
+  }).join('');
+  const sw=document.getElementById('rsSw'); if(sw) sw.classList.toggle('on',S.safe);
+  const avail=S.cats.filter(c=>c.avail), n=S.sel.size, all=n>0&&n===avail.length;
+  const btn=document.getElementById('rsGo'), note=document.getElementById('rsNote');
+  btn.disabled=n===0; btn.classList.toggle('danger',all);
+  btn.textContent=n===0?L('Choose what to restore','اختر اللي هتستعيده'):all?L('Restore Everything','استعادة كل شيء'):L('Restore '+n+' selected','استعادة '+n+' مختار');
+  note.style.color=all?'#dc4f4f':'var(--sub,var(--muted))';
+  note.textContent=n===0?'':all?L('This replaces ALL current data.','هيتم استبدال كل البيانات الحالية.'):L('Only the selected items are replaced — everything else stays untouched.','هيتم استبدال المختار فقط — باقي بياناتك زي ما هي.');
+}
+function _rsToggle(id){ const S=window._rsState, c=S.cats.find(x=>x.id===id); if(!c||!c.avail) return; S.sel.has(id)?S.sel.delete(id):S.sel.add(id); _rsPaint(); }
+function _rsSafe(){ const S=window._rsState; S.safe=!S.safe; _rsPaint(); }
+function _rsPreset(k){
+  const S=window._rsState, av=S.cats.filter(c=>c.avail).map(c=>c.id);
+  const set=k==='all'?av:k==='banks'?['banks']:k==='money'?['banks','finance','plans']:k==='notes'?['notes']:[];
+  S.sel=new Set(set.filter(x=>av.indexOf(x)>=0)); _rsPaint();
+}
+function _rsFreeze(){ try{ const sp=Storage.prototype; sp.setItem=function(){}; sp.removeItem=function(){}; sp.clear=function(){}; }catch(e){} }
+async function _rsGo(){
+  const S=window._rsState, result=window._pendingRestore; if(!S||!result) return;
+  if(!S.legacy && S.sel.size===0) return;
+  const btn=document.getElementById('rsGo')||document.querySelector('.rs-go');
+  if(btn){ btn.disabled=true; btn.textContent=L('Working…','جاري التنفيذ…'); }
+  if(S.safe){ try{ await exportBackup(); await new Promise(r=>setTimeout(r,900)); }catch(e){} }
+  const avail=S.cats.filter(c=>c.avail).length;
+  if(S.legacy || S.sel.size===avail){ _doRestore(); return; }
+  _rsApplyPartial(result,[...S.sel]);
+}
+function _rsApplyPartial(result,sel){
+  window._pendingRestore=null;
+  try{
+    const d=result.payload.data, ex=d.extras||{}, S=new Set(sel);
+    const clone=o=>JSON.parse(JSON.stringify(o));
+    const prevData=DATA, hadBanks=S.has('banks'), hadFin=S.has('finance');
+    const wait=[]; let failed=0;
+    // 1) raw keys belonging to the selected categories (exact replace inside those categories only)
+    if(Object.keys(ex).length){
+      const stale=[];
+      for(let i=0;i<localStorage.length;i++){ const k=localStorage.key(i); if(k&&!_BK_SKIP.test(k)&&S.has(_rsCat(k))&&!Object.prototype.hasOwnProperty.call(ex,k)) stale.push(k); }
+      stale.forEach(k=>{ try{ localStorage.removeItem(k); }catch(e){} });
+    }
+    Object.keys(ex).forEach(k=>{
+      if(_BK_SKIP.test(k)||typeof ex[k]!=='string'||!S.has(_rsCat(k))) return;
+      if(k==='wdp_myloc_photos_v1'){ try{ wait.push(MLOC.restorePhotos(ex[k])); }catch(e){} return; }
+      try{ localStorage.setItem(k,ex[k]); }catch(e){ failed++; }
+    });
+    // 2) in-memory state of the selected categories (so nothing stale is re-saved over the restore)
+    if(hadFin){
+      DATA=_migrateFinanceData(clone(d.finance));
+      if(!hadBanks && prevData){ Object.keys(DATA).forEach(mk=>{ const o=prevData[mk]; if(o){ DATA[mk].bank_movements=o.bank_movements||[]; DATA[mk].initial_balances=o.initial_balances||{}; } }); }
+      MONTHS_ORDER=(d.months&&d.months.order)||MONTHS_ORDER; MONTH_NAMES=(d.months&&d.months.names)||MONTH_NAMES;
+      if(d.currency) CURRENT_CURRENCY=d.currency;
+    }
+    if(hadBanks){
+      CUSTOM_BANKS=clone(d.customBanks||[]); hiddenDefaultBanks=clone(d.hiddenBanks||[]); bankCustomColors=clone(d.bankColors||{});
+      bankCustomLogos=clone(d.bankLogos||{}); banksOrder=d.banksOrder?clone(d.banksOrder):null;
+      bankInterestSettings=clone(d.bankInterestSettings||{}); bankAccountNumbers=clone(d.bankAccountNumbers||{});
+      bankIbans=clone(d.bankIbans||{}); bankFeeOverrides=clone(d.bankFeeOverrides||{});
+      if(!hadFin){ Object.keys(d.finance||{}).forEach(mk=>{ const src=d.finance[mk], dst=DATA[mk]; if(!src||!dst) return; dst.bank_movements=clone(src.bank_movements||[]); dst.initial_balances=clone(src.initial_balances||{}); }); }
+    }
+    if(S.has('plans')){ SAVINGS=d.savings||SAVINGS; TL_ITEMS=d.timeline||TL_ITEMS; REMINDERS=d.reminders||REMINDERS; PLANNER=d.planner||PLANNER; }
+    if(S.has('requests')){ try{ _rqCoLogos=JSON.parse(ex[_RQ_CO_LOGO_KEY]||'{}')||{}; }catch(e){} }
+    // 3) persist
+    if(hadFin||hadBanks){ persistData(); }
+    if(hadFin){ persistMonths(); persistCurrency(CURRENT_CURRENCY); }
+    if(hadBanks){ persistBanks(); persistHiddenBanks(); persistBankColors(); persistBanksOrder(); persistBankInterest(); persistBankFeeOverrides(); persistBankAcctNums(); persistBankIbans(); if(!persistBankLogos()) failed++; }
+    if(S.has('plans')){ saveSavings(); tlSave(); saveReminders(); savePlanner(); }
+    if(S.has('notes')){ try{ const r=localStorage.getItem(NOTES_KEY); let l=[]; try{ l=r?JSON.parse(r):[]; }catch(e){} wait.push(_notesIdbReplace(Array.isArray(l)?l:[])); }catch(e){} }
+    if(typeof SoundManager!=='undefined') SoundManager.play(SoundManager.SOUND.DATA.RESTORE);
+    const names=sel.map(c=>_rsMeta(c)[0]).join(L(', ','، '));
+    showToast(L('✓ Restored: ','✓ تمت الاستعادة: ')+names,'success');
+    if(failed) setTimeout(()=>showToast(L('⚠️ '+failed+' item(s) could not be stored (storage full)','⚠️ تعذّر تخزين '+failed+' عنصر (التخزين ممتلئ)'),'warn'),1200);
+    closeModal(); closeSettings();
+    _rsFreeze();
+    Promise.all(wait.map(p=>Promise.resolve(p).catch(function(){}))).then(function(){ setTimeout(()=>location.reload(),failed?3000:800); });
+  }catch(e){
+    showToast(L('Restore failed: ','فشلت الاستعادة: ')+e.message,'warn');
+  }
+}
+
 // ══════════════════════════════════════════════════════════════════════════════
 // END BACKUP & RESTORE
 // ══════════════════════════════════════════════════════════════════════════════
@@ -45389,6 +45570,21 @@ async function _notesIdbPut(list){
     };
     tx.oncomplete=()=>db.close();
   }catch(e){ _logErr('_notesIdbPut',e); }
+}
+// Restore support: make the IndexedDB safety copy identical to the restored notes, so the boot-time
+// "restore from mirror" can never bring back notes that were deliberately replaced by a backup.
+function _notesIdbReplace(list){
+  return new Promise(res=>{
+    try{
+      _notesIdbOpen().then(db=>{
+        try{
+          const tx=db.transaction('kv','readwrite'), st=tx.objectStore('kv');
+          st.put({t:Date.now(),list:list||[]},'notes'); st.delete('notes_prev');
+          tx.oncomplete=tx.onerror=tx.onabort=()=>{ try{ db.close(); }catch(e){} res(); };
+        }catch(e){ try{ db.close(); }catch(_){} res(); }
+      }).catch(()=>res());
+    }catch(e){ res(); }
+  });
 }
 async function _notesIdbGet(key){
   const db=await _notesIdbOpen();
