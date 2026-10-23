@@ -50,6 +50,10 @@
        && !localStorage.getItem('wdp_enc_data_v2')
        && !localStorage.getItem('wdp_enc_months_v2')){
       document.documentElement.classList.add('ls-skip');
+    } else if(localStorage.getItem('wdp_lock_enabled_v1')!=='false' && sessionStorage.getItem('wdp_sess_k_v1')
+       && (Date.now()-parseInt(sessionStorage.getItem('wdp_sess_ts_v1')||'0',10))<15*60*1000){
+      // possible session resume after a refresh — don't flash the PIN screen (removed again once boot decides)
+      document.documentElement.classList.add('ls-skip');
     }
   }catch(e){}
 })();
@@ -12686,6 +12690,20 @@ function fpInitSmartHeader(){
 .pf-go svg{width:18px;height:18px;display:block}
 [dir="rtl"] .pf-go svg{transform:scaleX(-1)}
 .cx-tabs.v2 .cx-seg-btn{height:50px}
+/* ── My Job: profile chip beside the page title (replaces the full-width profile card) ── */
+.sc-header.cx-hdr-pf{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.cx-hdr-pf .cx-hdr-tx{flex:1 1 0;min-width:0}
+.pf-chip{flex:0 1 auto;display:flex;align-items:center;gap:9px;min-width:0;max-width:58%;margin:0;padding:5px 14px 5px 5px;border:1px solid var(--border);border-radius:999px;
+  background:var(--surface);color:var(--text);font-family:inherit;text-align:start;cursor:pointer;-webkit-tap-highlight-color:transparent;
+  box-shadow:0 1px 2px rgba(16,24,40,.05),0 8px 18px -14px rgba(16,24,40,.28);transition:transform .15s ease,background .15s ease,border-color .15s ease}
+[dir="rtl"] .pf-chip{padding:5px 5px 5px 14px}
+[data-theme="dark"] .pf-chip{box-shadow:0 1px 2px rgba(0,0,0,.4),0 8px 18px -14px rgba(0,0,0,.7)}
+.pf-chip:active{transform:scale(.97);background:var(--surface2)}
+.pf-chip .pf-av{width:40px;height:40px;flex:none}
+.pf-chip .pf-id{flex:1 1 auto;min-width:0;gap:1px}
+.pf-chip .pf-id b{display:block;font-family:inherit;font-size:calc(13px*var(--app-text-scale,1));font-weight:800;line-height:1.25;letter-spacing:-.1px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pf-chip .pf-sub{font-size:calc(11px*var(--app-text-scale,1));line-height:1.25}
+@media (max-width:360px){ .pf-chip{max-width:52%} .pf-chip .pf-av{width:34px;height:34px} .pf-chip .pf-sub{display:none} }
 .jp-hero.v2{background:var(--surface);color:var(--text);border:1px solid var(--border);box-shadow:var(--shadow-sm);padding:16px 16px 14px}
 .jp-hero.v2 .jp-ph{width:68px;height:68px}
 .jp-hero.v2 .jp-ph-in{background:var(--green-tint);color:var(--green)}
@@ -13248,9 +13266,53 @@ async function deriveKeyFromPin(pin, salt) {
     { name: 'PBKDF2', salt, iterations: 100000, hash: 'SHA-256' },
     rawKey,
     { name: 'AES-GCM', length: 256 },
-    false,
+    true, // extractable: lets the unlocked session survive a page refresh (see _sessSave) — held in sessionStorage only
     ['encrypt', 'decrypt']
   );
+}
+
+// ── Session resume (survive a refresh without re-entering the PIN) ───────────
+// The derived key used to live in memory only, so every reload went back to the lock screen.
+// Now the key is also kept in sessionStorage (cleared when the tab / installed app is closed,
+// never written to localStorage) and honoured only while the last activity is < SESSION_TIMEOUT_MS ago.
+// Manual lock, auto-lock, an expired idle window or any failure clears it and falls back to the PIN.
+const _SESS_KEY='wdp_sess_k_v1', _SESS_TS='wdp_sess_ts_v1', _SESS_MAX_MS=15*60*1000;
+async function _sessSave(){
+  try{
+    if(!_cryptoKey || !lockEnabled) return;
+    const raw=await crypto.subtle.exportKey('raw',_cryptoKey);
+    sessionStorage.setItem(_SESS_KEY,_u8ToB64(new Uint8Array(raw)));
+    sessionStorage.setItem(_SESS_TS,String(Date.now()));
+  }catch(e){}
+}
+function _sessTouch(){ try{ if(sessionStorage.getItem(_SESS_KEY)) sessionStorage.setItem(_SESS_TS,String(Date.now())); }catch(e){} }
+function _sessClear(){ try{ sessionStorage.removeItem(_SESS_KEY); sessionStorage.removeItem(_SESS_TS); }catch(e){} }
+function _sessHasValid(){
+  try{
+    const ts=parseInt(sessionStorage.getItem(_SESS_TS)||'0',10);
+    return !!sessionStorage.getItem(_SESS_KEY) && ts>0 && (Date.now()-ts)<_SESS_MAX_MS;
+  }catch(e){ return false; }
+}
+async function _sessResume(){
+  try{
+    const b64=sessionStorage.getItem(_SESS_KEY);
+    if(!b64) return false;
+    const raw=_b64ToU8(b64);
+    _cryptoKey=await crypto.subtle.importKey('raw',raw,{name:'AES-GCM'},true,['encrypt','decrypt']);
+    _encEnabled=true;
+    // sanity check: the key must actually decrypt the stored data, otherwise fall back to the PIN screen
+    if(localStorage.getItem(ENCRYPTED_DATA_KEY) && (await loadEncrypted(ENCRYPTED_DATA_KEY))==null) throw new Error('resume key rejected');
+    await loadEncryptedDataAfterPin();
+    const ls=document.getElementById('lockScreen'), app=document.getElementById('app');
+    if(ls) ls.style.display='none';
+    if(app){ app.style.display='flex'; app.style.flexDirection='column'; }
+    initApp(); _resetSessionTimer();
+    return true;
+  }catch(e){
+    console.warn('[WDP] Session resume failed, PIN required:',e);
+    _cryptoKey=null; _encEnabled=false; _sessClear();
+    return false;
+  }
 }
 
 function getOrCreateSalt() {
@@ -13273,6 +13335,7 @@ async function initCrypto(pin) {
     const salt = getOrCreateSalt();
     _cryptoKey = await deriveKeyFromPin(pin, salt);
     _encEnabled = true;
+    _sessSave();
 
   } catch(e) {
     console.warn('[WDP] Crypto init failed, falling back to plain storage:', e);
@@ -13420,7 +13483,7 @@ async function _decryptToPlain(){
     if(localStorage.getItem(STORAGE_KEY)!==dataStr || localStorage.getItem(MONTHS_KEY)!==monthsStr) return false;
     localStorage.removeItem(ENCRYPTED_DATA_KEY);
     localStorage.removeItem(ENCRYPTED_MONTHS_KEY);
-    _cryptoKey = null; _encEnabled = false;
+    _cryptoKey = null; _encEnabled = false; _sessClear();
     return true;
   }catch(e){ console.warn('[WDP] decryptToPlain failed:', e); return false; }
 }
@@ -13442,6 +13505,7 @@ async function reEncryptWithNewPin(newPin) {
     // 4. Switch to new salt + key
     localStorage.setItem(ENC_SALT_KEY, JSON.stringify(Array.from(newSalt)));
     _cryptoKey = newKey;
+    _sessSave();
     // 5. Re-encrypt with new key
     if (currentData)   await saveEncrypted(ENCRYPTED_DATA_KEY,   currentData);
     if (currentMonths) await saveEncrypted(ENCRYPTED_MONTHS_KEY, currentMonths);
@@ -15246,6 +15310,7 @@ function lockApp(){
   // Clear crypto key from memory on lock for security
   _cryptoKey = null;
   _encEnabled = false;
+  _sessClear();
   _clearSessionTimer();
 }
 
@@ -15259,6 +15324,7 @@ function _clearSessionTimer() {
 
 function _resetSessionTimer() {
   _clearSessionTimer();
+  _sessTouch();
   _sessionTimer = setTimeout(() => {
     // Only auto-lock if app is currently visible (not already on lock screen) AND lock is enabled
     if (lockEnabled && document.getElementById('app')?.style.display !== 'none') {
@@ -28337,7 +28403,15 @@ function _bnkMovesListHTML(allMoves, key){
 }
 
 // Shared page header (identity pass) — same markup/classes as My Finances, Reports, Planner.
-function _pgHdr(eEn,eAr,tEn,tAr,sEn,sAr){return `<div class="sc-header"><div class="sc-header-eyebrow">${L(eEn,eAr)}</div><div class="sc-header-title">${L(tEn,tAr)}</div><div class="sc-header-sub">${L(sEn,sAr)}</div></div>`;}
+function _pgHdr(eEn,eAr,tEn,tAr,sEn,sAr){
+  // My Job pages: the profile chip sits beside the title (same row) instead of a full-width card below.
+  let chip='';
+  if(tEn==='My Job'){ try{ chip=(typeof _cxProfileChipHTML==='function')?_cxProfileChipHTML():''; }catch(e){ chip=''; } }
+  const tx=`<div class="sc-header-eyebrow">${L(eEn,eAr)}</div><div class="sc-header-title">${L(tEn,tAr)}</div><div class="sc-header-sub">${L(sEn,sAr)}</div>`;
+  return chip
+    ? `<div class="sc-header cx-hdr-pf"><div class="cx-hdr-tx">${tx}</div>${chip}</div>`
+    : `<div class="sc-header">${tx}</div>`;
+}
 function renderBanks(m){
   fxEnsureRates();
   const banks=getBanksOrdered();
@@ -35377,6 +35451,17 @@ async function _rqRunTranslate(id,targetLang){
   try{ if(document.getElementById('rptPaper') && !document.getElementById('rptTa')) rqReportOpen(_rqRptDate||today()); }catch(e){}
 }
 
+// Compact profile chip shown beside the "My Job" title (avatar + short name + job title).
+function _cxProfileChipHTML(){
+  if(_cxTab==='profile') return '';
+  let p={name:'',photo:''};
+  try{ p=_jpLoad(); }catch(e){}
+  const full=(p.name||'').trim();
+  const short=full.split(/\s+/).slice(0,2).join(' ');
+  const ini=full.charAt(0).toUpperCase();
+  const sub=[p.title,p.company].filter(Boolean).join(' · ');
+  return `<button type="button" class="pf-chip" onclick="_cxSetTab('profile')" aria-label="${L('My profile','ملفي الشخصي')}${full?': '+esc(full):''}" title="${esc(full)}"><span class="pf-av">${p.photo?`<img src="${p.photo}" alt="">`:(ini?`<span class="pf-ini">${esc(ini)}</span>`:ic('id',18))}</span><span class="pf-id"><b dir="auto">${short?esc(short):L('My profile','ملفي الشخصي')}</b><span class="pf-sub" dir="auto"><span>${sub?esc(sub):L('View profile','عرض الملف')}</span></span></span></button>`;
+}
 function _cxProfileBarHTML(){
   if(_cxTab==='profile') return '';
   let p={name:'',photo:''};
@@ -35387,7 +35472,7 @@ function _cxProfileBarHTML(){
 }
 function _cxTabsHTML(){
   const t=(k,lbl,icn)=>`<button type="button" role="tab" class="cx-seg-btn${_cxTab===k?' on':''}" aria-selected="${_cxTab===k?'true':'false'}" onclick="_cxSetTab('${k}')">${ic(icn,18)}<span>${lbl}</span></button>`;
-  return _cxProfileBarHTML()+`<div class="cx-seg cx-tabs v2" role="tablist">${t('requests',L('Receipts','استلاماتي'),'clipboard')}${t('custody',L('Custody','العهدة'),'hardhat')}${t('attendance',L('Attendance','الحضور'),'attendance')}${t('cv',L('My CV','سيرتي'),'cv')}</div>`;
+  return `<div class="cx-seg cx-tabs v2" role="tablist">${t('requests',L('Receipts','استلاماتي'),'clipboard')}${t('custody',L('Custody','العهدة'),'hardhat')}${t('attendance',L('Attendance','الحضور'),'attendance')}${t('cv',L('My CV','سيرتي'),'cv')}</div>`;
 }
 function _cxSetTab(k){
   const nk=(k==='requests'||k==='attendance'||k==='cv'||k==='profile')?k:'custody';
@@ -50861,6 +50946,14 @@ function _wsProceedToApp(){
   if(_isFirstRunNoPinChoice()){ _pinSetupOpen('first'); return; }
   const ls  = document.getElementById('lockScreen');
   const app = document.getElementById('app');
+
+  // Refresh within the idle window: resume the unlocked session instead of asking for the PIN again.
+  if(lockEnabled && _encDataExists() && _sessHasValid()){
+    _sessResume().then(ok=>{
+      document.documentElement.classList.remove('ls-skip'); // on failure the PIN screen is shown as usual
+    });
+    return;
+  }
 
   // Onboarding no longer gates app entry — first-time and returning users
   // both boot the same way. A first-time user (obHasSeen()===false) simply
