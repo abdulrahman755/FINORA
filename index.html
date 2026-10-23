@@ -85,6 +85,8 @@ html.ls-skip #lockScreen{display:none!important}
   #finoraSplash,#finoraSplash *{animation-duration:.01s!important;animation-delay:0s!important}
 }
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+/* Disable the browser/system pull-to-refresh (Chrome's spinner + full page reload) so only the app's own wallet refresh runs. */
+html,body{overscroll-behavior-y:none}
 :root{
   /* Native browser UI (date/time pickers, <select> dropdowns, scrollbars)
      follows the app's own explicit [data-theme] toggle rather than the
@@ -8322,6 +8324,10 @@ button.cx-sh-tap{width:100%;background:none;border:0;font-family:inherit;color:i
 .cv-card .cv-chips{margin-top:0}
 .cv-newprj{display:inline-flex;align-items:center;gap:5px;padding:7px 12px;border-radius:99px;border:0;background:var(--green);color:#fff;font-family:inherit;font-size:calc(12px*var(--app-text-scale,1));font-weight:800;cursor:pointer}
 .cv-projs{display:flex;flex-direction:column;gap:10px}
+.cv-co-grp{display:flex;flex-direction:column;gap:8px;padding:10px;border:1px solid var(--border);border-radius:var(--radius);background:var(--surface2)}
+.cv-co-hd{display:flex;justify-content:space-between;align-items:baseline;gap:8px;padding:2px 4px}
+.cv-co-hd b{font-size:14px}
+.cv-co-hd small{font-size:11px;opacity:.65;white-space:nowrap}
 .cv-proj{position:relative;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:13px 16px 12px;box-shadow:var(--shadow-sm);overflow:hidden}
 .cv-proj::before{content:'';position:absolute;inset-block:0;inset-inline-start:0;width:4px;background:var(--green)}
 .cv-proj.is-hidden{opacity:.6}
@@ -11559,7 +11565,7 @@ function _frHero(o){
 // Hide the floating + while a screen already shows its own single button.
 function _frSyncFab(){
   const fab=document.getElementById('fabBtn'); if(!fab) return;
-  fab.classList.toggle('fr-hide', !!document.querySelector('#mainContent [data-fr-empty]'));
+  fab.classList.toggle('fr-hide', !!document.querySelector('#mainContent [data-fr-empty], #mainContent .cv-wrap'));
 }
 // My Job: the fresh hero's button reveals the normal custody screen and opens the deposit form.
 let _frCustodyOpen=false;
@@ -12345,6 +12351,40 @@ function fpInitSmartHeader(){
 .cv-wrap .cv-newprj{padding:0 10px;font-size:calc(11.5px*var(--app-text-scale,1));gap:4px}
 .cv-wrap .cv-actions{margin-top:0}
 .cv-wrap .cv-actions:first-of-type{margin-top:6px}
+/* -- My CV page: organised layout (v2) -- */
+.cv-wrap{gap:16px}
+.cv-wrap .cv-live{padding:0 2px}
+.cv-wrap>.cv-sec-row{flex-direction:column;align-items:stretch;flex-wrap:nowrap;gap:12px;margin:14px 2px 0}
+.cv-wrap>.cv-sec-row .cv-sec-t{width:100%}
+.cv-wrap>.cv-sec-row .cv-sec-t em{margin-inline-start:auto;min-width:26px;height:26px;padding:0 9px;box-sizing:border-box;border-radius:99px;background:var(--green-tint);color:var(--green);font-style:normal;font-size:calc(12px*var(--app-text-scale,1));font-weight:800;letter-spacing:0;display:inline-flex;align-items:center;justify-content:center}
+.cv-wrap>.cv-sec-row .cv-btns{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%;margin:0}
+.cv-wrap>.cv-sec-row .cv-newprj{justify-content:center;min-height:44px;padding:0 12px;border-radius:14px;gap:7px;font-size:calc(13px*var(--app-text-scale,1));font-weight:800}
+.cv-wrap>.cv-sec-row .cv-newprj:not(.alt){box-shadow:0 10px 18px -12px var(--green)}
+.cv-wrap .cv-sk{gap:0}
+.cv-wrap .cv-sk li{padding-block:9px;line-height:1.5}
+.cv-wrap .cv-sk li+li{border-top:1px solid color-mix(in srgb,var(--border) 55%,transparent)}
+.cv-wrap .cv-sk li:first-child{padding-top:0}
+.cv-wrap .cv-sk li:last-child{padding-bottom:0}
+.cv-wrap .cv-sk li::before{top:calc(9px + .6em)}
+.cv-wrap .cv-sk li:first-child::before{top:.6em}
+.cv-wrap .cv-proj-ttl b{overflow-wrap:anywhere}
+.cv-wrap .cv-proj-ttl small{margin-top:5px}
+.cv-wrap .cv-proj-ttl small span{display:block;line-height:1.4}
+.cv-wrap .cv-proj-ttl small span:first-child{font-weight:700;color:var(--text2)}
+.cv-wrap .cv-proj-ttl small span+span{margin-top:1px;font-size:calc(12px*var(--app-text-scale,1));font-weight:600;color:var(--muted)}
+.cv-lbl{margin:8px 4px -6px;font-size:calc(11.5px*var(--app-text-scale,1));font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:var(--muted)}
+/* -- My Job pages (Receipts / Custody / Attendance): calmer header + one heading level -- */
+.cx-wrap .cx-hdr-pf{gap:10px}
+.cx-wrap .cx-hdr-pf .sc-header-sub{display:none}
+.cx-wrap .cx-hdr-pf .cx-hdr-tx{flex:0 0 auto}
+.cx-wrap .cx-hdr-pf .pf-chip{margin-inline-start:auto;min-width:0;max-width:calc(100% - 118px)}
+.cx-wrap .cx-sec .cx-sh-t{font-size:calc(18px*var(--app-text-scale,1))!important;font-weight:800!important;letter-spacing:-.01em;border-inline-start:0;padding-inline-start:0}
+.cx-wrap .cx-sec .cx-sh-s{padding-inline-start:0;font-size:calc(12.5px*var(--app-text-scale,1));font-weight:600}
+.cx-wrap .cx-sec:has(.rq-hub) .cx-sh-t{font-size:calc(18px*var(--app-text-scale,1))!important}
+.cx-wrap .cx-sec .cx-sh{padding:0 2px}
+.cx-wrap .rq-more{width:38px;height:38px;border-radius:12px}
+.cx-wrap .rq-hub{border-radius:20px;border:1px solid var(--border)}
+.cx-wrap .cx-search .cx-sbox>input{border-radius:14px}
 
 
 /* ── CV row editor: roomy, auto-height, one soft card per line ── */
@@ -15460,7 +15500,7 @@ function _resetSessionTimer() {
 function _bootView(){
   try{
     const v=sessionStorage.getItem('fnr_view_v1');
-    const ok=['wsdash','quickactions','financedash','overview','banks','transactions','expenses','savings','planner','timeline','monthlyreport','bankreport','yearlyanalytics','healthdash','mylocations','reportsdash'];
+    const ok=['wsdash','quickactions','financedash','overview','banks','transactions','expenses','savings','planner','timeline','monthlyreport','bankreport','yearlyanalytics','healthdash','mylocations','reportsdash','smsimport'];
     if(v && ok.indexOf(v)>=0){
       if(v==='expenses'){ const t=sessionStorage.getItem('fnr_cxtab_v1'); if(t) window._cxLand=t; }
       return v;
@@ -15468,7 +15508,33 @@ function _bootView(){
   }catch(e){}
   return 'wsdash';
 }
-function initApp(){loadTheme();loadSavedData();runStartupMigration();loadBanks();loadHiddenBanks();loadBanksOrder();if(_autoRolloverMonths()) pickDefaultActiveMonth();loadTextSettings();GLOBAL_PROFILE.direction=lang==='ar'?'rtl':'ltr';document.documentElement.setAttribute('dir',_globalDirection());document.documentElement.setAttribute('lang',lang);renderMonthTabs();setView(_bootView());updateNavLabels();persistMeta();
+// Refresh keeps the exact place: active month + scroll position (same session only, like fnr_view_v1).
+function _bootRestoreMonth(){
+  try{
+    const sm=sessionStorage.getItem('fnr_month_v1');
+    if(sm && typeof DATA!=='undefined' && DATA[sm] && (!MONTHS_ORDER || MONTHS_ORDER.indexOf(sm)>=0)) activeMonth=sm;
+  }catch(e){}
+}
+(function(){
+  let _t=null;
+  function save(){
+    try{
+      if(!document.getElementById('app') || document.getElementById('app').style.display==='none') return;
+      sessionStorage.setItem('fnr_scroll_v1',JSON.stringify({v:currentView,y:Math.round(window.scrollY||0)}));
+    }catch(e){}
+  }
+  window.addEventListener('scroll',function(){ clearTimeout(_t); _t=setTimeout(save,150); },{passive:true});
+  window.addEventListener('pagehide',save);
+  document.addEventListener('visibilitychange',function(){ if(document.visibilityState==='hidden') save(); });
+})();
+function _bootRestoreScroll(view){
+  try{
+    const o=JSON.parse(sessionStorage.getItem('fnr_scroll_v1')||'null');
+    if(!o || o.v!==view || !(o.y>0)) return;
+    [80,300,700].forEach(function(ms){ setTimeout(function(){ if(currentView===view && Math.abs(window.scrollY-o.y)>2) window.scrollTo(0,o.y); },ms); });
+  }catch(e){}
+}
+function initApp(){loadTheme();loadSavedData();runStartupMigration();loadBanks();loadHiddenBanks();loadBanksOrder();if(_autoRolloverMonths()) pickDefaultActiveMonth();_bootRestoreMonth();try{_prjImportFromCV();}catch(e){}loadTextSettings();GLOBAL_PROFILE.direction=lang==='ar'?'rtl':'ltr';document.documentElement.setAttribute('dir',_globalDirection());document.documentElement.setAttribute('lang',lang);renderMonthTabs();{const _bv=_bootView();setView(_bv);_bootRestoreScroll(_bv);}updateNavLabels();persistMeta();
   // Auto Theme (7 PM → Dark, 6 AM → Light) — only kicked off from here,
   // not from the earlier flash-prevention loadTheme() call up top, since
   // today() and the other helpers it needs aren't defined yet at that point
@@ -15875,6 +15941,7 @@ function renderView(preserveScroll){
   // for every other, non-active month object (Yearly Analytics, Bank
   // Report, MoM comparisons), which aren't being mutated live.
   if(typeof _getBankBalanceCache!=='undefined' && DATA[activeMonth]) _getBankBalanceCache.delete(DATA[activeMonth]);
+  try{ sessionStorage.setItem('fnr_month_v1',activeMonth); }catch(e){}
   const m=DATA[activeMonth];
   document.getElementById('headerSub').textContent=MONTH_NAMES[activeMonth]||activeMonth;
   const c=document.getElementById('mainContent');
@@ -34850,14 +34917,46 @@ function _prjBarHTML(){
   return `<button type="button" class="prj-bar" onclick="_prjOpen()" aria-label="${L('Switch project','تغيير المشروع')}"><span class="prj-ic${cur.logo?' has-logo':''}">${cur.logo?bankLogoHTML(cur.logo,36,{alt:''}):ic('folder',17)}</span><span class="prj-tx"><span class="prj-lb">${L('Project','المشروع')}</span><b dir="auto">${esc(_prjName(cur))}</b></span><span class="prj-caret" aria-hidden="true"></span></button>`;
 }
 let _prjEditLogo, _prjNewLogo;
+// Projects list order = My CV order (by start date, newest first). Undated projects go last.
+function _prjSorted(){
+  try{
+    const idx={}; _cvEntries(_cvLoad()).filter(e=>e.kind==='p').forEach((e,i)=>{ idx[e.id]=i; });
+    return _PRJ.list.slice().sort((a,b)=>((a.id in idx)?idx[a.id]:9999)-((b.id in idx)?idx[b.id]:9999));
+  }catch(e){ _logErr('_prjSorted',e); return _PRJ.list.slice(); }
+}
+// Old projects saved in My CV (past jobs that have a project name) become real projects here, with their
+// dates/role/company/logo/description carried over. Idempotent; entries without a project name or whose name
+// already exists stay as plain CV jobs. CV text is unchanged (noauto keeps the hand-written lines as they are).
+function _prjImportFromCV(){
+  try{
+    const cv=_cvLoad(), ex=cv.extra||[]; if(!ex.length) return 0;
+    const used=new Set(_PRJ.list.map(x=>_prjName(x).toLowerCase())), keep=[], added=[]; let k=0;
+    ex.forEach(x=>{
+      const name=String((x&&x.project)||'').replace(/\s+/g,' ').trim();
+      if(!name||used.has(name.toLowerCase())){ keep.push(x); return; }
+      used.add(name.toLowerCase());
+      const id='p'+Date.now().toString(36)+(k++).toString(36)+Math.random().toString(36).slice(2,4);
+      const proj={id,name}; if(typeof x.logo==='string'&&x.logo) proj.logo=x.logo;
+      _PRJ.list.push(proj); added.push(id);
+      cv.projects[id]={created:Date.now(),client:x.company||'',role:x.role||'',loc:x.loc||'',from:x.from||'',to:x.to||'',desc:x.desc||'',hide:!!x.hide,noauto:true};
+    });
+    if(!added.length) return 0;
+    const undo=()=>{ _PRJ.list=_PRJ.list.filter(q=>added.indexOf(q.id)<0); _prjSave(); };
+    if(!_prjSave()){ undo(); return 0; }
+    cv.extra=keep;
+    if(!_cvSave(cv)){ undo(); return 0; }
+    return added.length;
+  }catch(e){ _logErr('_prjImportFromCV',e); return 0; }
+}
 function _prjOpen(){
+  _prjImportFromCV();
   _prjEditId=null; _prjEditLogo=undefined; _prjNewLogo=undefined; _prjRender();
   document.getElementById('modalOverlay').style.display='flex';
 }
 function _prjRender(){
   _pswOpen=null;
   const n=_PRJ.list.length;
-  const rows=_PRJ.list.map(p=>{
+  const rows=_prjSorted().map(p=>{
     const on=p.id===_PRJ.active;
     const locked=p.id===_PRJ_DEFAULT;
     if(_prjEditId===p.id){
@@ -34893,6 +34992,7 @@ function _prjRender(){
       </div>
     </div>`;
   }).join('');
+  const _cos=[]; try{ _cvEntries(_cvLoad()).forEach(e=>{ const c=String(e.company||'').trim(); if(c && !_cos.some(x=>x.toLowerCase()===c.toLowerCase())) _cos.push(c); }); }catch(e){}
   const html=`<div class="rq-modal de-sheet prj-sheet">
       <div class="modal-hdr">
         <div class="modal-hdr-icon" style="background:linear-gradient(135deg,#0f7a55,#0a5c40)">${ic('folder',22)}</div>
@@ -34906,6 +35006,8 @@ function _prjRender(){
       <details class="rq-sec prj-new"${_prjNewLogo?' open':''}><summary class="rq-sec-hdr prj-new-sum">${ic('plus',15)}<span>${L('Start a new project','ابدأ مشروعاً جديداً')}</span></summary>
         <div class="de-hint">${L('A new project starts empty: no receipts, no custody, no saved companies or plots.','المشروع الجديد يبدأ فارغاً: بدون استلامات أو عهدة أو شركات وقطع محفوظة.')}</div>
         <div class="de-addrow"><div class="field"><input type="text" id="prjNew" dir="auto" autocomplete="off" placeholder="${L('Project name','اسم المشروع')}" onkeydown="if(event.key==='Enter')_prjCreate()"></div></div>
+        <div class="de-addrow"><div class="field"><input type="text" id="prjNewCo" dir="auto" autocomplete="off" list="prjCoList" placeholder="${L('Company (optional) — same company is grouped in My CV','الشركة (اختياري) — نفس الشركة تتجمع في My CV')}"><datalist id="prjCoList">${_cos.map(c=>`<option value="${esc(c)}"></option>`).join('')}</datalist></div></div>
+        <div class="de-addrow"><div class="field"><label>${L('Start date','تاريخ البداية')}</label><input type="date" id="prjNewFrom" dir="ltr" value="${_wdpLocalISO(new Date())}"></div></div>
         <div class="prj-newlogo">
           <div id="prjNewPrev" class="bnk-custom-logo-preview">${_prjNewLogo?bankLogoHTML(_prjNewLogo,40,{alt:''}):ic('photo',16)}</div>
           <label class="bnk-custom-logo-btn">${ic('upload',13)} ${L('Upload logo (optional)','رفع شعار (اختياري)')}<input type="file" accept="image/*" style="display:none" onchange="_prjNewPick(this)"></label>
@@ -34913,9 +35015,11 @@ function _prjRender(){
         <button type="button" class="de-addbtn prj-create" onclick="_prjCreate()">${ic('plus',15)} ${L('Create','إنشاء')}</button>
       </details>
       <div class="modal-btns"><button class="mbtn save" onclick="closeModal()">${L('Done','تم')}</button></div></div>`;
-  const keep=document.getElementById('prjNew')?.value||'';
+  const keep=document.getElementById('prjNew')?.value||'', keepCo=document.getElementById('prjNewCo')?.value||'', keepFr=document.getElementById('prjNewFrom')?.value||'';
   document.getElementById('modalContent').innerHTML=`<div class="modal-handle"></div>`+html;
   const nn=document.getElementById('prjNew'); if(nn&&keep) nn.value=keep;
+  const nc=document.getElementById('prjNewCo'); if(nc&&keepCo) nc.value=keepCo;
+  const nf=document.getElementById('prjNewFrom'); if(nf&&keepFr) nf.value=keepFr;
   _prjWireSwipe();
   if(_prjEditId){ const el=document.getElementById('prjEditName'); if(el){ try{ el.focus(); el.setSelectionRange(el.value.length,el.value.length); }catch(e){} } }
 }
@@ -35044,6 +35148,18 @@ function _prjCreate(){
   if(!_prjSave()){ _PRJ.list.pop(); return; }
   _prjNewLogo=undefined;
   try{ _cvTouch(id); }catch(e){}
+  try{
+    const co=(document.getElementById('prjNewCo')?.value||'').replace(/\s+/g,' ').trim();
+    const fr=(document.getElementById('prjNewFrom')?.value||'').trim();
+    const cv=_cvLoad(), ce=cv.projects[id]||(cv.projects[id]={created:Date.now()});
+    if(co){
+      ce.client=co;
+      const prev=_cvEntries(cv).find(x=>x.id!==id && _cvCoKey(x)===co.toLowerCase());
+      if(prev){ ce.client=prev.company; if(prev.role) ce.role=prev.role; if(prev.loc) ce.loc=prev.loc; }
+    }
+    if(/^\d{4}-\d{2}-\d{2}$/.test(fr)) ce.from=fr;
+    _cvSave(cv);
+  }catch(err){ _logErr('_prjCreate:cv',err); }
   _prjSwitch(id,true);
 }
 function _prjSwitch(id,isNew){
@@ -36694,9 +36810,34 @@ function _cvLinkHref(u){
 function _cvUrlShort(s){
   return String(s==null?'':s).replace(/(?:https?:\/\/|www\.)[^\s)]+/gi,u=>{ const m=u.match(/[.,;:!?]+$/), tail=m?m[0]:''; return _cvShortLink(tail?u.slice(0,-tail.length):u)+tail; });
 }
+// Entries of the same company (case/space-insensitive) share one company card, newest project first.
+function _cvCoKey(e){ return String((e&&e.company)||'').replace(/\s+/g,' ').trim().toLowerCase(); }
+function _cvGroups(ents){
+  const out=[], idx={};
+  ents.forEach(e=>{
+    const k=_cvCoKey(e);
+    if(!k){ out.push({key:'',items:[e]}); return; }
+    if(idx[k]===undefined){ idx[k]=out.length; out.push({key:k,items:[e]}); } else out[idx[k]].items.push(e);
+  });
+  return out;
+}
+// Whole stay at a company: earliest start -> latest end (Present if any dated project is still open).
+function _cvSpan(items){
+  let from='', to='', open=false;
+  items.forEach(e=>{
+    if(e.from && (!from||e.from<from)) from=e.from;
+    if(e.from && !e.to) open=true; else if(e.to && (!to||e.to>to)) to=e.to;
+  });
+  return {from,to:open?'':to};
+}
 function _cvModel(cvIn){
   const cv=cvIn||_cvLoad(), p=cv.profile;
-  const jobs=_cvEntries(cv).filter(e=>!e.hide).map(e=>{
+  const _bul=e=>{
+    const b=String(e.desc||'').split('\n').map(x=>_cvUrlShort(x.trim())).filter(Boolean).map(t=>t.startsWith('# ')?{sub:t.slice(2).trim()}:{t});
+    if(e.st&&!e.noauto){ const a=_cvAutoCV(e.st); if(a) b.push({t:a}); }
+    return b;
+  };
+  const _one=e=>{
     const head=e.company||e.name||'';
     const company=[head,e.loc].filter(Boolean).join(', ');
     const roleLine=[e.role,e.company?e.name:''].filter(Boolean).join(' | ');
@@ -36704,6 +36845,19 @@ function _cvModel(cvIn){
     const bullets=String(e.desc||'').split('\n').map(x=>_cvUrlShort(x.trim())).filter(Boolean).map(t=>t.startsWith('# ')?{sub:t.slice(2).trim()}:{t});
     if(e.st&&!e.noauto){ const a=_cvAutoCV(e.st); if(a) bullets.push({t:a}); }
     return {company,roleLine,period,dur,bullets};
+  };
+  const jobs=_cvGroups(_cvEntries(cv).filter(e=>!e.hide)).map(g=>{
+    if(g.items.length<2) return _one(g.items[0]);
+    const f=g.items[0], pp=_cvPeriodParts(_cvSpan(g.items));
+    const roles=[]; g.items.forEach(e=>{ if(e.role && roles.indexOf(e.role)<0) roles.push(e.role); });
+    const bullets=[];
+    g.items.forEach(e=>{
+      const per=_cvPeriodParts(e).range;
+      const t=[e.name,[roles.length>1?e.role:'',per].filter(Boolean).join(', ')].filter(Boolean).join(' — ');
+      if(t) bullets.push({sub:t});
+      _bul(e).forEach(x=>bullets.push(x));
+    });
+    return {company:[f.company,f.loc].filter(Boolean).join(', '),roleLine:roles.length===1?roles[0]:'',period:pp.range,dur:pp.dur,bullets};
   }).filter(j=>j.company||j.roleLine||j.period||j.bullets.length);
   const edu=String(p.edu||'').split(/\n\s*\n/).map(b=>b.split('\n').map(x=>_cvUrlShort(x.trim())).filter(Boolean)).filter(b=>b.length);
   return {
@@ -36797,17 +36951,17 @@ function renderMyCV(){
   const sum=p.summary?`<p class="cv-sum" dir="auto">${esc(_cvClean(p.summary)).replace(/\n/g,'<br>')}</p>`:'';
   const skills=_cvList(p.skills), certs=_cvList(p.certs), langs=_cvList(p.langs);
   const edu=String(p.edu||'').split(/\n\s*\n/).map(b=>b.split('\n').map(x=>x.trim()).filter(Boolean)).filter(b=>b.length);
-  const cards=ents.map(e=>{
+  const _cardOf=e=>{
     const per=_cvPeriod(e), auto=e.noauto?[]:_cvAuto(e.st);
     const title=e.kind==='p'?e.name:(e.company||e.name||L('Past job','وظيفة سابقة'));
-    const sub=e.kind==='p'?[e.role,e.company].filter(Boolean).join(' · '):[e.role,e.name].filter(Boolean).join(' · ');
+    const subP=e.kind==='p'?[e.role,e.company].filter(Boolean):[e.role,e.name].filter(Boolean);
     const av=e.logo?`<span class="cv-logo-box"><img src="${esc(e.logo)}" alt=""></span>`:(e.kind==='p'?_prjAv({id:e.id,name:e.name},56):`<span class="de-av" style="width:56px;height:56px;font-size:23px">${esc((title||'?').charAt(0).toUpperCase())}</span>`);
     const dl=String(e.desc||'').split('\n').filter(x=>x.trim()).length;
     const edit=e.kind==='p'?`_cvEditProj('${e.id}')`:`_cvEditExtra('${e.id}')`;
     return `<article class="cv-proj tap${e.hide?' is-hidden':''}" onclick="${edit}">
       <div class="cv-proj-hd">
         <span class="cv-proj-av">${av}</span>
-        <div class="cv-proj-ttl"><b dir="auto">${esc(title)}</b><small dir="auto">${esc(sub||L('Add your role & company','أضف دورك والشركة'))}</small></div>
+        <div class="cv-proj-ttl"><b dir="auto">${esc(title)}</b><small dir="auto">${subP.length?subP.map(x=>`<span>${esc(x)}</span>`).join(''):esc(L('Add your role & company','أضف دورك والشركة'))}</small></div>
         <button type="button" class="cv-ib" onclick="event.stopPropagation();${edit}" aria-label="${L('Edit','تعديل')}">${ic('edit',15)}</button>
       </div>
       ${(per||e.loc)?`<div class="cv-proj-meta">${per?`<span>${ic('calendar',12)}<bdi>${esc(per)}</bdi></span>`:''}${e.loc?`<span>${ic('pin',12)}<bdi>${esc(e.loc)}</bdi></span>`:''}</div>`:''}
@@ -36815,6 +36969,11 @@ function renderMyCV(){
       ${auto.length?`<ul class="cv-auto">${auto.map(x=>`<li dir="auto">${esc(x)}</li>`).join('')}</ul><div class="cv-auto-tag">${ic('sparkle',11)} ${L('Auto-updated from your receipts','بيتحدّث تلقائيًا من استلاماتك')}</div>`:''}
       ${e.hide?`<div class="cv-hidden-tag">${ic('eyeoff',12)} ${L('Hidden from the CV','مخفي من السيرة الذاتية')}</div>`:''}
     </article>`;
+  };
+  const cards=_cvGroups(ents).map(g=>{
+    if(g.items.length<2) return _cardOf(g.items[0]);
+    const f=g.items[0], sp=_cvPeriod(_cvSpan(g.items));
+    return `<div class="cv-co-grp"><div class="cv-co-hd"><b dir="auto">${esc(f.company)}</b><small>${sp?`<bdi>${esc(sp)}</bdi> \u00b7 `:''}${g.items.length} ${L('projects','مشاريع')}</small></div>${g.items.map(_cardOf).join('')}</div>`;
   }).join('');
   return `<div class="screen-wrap cx-wrap cv-wrap">
   ${_pgHdr('Site','الموقع','My Job','My Job','Receipts log and custody money','سجل الاستلامات وفلوس العهدة')}
@@ -36833,12 +36992,13 @@ function renderMyCV(){
   </section>
   ${secCard('sum','cv','Summary','النبذة',sum,'Add a short summary','أضف نبذة عنك')}
   ${secCard('skills','hammer','Core skills','المهارات الأساسية',skills.length?`<ul class="cv-sk">${skills.map(x=>`<li dir="auto">${esc(x)}</li>`).join('')}</ul>`:'','Add your core skills','أضف مهاراتك')}
-  <div class="cv-sec-row"><span class="cv-sec-t">${ic('briefcase',15)}<span>${L('Work experience','الخبرة العملية')}</span></span>
+  <div class="cv-sec-row"><span class="cv-sec-t">${ic('briefcase',15)}<span>${L('Work experience','الخبرة العملية')}</span><em>${ents.length}</em></span>
     <span class="cv-btns"><button type="button" class="cv-newprj alt" onclick="_cvEditExtra(null)">${ic('plus',14)} ${L('Past job','وظيفة سابقة')}</button><button type="button" class="cv-newprj" onclick="_prjOpen()">${ic('plus',14)} ${L('New project','مشروع جديد')}</button></span></div>
   <div class="cv-projs">${cards}</div>
   ${secCard('edu','grad','Education','التعليم',edu.length?edu.map(b=>`<div class="cv-ed"><b dir="auto">${esc(b[0])}</b>${b.slice(1).map(x=>`<div dir="auto">${esc(x)}</div>`).join('')}</div>`).join(''):'','Add your education','أضف تعليمك')}
   ${secCard('certs','star','Certifications & training','الشهادات والتدريب',certs.length?`<ul class="cv-ul">${certs.map(x=>`<li dir="auto">${esc(x)}</li>`).join('')}</ul>`:'','Add certifications & training','أضف الشهادات والتدريب')}
   ${secCard('langs','languages','Languages','اللغات',langs.length?`<p class="cv-langs" dir="auto">${langs.map(x=>esc(x)).join('<i>·</i>')}</p>`:'','Add your languages','أضف لغاتك')}
+  <div class="cv-lbl">${L('Export & design','التصدير والتصميم')}</div>
   <div class="cv-actions"><button type="button" class="cv-btn" style="grid-column:1/-1" onclick="cvPreview(false,true)">${ic('sparkle',16)} ${L('CV design & photo','تصميم السيرة والصورة')}</button></div>
   <div class="cv-actions">
     <button type="button" class="cv-btn primary" onclick="cvPreview(false)">${ic('eye',16)} ${L('Preview CV','معاينة السيرة')}</button>
@@ -37060,6 +37220,7 @@ function _cvSaveExtra(id){
   const i=cv.extra.findIndex(r=>r.id===rec.id);
   if(i>=0) cv.extra[i]=rec; else cv.extra.push(rec);
   if(!_cvSave(cv)) return;
+  _prjImportFromCV();
   try{ closeModal(); }catch(e){}
   try{ renderView(); }catch(e){ _logErr('_cvSaveExtra',e); }
   showToast(L('CV updated','تم تحديث السيرة الذاتية'),'success');
@@ -37457,6 +37618,7 @@ function cvImport(inp){
         cv.projects[p.id]=Object.assign({},o,{client:s.client||o.client||'',role:s.role||o.role||'',loc:s.loc||o.loc||'',from:s.from||o.from||'',to:s.to||o.to||'',desc:s.desc||o.desc||'',noauto:!!s.noauto}); matched++;
       });
       if(!_cvSave(cv)) return;
+      _prjImportFromCV();
       try{ renderView(); }catch(e){}
       showToast(L(`CV data imported · ${added} past job${added===1?'':'s'}${matched?`, ${matched} project${matched===1?'':'s'}`:''}`,`تم استيراد بيانات السيرة · ${added} وظيفة سابقة${matched?`، ${matched} مشروع`:''}`),'success');
       if(miss.length) setTimeout(()=>showToast(L('No project named: ','مفيش مشروع باسم: ')+miss.join(', ')+L(' — create it, then import again',' — أنشئه وبعدين استورد تاني'),'warn'),600);
