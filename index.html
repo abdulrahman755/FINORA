@@ -12663,6 +12663,24 @@ function fpInitSmartHeader(){
 .cx-tabs.v2 .cx-seg-btn svg{opacity:.75}
 .cx-tabs.v2 .cx-seg-btn.on svg{opacity:1}
 [data-theme="dark"] .pf-bar.on{background:color-mix(in srgb,var(--green) 14%,var(--surface))}
+
+/* ── simpler Profile: light hero + compact profile bar ── */
+.pf-bar{display:inline-flex;padding:6px 12px 6px 6px;gap:10px;border-radius:999px;width:auto;max-width:100%;align-self:flex-start;box-shadow:none;background:var(--surface2)}
+.pf-bar b{flex:0 1 auto;min-width:0;font-size:calc(13px*var(--app-text-scale,1));font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pf-av{width:30px;height:30px;font-size:13px;box-shadow:0 0 0 1.5px var(--surface),0 0 0 3px #C9A24B}
+.cx-tabs.v2 .cx-seg-btn{height:50px}
+.jp-hero.v2{background:var(--surface);color:var(--text);border:1px solid var(--border);box-shadow:var(--shadow-sm);padding:16px 16px 14px}
+.jp-hero.v2 .jp-ph{width:68px;height:68px}
+.jp-hero.v2 .jp-ph-in{background:var(--green-tint);color:var(--green)}
+.jp-hero.v2 .jp-cam{background:var(--green);color:#fff;border-color:var(--surface)}
+.jp-hero.v2 .jp-nm{font-size:calc(18px*var(--app-text-scale,1));color:var(--text)}
+.jp-hero.v2 .jp-tt{color:var(--muted);margin-top:4px}
+.jp-hero.v2 .jp-edit{background:var(--surface2);border-color:var(--border);color:var(--text2);top:-2px}
+.jp-hero.v2 .jp-hero-bot{border-top-color:var(--border);margin-top:14px}
+.jp-hero.v2 .jp-chip+.jp-chip{border-inline-start-color:var(--border)}
+.jp-hero.v2 .jp-chip small{color:var(--muted)}
+.jp-hero.v2 .jp-chip b{color:var(--text)}
+.jp-rtx b.empty{padding:0;margin:0;min-height:0;text-align:start;display:block;background:none;border:0}
 </style>
 </head>
 <body>
@@ -35219,15 +35237,11 @@ async function _rqRunTranslate(id,targetLang){
 }
 
 function _cxProfileBarHTML(){
-  let p={name:'',title:'',company:'',photo:''}, co='', tt='';
-  try{
-    p=_jpLoad(); co=p.company; tt=p.title;
-    if(_caState()==='ok'){ const e=_caCur(_caLoad()).emp; if(e){ co=e.company; tt=e.title; } }
-  }catch(e){}
+  if(_cxTab==='profile') return '';
+  let p={name:'',photo:''};
+  try{ p=_jpLoad(); }catch(e){}
   const ini=(p.name||'').trim().charAt(0).toUpperCase();
-  const sub=[tt,co].filter(Boolean).join(' · ');
-  const on=_cxTab==='profile';
-  return `<button type="button" class="pf-bar${on?' on':''}" onclick="_cxSetTab('profile')" aria-label="${L('My profile','ملفي الشخصي')}" aria-current="${on?'page':'false'}"><span class="pf-av">${p.photo?`<img src="${p.photo}" alt="">`:(ini?esc(ini):ic('id',17))}</span><span class="prj-tx"><span class="prj-lb">${L('Profile','الملف الشخصي')}</span><b dir="auto">${p.name?esc(p.name):L('Add your name','أضف اسمك')}</b>${sub?`<span class="pf-sub" dir="auto">${esc(sub)}</span>`:''}</span><span class="pf-go">${ic('chevron',15)}</span></button>`;
+  return `<button type="button" class="pf-bar" onclick="_cxSetTab('profile')" aria-label="${L('My profile','ملفي الشخصي')}"><span class="pf-av">${p.photo?`<img src="${p.photo}" alt="">`:(ini?esc(ini):ic('id',16))}</span><b dir="auto">${p.name?esc(p.name):L('My profile','ملفي الشخصي')}</b><span class="pf-go">${ic('chevron',14)}</span></button>`;
 }
 function _cxTabsHTML(){
   const t=(k,lbl,icn)=>`<button type="button" role="tab" class="cx-seg-btn${_cxTab===k?' on':''}" aria-selected="${_cxTab===k?'true':'false'}" onclick="_cxSetTab('${k}')">${ic(icn,18)}<span>${lbl}</span></button>`;
@@ -35236,7 +35250,7 @@ function _cxTabsHTML(){
 function _cxSetTab(k){
   const nk=(k==='requests'||k==='attendance'||k==='cv'||k==='profile')?k:'custody';
   if(nk===_cxTab) return;
-  _cxTab=nk; searchQ=''; _jpShowId=false;
+  _cxTab=nk; searchQ=''; _jpShowId=false; _jpPwShown={};
   renderView();
   try{ requestAnimationFrame(()=>{ const b=document.querySelector('.cx-tabs .cx-seg-btn.on'); if(b&&b.scrollIntoView) b.scrollIntoView({inline:'center',block:'nearest'}); }); }catch(e){}
 }
@@ -35249,13 +35263,13 @@ function _cxSetTab(k){
 // touches no finance / receipts / attendance data.
 // ══════════════════════════════════════════════════════════════════════════
 const _JP_KEY='wdp_jobprofile_v1';
-let _jpScope='month', _jpShowId=false, _jpEditId=null;
+let _jpScope='month', _jpShowId=false, _jpEditId=null, _jpPwShown={};
 function _jpLoad(){
-  const o={name:'',title:'',company:'',nid:'',email:'',medEmail:'',code:'',start:'',photo:'',custody:[]};
+  const o={name:'',title:'',company:'',nid:'',email:'',medEmail:'',emailPw:'',medPw:'',code:'',start:'',photo:'',custody:[]};
   try{
     const p=JSON.parse(localStorage.getItem(_JP_KEY)||'null');
     if(p&&typeof p==='object'){
-      ['name','title','company','nid','email','medEmail','code','start'].forEach(k=>{ o[k]=String(p[k]||''); });
+      ['name','title','company','nid','email','medEmail','emailPw','medPw','code','start'].forEach(k=>{ o[k]=String(p[k]||''); });
       o.photo=/^data:image\//.test(p.photo||'')?p.photo:'';
       if(Array.isArray(p.custody)) o.custody=p.custody.filter(x=>x&&typeof x==='object').map(x=>({id:String(x.id||''),name:String(x.name||''),note:String(x.note||''),date:String(x.date||'')}));
     }
@@ -35307,7 +35321,7 @@ function _jpCopy(btn){
 function _jpMask(v){ const s=String(v||''); return s.length>4?'•'.repeat(Math.max(s.length-4,4))+s.slice(-4):s; }
 function _jpToggleId(){
   _jpShowId=!_jpShowId;
-  const p=_jpLoad(), el=document.getElementById('jpNid'), b=document.getElementById('jpNidEye');
+  const p=_jpLoad(), el=document.getElementById('jpNidShow'), b=document.getElementById('jpNidEye');
   if(el) el.textContent=_jpShowId?p.nid:_jpMask(p.nid);
   if(b) b.innerHTML=ic(_jpShowId?'eyeoff':'eye',15);
 }
@@ -36029,27 +36043,26 @@ function renderJobProfile(){
   let prj=''; if(hist){ prj=A?A.name:''; } else { try{ prj=_prjName(_prjCur()); }catch(e){} }
   const ini=(p.name||'').trim().charAt(0).toUpperCase();
   const nidShown=p.nid?(_jpShowId?p.nid:_jpMask(p.nid)):'';
-  const nidRow=_jpRow('id',L('National ID','الرقم القومي'),p.nid?`<b><bdi dir="ltr" id="jpNid">${esc(nidShown)}</bdi></b>`:_jpVal(''),
+  const nidRow=_jpRow('id',L('National ID','الرقم القومي'),p.nid?`<b><bdi dir="ltr" id="jpNidShow">${esc(nidShown)}</bdi></b>`:_jpVal(''),
     p.nid?`<button type="button" class="jp-rb" id="jpNidEye" onclick="_jpToggleId()" aria-label="${L('Show / hide','إظهار / إخفاء')}">${ic(_jpShowId?'eyeoff':'eye',15)}</button>${_jpCopyBtn(p.nid)}`:'');
   const prjVal=hist&&A?`<b dir="auto">${esc(A.name)}</b>${(A.location||A.start)?`<small style="margin:3px 0 0" dir="auto">${esc([A.location,A.start?L('since ','من ')+_jpDate(A.start):''].filter(Boolean).join(' · '))}</small>`:''}`:_jpVal(prj);
   const manageSub=cs==='ok'?L('Move between projects & companies — history is kept','انتقال بين المشروعات والشركات — والتاريخ محفوظ'):(cs==='bad'?L('History data needs attention','بيانات السجل محتاجة مراجعة'):L('Start your work history','ابدأ السجل الوظيفي'));
   const sameMail=!!email&&!!medEmail&&email.trim().toLowerCase()===medEmail.trim().toLowerCase();
   const mailRows=sameMail
-    ?_jpRow('mail',L('Company & medical-insurance e-mail','إيميل الشركة والتأمين الطبي'),_jpVal(email,true),_jpCopyBtn(email))
-    :_jpRow('mail',L('Company e-mail','إيميل الشركة'),_jpVal(email,true),_jpCopyBtn(email))+_jpRow('shield',L('Medical insurance e-mail','إيميل التأمين الطبي'),_jpVal(medEmail,true),_jpCopyBtn(medEmail));
+    ?_jpRow('mail',L('Company & medical-insurance e-mail','إيميل الشركة والتأمين الطبي'),_jpVal(email,true),_jpCopyBtn(email))+_jpPwRow('emailPw',L('E-mail password','باسورد الإيميل'))
+    :_jpRow('mail',L('Company e-mail','إيميل الشركة'),_jpVal(email,true),_jpCopyBtn(email))+_jpPwRow('emailPw',L('Company e-mail password','باسورد إيميل الشركة'))+_jpRow('shield',L('Medical insurance e-mail','إيميل التأمين الطبي'),_jpVal(medEmail,true),_jpCopyBtn(medEmail))+_jpPwRow('medPw',L('Medical insurance e-mail password','باسورد إيميل التأمين الطبي'));
   const joinedRow=_jpRow('join',L('Joined','تاريخ الالتحاق'),start?`<b dir="auto">${esc(_jpDate(start))}</b>`:_jpVal(''));
   return `<div class="screen-wrap cx-wrap jp-wrap">
   ${_pgHdr('Site','الموقع','My Job','My Job','Your work profile and attendance','بياناتك الوظيفية والحضور')}
   ${_prjBarHTML()}
   ${_cxTabsHTML()}
-  <section class="jp-hero">
+  <section class="jp-hero v2">
     <button type="button" class="jp-edit" onclick="_jpEditProfile()" aria-label="${L('Edit','تعديل')}">${ic('edit',15)}</button>
     <div class="jp-hero-top">
-      <label class="jp-ph" for="jpPhotoIn" aria-label="${L('Change photo','تغيير الصورة')}"><span class="jp-ph-in">${p.photo?`<img src="${p.photo}" alt="">`:(ini?esc(ini):ic('photo',26))}</span><span class="jp-cam">${ic('photo',13)}</span></label>
+      <label class="jp-ph" for="jpPhotoIn" aria-label="${L('Change photo','تغيير الصورة')}"><span class="jp-ph-in">${p.photo?`<img src="${p.photo}" alt="">`:(ini?esc(ini):ic('photo',26))}</span><span class="jp-cam">${ic('photo',12)}</span></label>
       <input type="file" id="jpPhotoIn" accept="image/*" style="display:none" onchange="_jpPhotoPick(this)">
       <div class="jp-id" style="padding-inline-end:36px"><div class="jp-nm" dir="auto">${p.name?esc(p.name):L('Add your name','أضف اسمك')}</div>
-        ${title?`<div class="jp-tt" dir="auto">${esc(title)}</div>`:''}
-        ${company?`<div class="jp-co">${ic('building',13)}<span dir="auto">${esc(company)}</span></div>`:''}</div>
+        ${(title||company)?`<div class="jp-tt" dir="auto">${esc([title,company].filter(Boolean).join(' · '))}</div>`:''}</div>
     </div>
     <div class="jp-hero-bot">
       <div class="jp-chip"><small>${L('EMPLOYEE CODE','كود التوظيف')}</small><b dir="ltr" style="text-align:start">${code?esc(code):'—'}</b></div>
@@ -36079,15 +36092,42 @@ function _jpSheet(icon,title,sub,body,saveFn,delFn){
     <div class="modal-btns"><button class="mbtn cancel" onclick="closeModal()">${L('Cancel','إلغاء')}</button><button class="mbtn save" onclick="${saveFn}">${L('Save','حفظ')}</button></div></div>`;
   document.getElementById('modalOverlay').style.display='flex';
 }
+function _jpPwGet(f){ const p=_jpLoad(); return p[f]||(f==='emailPw'?p.medPw:''); }
+function _jpPwRow(f,label){
+  const v=_jpPwGet(f); if(!v) return '';
+  const on=!!_jpPwShown[f];
+  return _jpRow('key',label,`<b><bdi dir="ltr" id="jpPwV_${f}">${on?esc(v):'••••••••'}</bdi></b>`,
+    `<button type="button" class="jp-rb" id="jpPwEye_${f}" onclick="_jpTogglePw('${f}')" aria-label="${L('Show / hide','إظهار / إخفاء')}">${ic(on?'eyeoff':'eye',15)}</button><button type="button" class="jp-rb" onclick="_jpCopyPw('${f}')" aria-label="${L('Copy','نسخ')}">${ic('copy',15)}</button>`);
+}
+function _jpTogglePw(f){
+  _jpPwShown[f]=!_jpPwShown[f];
+  const el=document.getElementById('jpPwV_'+f), b=document.getElementById('jpPwEye_'+f);
+  if(el) el.textContent=_jpPwShown[f]?_jpPwGet(f):'••••••••';
+  if(b) b.innerHTML=ic(_jpPwShown[f]?'eyeoff':'eye',15);
+}
+function _jpCopyPw(f){ const v=_jpPwGet(f); if(v) _jpCopy({getAttribute:()=>v}); }
+function _jpMails(){
+  const p=_jpLoad(); let e=p.email, m=p.medEmail;
+  try{ if(_caState()==='ok'){ const cu=_caCur(_caLoad()).emp; if(cu){ e=cu.email; m=cu.medEmail; } } }catch(x){}
+  return {e:e||'',m:m||'',same:!!e&&!!m&&e.trim().toLowerCase()===m.trim().toLowerCase()};
+}
+function _jpPwFields(p){
+  const M=_jpMails();
+  return (M.same
+    ?_cvField('jpPwCo',L('E-mail password','باسورد الإيميل'),p.emailPw||p.medPw,{type:'password',dir:'ltr'})
+    :_cvField('jpPwCo',L('Company e-mail password','باسورد إيميل الشركة'),p.emailPw,{type:'password',dir:'ltr'})+_cvField('jpPwMd',L('Medical insurance e-mail password','باسورد إيميل التأمين الطبي'),p.medPw,{type:'password',dir:'ltr'}))
+    +`<div class="ca-note small">${ic('lock',14)} ${L('Passwords are kept on this device only and are not encrypted — do not store anything critical here.','الباسوردات متخزنة على الجهاز ده بس ومش مشفرة — متحطش هنا حاجة حساسة جدًا.')}</div>`;
+}
 function _jpEditProfile(){
   const p=_jpLoad(), att=_jpAtt();
-  if(_caState()==='ok'){
-    const cu=_caCur(_caLoad());
+  if(_caState()!=='bad'){
+    const cu=_caState()==='ok'?_caCur(_caLoad()):{emp:null};
     _jpSheet('id',L('My profile','بياناتي'),L('Stored on this device only','متخزنة على الجهاز ده بس'),
       _cvField('jpName',L('Full name','الاسم بالكامل'),p.name)+
       _cvField('jpNid',L('National ID','الرقم القومي'),p.nid,{dir:'ltr',type:'tel',ph:'14 digits'})+
+_jpPwFields(p)+
       `<div class="ca-note small">${L('Company, title, employee code and e-mails belong to the employment period, so they are edited there.','الشركة والمسمى والكود والإيميلات تابعة لفترة التوظيف، فبتتعدل من هناك.')}</div>`+
-      (cu.emp?`<button type="button" class="jp-link" style="margin:0 0 10px" onclick="_caDetail('e','${cu.emp.id}')">${ic('building',15)} ${L('Open current employment','فتح فترة التوظيف الحالية')}</button>`:'')+
+      (cu.emp?`<button type="button" class="jp-link" style="margin:0 0 10px" onclick="_caDetail('e','${cu.emp.id}')">${ic('building',15)} ${L('Open current employment','فتح فترة التوظيف الحالية')}</button>`:`<button type="button" class="jp-link" style="margin:0 0 10px" onclick="_caManageOpen()">${ic('briefcase',15)} ${L('Edit job details','تعديل بيانات الشغل')}</button>`)+
       (p.photo?`<button type="button" class="jp-photo-rm" onclick="_jpPhotoRemove()">${ic('trash',14)} ${L('Remove photo','حذف الصورة')}</button>`:''),
       '_jpSaveProfile()');
     return;
@@ -36097,6 +36137,7 @@ function _jpEditProfile(){
     _cvField('jpTitle',L('Job title','المسمى الوظيفي'),p.title,{ph:L('e.g. Site Civil Engineer','مثال: مهندس مدني موقع')})+
     _cvField('jpCompany',L('Company','الشركة'),p.company||att.company)+
     _cvField('jpNid',L('National ID','الرقم القومي'),p.nid,{dir:'ltr',type:'tel',ph:'14 digits'})+
+_jpPwFields(p)+
     _cvField('jpEmail',L('Company e-mail','إيميل الشركة'),p.email,{type:'email',dir:'ltr'})+
     _cvField('jpMed',L('Medical insurance e-mail','إيميل التأمين الطبي'),p.medEmail,{type:'email',dir:'ltr'})+
     `<div class="cv-2col">${_cvField('jpCode',L('Employee code','كود التوظيف'),p.code,{dir:'ltr'})}${_cvField('jpStart',L('Joining date','تاريخ الالتحاق'),p.start||att.hire,{type:'date',dir:'ltr'})}</div>`+
@@ -36104,8 +36145,10 @@ function _jpEditProfile(){
     '_jpSaveProfile()');
 }
 function _jpSaveProfile(){
-  const g=id=>(document.getElementById(id)?.value||'').trim(), p=_jpLoad();
-  if(_caState()==='ok'){ p.name=g('jpName'); p.nid=g('jpNid').replace(/\s+/g,''); }
+  const g=id=>((document.querySelector('input#'+id+',textarea#'+id))?.value||'').trim(), p=_jpLoad();
+  const _co=document.querySelector('input#jpPwCo'), _md=document.querySelector('input#jpPwMd');
+  if(_co){ p.emailPw=_co.value; p.medPw=_md?_md.value:_co.value; }
+  if(_caState()!=='bad'){ p.name=g('jpName'); p.nid=g('jpNid').replace(/\s+/g,''); }
   else{ p.name=g('jpName'); p.title=g('jpTitle'); p.company=g('jpCompany'); p.nid=g('jpNid').replace(/\s+/g,''); p.email=g('jpEmail'); p.medEmail=g('jpMed'); p.code=g('jpCode'); p.start=g('jpStart'); }
   if(!_jpSave(p)) return;
   try{ closeModal(); }catch(e){}
