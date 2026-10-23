@@ -15185,8 +15185,17 @@ loadCustomPin();
 loadLockEnabled();
 loadCurrency();
 // balanceVisible: defaults to true for any key
+// Balance privacy (Accounts screen): a persisted master switch + persisted per-account hide flags.
+// Keys start with wdp_bank_ so they are included in backups under "Banks & Accounts".
+const _BNK_HIDE_ALL_KEY='wdp_bank_hide_all_v1', _BNK_HIDDEN_KEY='wdp_bank_bal_hidden_v1';
+let _bnkHideAll=false, _bnkHiddenMap={}; const _bnkReveal=new Set();
+try{ _bnkHideAll=localStorage.getItem(_BNK_HIDE_ALL_KEY)==='1'; }catch(e){}
+try{ const _h=JSON.parse(localStorage.getItem(_BNK_HIDDEN_KEY)||'{}'); if(_h&&typeof _h==='object') _bnkHiddenMap=_h; }catch(e){}
 const _balVisRaw={};
-const balanceVisible=new Proxy(_balVisRaw,{get(t,k){return k in t?t[k]:true;},set(t,k,v){t[k]=v;return true;}});
+const balanceVisible=new Proxy(_balVisRaw,{
+  get(t,k){ if(typeof k!=='string') return true; return _bnkHideAll ? _bnkReveal.has(k) : !_bnkHiddenMap[k]; },
+  set(t,k,v){ return true; }
+});
 
 // ── Language ──────────────────────────────────────────────────────────────────
 function L(en,ar){return lang==='ar'?ar:en;}
@@ -28753,7 +28762,7 @@ function renderBanks(m){
             </div>
           </div>
         </div>
-        <div class="bnk-card-balance-lbl" style="${cardMutedFg?'color:'+cardMutedFg:''}">${L('Balance','الرصيد')}</div>
+        <div class="bnk-card-balance-lbl" style="display:flex;align-items:center;justify-content:space-between;${cardMutedFg?'color:'+cardMutedFg:''}"><span>${L('Balance','الرصيد')}</span><button type="button" class="bnk-eye" onclick="event.stopPropagation();toggleBal('${b.key}')" aria-label="${vis?L('Hide Balance','إخفاء الرصيد'):L('Show Balance','إظهار الرصيد')}">${eyeSVG(vis)}</button></div>
         <div class="bnk-card-balance ${vis?'':'hidden'}" style="${cardAutoFg?'color:'+cardAutoFg:''}">${vis?sigNumHTML(bal,{flat:true}):'● ● ● ●'}</div>
         <div class="bnk-card-lasttx" style="${cardMutedFg?'color:'+cardMutedFg:''}">${ic('clock',11,'aria-hidden="true"')} ${lastMoveText}</div>
       </div>
@@ -28941,7 +28950,9 @@ function renderBanks(m){
   const _depPct = _flowTotal>0 ? Math.round((_aggDep/_flowTotal)*100) : 0;
   const _withPct = _flowTotal>0 ? 100-_depPct : 0;
 
-  return `<div class="screen-wrap banks-v2">
+  const _hideAll=_bnkHideAll;
+  const _mask='<span class="bnk-mask" aria-label="hidden">● ● ● ●</span>';
+  return `<div class="screen-wrap banks-v2${_hideAll?' bnk-privacy':''}">
 ${_pgHdr('Finance','المالية','Accounts','الحسابات','Banks and e-wallets: balances and movements','البنوك والمحافظ: الأرصدة والحركة')}
 
   <!-- 1. HERO ─────────────────────────────────────────────────── -->
@@ -28949,10 +28960,13 @@ ${_pgHdr('Finance','المالية','Accounts','الحسابات','Banks and e-w
     <div class="bnk-hero-glass-sheen"></div>
     <div class="bnk-hero-top-row">
       <div class="bnk-hero-eyebrow">${L('Banks & Wallets','البنوك والمحافظ')}</div>
-      <div class="bnk-hero-month-pill">${esc(_monthDisplayLabel(activeMonth))}</div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <button type="button" class="bnk-hero-eye" onclick="bnkToggleHideAll()" aria-pressed="${_hideAll}" aria-label="${_hideAll?L('Show all balances','إظهار كل الأرصدة'):L('Hide all balances','إخفاء كل الأرصدة')}">${eyeSVG(!_hideAll)}<span>${_hideAll?L('Show','إظهار'):L('Hide','إخفاء')}</span></button>
+        <div class="bnk-hero-month-pill">${esc(_monthDisplayLabel(activeMonth))}</div>
+      </div>
     </div>
     <div class="bnk-hero-total-lbl">${L('Banks Balance','رصيد البنوك')}</div>
-    <div class="bnk-hero-total">${sigNumHTML(totalBanks)}</div>
+    <div class="bnk-hero-total">${_hideAll?_mask:sigNumHTML(totalBanks)}</div>
     ${wallets.length?`<div class="bnk-hero-wallets" style="position:relative;z-index:1;font-size:calc(11.5px*var(--app-text-scale,1));font-weight:700;color:var(--muted);margin-top:4px">${L('Wallets','المحافظ')}: ${fmt(totalWallets)} ${curLabel()}</div>`:''}
     <div class="bnk-hero-row">
       ${changeInfo?`<div class="bnk-hero-chip ${changeInfo.delta>=0?'up':'down'}">
@@ -31773,7 +31787,19 @@ function saveBankMoveEdit(bank,id){
 }
 
 function toggleBal(bank){
-  balanceVisible[bank]=!balanceVisible[bank];
+  if(_bnkHideAll){
+    // master switch is on: tapping an account only peeks at that one (not saved)
+    _bnkReveal.has(bank)?_bnkReveal.delete(bank):_bnkReveal.add(bank);
+  } else {
+    if(_bnkHiddenMap[bank]) delete _bnkHiddenMap[bank]; else _bnkHiddenMap[bank]=true;
+    try{ localStorage.setItem(_BNK_HIDDEN_KEY,JSON.stringify(_bnkHiddenMap)); }catch(e){}
+  }
+  renderView();
+}
+function bnkToggleHideAll(){
+  _bnkHideAll=!_bnkHideAll; _bnkReveal.clear();
+  try{ localStorage.setItem(_BNK_HIDE_ALL_KEY,_bnkHideAll?'1':'0'); }catch(e){}
+  try{ showToast(_bnkHideAll?L('Balances hidden','تم إخفاء الأرصدة'):L('Balances shown','تم إظهار الأرصدة'),'info'); }catch(e){}
   renderView();
 }
 
@@ -49511,6 +49537,19 @@ function exportToPDF(){
     .body{padding:var(--sp3)}
     .section{box-shadow:none;border:1px solid #e5e7eb}
   }
+</style>
+<style id="bnkPrivacyCss">
+.banks-v2 .bnk-hero-eye{display:inline-flex;align-items:center;gap:5px;height:26px;padding:0 10px;border-radius:999px;border:0;background:var(--surface2);color:var(--muted);font:inherit;font-size:calc(10px*var(--app-text-scale,1));font-weight:800;cursor:pointer}
+.banks-v2 .bnk-hero-eye svg{width:14px;height:14px}
+.banks-v2 .bnk-hero-eye:active{transform:scale(.95)}
+.banks-v2 .bnk-eye{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;margin:-6px -4px -6px 0;border:0;background:transparent;color:inherit;opacity:.8;border-radius:50%;cursor:pointer;-webkit-tap-highlight-color:transparent}
+[dir="rtl"] .banks-v2 .bnk-eye{margin:-6px 0 -6px -4px}
+.banks-v2 .bnk-eye:active{background:rgba(128,128,128,.18)}
+.banks-v2 .bnk-eye svg{width:17px;height:17px}
+.banks-v2 .bnk-mask{letter-spacing:4px;opacity:.7}
+.bnk-privacy .bnk-hero-wallets,.bnk-privacy .bnk-hero-chip span,.bnk-privacy .bnk-sec-sum,.bnk-privacy .bnk-tl-amt,
+.bnk-privacy .bnk-analytics-chip,.bnk-privacy .bnk-donut-legend-item,.bnk-privacy .bnk-analytics-stat:not(.bnk-analytics-stat-top) .bnk-analytics-stat-val,
+.bnk-privacy .bnk-mv-list [class*="amt"],.bnk-privacy .bnk-mv-list [class*="amount"]{filter:blur(7px);-webkit-user-select:none;user-select:none;pointer-events:none}
 </style>
 </head>
 <body>
