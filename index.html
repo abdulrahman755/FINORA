@@ -12290,6 +12290,62 @@ function fpInitSmartHeader(){
 .cv-wrap .cv-actions .cv-btn:not(.primary){background:var(--surface);border:1px solid var(--border);color:var(--text2);box-shadow:var(--shadow-xs)}
 .cv-wrap .cv-prev-top{box-shadow:0 8px 16px -8px var(--green)}
 .cv-wrap{padding-bottom:calc(env(safe-area-inset-bottom,0px) + 110px)}
+/* ── My CV: tidy, consistent layout (identity card, section cards, experience) ── */
+.cv-wrap{gap:14px}
+.cv-wrap .cv-card,.cv-wrap .cv-proj{margin-bottom:0;border-radius:20px;padding:16px;box-shadow:0 1px 2px rgba(16,24,40,.05),0 10px 24px -18px rgba(16,24,40,.22)}
+[data-theme="dark"] .cv-wrap .cv-card,[data-theme="dark"] .cv-wrap .cv-proj{box-shadow:0 1px 2px rgba(0,0,0,.4),0 10px 24px -18px rgba(0,0,0,.7)}
+.cv-wrap .cv-projs{gap:12px}
+.cv-wrap .cv-live{padding:0 2px 2px}
+/* identity card */
+.cv-wrap .cv-prof{padding:18px 16px 8px}
+.cv-wrap .cv-prof-top{align-items:flex-start;gap:14px}
+.cv-wrap .cv-av{width:64px;height:64px;border-radius:50%;padding:2.5px;background:linear-gradient(135deg,#E6CF93,#B28A35);box-shadow:none;overflow:hidden;box-sizing:border-box;font-size:calc(24px*var(--app-text-scale,1))}
+.cv-wrap .cv-av img{border-radius:50%!important;border:2px solid var(--surface);box-sizing:border-box}
+.cv-wrap .cv-prof-id{gap:6px;padding-top:2px}
+.cv-wrap .cv-prof-id b{font-size:calc(17px*var(--app-text-scale,1));font-weight:800;line-height:1.3;letter-spacing:0;overflow-wrap:anywhere}
+.cv-wrap .cv-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px}
+.cv-wrap .cv-prof-top{align-items:center}
+.cv-wrap .cv-tags span{display:inline-block;padding:3px 9px;border-radius:99px;background:var(--green-tint);color:var(--green);font-size:calc(11.5px*var(--app-text-scale,1));font-weight:700;line-height:1.35}
+[data-theme="dark"] .cv-wrap .cv-tags span{background:color-mix(in srgb,var(--green) 18%,var(--surface));color:#6fe0ae}
+.cv-wrap .cv-prof-id small{margin-top:0;color:var(--green);font-weight:700}
+.cv-wrap .cv-cts.rows{display:block;margin-top:14px;padding-top:0;border-top:1px solid color-mix(in srgb,var(--border) 70%,transparent)}
+.cv-wrap .cv-ct-r{display:flex;align-items:center;gap:12px;min-height:46px;padding:6px 0;color:var(--text2);text-decoration:none;font-size:calc(13px*var(--app-text-scale,1));font-weight:600;-webkit-tap-highlight-color:transparent}
+.cv-wrap .cv-ct-r+.cv-ct-r{border-top:1px solid color-mix(in srgb,var(--border) 55%,transparent)}
+.cv-wrap a.cv-ct-r:active{opacity:.7}
+.cv-wrap .cv-ci{flex:none;width:30px;height:30px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:var(--green-tint);color:var(--green)}
+.cv-wrap .cv-ct-r bdi{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:start}
+/* section cards */
+.cv-wrap .cv-sc .cv-sec-row{margin:0 0 12px;padding-bottom:10px;border-bottom:1px solid color-mix(in srgb,var(--border) 60%,transparent)}
+.cv-wrap .cv-sec-t{gap:10px;font-size:calc(12px*var(--app-text-scale,1));letter-spacing:.8px;color:var(--text2)}
+.cv-wrap .cv-sec-t svg{width:30px;height:30px;padding:7px;box-sizing:border-box;border-radius:10px;background:var(--green-tint);color:var(--green)}
+.cv-wrap .cv-ib{width:32px;height:32px;border-radius:10px;background:var(--surface2);border:0}
+.cv-wrap .cv-sum{font-size:calc(13.5px*var(--app-text-scale,1));line-height:1.75}
+.cv-wrap .cv-sk li{font-size:calc(13.5px*var(--app-text-scale,1))}
+.cv-wrap .cv-sk{gap:10px}
+/* work experience */
+.cv-wrap>.cv-sec-row{margin:10px 2px 0;flex-wrap:wrap;row-gap:10px}
+.cv-wrap>.cv-sec-row .cv-sec-t{color:var(--text)}
+.cv-wrap .cv-btns{display:flex;gap:8px;margin-inline-start:auto}
+.cv-wrap .cv-newprj{min-height:32px;padding:0 12px}
+.cv-wrap .cv-newprj.alt{background:var(--surface);border:1px solid var(--border);color:var(--text2)}
+.cv-wrap .cv-proj-hd{gap:12px;padding-bottom:12px;border-bottom:1px solid color-mix(in srgb,var(--border) 55%,transparent)}
+.cv-wrap .cv-proj-hd:last-child{border-bottom:0;padding-bottom:0}
+.cv-wrap .cv-proj-meta{margin-top:12px;gap:6px}
+.cv-wrap .cv-proj-meta span{padding:4px 10px;border-radius:99px;background:var(--surface2);color:var(--text2);font-weight:600}
+.cv-wrap .cv-proj-desc{margin-top:14px}
+/* education blocks: divider only BETWEEN entries (not under the section header) */
+.cv-wrap .cv-ed{border-top:0;padding:0}
+.cv-wrap .cv-ed+.cv-ed{border-top:1px dashed var(--border);padding-top:10px;margin-top:10px}
+/* letter avatar (no photo): emerald disc with the same gold ring as the profile chip */
+.cv-wrap .cv-av:not(:has(img)){padding:0;background:linear-gradient(135deg,#0f7a55,#0a5c40);box-shadow:0 0 0 2.5px var(--surface),0 0 0 4.5px #C9A24B;margin:3px}
+/* work-experience header: title + two buttons on one line */
+.cv-wrap>.cv-sec-row .cv-sec-t{letter-spacing:.5px;gap:8px}
+.cv-wrap>.cv-sec-row .cv-sec-t svg{width:28px;height:28px;padding:6px}
+.cv-wrap .cv-btns{gap:6px}
+.cv-wrap .cv-newprj{padding:0 10px;font-size:calc(11.5px*var(--app-text-scale,1));gap:4px}
+.cv-wrap .cv-actions{margin-top:0}
+.cv-wrap .cv-actions:first-of-type{margin-top:6px}
+
 
 /* ── CV row editor: roomy, auto-height, one soft card per line ── */
 .cv-rows{gap:10px;padding:10px;border-radius:20px;background:color-mix(in srgb,var(--surface2) 70%,var(--surface));border:1px solid color-mix(in srgb,var(--border) 60%,transparent)}
@@ -12792,6 +12848,53 @@ function fpInitSmartHeader(){
 .cx-wrap .rq-vbar{padding:3px;border-radius:14px;background:var(--surface2);border:1px solid var(--border)}
 .cx-wrap .rq-vbtn{width:36px;height:36px;border-radius:11px}
 .cx-wrap .rq-vbtn.on{box-shadow:0 1px 2px rgba(16,24,40,.12)}
+/* ── My Job → Receipts: reorganised (tighter rhythm, calmer summary, softer list) ── */
+.cx-wrap{gap:14px}
+.cx-wrap .prj-bar{padding-block:8px}
+.cx-tabs.v2 .cx-seg-btn{height:46px;gap:3px}
+.cx-wrap .cx-sec{gap:12px}
+.cx-wrap .cx-sh-t{font-size:calc(19px*var(--app-text-scale,1))!important}
+.cx-wrap .cx-sh-s{font-size:calc(12px*var(--app-text-scale,1))}
+/* summary card: rate + pill, thicker segmented bar, tinted status tiles, filled type chips */
+.cx-wrap .rq-sum{padding:16px;gap:12px}
+.cx-wrap .rq-sum-rate b{font-size:calc(30px*var(--app-text-scale,1))}
+.cx-wrap .rq-sum-bar{height:8px;gap:3px;padding:0;border-radius:99px;overflow:hidden}
+.cx-wrap .rq-sum-fl{gap:8px}
+.cx-wrap .rq-sf{--rq-s:var(--muted);gap:4px;padding:10px 12px;border:1px solid transparent;border-radius:14px;background:color-mix(in srgb,var(--rq-s) 9%,var(--surface))}
+.cx-wrap .rq-sf.ok{--rq-s:var(--green)}.cx-wrap .rq-sf.low{--rq-s:var(--gold,#c9992b)}.cx-wrap .rq-sf.over{--rq-s:var(--red)}
+.cx-wrap .rq-sf b{font-size:calc(20px*var(--app-text-scale,1));font-variant-numeric:tabular-nums}
+.cx-wrap .rq-sf span{font-size:calc(11px*var(--app-text-scale,1));color:var(--text2)}
+.cx-wrap .rq-sum-types{padding-top:12px;margin:0;border-top:1px solid color-mix(in srgb,var(--border) 70%,transparent)}
+.cx-wrap .rq-tchip{background:color-mix(in srgb,var(--rq-tc) 9%,var(--surface));border:1px solid color-mix(in srgb,var(--rq-tc) 28%,var(--border));box-shadow:none}
+.cx-wrap .rq-tchip.on{background:var(--rq-tc);border-color:var(--rq-tc)}
+/* My Report row: compact */
+.cx-wrap .rq-hub-top{padding:10px 14px}
+.cx-wrap .rq-hub-ic{width:36px;height:36px;border-radius:11px}
+.cx-wrap .rq-hub-tx b{font-size:calc(14.5px*var(--app-text-scale,1))}
+/* search + view switch: same height, one visual unit */
+.cx-wrap .sc-search.cx-search{gap:8px}
+.cx-wrap .sc-search.cx-search .cx-sbox>input{height:44px}
+.cx-wrap .rq-vbar{height:44px;box-sizing:border-box;align-items:center}
+.cx-wrap .rq-vbtn{width:36px;height:34px;border-radius:10px}
+/* date group headers */
+.cx-wrap .rq-day{padding:12px 2px 2px;font-size:calc(12.5px*var(--app-text-scale,1))}
+.cx-wrap .rq-day b{font-weight:800;letter-spacing:.2px}
+.cx-wrap .rq-day::after{background:color-mix(in srgb,var(--border) 70%,transparent)}
+/* list items: calmer — surface cards with a colour accent instead of heavy tinted fills */
+.cx-wrap .rq-card.rq-t{background:var(--surface);border-color:var(--border);border-inline-start:4px solid var(--rq-tc);box-shadow:var(--cx-sh)}
+.cx-wrap .rq-card.rq-t:active{background:var(--surface2)}
+.cx-wrap .rq-card.rq-t .rq-grid,.cx-wrap .rq-card.rq-t .rq-foot{border-color:color-mix(in srgb,var(--border) 70%,transparent)}
+.cx-wrap .rq-row{background:var(--surface);border-color:var(--border);border-inline-start:4px solid var(--rq-tc);box-shadow:var(--cx-sh)}
+.cx-wrap .rq-row:active{background:var(--surface2)}
+.cx-wrap .rq-card{padding:14px 16px 8px}
+.cx-wrap .rq-card .rq-top{position:relative}
+.cx-wrap .rq-card .rq-top .cx-chip{position:absolute;inset-block-start:0;inset-inline-end:0;margin:0;padding:3px 10px;font-size:calc(11px*var(--app-text-scale,1))}
+.cx-wrap .rq-card .rq-co{padding-inline-end:150px;min-height:22px;line-height:1.35}
+.cx-wrap .rq-card .rq-grid{gap:10px 14px;margin-top:12px;padding-top:12px}
+.cx-wrap .rq-card .rq-grid dd{font-size:calc(13.5px*var(--app-text-scale,1))}
+.cx-wrap .rq-card .rq-foot{margin-top:6px}
+.cx-wrap .rq-tile{border-radius:14px;box-shadow:var(--cx-sh)}
+.cx-wrap .rq-list.rq-v-grid{gap:8px}
 /* ── My Report sheet: clean & professional pass (CSS only) ── */
 /* day chips */
 #modalContent .rpt-chips{gap:8px;padding:2px 2px 10px}
@@ -12862,6 +12965,8 @@ function fpInitSmartHeader(){
 <script>
 (function(){
   var el=document.getElementById('finoraSplash'); if(!el) return;
+  // A refresh inside the same session shouldn't replay the intro — show it once per launch (sessionStorage is cleared when the app/tab is closed).
+  try{ if(sessionStorage.getItem('fnr_splash_seen')==='1'){ el.parentNode.removeChild(el); return; } sessionStorage.setItem('fnr_splash_seen','1'); }catch(e){}
   var ar=false; try{ ar=localStorage.getItem('wdp_lang')==='ar'; }catch(e){}
   el.setAttribute('dir',ar?'rtl':'ltr');
   document.getElementById('fspTag').textContent=ar?'فلوسك · مصاريفك · شغلك':'Money · Expenses · Work';
@@ -15350,7 +15455,20 @@ function _resetSessionTimer() {
 });
 
 // ── § INIT ────────────────────────────────────────────────────────────────────
-function initApp(){loadTheme();loadSavedData();runStartupMigration();loadBanks();loadHiddenBanks();loadBanksOrder();if(_autoRolloverMonths()) pickDefaultActiveMonth();loadTextSettings();GLOBAL_PROFILE.direction=lang==='ar'?'rtl':'ltr';document.documentElement.setAttribute('dir',_globalDirection());document.documentElement.setAttribute('lang',lang);renderMonthTabs();setView('wsdash');updateNavLabels();persistMeta();
+// After a refresh (same session) reopen the screen you were on instead of the home dashboard.
+// A fresh launch has no session data, so it still opens on the dashboard.
+function _bootView(){
+  try{
+    const v=sessionStorage.getItem('fnr_view_v1');
+    const ok=['wsdash','quickactions','financedash','overview','banks','transactions','expenses','savings','planner','timeline','monthlyreport','bankreport','yearlyanalytics','healthdash','mylocations','reportsdash'];
+    if(v && ok.indexOf(v)>=0){
+      if(v==='expenses'){ const t=sessionStorage.getItem('fnr_cxtab_v1'); if(t) window._cxLand=t; }
+      return v;
+    }
+  }catch(e){}
+  return 'wsdash';
+}
+function initApp(){loadTheme();loadSavedData();runStartupMigration();loadBanks();loadHiddenBanks();loadBanksOrder();if(_autoRolloverMonths()) pickDefaultActiveMonth();loadTextSettings();GLOBAL_PROFILE.direction=lang==='ar'?'rtl':'ltr';document.documentElement.setAttribute('dir',_globalDirection());document.documentElement.setAttribute('lang',lang);renderMonthTabs();setView(_bootView());updateNavLabels();persistMeta();
   // Auto Theme (7 PM → Dark, 6 AM → Light) — only kicked off from here,
   // not from the earlier flash-prevention loadTheme() call up top, since
   // today() and the other helpers it needs aren't defined yet at that point
@@ -15526,6 +15644,7 @@ function setView(v){
   if(v!==currentView) searchQ=''; // each page's own search box starts empty when you navigate to it fresh
   if(v==='expenses'){ _cxTab=window._cxLand||'custody'; window._cxLand=null; } // the nav button lands on My Requests (first tab); other entry points (global search, quick-add) land on Custody
   currentView=v;
+  try{ sessionStorage.setItem('fnr_view_v1',v); }catch(e){} // lets a refresh land back on this screen (see _bootView)
   applyWorkspaceNav();
   // Update individual nav item active states
   if(_svLastNavEl && document.body.contains(_svLastNavEl)){
@@ -35489,6 +35608,7 @@ function _cxSetTab(k){
   const nk=(k==='requests'||k==='attendance'||k==='cv'||k==='profile')?k:'custody';
   if(nk===_cxTab) return;
   _cxTab=nk; searchQ=''; _jpShowId=false; _jpPwShown={};
+  try{ sessionStorage.setItem('fnr_cxtab_v1',nk); }catch(e){}
   renderView();
   try{ requestAnimationFrame(()=>{ const b=document.querySelector('.cx-tabs .cx-seg-btn.on'); if(b&&b.scrollIntoView) b.scrollIntoView({inline:'center',block:'nearest'}); }); }catch(e){}
 }
@@ -36665,8 +36785,14 @@ function renderMyCV(){
   const cv=_cvLoad(), p=cv.profile, ents=_cvEntries(cv);
   const shown=ents.filter(e=>!e.hide).length;
   const ini=(p.name||'').trim().charAt(0).toUpperCase();
-  const cl=(ico,v)=>v?`<span>${ic(ico,13)}<bdi>${esc(v)}</bdi></span>`:'';
-  const contacts=[cl('phone',p.phone)+cl('mail',p.email),cl('link',p.linkedin)+cl('pin',p.loc)].filter(Boolean).map(r=>`<div class="cv-ct">${r}</div>`).join('');
+  // contact details: one tidy row each (tap to call / mail / open), long values are cut with … instead of wrapping
+  const ctl=[['phone',p.phone,p.phone?'tel:'+String(p.phone).replace(/[^\d+]/g,''):'','ltr'],['mail',p.email,p.email?'mailto:'+String(p.email).trim():'','ltr'],['link',_cvShortLink(p.linkedin),_cvLinkHref(p.linkedin),'ltr'],['pin',p.loc,'','auto']].filter(x=>x[1]);
+  const contacts=ctl.map(([ico,v,href,dir])=>{
+    const inner=`<span class="cv-ci">${ic(ico,15)}</span><bdi dir="${dir}">${esc(v)}</bdi>`;
+    return href?`<a class="cv-ct-r" href="${esc(href)}"${ico==='link'?' target="_blank" rel="noopener"':''} onclick="event.stopPropagation()">${inner}</a>`:`<div class="cv-ct-r">${inner}</div>`;
+  }).join('');
+  const hParts=_cvTitle(p).split(/\s*[|•·]\s*/).filter(Boolean);
+  const headHTML=hParts.length>1?`<div class="cv-tags" dir="auto">${hParts.map(x=>`<span>${esc(x)}</span>`).join('')}</div>`:`<small dir="auto">${esc(hParts[0]||'')}</small>`;
   const secCard=(key,ico,en,ar,body,emptyEn,emptyAr)=>`<section class="cv-card cv-sc${body?' tap':''}"${body?` onclick="_cvEditSec('${key}')"`:''}><div class="cv-sec-row"><span class="cv-sec-t">${ic(ico,15)}<span>${L(en,ar)}</span></span><button type="button" class="cv-ib" onclick="event.stopPropagation();_cvEditSec('${key}')" aria-label="${L('Edit','تعديل')}">${ic('edit',15)}</button></div>${body||`<button type="button" class="cv-add" onclick="_cvEditSec('${key}')">${ic('plus',14)} ${L(emptyEn,emptyAr)}</button>`}</section>`;
   const sum=p.summary?`<p class="cv-sum" dir="auto">${esc(_cvClean(p.summary)).replace(/\n/g,'<br>')}</p>`:'';
   const skills=_cvList(p.skills), certs=_cvList(p.certs), langs=_cvList(p.langs);
@@ -36699,10 +36825,11 @@ function renderMyCV(){
   <section class="cv-card cv-prof">
     <div class="cv-prof-top">
       <span class="cv-av">${/^data:image\//.test(p.photo||'')?`<img src="${p.photo}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:inherit">`:(ini?esc(ini):ic('cv',22))}</span>
-      <div class="cv-prof-id"><b dir="auto">${p.name?esc(p.name):L('Add your name','أضف اسمك')}</b><small dir="auto">${esc(_cvTitle(p))}</small></div>
+      <div class="cv-prof-id"><b dir="auto">${p.name?esc(p.name):L('Add your name','أضف اسمك')}</b>${hParts.length>1?'':headHTML}</div>
       <button type="button" class="cv-ib" onclick="_cvEditSec('hdr')" aria-label="${L('Edit','تعديل')}">${ic('edit',16)}</button>
     </div>
-    ${contacts?`<div class="cv-cts">${contacts}</div>`:`<button type="button" class="cv-add" onclick="_cvEditSec('hdr')">${ic('plus',14)} ${L('Add contact details','أضف بيانات التواصل')}</button>`}
+    ${hParts.length>1?headHTML:''}
+    ${contacts?`<div class="cv-cts rows">${contacts}</div>`:`<button type="button" class="cv-add" onclick="_cvEditSec('hdr')">${ic('plus',14)} ${L('Add contact details','أضف بيانات التواصل')}</button>`}
   </section>
   ${secCard('sum','cv','Summary','النبذة',sum,'Add a short summary','أضف نبذة عنك')}
   ${secCard('skills','hammer','Core skills','المهارات الأساسية',skills.length?`<ul class="cv-sk">${skills.map(x=>`<li dir="auto">${esc(x)}</li>`).join('')}</ul>`:'','Add your core skills','أضف مهاراتك')}
