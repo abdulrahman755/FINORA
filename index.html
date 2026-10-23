@@ -12634,6 +12634,35 @@ function fpInitSmartHeader(){
 .ca-lg-b small.t{margin-top:4px;font-size:calc(10.5px*var(--app-text-scale,1));opacity:.8}
 .ca-lg-c{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px;margin-top:5px;padding:6px 9px;border-radius:9px;background:var(--surface2);font-size:calc(11.5px*var(--app-text-scale,1))}
 .ca-lg-c span{font-weight:800;color:var(--muted)}.ca-lg-c b{display:inline;font-size:inherit;font-weight:700;overflow-wrap:anywhere}.ca-lg-c i{font-style:normal;color:var(--muted)}
+
+/* ── My Job → Profile polish ── */
+.jp-hero::before{display:none}
+.jp-hero-bot{margin-top:16px;padding-top:14px;border-top:1px solid rgba(255,255,255,.14);gap:0}
+.jp-chip{padding:0 4px;border:0;background:transparent;border-radius:0}
+.jp-chip+.jp-chip{padding-inline-start:16px;border-inline-start:1px solid rgba(255,255,255,.14)}
+.jp-wrap .jp-sec{padding:12px 0 8px;font-size:calc(11.5px*var(--app-text-scale,1));letter-spacing:.5px;color:var(--muted);text-transform:uppercase;border-bottom:1px solid var(--border)}
+.jp-wrap .jp-sec svg{width:15px;height:15px}
+.jp-wrap .jp-sec span:not(.sp){font-weight:800}
+.jp-wrap .jp-card .jp-row{padding:13px 0}
+.jp-wrap .jp-ric{width:34px;height:34px;border-radius:10px}
+.jp-attrow .ic.grn{background:var(--green-tint);color:var(--green)}
+.jp-pct{flex:none;font-weight:800;font-size:calc(15px*var(--app-text-scale,1));color:var(--green);padding-inline-end:2px}
+
+/* ── My Job: profile bar (always visible) + 4-tab bar ── */
+.pf-bar{display:flex;align-items:center;gap:12px;width:100%;margin:4px 0 6px;padding:9px 14px;border:1px solid var(--border);border-radius:18px;background:var(--surface);box-shadow:var(--shadow-sm);font-family:inherit;color:var(--text);cursor:pointer;text-align:start}
+.pf-bar:active{background:var(--surface2)}
+.pf-bar.on{border-color:var(--green);background:var(--green-tint)}
+.pf-av{flex:none;width:38px;height:38px;border-radius:50%;overflow:hidden;display:flex;align-items:center;justify-content:center;background:#0a4a34;color:#F3D580;font-family:var(--font-display);font-weight:700;font-size:16px;box-shadow:0 0 0 2px var(--surface),0 0 0 3.5px #C9A24B}
+.pf-av img{width:100%;height:100%;object-fit:cover;display:block}
+.pf-bar .prj-tx b{font-size:calc(14px*var(--app-text-scale,1))}
+.pf-sub{font-size:calc(11px*var(--app-text-scale,1));font-weight:600;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pf-go{flex:none;color:var(--muted);display:flex}
+.cx-tabs.v2{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;padding:4px;overflow:visible;margin-bottom:0}
+.cx-tabs.v2 .cx-seg-btn{flex:none;height:54px;padding:0 2px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-size:calc(11.5px*var(--app-text-scale,1));overflow:hidden;text-overflow:clip;white-space:nowrap}
+.cx-tabs.v2 .cx-seg-btn span{max-width:100%;overflow:hidden;text-overflow:ellipsis}
+.cx-tabs.v2 .cx-seg-btn svg{opacity:.75}
+.cx-tabs.v2 .cx-seg-btn.on svg{opacity:1}
+[data-theme="dark"] .pf-bar.on{background:color-mix(in srgb,var(--green) 14%,var(--surface))}
 </style>
 </head>
 <body>
@@ -34609,7 +34638,7 @@ function _prjDelete(id){
   if(wasActive) _PRJ.active=_PRJ_DEFAULT;
   if(!_prjSave()){ _PRJ.list.splice(idx,0,removed); if(wasActive) _PRJ.active=id; return; }
   // 1) this project's own receipts / saved companies / plot models
-  try{ [_RQ_KEY,_RQ_CUSTOM_FIELDS_KEY,_RQ_PLOT_USER_KEY].forEach(b=>localStorage.removeItem(b+'__'+id)); }catch(e){ _logErr('_prjDelete:keys',e); }
+  try{ ['wdp_attendance_v1',_RQ_KEY,_RQ_CUSTOM_FIELDS_KEY,_RQ_PLOT_USER_KEY].forEach(b=>localStorage.removeItem(b+'__'+id)); }catch(e){ _logErr('_prjDelete:keys',e); }
   // 2) money records stay (bank balances add up every project) — hand them to the main project
   try{
     let moved=false;
@@ -34621,7 +34650,7 @@ function _prjDelete(id){
     });
     if(moved) persistData();
   }catch(e){ _logErr('_prjDelete:data',e); }
-  if(wasActive){ _prjReloadScoped(); try{ _rqFilter='all'; searchQ=''; }catch(e){} }
+  if(wasActive){ _prjReloadScoped(); try{ ATT.reset(); }catch(e){} try{ _rqFilter='all'; searchQ=''; }catch(e){} }
   try{ renderView(true); }catch(e){ _logErr('_prjDelete:render',e); }
   showToast(L('Project deleted','تم حذف المشروع'),'success');
   _prjOpen();
@@ -34661,6 +34690,7 @@ function _prjSwitch(id,isNew){
   if(!_PRJ.list.some(x=>x.id===id)) return;
   _PRJ.active=id; _prjSave();
   _prjReloadScoped();
+  try{ ATT.reset(); }catch(e){}
   try{ _rqFilter='all'; searchQ=''; }catch(e){}
   try{ closeModal(); }catch(e){}
   try{ renderView(); }catch(e){ _logErr('_prjSwitch',e); }
@@ -35188,9 +35218,20 @@ async function _rqRunTranslate(id,targetLang){
   try{ if(document.getElementById('rptPaper') && !document.getElementById('rptTa')) rqReportOpen(_rqRptDate||today()); }catch(e){}
 }
 
+function _cxProfileBarHTML(){
+  let p={name:'',title:'',company:'',photo:''}, co='', tt='';
+  try{
+    p=_jpLoad(); co=p.company; tt=p.title;
+    if(_caState()==='ok'){ const e=_caCur(_caLoad()).emp; if(e){ co=e.company; tt=e.title; } }
+  }catch(e){}
+  const ini=(p.name||'').trim().charAt(0).toUpperCase();
+  const sub=[tt,co].filter(Boolean).join(' · ');
+  const on=_cxTab==='profile';
+  return `<button type="button" class="pf-bar${on?' on':''}" onclick="_cxSetTab('profile')" aria-label="${L('My profile','ملفي الشخصي')}" aria-current="${on?'page':'false'}"><span class="pf-av">${p.photo?`<img src="${p.photo}" alt="">`:(ini?esc(ini):ic('id',17))}</span><span class="prj-tx"><span class="prj-lb">${L('Profile','الملف الشخصي')}</span><b dir="auto">${p.name?esc(p.name):L('Add your name','أضف اسمك')}</b>${sub?`<span class="pf-sub" dir="auto">${esc(sub)}</span>`:''}</span><span class="pf-go">${ic('chevron',15)}</span></button>`;
+}
 function _cxTabsHTML(){
-  const t=(k,lbl)=>`<button type="button" role="tab" class="cx-seg-btn${_cxTab===k?' on':''}" aria-selected="${_cxTab===k?'true':'false'}" onclick="_cxSetTab('${k}')">${lbl}</button>`;
-  return `<div class="cx-seg cx-tabs" role="tablist">${t('requests',L('My Receipts','استلاماتي'))}${t('custody',L('Custody','العهدة'))}${t('attendance',L('Attendance','الحضور'))}${t('cv',L('My CV','سيرتي'))}${t('profile',L('Profile','ملفي'))}</div>`;
+  const t=(k,lbl,icn)=>`<button type="button" role="tab" class="cx-seg-btn${_cxTab===k?' on':''}" aria-selected="${_cxTab===k?'true':'false'}" onclick="_cxSetTab('${k}')">${ic(icn,18)}<span>${lbl}</span></button>`;
+  return _cxProfileBarHTML()+`<div class="cx-seg cx-tabs v2" role="tablist">${t('requests',L('Receipts','استلاماتي'),'clipboard')}${t('custody',L('Custody','العهدة'),'hardhat')}${t('attendance',L('Attendance','الحضور'),'attendance')}${t('cv',L('My CV','سيرتي'),'cv')}</div>`;
 }
 function _cxSetTab(k){
   const nk=(k==='requests'||k==='attendance'||k==='cv'||k==='profile')?k:'custody';
@@ -35225,7 +35266,7 @@ function _jpSave(o){
   try{ localStorage.setItem(_JP_KEY,JSON.stringify(o)); return true; }
   catch(e){ _logErr('_jpSave',e); try{ showToast(L('⚠️ Could not save (storage full)','⚠️ تعذّر الحفظ (التخزين ممتلئ)'),'warn'); }catch(_){} return false; }
 }
-function _jpAtt(){ try{ const p=JSON.parse(localStorage.getItem('wdp_attendance_v1')||'null')||{}; return {days:(p.days&&typeof p.days==='object')?p.days:{}, company:String(p.company||''), hire:String((p.leave&&p.leave.hire)||'')}; }catch(e){ return {days:{},company:'',hire:''}; } }
+function _jpAtt(){ try{ const p=JSON.parse(localStorage.getItem(_prjKey('wdp_attendance_v1'))||'null')||{}; return {days:(p.days&&typeof p.days==='object')?p.days:{}, company:String(p.company||''), hire:String((p.leave&&p.leave.hire)||'')}; }catch(e){ return {days:{},company:'',hire:''}; } }
 const _jpLoc=()=>L('en-US','ar-EG-u-nu-latn');
 function _jpAr(n,f){ return n+' '+(n===1?f[0]:n===2?f[1]:(n>=3&&n<=10)?f[2]:f[3]); }
 function _jpTenure(s){
@@ -35307,6 +35348,11 @@ function _jpAttHTML(){
     <button type="button" class="jp-link" onclick="_cxSetTab('attendance')">${ic('calendar',15)} ${L('Open full attendance log','فتح سجل الحضور الكامل')}</button>
   </section>`;
 }
+function _jpAttBrief(){
+  const s=_jpAttStats(), c=s.c;
+  const sub=[s.label, c.present+' '+L('present','حضور')].concat(c.late?[c.late+' '+L('late','تأخير')]:[],c.absent?[c.absent+' '+L('absent','غياب')]:[]).join(' · ');
+  return `<button type="button" class="ca-manage jp-attrow" onclick="_cxSetTab('attendance')"><span class="ic grn">${ic('attendance',20)}</span><span class="tx"><b>${L('Attendance','الحضور والغياب')}</b><small dir="auto">${esc(sub)}</small></span><span class="jp-pct">${s.rate==null?'—':s.rate+'%'}</span>${ic('chevron',16)}</button>`;
+}
 function _jpCustHTML(p){
   if(_caState()==='ok') return _caCustHTML();
   const items=p.custody.map(x=>`<div class="jp-row" style="cursor:pointer" onclick="_jpEditCustody('${esc(x.id)}')"><span class="jp-ric gold">${ic(_jpCustIc(x.name),18)}</span><div class="jp-rtx"><b dir="auto">${esc(x.name||L('Item','عنصر'))}</b>${x.note?`<small dir="auto" style="margin:3px 0 0">${esc(x.note)}</small>`:''}${x.date?`<small style="margin:3px 0 0">${ic('calendar',11)} ${esc(_jpDate(x.date))}</small>`:''}</div><button type="button" class="jp-rb" onclick="event.stopPropagation();_jpEditCustody('${esc(x.id)}')" aria-label="${L('Edit','تعديل')}">${ic('edit',15)}</button></div>`).join('');
@@ -35346,7 +35392,7 @@ function _caLoad(){
   return {v:1,
     employments:arr(o.employments).map(e=>({id:String(e.id),company:_caT(e.company),title:_caT(e.title),code:_caT(e.code,40),email:_caT(e.email,120),medEmail:_caT(e.medEmail,120),start:_caD(e.start),end:_caD(e.end),notes:_caT(e.notes,400),pay:_caPayClean(e.pay),payAt:+e.payAt||0})),
     assignments:arr(o.assignments).map(a=>({id:String(a.id),empId:String(a.empId||''),projectId:String(a.projectId||''),name:_caT(a.name),location:_caT(a.location),start:_caD(a.start),end:_caD(a.end),notes:_caT(a.notes,400)})),
-    custody:arr(o.custody).map(k=>({id:String(k.id),name:_caT(k.name),note:_caT(k.note,400),empId:String(k.empId||''),asgId:String(k.asgId||''),receivedOn:_caD(k.receivedOn),condition:_caT(k.condition,20),status:(k.status==='returned'||k.status==='transferred')?k.status:'with',closedOn:_caD(k.closedOn),handoverNote:_caT(k.handoverNote,400),review:!!k.review})),
+    custody:arr(o.custody).map(k=>({id:String(k.id),name:_caT(k.name),note:_caT(k.note,400),empId:String(k.empId||''),asgId:String(k.asgId||''),receivedOn:_caD(k.receivedOn),condition:_caT(k.condition,20),status:(k.status==='returned'||k.status==='transferred')?k.status:'with',closedOn:_caD(k.closedOn),handoverNote:_caT(k.handoverNote,400),review:!!k.review,projectId:String(k.projectId||'')})),
     log:(Array.isArray(o.log)?o.log:[]).filter(x=>x&&typeof x==='object').slice(-500),
     createdAt:+o.createdAt||Date.now(), updatedAt:+o.updatedAt||0};
 }
@@ -35471,7 +35517,7 @@ function _caApplyCustody(c,p){
   let k=p.id?c.custody.find(x=>x.id===p.id):null;
   if(p.id&&!k) return L('Record not found','السجل مش موجود');
   const isNew=!k;
-  if(isNew){ const cur=_caCur(c); k={id:_caId('k'),empId:cur.emp?cur.emp.id:'',asgId:cur.asg?cur.asg.id:''}; c.custody.push(k); }
+  if(isNew){ const cur=_caCur(c); k={id:_caId('k'),empId:cur.emp?cur.emp.id:'',asgId:cur.asg?cur.asg.id:'',projectId:_PRJ.active}; c.custody.push(k); }
   const prev=isNew?'':k.status;
   Object.assign(k,{name,note:_caT(p.note,400),receivedOn:_caD(p.receivedOn),condition:_caT(p.condition,20),status,closedOn:status==='with'?'':_caD(p.closedOn),handoverNote:status==='with'?'':_caT(p.handoverNote,400),review:false});
   c.log.push({t:Date.now(),type:isNew?'custody-add':(prev!==status?'custody-'+status:'custody-edit'),detail:name,id:k.id});
@@ -35480,7 +35526,7 @@ function _caApplyCustody(c,p){
 
 // ── Employment & Project History: screens (My Job → Profile) ──
 let _caF={co:'',pj:'',em:'',mo:''}, _caShowHist=false, _caBkDone=false, _caEd=null, _caCustId=null;
-const _caAttRaw=()=>{ try{ return JSON.parse(localStorage.getItem('wdp_attendance_v1')||'null')||{}; }catch(e){ return {}; } };
+const _caAttRaw=()=>{ try{ return JSON.parse(localStorage.getItem(_prjKey('wdp_attendance_v1'))||'null')||{}; }catch(e){ return {}; } };
 function _caRange(s,e){ return (s?_jpDate(s):L('Start not set','البداية غير محددة'))+' → '+(e?_jpDate(e):L('Present','حاليًا')); }
 function _caBadge(active){ return `<span class="ca-b ${active?'on':'done'}">${active?L('Active','نشط'):L('Completed','منتهي')}</span>`; }
 function _caSel(id,label,opts,val,extra){ return `<div class="field"><label>${label}</label><select id="${id}" ${extra||''}>${opts.map(o=>`<option value="${esc(o[0])}"${String(o[0])===String(val)?' selected':''}>${esc(o[1])}</option>`).join('')}</select></div>`; }
@@ -35721,18 +35767,31 @@ function _caEditSave(){
   const id=_caEd.id; _caEd=null; try{ renderView(); }catch(e){} _caDetail(k,id); showToast(L('Saved','تم الحفظ'),'success');
 }
 // ── timeline (profile tab) ──
+// ── per-project view of the career data (Profile shows only the active project) ──
+function _caKProj(c,k){
+  if(k&&k.projectId) return k.projectId;
+  const a=k&&k.asgId?c.assignments.find(x=>x.id===k.asgId):null;
+  return (a&&a.projectId)||_PRJ_DEFAULT;
+}
+function _caScope(c){
+  const asg=c.assignments.filter(a=>((a.projectId)||_PRJ_DEFAULT)===_PRJ.active);
+  const emp=c.employments.filter(e=>asg.some(a=>a.empId===e.id)||(_PRJ.active===_PRJ_DEFAULT&&!c.assignments.some(a=>a.empId===e.id)));
+  return Object.assign({},c,{assignments:asg,employments:emp});
+}
 function _caTlRows(c){
+  c=_caScope(c);
   const f=_caF, byE=id=>c.employments.find(e=>e.id===id)||{company:''};
   let rows=c.assignments.map(a=>({k:'a',r:a,e:byE(a.empId)}));
   c.employments.forEach(e=>{ if(!c.assignments.some(a=>a.empId===e.id)) rows.push({k:'e',r:e,e}); });
   rows=rows.filter(x=>(!f.co||x.e.company===f.co)&&(!f.pj||(x.k==='a'&&x.r.name===f.pj))&&(!f.em||x.e.id===f.em)&&(!f.mo||_caOverlap({start:x.r.start,end:x.r.end},{start:f.mo+'-01',end:f.mo+'-31'})));
   rows.sort((a,b)=>((b.r.start||'0000')).localeCompare(a.r.start||'0000')||(a.r.end?1:0)-(b.r.end?1:0));
-  if(!rows.length) return `<div class="ca-empty">${L('No periods match these filters','لا توجد فترات مطابقة للفلاتر')}</div>`;
+  if(!rows.length) return `<div class="ca-empty">${(f.co||f.pj||f.em||f.mo)?L('No periods match these filters','لا توجد فترات مطابقة للفلاتر'):L('No history for this project yet','لسه مفيش سجل للمشروع ده')}</div>`;
   return rows.map(x=>{ const act=!x.r.end;
     return `<div class="ca-tl" onclick="_caDetail('${x.k}','${x.r.id}')"><i class="ca-dot${act?' on':''}"></i><div class="ca-tl-b"><div class="ca-tl-t"><b dir="auto">${esc(x.k==='a'?x.r.name:x.e.company)}</b>${_caBadge(act)}</div><small dir="auto">${esc(x.k==='a'?x.e.company:L('Employment','فترة توظيف'))}${x.e.title?' · '+esc(x.e.title):''}</small><small>${esc(_caRange(x.r.start,x.r.end))}</small></div></div>`; }).join('');
 }
 function _caSetF(k,v){ _caF[k]=v; const el=document.getElementById('caTl'); if(el) el.innerHTML=_caTlRows(_caLoad()); }
 function _caTimelineHTML(c){
+  c=_caScope(c);
   const uniq=a=>Array.from(new Set(a.filter(Boolean)));
   const opt=(arr,val,all)=>`<option value="">${all}</option>`+arr.map(o=>`<option value="${esc(o[0])}"${o[0]===val?' selected':''}>${esc(o[1])}</option>`).join('');
   const emps=c.employments.slice().sort((a,b)=>(b.start||'').localeCompare(a.start||'')).map(e=>[e.id,e.company+' ('+(e.start?e.start.slice(0,4):'?')+'–'+(e.end?e.end.slice(0,4):L('now','الآن'))+')']);
@@ -35757,7 +35816,7 @@ function _caCustRow(k,c){
   return `<div class="jp-row" style="cursor:pointer" onclick="_caCustSheet('${k.id}')"><span class="jp-ric gold">${ic(_jpCustIc(k.name),18)}</span><div class="jp-rtx"><b dir="auto">${esc(k.name)}${k.review?` <span class="ca-b rev">${L('Needs review','يحتاج مراجعة')}</span>`:''}</b>${k.note?`<small dir="auto" style="margin:3px 0 0">${esc(k.note)}</small>`:''}<small style="margin:3px 0 0">${esc(_caCustLine(k))}</small>${gone&&k.handoverNote?`<small dir="auto" style="margin:3px 0 0">${esc(k.handoverNote)}</small>`:''}</div><button type="button" class="jp-rb" onclick="event.stopPropagation();_caCustSheet('${k.id}')" aria-label="${L('Edit','تعديل')}">${ic('edit',15)}</button></div>`;
 }
 function _caCustHTML(){
-  const c=_caLoad(), w=c.custody.filter(k=>k.status==='with').sort((a,b)=>(b.receivedOn||'').localeCompare(a.receivedOn||'')), h=c.custody.filter(k=>k.status!=='with').sort((a,b)=>(b.closedOn||'').localeCompare(a.closedOn||''));
+  const c=_caLoad(), cAll=c.custody.filter(k=>_caKProj(c,k)===_PRJ.active), w=cAll.filter(k=>k.status==='with').sort((a,b)=>(b.receivedOn||'').localeCompare(a.receivedOn||'')), h=cAll.filter(k=>k.status!=='with').sort((a,b)=>(b.closedOn||'').localeCompare(a.closedOn||''));
   return `<section class="jp-card">
     <div class="jp-sec">${ic('package',17)}<span>${L('My custody','العهدة اللي معايا')}</span>${w.length?`<em style="font-style:normal;font-size:12px;color:var(--muted);font-weight:700">${w.length}</em>`:''}<span class="sp"></span><button type="button" class="jp-add" onclick="_caCustSheet(null)">${ic('plus',14)} ${L('Add','إضافة')}</button></div>
     ${w.map(k=>_caCustRow(k,c)).join('')||`<div class="jp-empty">${L('Nothing with you right now','مفيش عهدة معاك دلوقتي')}</div>`}
@@ -35974,6 +36033,11 @@ function renderJobProfile(){
     p.nid?`<button type="button" class="jp-rb" id="jpNidEye" onclick="_jpToggleId()" aria-label="${L('Show / hide','إظهار / إخفاء')}">${ic(_jpShowId?'eyeoff':'eye',15)}</button>${_jpCopyBtn(p.nid)}`:'');
   const prjVal=hist&&A?`<b dir="auto">${esc(A.name)}</b>${(A.location||A.start)?`<small style="margin:3px 0 0" dir="auto">${esc([A.location,A.start?L('since ','من ')+_jpDate(A.start):''].filter(Boolean).join(' · '))}</small>`:''}`:_jpVal(prj);
   const manageSub=cs==='ok'?L('Move between projects & companies — history is kept','انتقال بين المشروعات والشركات — والتاريخ محفوظ'):(cs==='bad'?L('History data needs attention','بيانات السجل محتاجة مراجعة'):L('Start your work history','ابدأ السجل الوظيفي'));
+  const sameMail=!!email&&!!medEmail&&email.trim().toLowerCase()===medEmail.trim().toLowerCase();
+  const mailRows=sameMail
+    ?_jpRow('mail',L('Company & medical-insurance e-mail','إيميل الشركة والتأمين الطبي'),_jpVal(email,true),_jpCopyBtn(email))
+    :_jpRow('mail',L('Company e-mail','إيميل الشركة'),_jpVal(email,true),_jpCopyBtn(email))+_jpRow('shield',L('Medical insurance e-mail','إيميل التأمين الطبي'),_jpVal(medEmail,true),_jpCopyBtn(medEmail));
+  const joinedRow=_jpRow('join',L('Joined','تاريخ الالتحاق'),start?`<b dir="auto">${esc(_jpDate(start))}</b>`:_jpVal(''));
   return `<div class="screen-wrap cx-wrap jp-wrap">
   ${_pgHdr('Site','الموقع','My Job','My Job','Your work profile and attendance','بياناتك الوظيفية والحضور')}
   ${_prjBarHTML()}
@@ -35992,18 +36056,16 @@ function renderJobProfile(){
       <div class="jp-chip"><small>${L('TIME AT COMPANY','مدة الشغل')}</small><b dir="auto">${ten?esc(ten.short):'—'}</b></div>
     </div>
   </section>
-  <button type="button" class="ca-manage" onclick="_caManageOpen()"><span class="ic">${ic('briefcase',20)}</span><span class="tx"><b>${L('Manage Employment & Projects','إدارة العمل والمشروعات')}</b><small>${manageSub}</small></span>${ic('chevron',16)}</button>
   <section class="jp-card">
-    <div class="jp-sec">${ic('briefcase',17)}<span>${L('Work details','بيانات الشغل')}</span></div>
-    ${_jpRow('building2',L('Current project','المشروع الحالي'),prjVal,'',false)}
-    ${_jpRow('join',L('Joined current company','الالتحاق بالشركة الحالية'),start?`<b dir="auto">${esc(_jpDate(start))}</b>${ten?`<small style="margin:3px 0 0;color:var(--green)">${esc(ten.full)}</small>`:''}`:_jpVal(''))}
+    <div class="jp-sec">${ic('id',17)}<span>${L('Personal & contact','البيانات الشخصية والتواصل')}</span></div>
+    ${joinedRow}
     ${nidRow}
-    ${_jpRow('mail',L('Company e-mail','إيميل الشركة'),_jpVal(email,true),_jpCopyBtn(email))}
-    ${_jpRow('shield',L('Medical insurance e-mail','إيميل التأمين الطبي'),_jpVal(medEmail,true),_jpCopyBtn(medEmail))}
+    ${mailRows}
   </section>
-  ${c?_caTimelineHTML(c):''}
-  ${_jpAttHTML()}
+  <button type="button" class="ca-manage" onclick="_caManageOpen()"><span class="ic">${ic('briefcase',20)}</span><span class="tx"><b>${L('Manage Employment & Projects','إدارة العمل والمشروعات')}</b><small>${manageSub}</small></span>${ic('chevron',16)}</button>
+  ${_jpAttBrief()}
   ${_jpCustHTML(p)}
+  ${c?_caTimelineHTML(c):''}
   </div>`;
 }
 
@@ -49345,7 +49407,7 @@ function renderMyLocations(){ return MLOC.render(); }
 // Stored in localStorage ('wdp_attendance_v1'), so the app's backup picks it up automatically.
 // ═════════════════════════════════════════════════════════════════════
 const ATT=(function(){
-  const KEY='wdp_attendance_v1';
+  const KEY0='wdp_attendance_v1', KEY=()=>_prjKey(KEY0);   // main project keeps the original key; others get '__<id>'
   const ST=[
     {k:'present',en:'Present',ar:'حضور',sEn:'Present',sAr:'حضور',ic:'check'},
     {k:'late',en:'Late',ar:'تأخير',sEn:'Late',sAr:'تأخير',ic:'clock'},
@@ -49369,13 +49431,13 @@ const ATT=(function(){
     if(db) return db;
     db={company:'',project:'',location:'',mapLink:'',logo:'',days:{},pay:{},leave:{}};
     try{
-      const p=JSON.parse(localStorage.getItem(KEY)||'null');
+      const p=JSON.parse(localStorage.getItem(KEY())||'null');
       if(p&&typeof p==='object'){ db.company=String(p.company||''); db.project=String(p.project||''); db.location=String(p.location||''); db.mapLink=String(p.mapLink||''); db.logo=String(p.logo||''); if(p.days&&typeof p.days==='object') db.days=p.days; if(p.pay&&typeof p.pay==='object') db.pay=p.pay; if(p.leave&&typeof p.leave==='object') db.leave=p.leave; }
     }catch(e){ _logErr('ATT:load',e); }
     return db;
   }
   function save(){
-    try{ localStorage.setItem(KEY,JSON.stringify(db)); return true; }
+    try{ localStorage.setItem(KEY(),JSON.stringify(db)); return true; }
     catch(e){ _logErr('ATT:save',e); try{ showToast(L('⚠️ Could not save (storage full)','⚠️ تعذّر الحفظ (التخزين ممتلئ)'),'warn'); }catch(_){} return false; }
   }
   function scopePrefix(){ return scope==='month'?(vy+'-'+pad(vm+1)):(scope==='year'?String(vy):''); }
@@ -50144,7 +50206,8 @@ const ATT=(function(){
       if(save()){ try{ renderView(true); }catch(e){} showToast(L('Month cleared','تم مسح الشهر'),'success'); }
     });
   }
-  return {render,dashCard,dashSummary,quickStrip,checkIn,checkOut,stamp,tUpd,clearT,noteChip,openPage,openDay,pick,saveDay,clearDay,quick,nav,goToday,setScope,setField,pickLogo,removeLogo,clearMonth,toggleCo,openPay,openLeave,leaveSave,jump,togglePayDays,payDraftSet,payTimeChange,paySave,toggleMulti,setRangeMode,clearSel,tapDay,openMulti,saveMulti,clearMulti};
+  function reset(){ db=null; sel=''; coOpen=null; multi=false; rangeMode=false; rangeStart=''; msel=new Set(); payOpen=null; }
+  return {reset,render,dashCard,dashSummary,quickStrip,checkIn,checkOut,stamp,tUpd,clearT,noteChip,openPage,openDay,pick,saveDay,clearDay,quick,nav,goToday,setScope,setField,pickLogo,removeLogo,clearMonth,toggleCo,openPay,openLeave,leaveSave,jump,togglePayDays,payDraftSet,payTimeChange,paySave,toggleMulti,setRangeMode,clearSel,tapDay,openMulti,saveMulti,clearMulti};
 })();
 // My Locations photos live in IndexedDB; carry them through the app's existing backup/restore
 // (which only knows localStorage) without ever writing them into localStorage.
