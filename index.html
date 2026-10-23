@@ -12604,6 +12604,21 @@ function fpInitSmartHeader(){
 .ca-step{width:100%;display:flex;align-items:center;justify-content:center;gap:8px;height:44px;border-radius:12px;border:1px solid var(--green);background:var(--surface);color:var(--green);font:inherit;font-weight:800;cursor:pointer}
 .ca-step.done{background:var(--green-tint)}
 .ca-reset{display:block;margin:22px auto 6px;background:none;border:0;color:var(--red);font:inherit;font-size:calc(12px*var(--app-text-scale,1));font-weight:700;cursor:pointer;opacity:.85}
+.ca-per{margin:10px 0 4px;padding:10px 12px;border-radius:13px;background:var(--surface2);border:1px solid var(--border)}
+.ca-per-h{display:flex;align-items:center;gap:6px;font-size:calc(11px*var(--app-text-scale,1));font-weight:800;letter-spacing:.4px;color:var(--muted);margin-bottom:6px}
+.ca-per-r{display:flex;align-items:center;gap:10px;padding:7px 0;cursor:pointer}
+.ca-per-r+.ca-per-r{border-top:1px solid var(--border)}
+.ca-per-r>i{flex:none;width:10px;height:10px;border-radius:50%;background:var(--surface3);border:2px solid var(--border-strong)}
+.ca-per-r>i.on{background:var(--green);border-color:var(--green)}
+.ca-per-r.gap{cursor:default}.ca-per-r.gap>i{background:transparent;border:2px dashed var(--orange)}
+.ca-per-t{flex:1;min-width:0}
+.ca-per-t b{display:block;font-size:calc(13px*var(--app-text-scale,1));font-weight:800;color:var(--text);overflow-wrap:anywhere}
+.ca-per-t small{display:block;margin-top:1px;font-size:calc(11px*var(--app-text-scale,1));font-weight:600;color:var(--muted)}
+.ca-per-d{flex:none;font-size:calc(11px*var(--app-text-scale,1));font-weight:700;color:var(--muted)}
+.ca-per.day{display:flex;align-items:center;gap:7px;margin:0 0 10px;padding:8px 12px;font-size:calc(12px*var(--app-text-scale,1));font-weight:700;color:var(--text2)}
+.ca-per.day.gap{color:var(--orange)}
+.ca-per.note{display:flex;gap:8px;align-items:flex-start;background:var(--gold-tint);border-color:transparent;font-size:calc(11.5px*var(--app-text-scale,1));font-weight:600;line-height:1.7;color:var(--text2)}
+.ca-per.note svg{flex:none;margin-top:3px;color:var(--gold)}
 </style>
 </head>
 <body>
@@ -35267,7 +35282,7 @@ function _jpAttHTML(){
   return `<section class="jp-card pad">
     <div class="jp-sec" style="padding-top:0">${ic('attendance',17)}<span>${L('Attendance','الحضور والغياب')}</span><span class="sp"></span>
       <span class="jp-scope" role="tablist"><button type="button" class="${_jpScope==='month'?'on':''}" onclick="_jpSetScope('month')">${L('Month','الشهر')}</button><button type="button" class="${_jpScope==='year'?'on':''}" onclick="_jpSetScope('year')">${L('Year','السنة')}</button></span></div>
-    <div style="font-size:calc(11.5px*var(--app-text-scale,1));color:var(--muted);font-weight:700" dir="auto">${esc(s.label)}</div>
+    <div style="font-size:calc(11.5px*var(--app-text-scale,1));color:var(--muted);font-weight:700" dir="auto">${esc(s.label)}</div>${(()=>{ const t=_jpScope==='month'?_caCurMonthText():''; return t?`<div style="margin-top:3px;font-size:calc(11.5px*var(--app-text-scale,1));color:var(--green);font-weight:700" dir="auto">${esc(t)}</div>`:''; })()}
     <div class="jp-att-top">
       <div class="jp-ring"><svg viewBox="0 0 92 92"><circle class="tr" cx="46" cy="46" r="${R}" fill="none" stroke-width="9"/><circle class="pg" cx="46" cy="46" r="${R}" fill="none" stroke-width="9" stroke-linecap="round" stroke-dasharray="${C.toFixed(1)}" stroke-dashoffset="${off.toFixed(1)}"/></svg>
         <div class="jp-ring-c"><b>${s.rate==null?'—':s.rate+'%'}</b><small>${L('Attendance','الالتزام')}</small></div></div>
@@ -35759,6 +35774,64 @@ function _caCustSave(){
 }
 // A project that is part of the work history must never be deleted from the project list.
 function _caProjectLocked(id){ try{ return _caState()==='ok'&&_caLoad().assignments.some(a=>a.projectId===id); }catch(e){ return false; } }
+
+// ── Phase 2: label attendance views with the company / project of the period (read-only) ──
+const _caNextDay=s=>{ const d=new Date(s+'T12:00:00'); d.setDate(d.getDate()+1); return _caFmtD(d); };
+// Splits [s,e] into consecutive pieces: {emp,asg,s,e} (asg null = employment with no project recorded)
+// or {gap:true,s,e} for days that belong to no recorded employment. Nothing is guessed.
+function _caSegments(c,s,e){
+  const out=[], byS=(a,b)=>(a.start||'').localeCompare(b.start||'');
+  const emps=c.employments.filter(x=>_caOverlap({start:x.start,end:x.end},{start:s,end:e})).sort(byS);
+  let cursor=s;
+  emps.forEach(em=>{
+    const es=(em.start&&em.start>s)?em.start:s, ee=(em.end&&em.end<e)?em.end:e;
+    if(es>cursor) out.push({gap:true,s:cursor,e:_caDayBefore(es)});
+    let cu=es;
+    c.assignments.filter(a=>a.empId===em.id&&_caOverlap({start:a.start,end:a.end},{start:es,end:ee})).sort(byS).forEach(a=>{
+      const as_=(a.start&&a.start>es)?a.start:es, ae=(a.end&&a.end<ee)?a.end:ee;
+      if(as_>cu) out.push({emp:em,asg:null,s:cu,e:_caDayBefore(as_)});
+      out.push({emp:em,asg:a,s:as_,e:ae,openStart:!a.start&&as_===es});
+      cu=_caNextDay(ae);
+    });
+    if(cu<=ee) out.push({emp:em,asg:null,s:cu,e:ee});
+    cursor=_caNextDay(ee);
+  });
+  if(cursor<=e) out.push({gap:true,s:cursor,e:e});
+  return out;
+}
+const _caShort=d=>{ try{ return new Date(d+'T12:00:00').toLocaleDateString(_jpLoc(),{day:'numeric',month:'short'}); }catch(e){ return d; } };
+function _caSegName(g){ return g.gap?L('Not assigned','غير مُسنَد'):(g.emp.company+' · '+(g.asg?g.asg.name:L('no project recorded','بدون مشروع مسجّل'))); }
+function _caPeriodBanner(s,e){
+  if(_caState()!=='ok'||!_caIsD(s)||!_caIsD(e)||e<s) return '';
+  const segs=_caSegments(_caLoad(),s,e), whole=segs.length===1;
+  const rows=segs.map(g=>{
+    const rng=whole?'':`<span class="ca-per-d">${esc(_caShort(g.s))}${g.s!==g.e?' – '+esc(_caShort(g.e)):''}</span>`;
+    if(g.gap) return `<div class="ca-per-r gap"><i></i><div class="ca-per-t"><b>${L('Not assigned','غير مُسنَد')}</b><small>${L('No employment period is recorded for these days — nothing was assumed.','مفيش فترة توظيف مسجلة للأيام دي — ومفيش حاجة اتخمّنت.')}</small></div>${rng}</div>`;
+    const act=!(g.asg?g.asg.end:g.emp.end), tgt=g.asg?`_caDetail('a','${g.asg.id}')`:`_caDetail('e','${g.emp.id}')`;
+    return `<div class="ca-per-r" onclick="${tgt}"><i class="${act?'on':''}"></i><div class="ca-per-t"><b dir="auto">${esc(g.asg?g.asg.name:L('No project recorded','بدون مشروع مسجّل'))}</b><small dir="auto">${esc(g.emp.company)}${g.asg&&g.asg.location?' · '+esc(g.asg.location):''}${g.openStart?' · '+L('start date not set','تاريخ البداية غير محدد'):''}</small></div>${rng}${act?_caBadge(true):''}</div>`;
+  }).join('');
+  return `<div class="ca-per"><div class="ca-per-h">${ic('briefcase',14)} ${L('Work period','فترة العمل')}</div>${rows}</div>`;
+}
+function _caPeriodText(s,e){
+  if(_caState()!=='ok'||!_caIsD(s)||!_caIsD(e)||e<s) return '';
+  return _caSegments(_caLoad(),s,e).map(_caSegName).join(' → ');
+}
+function _caDayPeriod(key){
+  if(_caState()!=='ok'||!_caIsD(key)) return '';
+  const g=_caSegments(_caLoad(),key,key)[0]; if(!g) return '';
+  return `<div class="ca-per day${g.gap?' gap':''}">${ic('briefcase',13)}<span dir="auto">${esc(_caSegName(g))}</span></div>`;
+}
+// Salary / shift settings are one global set; say so when the viewed range is not just the current employment.
+function _caPayNote(s,e){
+  if(_caState()!=='ok'||!_caIsD(s)||!_caIsD(e)||e<s) return '';
+  const c=_caLoad(), cur=_caCur(c).emp, segs=_caSegments(c,s,e);
+  if(!segs.some(g=>g.gap||!cur||g.emp.id!==cur.id)) return '';
+  return `<div class="ca-per note">${ic('shield',14)}<span>${L('Salary and shift settings are one global set, applied to every month. This period includes another company or unassigned days, so pay figures may not match what you actually received then.','إعدادات المرتب والوردية مجموعة واحدة بتتطبّق على كل الشهور. الفترة دي فيها شركة تانية أو أيام غير مُسنَدة، فأرقام المرتب ممكن متطابقش اللي استلمته وقتها.')}</span></div>`;
+}
+function _caCurMonthText(){
+  const n=new Date(), p=n.getFullYear()+'-'+_caP2(n.getMonth()+1);
+  return _caPeriodText(p+'-01',p+'-'+_caP2(new Date(n.getFullYear(),n.getMonth()+1,0).getDate()));
+}
 
 function renderJobProfile(){
   const p=_jpLoad(), att=_jpAtt(), cs=_caState();
@@ -49535,6 +49608,8 @@ const ATT=(function(){
     const sc=(k,en,ar)=>`<button type="button" class="att-seg${scope===k?' on':''}" aria-pressed="${scope===k}" onclick="ATT.setScope('${k}')">${L(en,ar)}</button>`;
     const isOpen = coOpen===null ? !db.company : coOpen;
     const subLine = [db.project,db.location].filter(Boolean).map(esc).join(' · ');
+    const _caMon=[dk(vy,vm,1),dk(vy,vm,days)];
+    const _caRng=scope==='month'?_caMon:scope==='year'?[vy+'-01-01',vy+'-12-31']:(()=>{ const ks=Object.keys(db.days).sort(); return ks.length?[ks[0],ks[ks.length-1]]:['','']; })();
     const tiles = stats + `<div class="att-stat att-st-rec"><span class="att-stat-ic">${ic('calendar',14)}</span><span class="att-stat-n">${total}</span><span class="att-stat-l">${L('Recorded','المسجّل')}</span></div>`;
     return `<div class="screen-wrap cx-wrap att atp">
       ${_pgHdr('Site','الموقع','My Job','My Job','Receipts log and custody money','سجل الاستلامات وفلوس العهدة')}
@@ -49555,6 +49630,7 @@ const ATT=(function(){
       ${secH('chart','Summary','ملخص الحضور','','att-s-sum')}
       <div class="sc-card atp-sum">
         <div class="att-seg-row">${sc('month','Month','الشهر')}${sc('year','Year','السنة')}${sc('all','All','الكل')}</div>
+        ${_caPeriodBanner(_caRng[0],_caRng[1])}
         <div class="atp-hero v2">
           <div class="att-ring" style="--p:${rate===null?0:rate}" role="img" aria-label="${L('Attendance rate','معدل الحضور')} ${rate===null?'—':rate+'%'}"><b>${rate===null?'—':rate}${rate===null?'':'<small>%</small>'}</b></div>
           <div class="att-ring-tx"><b>${L('Attendance rate','معدل الحضور')}</b><span>${esc(scopeLabel())}</span>${_due?`<em>${_worked}/${_due} ${L('working days','يوم عمل')}</em>`:`<em>${L('No records yet','لسه مفيش سجلات')}</em>`}</div>
@@ -49585,6 +49661,7 @@ const ATT=(function(){
       ${leaveHTML()}
 
       ${payHTML()}
+      ${_caPayNote(_caMon[0],_caMon[1])}
 
       ${secH('building','Workplace','جهة العمل','','att-s-work')}
       <div class="sc-card att-co${isOpen?' open':''}">
@@ -49648,6 +49725,7 @@ const ATT=(function(){
           <div style="flex:1;min-width:0"><div class="modal-hdr-title">${L('Day status','حالة اليوم')}</div><div class="modal-hdr-sub atd-sub"><span>${esc(title)}</span>${key===tk()?`<span class="atd-today">${L('Today','النهاردة')}</span>`:''}</div></div>
           <button type="button" class="sheet-close-btn sq" onclick="closeModal()" aria-label="${L('Close','إغلاق')}">${ic('close',16)}</button>
         </div>
+        ${_caDayPeriod(key)}
         <div class="atd-grp"><span class="atd-lbl">${L('Attendance','الحضور')}</span><div class="atd-main">${main}</div></div>
         <div class="atd-grp"><span class="atd-lbl">${L('Absence & days off','الغياب والإجازات')}</span><div class="atd-more">${more}</div></div>
         ${timesEdit}
