@@ -12668,6 +12668,29 @@ function fpInitSmartHeader(){
 .pf-bar{display:inline-flex;padding:6px 12px 6px 6px;gap:10px;border-radius:999px;width:auto;max-width:100%;align-self:flex-start;box-shadow:none;background:var(--surface2)}
 .pf-bar b{flex:0 1 auto;min-width:0;font-size:calc(13px*var(--app-text-scale,1));font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .pf-av{width:30px;height:30px;font-size:13px;box-shadow:0 0 0 1.5px var(--surface),0 0 0 3px #C9A24B}
+/* ── My Job: premium identity card (replaces compact pill look) ── */
+.pf-bar{position:relative;display:flex;align-items:center;gap:14px;width:100%;max-width:100%;align-self:stretch;margin:2px 0 8px;padding:12px 14px;border-radius:20px;overflow:hidden;
+  background:linear-gradient(135deg,color-mix(in srgb,var(--gold-light) 13%,var(--surface)) 0%,var(--surface) 62%);
+  border:1px solid color-mix(in srgb,var(--gold-light) 38%,var(--border));
+  box-shadow:0 10px 24px -14px rgba(7,56,42,.45),inset 0 1px 0 rgba(255,255,255,.55);transition:transform .15s ease,box-shadow .15s ease}
+.pf-bar::before{content:'';position:absolute;inset-inline-start:0;top:14px;bottom:14px;width:3px;border-radius:0 3px 3px 0;background:linear-gradient(180deg,#F3D580,#A97C1F)}
+[dir="rtl"] .pf-bar::before{border-radius:3px 0 0 3px}
+.pf-bar::after{content:'';position:absolute;inset-inline-end:-34px;top:-34px;width:120px;height:120px;border-radius:50%;border:1px solid color-mix(in srgb,var(--gold-light) 30%,transparent);box-shadow:0 0 0 18px color-mix(in srgb,var(--gold-light) 6%,transparent);pointer-events:none}
+.pf-bar:active{transform:scale(.985);background:var(--surface2)}
+.pf-av{position:relative;width:52px;height:52px;padding:2.5px;font-size:20px;background:linear-gradient(135deg,#F3D580,#A97C1F 60%,#F3D580);color:#F3D580;box-shadow:0 6px 14px -6px rgba(169,124,31,.7)}
+.pf-av::before{content:'';position:absolute;inset:2.5px;border-radius:50%;background:#0a4a34;z-index:0}
+.pf-av img,.pf-av>svg,.pf-av>i{position:relative;z-index:1}
+.pf-av img{border-radius:50%;border:2px solid var(--surface);box-sizing:border-box}
+.pf-av .pf-ini{position:relative;z-index:1}
+.pf-id{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px;position:relative;z-index:1}
+.pf-bar .pf-id b{display:block;font-family:var(--font-display);font-size:calc(16px*var(--app-text-scale,1));font-weight:800;line-height:1.25;letter-spacing:.1px;color:var(--text);white-space:normal;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.pf-sub{display:flex;align-items:center;gap:6px;font-size:calc(11.5px*var(--app-text-scale,1));font-weight:700;color:var(--gold);min-width:0}
+.pf-sub span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pf-sub::before{content:'';flex:none;width:6px;height:6px;border-radius:50%;background:var(--green)}
+.pf-go{position:relative;z-index:1;flex:none;width:32px;height:32px;border-radius:50%;align-items:center;justify-content:center;background:var(--green-tint);color:var(--green)}
+[dir="rtl"] .pf-go svg{transform:scaleX(-1)}
+[data-theme="dark"] .pf-bar{background:linear-gradient(135deg,color-mix(in srgb,var(--gold-light) 10%,var(--surface)) 0%,var(--surface) 65%);box-shadow:0 10px 24px -14px rgba(0,0,0,.7),inset 0 1px 0 rgba(255,255,255,.05)}
+[data-theme="dark"] .pf-av .pf-ini,[data-theme="dark"] .pf-av{color:#F3D580}
 .cx-tabs.v2 .cx-seg-btn{height:50px}
 .jp-hero.v2{background:var(--surface);color:var(--text);border:1px solid var(--border);box-shadow:var(--shadow-sm);padding:16px 16px 14px}
 .jp-hero.v2 .jp-ph{width:68px;height:68px}
@@ -35241,7 +35264,8 @@ function _cxProfileBarHTML(){
   let p={name:'',photo:''};
   try{ p=_jpLoad(); }catch(e){}
   const ini=(p.name||'').trim().charAt(0).toUpperCase();
-  return `<button type="button" class="pf-bar" onclick="_cxSetTab('profile')" aria-label="${L('My profile','ملفي الشخصي')}"><span class="pf-av">${p.photo?`<img src="${p.photo}" alt="">`:(ini?esc(ini):ic('id',16))}</span><b dir="auto">${p.name?esc(p.name):L('My profile','ملفي الشخصي')}</b><span class="pf-go">${ic('chevron',14)}</span></button>`;
+  const sub=[p.title,p.company].filter(Boolean).join(' · ');
+  return `<button type="button" class="pf-bar" onclick="_cxSetTab('profile')" aria-label="${L('My profile','ملفي الشخصي')}"><span class="pf-av">${p.photo?`<img src="${p.photo}" alt="">`:(ini?`<span class="pf-ini">${esc(ini)}</span>`:ic('id',20))}</span><span class="pf-id"><b dir="auto">${p.name?esc(p.name):L('My profile','ملفي الشخصي')}</b><span class="pf-sub" dir="auto"><span>${sub?esc(sub):L('View my profile','عرض ملفي الشخصي')}</span></span></span><span class="pf-go">${ic('chevron',16)}</span></button>`;
 }
 function _cxTabsHTML(){
   const t=(k,lbl,icn)=>`<button type="button" role="tab" class="cx-seg-btn${_cxTab===k?' on':''}" aria-selected="${_cxTab===k?'true':'false'}" onclick="_cxSetTab('${k}')">${ic(icn,18)}<span>${lbl}</span></button>`;
@@ -36046,7 +36070,6 @@ function renderJobProfile(){
   const nidRow=_jpRow('id',L('National ID','الرقم القومي'),p.nid?`<b><bdi dir="ltr" id="jpNidShow">${esc(nidShown)}</bdi></b>`:_jpVal(''),
     p.nid?`<button type="button" class="jp-rb" id="jpNidEye" onclick="_jpToggleId()" aria-label="${L('Show / hide','إظهار / إخفاء')}">${ic(_jpShowId?'eyeoff':'eye',15)}</button>${_jpCopyBtn(p.nid)}`:'');
   const prjVal=hist&&A?`<b dir="auto">${esc(A.name)}</b>${(A.location||A.start)?`<small style="margin:3px 0 0" dir="auto">${esc([A.location,A.start?L('since ','من ')+_jpDate(A.start):''].filter(Boolean).join(' · '))}</small>`:''}`:_jpVal(prj);
-  const manageSub=cs==='ok'?L('Move between projects & companies — history is kept','انتقال بين المشروعات والشركات — والتاريخ محفوظ'):(cs==='bad'?L('History data needs attention','بيانات السجل محتاجة مراجعة'):L('Start your work history','ابدأ السجل الوظيفي'));
   const sameMail=!!email&&!!medEmail&&email.trim().toLowerCase()===medEmail.trim().toLowerCase();
   const mailRows=sameMail
     ?_jpRow('mail',L('Company & medical-insurance e-mail','إيميل الشركة والتأمين الطبي'),_jpVal(email,true),_jpCopyBtn(email))+_jpPwRow('emailPw',L('E-mail password','باسورد الإيميل'))
@@ -36075,7 +36098,6 @@ function renderJobProfile(){
     ${nidRow}
     ${mailRows}
   </section>
-  <button type="button" class="ca-manage" onclick="_caManageOpen()"><span class="ic">${ic('briefcase',20)}</span><span class="tx"><b>${L('Manage Employment & Projects','إدارة العمل والمشروعات')}</b><small>${manageSub}</small></span>${ic('chevron',16)}</button>
   ${_jpAttBrief()}
   ${_jpCustHTML(p)}
   ${c?_caTimelineHTML(c):''}
@@ -36120,7 +36142,7 @@ function _jpPwFields(p){
 }
 function _jpEditProfile(){
   const p=_jpLoad(), att=_jpAtt();
-  if(_caState()!=='bad'){
+  if(_caState()==='ok'){
     const cu=_caState()==='ok'?_caCur(_caLoad()):{emp:null};
     _jpSheet('id',L('My profile','بياناتي'),L('Stored on this device only','متخزنة على الجهاز ده بس'),
       _cvField('jpName',L('Full name','الاسم بالكامل'),p.name)+
@@ -36148,7 +36170,7 @@ function _jpSaveProfile(){
   const g=id=>((document.querySelector('input#'+id+',textarea#'+id))?.value||'').trim(), p=_jpLoad();
   const _co=document.querySelector('input#jpPwCo'), _md=document.querySelector('input#jpPwMd');
   if(_co){ p.emailPw=_co.value; p.medPw=_md?_md.value:_co.value; }
-  if(_caState()!=='bad'){ p.name=g('jpName'); p.nid=g('jpNid').replace(/\s+/g,''); }
+  if(_caState()==='ok'){ p.name=g('jpName'); p.nid=g('jpNid').replace(/\s+/g,''); }
   else{ p.name=g('jpName'); p.title=g('jpTitle'); p.company=g('jpCompany'); p.nid=g('jpNid').replace(/\s+/g,''); p.email=g('jpEmail'); p.medEmail=g('jpMed'); p.code=g('jpCode'); p.start=g('jpStart'); }
   if(!_jpSave(p)) return;
   try{ closeModal(); }catch(e){}
