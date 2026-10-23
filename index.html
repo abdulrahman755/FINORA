@@ -12668,29 +12668,23 @@ function fpInitSmartHeader(){
 .pf-bar{display:inline-flex;padding:6px 12px 6px 6px;gap:10px;border-radius:999px;width:auto;max-width:100%;align-self:flex-start;box-shadow:none;background:var(--surface2)}
 .pf-bar b{flex:0 1 auto;min-width:0;font-size:calc(13px*var(--app-text-scale,1));font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .pf-av{width:30px;height:30px;font-size:13px;box-shadow:0 0 0 1.5px var(--surface),0 0 0 3px #C9A24B}
-/* ── My Job: premium identity card (replaces compact pill look) ── */
-.pf-bar{position:relative;display:flex;align-items:center;gap:14px;width:100%;max-width:100%;align-self:stretch;margin:2px 0 8px;padding:12px 14px;border-radius:20px;overflow:hidden;
-  background:linear-gradient(135deg,color-mix(in srgb,var(--gold-light) 13%,var(--surface)) 0%,var(--surface) 62%);
-  border:1px solid color-mix(in srgb,var(--gold-light) 38%,var(--border));
-  box-shadow:0 10px 24px -14px rgba(7,56,42,.45),inset 0 1px 0 rgba(255,255,255,.55);transition:transform .15s ease,box-shadow .15s ease}
-.pf-bar::before{content:'';position:absolute;inset-inline-start:0;top:14px;bottom:14px;width:3px;border-radius:0 3px 3px 0;background:linear-gradient(180deg,#F3D580,#A97C1F)}
-[dir="rtl"] .pf-bar::before{border-radius:3px 0 0 3px}
-.pf-bar::after{content:'';position:absolute;inset-inline-end:-34px;top:-34px;width:120px;height:120px;border-radius:50%;border:1px solid color-mix(in srgb,var(--gold-light) 30%,transparent);box-shadow:0 0 0 18px color-mix(in srgb,var(--gold-light) 6%,transparent);pointer-events:none}
-.pf-bar:active{transform:scale(.985);background:var(--surface2)}
-.pf-av{position:relative;width:52px;height:52px;padding:2.5px;font-size:20px;background:linear-gradient(135deg,#F3D580,#A97C1F 60%,#F3D580);color:#F3D580;box-shadow:0 6px 14px -6px rgba(169,124,31,.7)}
-.pf-av::before{content:'';position:absolute;inset:2.5px;border-radius:50%;background:#0a4a34;z-index:0}
-.pf-av img,.pf-av>svg,.pf-av>i{position:relative;z-index:1}
-.pf-av img{border-radius:50%;border:2px solid var(--surface);box-sizing:border-box}
-.pf-av .pf-ini{position:relative;z-index:1}
-.pf-id{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px;position:relative;z-index:1}
-.pf-bar .pf-id b{display:block;font-family:var(--font-display);font-size:calc(16px*var(--app-text-scale,1));font-weight:800;line-height:1.25;letter-spacing:.1px;color:var(--text);white-space:normal;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
-.pf-sub{display:flex;align-items:center;gap:6px;font-size:calc(11.5px*var(--app-text-scale,1));font-weight:700;color:var(--gold);min-width:0}
-.pf-sub span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.pf-sub::before{content:'';flex:none;width:6px;height:6px;border-radius:50%;background:var(--green)}
-.pf-go{position:relative;z-index:1;flex:none;width:32px;height:32px;border-radius:50%;align-items:center;justify-content:center;background:var(--green-tint);color:var(--green)}
+/* ── My Job: profile card — simple & clean (matches the Profile tab) ── */
+.pf-bar{display:flex;align-items:center;gap:12px;width:100%;max-width:100%;align-self:stretch;margin:2px 0 8px;padding:11px 14px;border-radius:18px;
+  background:var(--surface);border:1px solid var(--border);
+  box-shadow:0 1px 2px rgba(16,24,40,.05),0 8px 20px -16px rgba(16,24,40,.22);transition:transform .15s ease,background .15s ease}
+[data-theme="dark"] .pf-bar{box-shadow:0 1px 2px rgba(0,0,0,.4),0 8px 20px -16px rgba(0,0,0,.7)}
+.pf-bar:active{transform:scale(.99);background:var(--surface2)}
+.pf-av{width:44px;height:44px;padding:2px;font-size:18px;background:linear-gradient(135deg,#E6CF93,#B28A35);color:#F3D580;box-shadow:none;position:relative}
+.pf-av::before{content:'';position:absolute;inset:2px;border-radius:50%;background:#0a4a34}
+.pf-av img{position:relative;border-radius:50%;border:2px solid var(--surface);box-sizing:border-box}
+.pf-av .pf-ini,.pf-av>svg{position:relative}
+.pf-id{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.pf-bar .pf-id b{display:block;font-family:inherit;font-size:calc(15px*var(--app-text-scale,1));font-weight:800;line-height:1.3;letter-spacing:-.1px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pf-sub{font-size:calc(12px*var(--app-text-scale,1));font-weight:600;color:var(--muted);min-width:0}
+.pf-sub span{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pf-go{flex:none;display:flex;align-items:center;color:var(--muted)}
+.pf-go svg{width:18px;height:18px;display:block}
 [dir="rtl"] .pf-go svg{transform:scaleX(-1)}
-[data-theme="dark"] .pf-bar{background:linear-gradient(135deg,color-mix(in srgb,var(--gold-light) 10%,var(--surface)) 0%,var(--surface) 65%);box-shadow:0 10px 24px -14px rgba(0,0,0,.7),inset 0 1px 0 rgba(255,255,255,.05)}
-[data-theme="dark"] .pf-av .pf-ini,[data-theme="dark"] .pf-av{color:#F3D580}
 .cx-tabs.v2 .cx-seg-btn{height:50px}
 .jp-hero.v2{background:var(--surface);color:var(--text);border:1px solid var(--border);box-shadow:var(--shadow-sm);padding:16px 16px 14px}
 .jp-hero.v2 .jp-ph{width:68px;height:68px}
@@ -12703,7 +12697,131 @@ function fpInitSmartHeader(){
 .jp-hero.v2 .jp-chip+.jp-chip{border-inline-start-color:var(--border)}
 .jp-hero.v2 .jp-chip small{color:var(--muted)}
 .jp-hero.v2 .jp-chip b{color:var(--text)}
+/* ── My Job → Profile: clean & professional pass (CSS only) ── */
+.jp-wrap{--jp-sh:0 1px 2px rgba(16,24,40,.05),0 10px 24px -18px rgba(16,24,40,.22)}
+[data-theme="dark"] .jp-wrap{--jp-sh:0 1px 2px rgba(0,0,0,.4),0 10px 24px -18px rgba(0,0,0,.7)}
+/* identity card */
+.jp-wrap .jp-hero.v2{padding:20px 18px 16px;border-radius:22px;border:1px solid var(--border);background:var(--surface);box-shadow:var(--jp-sh)}
+.jp-wrap .jp-hero.v2 .jp-hero-top{gap:16px;align-items:center}
+.jp-wrap .jp-hero.v2 .jp-ph{width:72px;height:72px;padding:2px;background:linear-gradient(135deg,#E6CF93,#B28A35);box-shadow:none}
+.jp-wrap .jp-hero.v2 .jp-ph-in{border:2px solid var(--surface);box-sizing:border-box}
+.jp-wrap .jp-hero.v2 .jp-cam{width:24px;height:24px;inset-inline-end:-3px;bottom:-3px;border:2px solid var(--surface);box-shadow:none}
+.jp-wrap .jp-hero.v2 .jp-nm{font-family:inherit;font-size:calc(19px*var(--app-text-scale,1));font-weight:800;line-height:1.3;letter-spacing:-.2px;color:var(--text)}
+.jp-wrap .jp-hero.v2 .jp-tt{margin-top:4px;font-size:calc(13px*var(--app-text-scale,1));font-weight:600;color:var(--muted)}
+.jp-wrap .jp-hero.v2 .jp-edit{top:0;width:32px;height:32px;border:0;background:var(--surface2);color:var(--muted);box-shadow:none}
+.jp-wrap .jp-hero.v2 .jp-hero-bot{margin-top:16px;padding-top:14px;border-top:1px solid var(--border)}
+.jp-wrap .jp-hero.v2 .jp-chip small{margin-bottom:4px;font-size:calc(10.5px*var(--app-text-scale,1));font-weight:700;letter-spacing:.6px;color:var(--muted)}
+.jp-wrap .jp-hero.v2 .jp-chip b{font-size:calc(15px*var(--app-text-scale,1));font-weight:800;color:var(--text)}
+/* section cards */
+.jp-wrap .jp-card{padding:4px 16px 6px;border-radius:20px;box-shadow:var(--jp-sh)}
+.jp-wrap .jp-sec{padding:14px 0 6px;border-bottom:0;font-size:calc(11px*var(--app-text-scale,1));letter-spacing:.7px;color:var(--muted)}
+.jp-wrap .jp-sec svg{color:var(--muted)}
+.jp-wrap .jp-row{position:relative;border-bottom:0;padding:12px 0}
+.jp-wrap .jp-row+.jp-row::before{content:'';position:absolute;top:0;inset-inline-start:46px;inset-inline-end:0;height:1px;background:var(--border)}
+.jp-wrap .jp-ric{width:34px;height:34px;border-radius:10px}
+.jp-wrap .jp-ric:not(.gold){background:var(--surface2);color:var(--green)}
+.jp-wrap .jp-rtx small{font-size:calc(11.5px*var(--app-text-scale,1));font-weight:600;margin-bottom:3px}
+.jp-wrap .jp-rtx b{font-size:calc(14.5px*var(--app-text-scale,1));font-weight:700}
+.jp-wrap .jp-rb{width:32px;height:32px}
+.jp-wrap .jp-add{height:30px;padding:0 12px;border:0;background:var(--green-tint);color:var(--green)}
+/* attendance summary row: same card language */
+.jp-wrap .ca-manage{padding:14px 16px;border-radius:20px;box-shadow:var(--jp-sh)}
+.jp-wrap .ca-manage .ic{width:38px;height:38px;border-radius:11px}
+.jp-wrap .ca-manage .tx b{font-size:calc(14.5px*var(--app-text-scale,1))}
 .jp-rtx b.empty{padding:0;margin:0;min-height:0;text-align:start;display:block;background:none;border:0}
+/* ── My Job → Receipts: clean & professional pass (CSS only) ── */
+.cx-wrap{--cx-sh:0 1px 2px rgba(16,24,40,.05),0 10px 24px -18px rgba(16,24,40,.22)}
+[data-theme="dark"] .cx-wrap{--cx-sh:0 1px 2px rgba(0,0,0,.4),0 10px 24px -18px rgba(0,0,0,.7)}
+/* section header */
+.cx-wrap .cx-sh-t{font-size:calc(21px*var(--app-text-scale,1))!important;font-weight:800!important;letter-spacing:-.3px;padding-inline-start:10px;border-inline-start-width:3px}
+.cx-wrap .cx-sh-s{padding-inline-start:13px;font-size:calc(12.5px*var(--app-text-scale,1));font-weight:600;color:var(--muted)}
+.cx-wrap .rq-more{width:38px;height:38px;border-radius:12px;color:var(--muted);box-shadow:none}
+/* summary card */
+.cx-wrap .rq-sum{padding:18px 16px 14px;gap:14px;border-radius:20px;box-shadow:var(--cx-sh)}
+.cx-wrap .rq-sum-rate b{font-size:calc(32px*var(--app-text-scale,1));font-weight:800;letter-spacing:-.04em}
+.cx-wrap .rq-sum-rate small{font-size:calc(13px*var(--app-text-scale,1));font-weight:600}
+.cx-wrap .rq-sum-of{align-self:center;padding:4px 10px;border-radius:999px;background:var(--surface2);font-size:calc(12px*var(--app-text-scale,1));font-weight:700}
+.cx-wrap .rq-sum-bar{height:6px;gap:2px}
+.cx-wrap .rq-sf{gap:8px;padding:11px 12px;border:1px solid var(--border);background:transparent;border-radius:14px}
+.cx-wrap .rq-sf b{gap:6px;font-size:calc(21px*var(--app-text-scale,1));font-weight:800}
+.cx-wrap .rq-sf b i{width:6px;height:6px}
+.cx-wrap .rq-sf span{font-size:calc(11.5px*var(--app-text-scale,1));font-weight:600;color:var(--muted)}
+.cx-wrap .rq-sf.on{background:var(--surface2);border-color:var(--text)}
+.cx-wrap .rq-sf.ok.on{border-color:var(--green);background:color-mix(in srgb,var(--green) 8%,var(--surface))}
+.cx-wrap .rq-sf.low.on{border-color:var(--gold);background:color-mix(in srgb,var(--gold) 8%,var(--surface))}
+.cx-wrap .rq-sf.over.on{border-color:var(--red);background:color-mix(in srgb,var(--red) 8%,var(--surface))}
+.cx-wrap .rq-sum-types{padding-top:14px}
+.cx-wrap .rq-tchip{padding:6px 12px}
+.cx-wrap .rq-tchip .rq-tc-l{font-weight:700;letter-spacing:.05em}
+.cx-wrap .rq-tchip b{font-weight:800}
+/* My Report row */
+.cx-wrap .rq-hub{border-radius:20px;box-shadow:var(--cx-sh)}
+.cx-wrap .rq-hub-top{padding:13px 16px}
+.cx-wrap .rq-hub-ic{width:40px;height:40px;border-radius:12px}
+.cx-wrap .rq-hub-tx b{font-size:calc(15px*var(--app-text-scale,1))}
+.cx-wrap .rq-hub-go{padding:6px 14px}
+/* search + view switch */
+.cx-wrap .sc-search.cx-search .cx-sbox>input{height:46px;border-radius:14px;border:1px solid var(--border);box-shadow:var(--cx-sh)}
+.cx-wrap .sc-search.cx-search .cx-sbox>input:focus{border-color:var(--green);box-shadow:0 0 0 3px var(--green-glow)}
+.cx-wrap .rq-vbar{padding:3px;border-radius:14px;background:var(--surface2);border:1px solid var(--border)}
+.cx-wrap .rq-vbtn{width:36px;height:36px;border-radius:11px}
+.cx-wrap .rq-vbtn.on{box-shadow:0 1px 2px rgba(16,24,40,.12)}
+/* ── My Report sheet: clean & professional pass (CSS only) ── */
+/* day chips */
+#modalContent .rpt-chips{gap:8px;padding:2px 2px 10px}
+#modalContent .rpt-chip{height:36px;padding:0 14px;gap:8px;border-radius:999px;border:1px solid var(--border);background:var(--surface);color:var(--text2)}
+#modalContent .rpt-chip b{font-size:calc(13px*var(--app-text-scale,1));font-weight:700}
+#modalContent .rpt-chip span{min-width:20px;height:20px;font-size:calc(11px*var(--app-text-scale,1));font-weight:700}
+#modalContent .rpt-chip.on,#modalContent .rpt-chip.all.on{background:color-mix(in srgb,var(--green) 11%,var(--surface));border-color:var(--green);color:var(--green)}
+#modalContent .rpt-chip.on span,#modalContent .rpt-chip.all.on span{background:var(--green);color:#fff}
+/* date + tools row */
+#modalContent .rpt-top{gap:8px;margin:0 0 12px}
+#modalContent .rpt-top .rpt-pick{min-height:40px;border-radius:12px;border:1px solid var(--border);background:var(--surface);font-weight:700}
+#modalContent .rpt-ibtns{gap:6px}
+#modalContent .rpt-ib{min-width:40px;height:40px;border-radius:12px;border:1px solid var(--border);background:var(--surface)}
+#modalContent .rpt-ib svg{color:var(--text2)}
+#modalContent .rpt-ib.on{background:var(--green);border-color:var(--green)}
+/* status pills */
+#modalContent .rpt-stats{gap:6px;margin:0 0 12px}
+#modalContent .rpt-stat{padding:4px 10px 4px 8px;background:transparent;border:1px solid var(--border);font-weight:600;color:var(--muted)}
+#modalContent .rpt-stat i{width:6px;height:6px}
+#modalContent .rpt-stat b{font-weight:800}
+/* report body: no grey tray, light cards */
+#modalContent .rpt-paper{padding:2px 2px 6px;background:transparent;border:0;border-radius:0}
+#modalContent .rpt-paper .rpt-title{display:flex;align-items:center;gap:8px;margin:18px 2px 8px;font-size:calc(14px*var(--app-text-scale,1));font-weight:800;letter-spacing:.2px;line-height:1.3;text-transform:none}
+#modalContent .rpt-paper .rpt-title:first-child{margin-top:4px}
+#modalContent .rpt-paper .rpt-title::before{display:block;content:'';flex:none;width:8px;height:8px;margin:0;border-radius:50%;background:currentColor;transform:none}
+#modalContent .rpt-date{margin:0 2px 10px;font-size:calc(12px*var(--app-text-scale,1));font-weight:600;letter-spacing:.3px;color:var(--muted)}
+#modalContent .rpt-item{margin-top:10px;padding-block:14px;padding-inline-end:8px;border-radius:16px;border:1px solid var(--border);background:var(--surface);box-shadow:0 1px 2px rgba(16,24,40,.05),0 8px 20px -16px rgba(16,24,40,.2)}
+[data-theme="dark"] #modalContent .rpt-item{box-shadow:0 1px 2px rgba(0,0,0,.4)}
+#modalContent .rpt-item:not(.selectable){padding-inline-start:16px}
+#modalContent .rpt-item::before{inset-block:14px;width:3px}
+#modalContent .rpt-item .rpt-plot{text-decoration:none;padding-bottom:0;margin-bottom:6px;font-size:calc(17px*var(--app-text-scale,1));font-weight:800;letter-spacing:-.2px}
+#modalContent .rpt-paper .rpt-sub{margin-top:2px;font-size:calc(13.5px*var(--app-text-scale,1));font-weight:500;line-height:1.55;color:var(--text2)}
+#modalContent .rpt-item-act{gap:0;opacity:1}
+#modalContent .rpt-item-act button{width:32px;height:32px;border-radius:10px}
+#modalContent .rpt-item-act button.del{opacity:.8}
+/* all-days grouping */
+#modalContent .rpt-day{margin-top:8px}
+#modalContent .rpt-day-h{top:0;margin:0;padding:10px 2px 6px;background:color-mix(in srgb,var(--surface) 96%,transparent);font-size:calc(12px*var(--app-text-scale,1));font-weight:700;letter-spacing:.3px;color:var(--muted)}
+#modalContent .rpt-day-h span{background:var(--surface2);color:var(--muted);font-weight:700}
+#modalContent .rpt-autobox{margin:14px 0 4px}
+/* ── My Purchases cards: simple & flat (CSS only) ── */
+.pur2-card .pur2-chip{padding:7px 14px;border:1px solid var(--border);background:var(--surface);color:var(--text2);font-weight:700}
+.pur2-card .pur2-chip.on{background:color-mix(in srgb,var(--green) 11%,var(--surface));border-color:var(--green);color:var(--green);box-shadow:none}
+.pur2-card .pur2-chip.on small{color:var(--green);opacity:1}
+.pur2-card .pur2-grid{gap:10px}
+.pur2-card .pur2-i{flex:0 0 132px;border-radius:16px;box-shadow:none}
+.pur2-card .pur2-i:active{transform:scale(.98)}
+.pur2-card .pur2-stage{aspect-ratio:4/3}
+.pur2-card .pur2-stage:not(.has-img){aspect-ratio:auto;height:68px;border-bottom:0;background:color-mix(in srgb,var(--k) 9%,var(--surface2))}
+.pur2-card .pur2-ring{width:40px;height:40px;box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--k) 22%,transparent)}
+.pur2-card .pur2-ring svg{width:20px;height:20px}
+.pur2-card .pur2-info{padding:10px 12px 0;gap:3px}
+.pur2-card .pur2-nm{min-height:0;font-size:calc(14px*var(--app-text-scale,1));font-weight:700;line-height:1.35}
+.pur2-card .pur2-dt{font-size:calc(11px*var(--app-text-scale,1));font-weight:600;color:var(--muted)}
+.pur2-card .pur2-i > .pur2-pr{padding:8px 12px 12px;font-size:calc(16px*var(--app-text-scale,1));font-weight:800}
+.pur2-card .pur2-i > .pur2-pr small{font-size:calc(10.5px*var(--app-text-scale,1));font-weight:700}
 </style>
 </head>
 <body>
