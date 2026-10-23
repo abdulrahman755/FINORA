@@ -12619,6 +12619,21 @@ function fpInitSmartHeader(){
 .ca-per.day.gap{color:var(--orange)}
 .ca-per.note{display:flex;gap:8px;align-items:flex-start;background:var(--gold-tint);border-color:transparent;font-size:calc(11.5px*var(--app-text-scale,1));font-weight:600;line-height:1.7;color:var(--text2)}
 .ca-per.note svg{flex:none;margin-top:3px;color:var(--gold)}
+.ca-chk{display:flex;gap:10px;align-items:flex-start;margin:6px 0 12px;padding:11px 13px;border-radius:12px;border:1px solid var(--border);background:var(--surface2);font-size:calc(12.5px*var(--app-text-scale,1));font-weight:600;line-height:1.7;color:var(--text2);cursor:pointer}
+.ca-chk input{flex:none;width:20px;height:20px;margin-top:3px;accent-color:var(--green)}
+.ca-paytag{display:flex;gap:7px;align-items:flex-start;margin:0 0 10px;padding:8px 11px;border-radius:11px;background:var(--surface2);color:var(--muted);font-size:calc(11.5px*var(--app-text-scale,1));font-weight:700;line-height:1.6}
+.ca-paytag svg{flex:none;margin-top:3px}
+.ca-paytag.on{background:var(--green-tint);color:var(--green)}
+.ca-paytag.warn{background:var(--gold-tint);color:var(--text2)}
+.ca-lg{display:flex;gap:11px;padding:11px 0;border-bottom:1px solid var(--border)}
+.ca-lg:last-of-type{border-bottom:0}
+.ca-lg-i{flex:none;width:32px;height:32px;border-radius:10px;background:var(--green-tint);color:var(--green);display:flex;align-items:center;justify-content:center}
+.ca-lg-b{flex:1;min-width:0}
+.ca-lg-b b{display:block;font-size:calc(13px*var(--app-text-scale,1));font-weight:800;color:var(--text)}
+.ca-lg-b small{display:block;margin-top:2px;font-size:calc(11.5px*var(--app-text-scale,1));font-weight:600;color:var(--muted);overflow-wrap:anywhere}
+.ca-lg-b small.t{margin-top:4px;font-size:calc(10.5px*var(--app-text-scale,1));opacity:.8}
+.ca-lg-c{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px;margin-top:5px;padding:6px 9px;border-radius:9px;background:var(--surface2);font-size:calc(11.5px*var(--app-text-scale,1))}
+.ca-lg-c span{font-weight:800;color:var(--muted)}.ca-lg-c b{display:inline;font-size:inherit;font-weight:700;overflow-wrap:anywhere}.ca-lg-c i{font-style:normal;color:var(--muted)}
 </style>
 </head>
 <body>
@@ -35329,7 +35344,7 @@ function _caLoad(){
   o=(o&&typeof o==='object')?o:{};
   const arr=x=>Array.isArray(x)?x.filter(r=>r&&typeof r==='object'&&r.id):[];
   return {v:1,
-    employments:arr(o.employments).map(e=>({id:String(e.id),company:_caT(e.company),title:_caT(e.title),code:_caT(e.code,40),email:_caT(e.email,120),medEmail:_caT(e.medEmail,120),start:_caD(e.start),end:_caD(e.end),notes:_caT(e.notes,400)})),
+    employments:arr(o.employments).map(e=>({id:String(e.id),company:_caT(e.company),title:_caT(e.title),code:_caT(e.code,40),email:_caT(e.email,120),medEmail:_caT(e.medEmail,120),start:_caD(e.start),end:_caD(e.end),notes:_caT(e.notes,400),pay:_caPayClean(e.pay),payAt:+e.payAt||0})),
     assignments:arr(o.assignments).map(a=>({id:String(a.id),empId:String(a.empId||''),projectId:String(a.projectId||''),name:_caT(a.name),location:_caT(a.location),start:_caD(a.start),end:_caD(a.end),notes:_caT(a.notes,400)})),
     custody:arr(o.custody).map(k=>({id:String(k.id),name:_caT(k.name),note:_caT(k.note,400),empId:String(k.empId||''),asgId:String(k.asgId||''),receivedOn:_caD(k.receivedOn),condition:_caT(k.condition,20),status:(k.status==='returned'||k.status==='transferred')?k.status:'with',closedOn:_caD(k.closedOn),handoverNote:_caT(k.handoverNote,400),review:!!k.review})),
     log:(Array.isArray(o.log)?o.log:[]).filter(x=>x&&typeof x==='object').slice(-500),
@@ -35417,6 +35432,7 @@ function _caApplyCompanyMove(c,p){
     if(cur.emp.start&&pe<cur.emp.start) return L('The previous employment end date is before its start','نهاية التوظيف السابق قبل بدايته');
     if(cur.asg){ if(cur.asg.start&&pe<cur.asg.start) return L('The previous project end date is before its start','نهاية المشروع السابق قبل بدايته'); cur.asg.end=pe; }
     cur.emp.end=pe;
+    if(p.savePay&&!cur.emp.pay){ const sp=_caPayClean(p.savePay); if(sp){ cur.emp.pay=sp; cur.emp.payAt=Date.now(); } }
   }
   const e={id:_caId('e'),company,title:_caT(p.title),code:_caT(p.code,40),email:_caT(p.email,120),medEmail:_caT(p.medEmail,120),start:p.start,end:'',notes:_caT(p.notes,400)};
   c.employments.push(e);
@@ -35580,6 +35596,7 @@ function _caManageOpen(){
      ${prevE.map(e=>row('e',e.id,e.company,e.title||'',_caRange(e.start,e.end))).join('')||`<div class="ca-empty">${L('None yet','لا يوجد')}</div>`}
      <div class="ca-sec">${L('PREVIOUS PROJECTS','المشروعات السابقة')} · ${prevA.length}</div>
      ${prevA.map(a=>row('a',a.id,a.name,_caEmpName(c,a.empId),_caRange(a.start,a.end))).join('')||`<div class="ca-empty">${L('None yet','لا يوجد')}</div>`}
+     <button type="button" class="jp-link" onclick="_caLogOpen()">${ic('clock',15)} ${L('Change log','سجل التغييرات')} (${c.log.length})</button>
      <button type="button" class="ca-reset" onclick="_caResetAsk()">${L('Reset work history (rollback)','مسح السجل الوظيفي (رجوع للوضع السابق)')}</button>`,
     `<div class="modal-btns"><button class="mbtn cancel" onclick="closeModal()" style="flex:1">${L('Close','إغلاق')}</button></div>`);
 }
@@ -35624,14 +35641,14 @@ function _caCoMoveOpen(){
     _cvField('cmPn',L('First project *','أول مشروع *'),'')+_cvField('cmLoc',L('Project location','موقع المشروع'),'')+
     (cur.emp?`<div class="field"><label>${L('Previous employment ended','نهاية التوظيف السابق')}</label><input type="date" id="cmPrev" dir="ltr"></div><div class="ca-note small">${L('Leave empty to use the day before the start date.','سيبه فاضي ليتحسب اليوم اللي قبل البداية.')}</div>`:'')+
     _cvField('cmNote',L('Notes (optional)','ملاحظات (اختياري)'),'',{ta:1,rows:2})+
-    _caProjOpts('new')+_caCkHTML(c),
+    _caProjOpts('new')+_caPayCopyHTML(cur.emp)+_caCkHTML(c),
     _caFoot('_caCoMoveSave()','_caManageOpen()',L('Confirm move','تأكيد الانتقال')));
 }
 function _caCoMoveSave(){
   const c=_caLoad(), pn=_caV('cmPn'); if(!_caV('cmCo')){ _caWarn(L('Enter the company name','اكتب اسم الشركة')); return; } if(!pn){ _caWarn(L('Enter the first project','اكتب أول مشروع')); return; }
   const ck=_caCkCollect(c); if(ck.err){ _caWarn(ck.err); return; }
   const r=_caResolveApp(_caV('caApp')||'new',pn);
-  const err=_caApplyCompanyMove(c,{company:_caV('cmCo'),title:_caV('cmTt'),code:_caV('cmCd'),email:_caV('cmEm'),medEmail:_caV('cmMd'),start:_caV('cmStart'),prevEnd:_caV('cmPrev'),notes:_caV('cmNote'),projName:pn,location:_caV('cmLoc'),projectId:r.id,custody:ck.list});
+  const err=_caApplyCompanyMove(c,{company:_caV('cmCo'),title:_caV('cmTt'),code:_caV('cmCd'),email:_caV('cmEm'),medEmail:_caV('cmMd'),start:_caV('cmStart'),prevEnd:_caV('cmPrev'),notes:_caV('cmNote'),projName:pn,location:_caV('cmLoc'),projectId:r.id,custody:ck.list,savePay:(document.getElementById('cmPay')&&document.getElementById('cmPay').checked)?_caGlobalPay():null});
   if(err){ _caWarn(err); return; }
   if(!_caAppCommit(r)) return;
   if(!_caSave(c)){ _caAppRollback(r); return; }
@@ -35675,7 +35692,7 @@ function _caDetail(kind,id){
   const body=(kind==='e'
     ?_caKV(L('Company','الشركة'),esc(rec.company))+_caKV(L('Job title','المسمى'),esc(rec.title))+_caKV(L('Employee code','كود التوظيف'),rec.code?`<bdi dir="ltr">${esc(rec.code)}</bdi>`:'')+_caKV(L('Work e-mail','إيميل الشركة'),rec.email?`<bdi dir="ltr">${esc(rec.email)}</bdi>`:'')+_caKV(L('Medical insurance e-mail','إيميل التأمين الطبي'),rec.medEmail?`<bdi dir="ltr">${esc(rec.medEmail)}</bdi>`:'')
     :_caKV(L('Project','المشروع'),esc(rec.name))+_caKV(L('Company','الشركة'),esc(e?e.company:''))+_caKV(L('Location','الموقع'),esc(rec.location)))
-    +_caKV(L('Period','الفترة'),esc(_caRange(rec.start,rec.end)))+_caKV(L('Status','الحالة'),_caBadge(active))+(rec.notes?_caKV(L('Notes','ملاحظات'),esc(rec.notes)):'')+rc+
+    +_caKV(L('Period','الفترة'),esc(_caRange(rec.start,rec.end)))+_caKV(L('Status','الحالة'),_caBadge(active))+(rec.notes?_caKV(L('Notes','ملاحظات'),esc(rec.notes)):'')+rc+(kind==='e'?_caPayDetailHTML(rec):'')+
     `<div class="ca-sec">${L('RECORDS IN THIS PERIOD (REAL DATA ONLY)','سجلات الفترة دي (بيانات فعلية فقط)')}</div>`+
     (n.total?`<div class="jp-stats" style="margin-bottom:8px"><div class="jp-st" style="--st-c:var(--green);--st-t:var(--green-tint)"><b>${n.present}</b><small>${L('Present','حضور')}</small></div><div class="jp-st" style="--st-c:var(--orange);--st-t:var(--orange-tint)"><b>${n.late}</b><small>${L('Late','تأخير')}</small></div><div class="jp-st" style="--st-c:var(--red);--st-t:var(--red-tint)"><b>${n.absent}</b><small>${L('Absent','غياب')}</small></div><div class="jp-st" style="--st-c:var(--blue);--st-t:var(--blue-tint)"><b>${n.leave}</b><small>${L('Leaves','إجازات')}</small></div></div>`:`<div class="ca-empty">${L('No attendance recorded in this period','لا توجد سجلات حضور في هذه الفترة')}</div>`)+
     (projs.length?`<div class="ca-sec">${L('PROJECTS','المشروعات')}</div>`+projs.map(a=>`<div class="ca-lr" onclick="_caDetail('a','${a.id}')"><div class="ca-lr-b"><b dir="auto">${esc(a.name)}</b><small>${esc(_caRange(a.start,a.end))}</small></div>${ic('chevron',16)}</div>`).join(''):'')+
@@ -35825,12 +35842,122 @@ function _caDayPeriod(key){
 function _caPayNote(s,e){
   if(_caState()!=='ok'||!_caIsD(s)||!_caIsD(e)||e<s) return '';
   const c=_caLoad(), cur=_caCur(c).emp, segs=_caSegments(c,s,e);
-  if(!segs.some(g=>g.gap||!cur||g.emp.id!==cur.id)) return '';
+  if(!segs.some(g=>g.gap||!cur||(g.emp.id!==cur.id&&!g.emp.pay))) return '';
   return `<div class="ca-per note">${ic('shield',14)}<span>${L('Salary and shift settings are one global set, applied to every month. This period includes another company or unassigned days, so pay figures may not match what you actually received then.','إعدادات المرتب والوردية مجموعة واحدة بتتطبّق على كل الشهور. الفترة دي فيها شركة تانية أو أيام غير مُسنَدة، فأرقام المرتب ممكن متطابقش اللي استلمته وقتها.')}</span></div>`;
 }
 function _caCurMonthText(){
   const n=new Date(), p=n.getFullYear()+'-'+_caP2(n.getMonth()+1);
   return _caPeriodText(p+'-01',p+'-'+_caP2(new Date(n.getFullYear(),n.getMonth()+1,0).getDate()));
+}
+
+// ── Phase 3: salary & shift settings per employment (optional copy; global settings stay the fallback) ──
+const _caD28=x=>(+x>=1&&+x<=28)?Math.floor(+x):28;
+function _caPayClean(p){
+  if(!p||typeof p!=='object') return null; const net=+p.net; if(!(net>0)) return null;
+  const T=s=>/^([01]\d|2[0-3]):[0-5]\d$/.test(s||'')?s:'';
+  return {net:Math.min(net,1e9),ws:T(p.ws),we:T(p.we),hpd:(+p.hpd>0&&+p.hpd<=24)?+p.hpd:8,basis:['30','26','cal'].indexOf(String(p.basis))>=0?String(p.basis):'30',ot:(+p.ot>=0&&+p.ot<=5)?+p.ot:0,sickUnpaid:!!p.sickUnpaid,short:p.short!==false,cycle:_caD28(p.cycle),off:Array.isArray(p.off)?p.off.map(Number).filter(n=>n>=0&&n<=6):[5]};
+}
+// First / last day (inclusive) of the salary cycle shown for calendar month (vy,vm); D=1 → the calendar month itself.
+const _caCycleFirst=(vy,vm,D)=>D<=1?_caFmtD(new Date(vy,vm,1)):_caFmtD(new Date(vy,vm-1,D));
+const _caCycleLast=(vy,vm,D)=>D<=1?_caFmtD(new Date(vy,vm+1,0)):_caFmtD(new Date(vy,vm,D-1));
+// The employment a salary cycle belongs to = the one active on the cycle's last day (computed with that employment's own cycle day).
+function _caPayEmp(c,vy,vm,gD){
+  let best=null,bl='';
+  c.employments.forEach(e=>{ const last=_caCycleLast(vy,vm,e.pay?_caD28(e.pay.cycle):gD); if((!e.start||e.start<=last)&&(!e.end||e.end>=last)&&last>bl){ best=e; bl=last; } });
+  return best;
+}
+const _caGlobalPay=()=>{ const r=_caAttRaw(); return (r&&r.pay&&typeof r.pay==='object')?r.pay:null; };
+const _caGlobalD=()=>{ const g=_caGlobalPay(); return _caD28(g&&g.cycle); };
+function _caPayRawFor(vy,vm){ try{ if(_caState()!=='ok') return null; const e=_caPayEmp(_caLoad(),vy,vm,_caGlobalD()); return (e&&e.pay)?e.pay:null; }catch(x){ _logErr('_caPayRawFor',x); return null; } }
+// "Using …" chip shown on the salary card of the Attendance page
+function _caPayTag(vy,vm){
+  if(_caState()!=='ok') return '';
+  const c=_caLoad(), gD=_caGlobalD(), e=_caPayEmp(c,vy,vm,gD);
+  const D=e&&e.pay?_caD28(e.pay.cycle):gD;
+  let h=e&&e.pay?`<div class="ca-paytag on">${ic('shield',13)}<span>${L('Using the settings saved for','بتستخدم الإعدادات المحفوظة لـ')} <b dir="auto">${esc(e.company)}</b></span></div>`
+    :`<div class="ca-paytag">${ic('wallet',13)}<span>${L('Using the global salary settings','بتستخدم إعدادات المرتب العامة')}${e?'':' · '+L('this month is not assigned','الشهر ده غير مُسنَد')}</span></div>`;
+  if(e&&e.start&&_caCycleFirst(vy,vm,D)<e.start) h+=`<div class="ca-paytag warn">${ic('clock',13)}<span>${L('This salary cycle starts before you joined this company, so earlier days are calculated with its settings.','دورة المرتب دي بتبدأ قبل التحاقك بالشركة دي، فالأيام اللي قبل كده بتتحسب بإعداداتها.')}</span></div>`;
+  return h;
+}
+// Pay-settings sheet: where will Save write?
+function _caPayTarget(vy,vm){
+  if(_caState()!=='ok') return '';
+  const e=_caPayEmp(_caLoad(),vy,vm,_caGlobalD());
+  if(!e) return `<div class="ca-note small">${L('This month is not assigned to any employment, so the global settings are edited.','الشهر ده مش مُسنَد لأي فترة توظيف، فالمتعدّل هو الإعدادات العامة.')}</div>`;
+  if(e.pay) return `<div class="ca-note small">${ic('shield',14)} <span>${L('You are editing the settings saved for','انت بتعدّل الإعدادات المحفوظة لـ')} <b dir="auto">${esc(e.company)}</b>. ${L('Other periods and the global settings stay unchanged.','باقي الفترات والإعدادات العامة مش هتتغير.')}</span></div>`;
+  return `<label class="ca-chk"><input type="checkbox" id="attPayEmp"><span>${L('Save these settings for','احفظ الإعدادات دي لـ')} <b dir="auto">${esc(e.company)}</b> ${L('only (instead of the global settings)','فقط (بدل الإعدادات العامة)')}</span></label>`;
+}
+// returns false (not handled → caller saves globally), 'fail', or 'saved'
+function _caPaySaveHook(vy,vm,draft){
+  if(_caState()!=='ok') return false;
+  const c=_caLoad(), e=_caPayEmp(c,vy,vm,_caGlobalD()); if(!e) return false;
+  const cb=document.getElementById('attPayEmp');
+  if(!(e.pay||(cb&&cb.checked))) return false;
+  const clean=_caPayClean(draft); if(!clean) return 'fail';
+  e.pay=clean; e.payAt=Date.now();
+  c.log.push({t:Date.now(),type:'pay-edit',id:e.id,detail:e.company});
+  return _caSave(c)?'saved':'fail';
+}
+function _caPayDetailHTML(e){
+  const g=_caGlobalPay(), gOk=!!(g&&+g.net>0), p=e.pay;
+  const money=n=>{ try{ return fmtEGP(Math.round(n*100)/100); }catch(x){ return String(n); } };
+  const dayN=[L('Sun','حد'),L('Mon','إتنين'),L('Tue','تلات'),L('Wed','أربع'),L('Thu','خميس'),L('Fri','جمعة'),L('Sat','سبت')];
+  let body;
+  if(p){
+    body=_caKV(L('Net salary','المرتب الصافي'),esc(money(p.net)))+_caKV(L('Salary cycle starts on day','دورة المرتب تبدأ يوم'),String(p.cycle))
+      +_caKV(L('Work window','ساعات العمل'),p.ws&&p.we?`<bdi dir="ltr">${esc(p.ws)} – ${esc(p.we)}</bdi>`:esc(p.hpd+' '+L('h/day','س/يوم')))
+      +_caKV(L('Overtime','الأوفر تايم'),p.ot?'×'+p.ot:L('Off','مقفول'))+_caKV(L('Weekly days off','أيام الراحة'),esc(p.off.map(n=>dayN[n]).join(' · ')))
+      +`<div class="ca-note small">${L('Used for salary cycles that end inside this employment. Change it from Attendance → Salary while viewing one of its months.','بتتستخدم لدورات المرتب اللي بتنتهي جوه فترة التوظيف دي. بتتعدل من الحضور ← المرتب وإنت فاتح شهر منها.')}</div>`
+      +`<button type="button" class="ca-reset" style="margin:6px 0 0" onclick="_caPayRemoveAsk('${e.id}')">${L('Remove these saved settings (use global)','حذف الإعدادات المحفوظة (استخدام العامة)')}</button>`;
+  }else{
+    body=`<div class="ca-empty">${L('No settings saved here — salary cycles in this period use the global settings.','مفيش إعدادات محفوظة هنا — دورات المرتب في الفترة دي بتستخدم الإعدادات العامة.')}</div>`
+      +(gOk?`<button type="button" class="jp-link" style="margin-top:0" onclick="_caPayCopy('${e.id}')">${ic('copy',15)} ${L('Save a copy of the current global settings here','احفظ نسخة من الإعدادات العامة الحالية هنا')}</button>`:'');
+  }
+  return `<div class="ca-sec">${L('SALARY & SHIFT SETTINGS','إعدادات المرتب والوردية')}</div>`+body;
+}
+function _caPayCopy(id){
+  const c=_caLoad(), e=c.employments.find(x=>x.id===id), g=_caPayClean(_caGlobalPay()); if(!e||e.pay||!g){ _caWarn(L('Nothing to copy','مفيش حاجة تتنسخ')); return; }
+  e.pay=g; e.payAt=Date.now(); c.log.push({t:Date.now(),type:'pay-copy',id:e.id,detail:e.company});
+  if(!_caSave(c)) return; try{ renderView(); }catch(x){} _caDetail('e',id); showToast(L('Settings saved for this period','تم حفظ الإعدادات لهذه الفترة'),'success');
+}
+function _caPayRemoveAsk(id){
+  showConfirm(L('Remove the salary settings saved for this period? Its months will use the global settings again. This is logged.','حذف إعدادات المرتب المحفوظة للفترة دي؟ شهورها هترجع تستخدم الإعدادات العامة. وده بيتسجل في سجل التغييرات.'),()=>{
+    const c=_caLoad(), e=c.employments.find(x=>x.id===id); if(!e||!e.pay) return;
+    e.pay=null; e.payAt=0; c.log.push({t:Date.now(),type:'pay-remove',id:e.id,detail:e.company});
+    if(!_caSave(c)) return; try{ renderView(); }catch(x){} _caDetail('e',id);
+  });
+}
+// company-move sheet: offer to keep the closing company's settings (copy — the global set is left as is)
+function _caPayCopyHTML(emp){
+  const g=_caPayClean(_caGlobalPay()); if(!emp||emp.pay||!g) return '';
+  return `<label class="ca-chk"><input type="checkbox" id="cmPay" checked><span>${L('Save the current salary & shift settings on','احفظ نسخة من إعدادات المرتب والوردية الحالية على')} <b dir="auto">${esc(emp.company)}</b> ${L('(a copy — the global settings stay, so you can edit them for the new company)','(نسخة — والإعدادات العامة بتفضل، فتقدر تعدّلها للشركة الجديدة)')}</span></label>`;
+}
+
+// ── Change log viewer (read-only; the log itself is append-only and never edited here) ──
+let _caLogN=30;
+function _caLogLabel(t){
+  const m={ 'setup':['Work history started','بدء السجل الوظيفي','briefcase'],'project-move':['Moved to a new project','انتقال لمشروع جديد','building2'],'company-move':['Moved to a new company','انتقال لشركة جديدة','building'],
+    'past-employment':['Past company added','إضافة شركة سابقة','plus'],'past-project':['Past project added','إضافة مشروع سابق','plus'],'edit-emp':['Employment period edited','تعديل فترة توظيف','edit'],'edit-asg':['Project period edited','تعديل فترة مشروع','edit'],
+    'custody-add':['Custody item added','إضافة عهدة','package'],'custody-edit':['Custody item edited','تعديل عهدة','package'],'custody-returned':['Custody returned','تسليم عهدة','package'],'custody-transferred':['Custody transferred','نقل عهدة','package'],
+    'pay-edit':['Salary settings edited','تعديل إعدادات المرتب','wallet'],'pay-copy':['Salary settings copied to a period','نسخ إعدادات المرتب لفترة','wallet'],'pay-remove':['Salary settings removed from a period','حذف إعدادات المرتب من فترة','wallet'] }[t];
+  return m?{t:L(m[0],m[1]),i:m[2]}:{t:String(t||''),i:'clock'};
+}
+function _caLogField(f){
+  const m={company:['Company','الشركة'],title:['Job title','المسمى'],code:['Employee code','كود التوظيف'],email:['Work e-mail','إيميل الشركة'],medEmail:['Medical e-mail','إيميل التأمين'],start:['Start','البداية'],end:['End','النهاية'],notes:['Notes','ملاحظات'],name:['Project','المشروع'],location:['Location','الموقع']}[f];
+  return m?L(m[0],m[1]):f;
+}
+function _caLogWhen(ms){ try{ return new Date(ms).toLocaleString(_jpLoc(),{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}); }catch(e){ return ''; } }
+function _caLogOpen(more){
+  if(more) _caLogN+=30; else _caLogN=30;
+  const c=_caLoad(), all=c.log.slice().reverse(), shown=all.slice(0,_caLogN);
+  const rows=shown.map(x=>{
+    const lb=_caLogLabel(x.type), ch=Array.isArray(x.changes)?x.changes.map(h=>`<div class="ca-lg-c"><span>${esc(_caLogField(h.field))}</span><b dir="auto">${esc(h.from||'—')}</b><i>→</i><b dir="auto">${esc(h.to||'—')}</b></div>`).join(''):'';
+    return `<div class="ca-lg"><span class="ca-lg-i">${ic(lb.i,15)}</span><div class="ca-lg-b"><b>${esc(lb.t)}</b>${x.detail?`<small dir="auto">${esc(x.detail)}</small>`:''}${x.date?`<small>${L('Effective','سارية من')} ${esc(_jpDate(x.date))}</small>`:''}${ch}<small class="t">${esc(_caLogWhen(x.t))}</small></div></div>`;
+  }).join('');
+  _caSheet('clock',L('Change log','سجل التغييرات'),L(`${all.length} entries · read-only`,`${all.length} عملية · للقراءة فقط`),
+    `<div class="ca-note small">${L('Every move, edit and handover is recorded here with its date. Entries cannot be edited or deleted.','كل انتقال وتعديل وتسليم بيتسجل هنا بتاريخه. العمليات دي مينفعش تتعدل أو تتحذف.')}</div>`+(rows||`<div class="ca-empty">${L('Nothing recorded yet','لسه مفيش عمليات مسجلة')}</div>`)+
+    (all.length>shown.length?`<button type="button" class="jp-link" onclick="_caLogOpen(true)">${L('Show older entries','عرض العمليات الأقدم')} (${all.length-shown.length})</button>`:''),
+    `<div class="modal-btns"><button class="mbtn cancel" onclick="_caManageOpen()" style="flex:1">${L('Back','رجوع')}</button></div>`);
 }
 
 function renderJobProfile(){
@@ -49305,8 +49432,8 @@ const ATT=(function(){
   // ── Net salary: starts from the monthly net, deducts absence / unpaid sick / short hours, adds overtime ──
   const _n2=v=>String(v==null?'':v).replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/[٫]/g,'.').replace(/[٬,\s]/g,'');
   const PAY_OT=[0,1,1.25,1.5,2];
-  function payCfg(){
-    const p=(db&&db.pay)||{};
+  function payCfg(mo){
+    const p=(mo&&typeof _caPayRawFor==='function'&&_caPayRawFor(vy,vm))||(db&&db.pay)||{};
     // Work window: shift start/end. When both are set the daily hours ARE the window length,
     // and every day is measured against it (see winSplit): time after the end = overtime,
     // late arrival / early leave = short hours. Without a window the old "hours per day" is used.
@@ -49340,7 +49467,7 @@ const ATT=(function(){
     return {reg:Math.max(0,Math.min(O,E)-Math.max(I,S)), ot:Math.max(0,O-Math.max(I,E))};
   }
   function calcPay(){
-    const cfg=payCfg(), rg=payRange(cfg);
+    const cfg=payCfg(true), rg=payRange(cfg);
     const dayVal=cfg.net/rg.days, std=cfg.hpd*60;
     const hourly=(cfg.net/(cfg.basis==='cal'?rg.days:+cfg.basis))/cfg.hpd;
     const today=tk(), lc=leaveCfg();
@@ -49461,7 +49588,7 @@ const ATT=(function(){
   function jump(id){ const e=document.getElementById(id); if(e) e.scrollIntoView({behavior:'smooth',block:'start'}); }
   function togglePayDays(){ payDays=!payDays; try{ renderView(true); }catch(e){} }
   function payHTML(){
-    const cfg=payCfg(), pr=calcPay();
+    const cfg=payCfg(true), pr=calcPay();
     const M=n=>fmtEGP(Math.round(n*100)/100);
     const row=(lbl,val,cls)=>`<div class="att-pay-r ${cls||''}"><span>${lbl}</span><b>${val}</b></div>`;
     const done=pr.elapsed>=pr.days, pct=Math.round(pr.elapsed/pr.days*100);
@@ -49499,7 +49626,7 @@ const ATT=(function(){
         <div class="att-pay-rows">${earn?`<div class="att-pay-sub ok">${L('Earned','محسوب')}</div>${earn}`:''}${lost?`<div class="att-pay-sub">${L('Not earned','غير محسوب')}</div>${lost}`:''}</div>
         ${pr.items.length?`<button type="button" class="att-pay-more" onclick="ATT.togglePayDays()" aria-expanded="${payDays}"><span>${L('Day-by-day impact','تأثير كل يوم')} (${pr.items.length})</span><span class="att-chev dn${payDays?' up':''}"></span></button>${payDays?`<div class="att-pay-days">${dayRows}</div>`:''}`:''}`
       :`<div class="att-pay-start"><span class="att-pay-ic">${ic('wallet',22)}</span><p>${L('Add your monthly net salary and working hours to calculate pay from attendance, absence and overtime.','أضف مرتبك الصافي وساعات العمل عشان يتحسب المرتب من الحضور والغياب والأوفر تايم.')}</p><button type="button" class="att-pay-go" onclick="ATT.openPay()">${ic('wallet',16)} ${L('Set up salary','إعداد المرتب')}</button></div>`;
-    return secH('wallet','Salary','المرتب',btn,'att-s-pay')+`<div class="sc-card att-pay">${body}</div>`;
+    return secH('wallet','Salary','المرتب',btn,'att-s-pay')+`<div class="sc-card att-pay">${typeof _caPayTag==='function'?_caPayTag(vy,vm):''}${body}</div>`;
   }
   let payDraft=null;
   function payModalInner(){
@@ -49530,7 +49657,7 @@ const ATT=(function(){
       +`<p class="atp-note">${L('Each day is worth salary ÷ cycle days. With a start/end time set, every day is measured against it using your check-in and check-out: time after the end is overtime, late arrival or early leave is deducted, and time before the start is not counted. Absence earns nothing. Sick and annual leave are paid within your leave balance only.','قيمة اليوم = المرتب ÷ أيام الدورة. لو حددت بداية ونهاية الدوام، كل يوم بيتقارن بيهم من بصمة الدخول والخروج: أي وقت بعد نهاية الدوام أوفر تايم، والتأخير أو الانصراف بدري بيتخصم، والوقت قبل البداية مش بيتحسب. والغياب بدون أجر. المرضي والاعتيادي مدفوعين في حدود رصيد الإجازات بس.')}</p>`;
   }
   function openPay(){
-    load(); const c=payCfg();
+    load(); const c=payCfg(true);
     payDraft={net:c.net,ws:c.ws,we:c.we,hpd:c.hpd,basis:c.basis,ot:c.ot,sickUnpaid:c.sickUnpaid,short:c.short,cycle:c.cycle,off:c.off.slice()};
     document.getElementById('modalContent').innerHTML=`<div class="modal-handle"></div>
       <div class="rq-modal">
@@ -49539,6 +49666,7 @@ const ATT=(function(){
           <div style="flex:1;min-width:0"><div class="modal-hdr-title">${L('Salary settings','إعدادات المرتب')}</div><div class="modal-hdr-sub">${L('Net salary, work hours and overtime','المرتب وساعات العمل والأوفر تايم')}</div></div>
           <button type="button" class="sheet-close-btn sq" onclick="closeModal()" aria-label="${L('Close','إغلاق')}">${ic('close',16)}</button>
         </div>
+        ${typeof _caPayTarget==='function'?_caPayTarget(vy,vm):''}
         <div class="rq-sec"><div id="attPayBox">${payModalInner()}</div></div>
         <div class="modal-btns"><button class="mbtn save" onclick="ATT.paySave()">${L('Save','حفظ')}</button><button class="mbtn cancel" onclick="closeModal()">${L('Cancel','إلغاء')}</button></div>
       </div>`;
@@ -49572,6 +49700,9 @@ const ATT=(function(){
   function paySave(){
     if(!payDraft) return; payRead();
     if(!(payDraft.net>0)){ try{ showToast(L('Enter your monthly net salary first','اكتب المرتب الصافي الشهري الأول'),'warn'); }catch(e){} const n=document.getElementById('attPayNet'); if(n) n.focus(); return; }
+    { const _r=(typeof _caPaySaveHook==='function')?_caPaySaveHook(vy,vm,payDraft):false;
+      if(_r==='fail') return;
+      if(_r){ try{ closeModal(); }catch(e){} try{ renderView(true); }catch(e){} showToast(L('Salary settings saved for this period ✓','تم حفظ إعدادات المرتب لهذه الفترة ✓'),'success'); return; } }
     load(); db.pay=Object.assign({},payDraft);
     if(save()){ try{ closeModal(); }catch(e){} try{ renderView(true); }catch(e){} showToast(L('Salary settings saved ✓','تم حفظ إعدادات المرتب ✓'),'success'); }
   }
