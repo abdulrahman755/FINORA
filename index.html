@@ -12700,7 +12700,15 @@ function fpInitSmartHeader(){
 [data-theme="dark"] .pf-chip{box-shadow:0 1px 2px rgba(0,0,0,.4),0 8px 18px -14px rgba(0,0,0,.7)}
 .pf-chip:active{transform:scale(.97);background:var(--surface2)}
 .pf-chip .pf-av{width:40px;height:40px;flex:none}
-.pf-chip .pf-id{flex:1 1 auto;min-width:0;gap:1px}
+.pf-chip{margin-inline-end:26px} /* keeps clear of the notes edge-tab */
+.pf-chip .pf-id{flex:1 1 auto;min-width:0;display:grid}
+.pf-chip .pf-sl{grid-area:1/1;display:flex;flex-direction:column;gap:1px;min-width:0}
+.pf-chip.rot .pf-sl{opacity:0;animation:pfSlide 6.4s ease-in-out infinite}
+.pf-chip.rot .pf-sl.s2{animation-delay:3.2s}
+@keyframes pfSlide{0%{opacity:0;transform:translateY(7px)}9%{opacity:1;transform:none}44%{opacity:1;transform:none}53%{opacity:0;transform:translateY(-7px)}100%{opacity:0;transform:translateY(-7px)}}
+.pf-chip .pf-av{animation:pfRing 3.2s ease-in-out infinite}
+@keyframes pfRing{0%,100%{box-shadow:0 0 0 0 rgba(201,162,75,.0)}50%{box-shadow:0 0 0 4px rgba(201,162,75,.22)}}
+@media (prefers-reduced-motion:reduce){.pf-chip.rot .pf-sl{animation:none}.pf-chip.rot .pf-sl.s1{opacity:1}.pf-chip .pf-av{animation:none}}
 .pf-chip .pf-id b{display:block;font-family:inherit;font-size:calc(13px*var(--app-text-scale,1));font-weight:800;line-height:1.25;letter-spacing:-.1px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pf-chip .pf-sub{font-size:calc(11px*var(--app-text-scale,1));line-height:1.25}
 @media (max-width:360px){ .pf-chip{max-width:52%} .pf-chip .pf-av{width:34px;height:34px} .pf-chip .pf-sub{display:none} }
@@ -35460,7 +35468,10 @@ function _cxProfileChipHTML(){
   const short=full.split(/\s+/).slice(0,2).join(' ');
   const ini=full.charAt(0).toUpperCase();
   const sub=[p.title,p.company].filter(Boolean).join(' · ');
-  return `<button type="button" class="pf-chip" onclick="_cxSetTab('profile')" aria-label="${L('My profile','ملفي الشخصي')}${full?': '+esc(full):''}" title="${esc(full)}"><span class="pf-av">${p.photo?`<img src="${p.photo}" alt="">`:(ini?`<span class="pf-ini">${esc(ini)}</span>`:ic('id',18))}</span><span class="pf-id"><b dir="auto">${short?esc(short):L('My profile','ملفي الشخصي')}</b><span class="pf-sub" dir="auto"><span>${sub?esc(sub):L('View profile','عرض الملف')}</span></span></span></button>`;
+  // two slides that cross-fade inside the card: (name / job) then (job / company) — only when there is something to rotate
+  const t2=(p.title||'').trim(), c2=(p.company||'').trim();
+  const slide2=(short&&(t2||c2))?`<span class="pf-sl s2" aria-hidden="true"><b dir="auto">${esc(t2||c2)}</b><span class="pf-sub" dir="auto"><span>${esc(t2&&c2?c2:short)}</span></span></span>`:'';
+  return `<button type="button" class="pf-chip${slide2?' rot':''}" onclick="_cxSetTab('profile')" aria-label="${L('My profile','ملفي الشخصي')}${full?': '+esc(full):''}" title="${esc(full)}"><span class="pf-av">${p.photo?`<img src="${p.photo}" alt="">`:(ini?`<span class="pf-ini">${esc(ini)}</span>`:ic('id',18))}</span><span class="pf-id"><span class="pf-sl s1"><b dir="auto">${short?esc(short):L('My profile','ملفي الشخصي')}</b><span class="pf-sub" dir="auto"><span>${sub?esc(sub):L('View profile','عرض الملف')}</span></span></span>${slide2}</span></button>`;
 }
 function _cxProfileBarHTML(){
   if(_cxTab==='profile') return '';
