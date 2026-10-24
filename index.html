@@ -3543,7 +3543,7 @@ tbody tr:hover{background:var(--surface2)}
 
 .bottom-nav{display:flex}
 .bottom-nav .nav-btn{flex:1;min-width:0}
-.bottom-nav .nav-btn span{font-size:calc(9px*var(--app-text-scale,1))}
+.bottom-nav .nav-btn span{font-size:calc(10px*var(--app-text-scale,1))}
 
 @media print {
   body > *:not(#printArea) { display: none !important; }
@@ -15652,7 +15652,7 @@ function toggleMonthYear(e,y){
 function renderMonthTabs(){
   document.getElementById('monthTabs').innerHTML=`
     <div class="month-selector-wrap">
-      <button class="month-active-btn" id="monthActiveBtn" onclick="toggleMonthDropdown(event)">
+      <button class="month-active-btn" id="monthActiveBtn" aria-haspopup="listbox" aria-label="${L('Change month','تغيير الشهر')}" onclick="toggleMonthDropdown(event)">
         <span class="chevron">▾</span><span>${_monthDisplayLabel(activeMonth)}</span>
       </button>
       <div class="month-dropdown" id="monthDropdown" style="display:none">
@@ -22725,7 +22725,7 @@ function _savMonthDelta(list, dateField, amtField){
 function _savChangeBadge(delta){
   if(delta==null || !isFinite(delta)) return '';
   const up = delta>=0;
-  return `<span class="fin-card-change ${up?'is-up':'is-down'}">${ic(up?'trend_up':'trend_down',11)}${up?'+':''}${delta}%</span>`;
+  return `<span class="fin-card-change ${up?'is-up':'is-down'}">${ic(up?'trend_up':'trend_down',11)}<bdi dir="ltr">${up?'+':''}${delta}%</bdi></span>`;
 }
 // Net Worth month-over-month trend for the Hero KPI (UI/UX pass) — purely
 // additive presentation helper, same current/prev-month split as
@@ -22748,7 +22748,7 @@ function _savNetWorthDelta(incomeList, outcomeList, assetList){
 function _savHeroTrend(delta){
   if(delta==null || !isFinite(delta)) return '';
   const up = delta>=0;
-  return `<span class="fin-hero-trend ${up?'is-up':'is-down'}">${ic(up?'trend_up':'trend_down',11)}${up?'+':''}${delta}% ${L('this month','هذا الشهر')}</span>`;
+  return `<span class="fin-hero-trend ${up?'is-up':'is-down'}">${ic(up?'trend_up':'trend_down',11)}<bdi dir="ltr">${up?'+':''}${delta}%</bdi> ${L('this month','هذا الشهر')}</span>`;
 }
 
 // ── Premium empty states — reuses the same .empty-hero visual language as
@@ -22845,7 +22845,7 @@ function renderSavings(){
       <div class="sav-row-actions">
         <div class="sav-drag-handle" data-savtype="inc" title="${L('Hold to reorder','اسحب لإعادة الترتيب')}">${_SAV_DRAG_DOTS}</div>
         <button class="tx-edit-btn" onclick="savEditIncome(${idx});event.stopPropagation()">${ic('edit',13)}</button>
-        <button class="tx-del" onclick="savDeleteIncome(${idx});event.stopPropagation()">${ic('trash',13)}</button>
+        <button class="tx-del" aria-label="${L('Delete','حذف')}" title="${L('Delete','حذف')}" onclick="savDeleteIncome(${idx});event.stopPropagation()">${ic('trash',13)}</button>
       </div>
     </div>`;
   }).join('') : _savEmptyState('income');
@@ -22865,7 +22865,7 @@ function renderSavings(){
       <div class="sav-row-actions">
         <div class="sav-drag-handle" data-savtype="out" title="${L('Hold to reorder','اسحب لإعادة الترتيب')}">${_SAV_DRAG_DOTS}</div>
         <button class="tx-edit-btn" onclick="savEditOutcome(${idx});event.stopPropagation()">${ic('edit',13)}</button>
-        <button class="tx-del" onclick="savDeleteOutcome(${idx});event.stopPropagation()">${ic('trash',13)}</button>
+        <button class="tx-del" aria-label="${L('Delete','حذف')}" title="${L('Delete','حذف')}" onclick="savDeleteOutcome(${idx});event.stopPropagation()">${ic('trash',13)}</button>
       </div>
     </div>`;
   }).join('') : _savEmptyState('outcome');
@@ -22931,7 +22931,7 @@ function renderSavings(){
       <div class="sav-row-actions">
         <div class="sav-drag-handle" data-savtype="debt" title="${L('Hold to reorder','اسحب لإعادة الترتيب')}">${_SAV_DRAG_DOTS}</div>
         <button class="tx-edit-btn" onclick="savEditDebt(${idx});event.stopPropagation()">${ic('edit',13)}</button>
-        <button class="tx-del" onclick="savDeleteDebt(${idx});event.stopPropagation()">${ic('trash',13)}</button>
+        <button class="tx-del" aria-label="${L('Delete','حذف')}" title="${L('Delete','حذف')}" onclick="savDeleteDebt(${idx});event.stopPropagation()">${ic('trash',13)}</button>
       </div>
     </div>`;
   }).join('') : _savEmptyState('debts');
@@ -28756,7 +28756,7 @@ function renderBanks(m){
             ${monthInt>0?`<span class="bnk-card-badge" style="${_bdgStyle2}">${L('Interest','فائدة')}</span>`:''}
           </div>
           <div class="bnk-card-controls">
-                        <button type="button" class="bnk-overflow-btn" onclick="bnkToggleOverflow(event,'${b.key}')"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="19" r="1.8"/></svg></button>
+                        <button type="button" class="bnk-overflow-btn" aria-label="${L('More actions','المزيد من الإجراءات')}" aria-haspopup="menu" onclick="bnkToggleOverflow(event,'${b.key}')"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="19" r="1.8"/></svg></button>
             <svg class="bnk-chevron" id="bnk-chev-${b.key}" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="${_isOpen?'transform:rotate(180deg)':''}"><path d="M6 9l6 6 6-6"/></svg>
             <div class="bnk-menu" id="bnk-menu-${b.key}" onclick="event.stopPropagation()">${menuItemsHTML}
             </div>
@@ -49538,19 +49538,6 @@ function exportToPDF(){
     .section{box-shadow:none;border:1px solid #e5e7eb}
   }
 </style>
-<style id="bnkPrivacyCss">
-.banks-v2 .bnk-hero-eye{display:inline-flex;align-items:center;gap:5px;height:26px;padding:0 10px;border-radius:999px;border:0;background:var(--surface2);color:var(--muted);font:inherit;font-size:calc(10px*var(--app-text-scale,1));font-weight:800;cursor:pointer}
-.banks-v2 .bnk-hero-eye svg{width:14px;height:14px}
-.banks-v2 .bnk-hero-eye:active{transform:scale(.95)}
-.banks-v2 .bnk-eye{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;margin:-6px -4px -6px 0;border:0;background:transparent;color:inherit;opacity:.8;border-radius:50%;cursor:pointer;-webkit-tap-highlight-color:transparent}
-[dir="rtl"] .banks-v2 .bnk-eye{margin:-6px 0 -6px -4px}
-.banks-v2 .bnk-eye:active{background:rgba(128,128,128,.18)}
-.banks-v2 .bnk-eye svg{width:17px;height:17px}
-.banks-v2 .bnk-mask{letter-spacing:4px;opacity:.7}
-.bnk-privacy .bnk-hero-wallets,.bnk-privacy .bnk-hero-chip span,.bnk-privacy .bnk-sec-sum,.bnk-privacy .bnk-tl-amt,
-.bnk-privacy .bnk-analytics-chip,.bnk-privacy .bnk-donut-legend-item,.bnk-privacy .bnk-analytics-stat:not(.bnk-analytics-stat-top) .bnk-analytics-stat-val,
-.bnk-privacy .bnk-mv-list [class*="amt"],.bnk-privacy .bnk-mv-list [class*="amount"]{filter:blur(7px);-webkit-user-select:none;user-select:none;pointer-events:none}
-</style>
 </head>
 <body>
 <div class="topbar">
@@ -52041,7 +52028,7 @@ function renderMonthlyReport(){
   .mr-dot:nth-child(2){animation-delay:.2s}.mr-dot:nth-child(3){animation-delay:.4s}
   .mr-source-tab{flex:1;padding:9px 12px;border-radius:var(--radius-sm);font-size:calc(12px*var(--app-text-scale,1));font-weight:800;cursor:pointer;border:1.5px solid var(--border);background:var(--surface2);color:var(--muted);text-align:center;transition:all .15s}
   .mr-source-tab:active{transform:scale(.97)}
-  .mr-source-tab.active{background:#A97C1F;color:#fff;border-color:#A97C1F;box-shadow:0 2px 8px rgba(169,124,31,.3)}
+  .mr-source-tab.active{background:#7C5A16;color:#fff;border-color:#7C5A16;box-shadow:0 2px 8px rgba(124,90,22,.3)}
   </style>
 
   <!-- Daily / Site Source Toggle — kept strictly separate, never merged -->
@@ -52722,7 +52709,7 @@ function renderBankReport(){
       </div>
       <div class="br-row">
         <span class="br-row-label">${ic('chart',15)} ${L('Monthly Difference','الفرق الشهري')}</span>
-        <span class="br-row-val" style="color:${diffColor}">${diffIcon} ${brFmt(Math.abs(b.difference))} ${b.difference!==0?'('+Math.round(Math.abs(b.difference)/(b.opening||1)*100)+'%)':''}</span>
+        <span class="br-row-val" style="color:${diffColor}">${diffIcon} ${brFmt(Math.abs(b.difference))} ${(b.difference!==0&&b.opening>0)?'('+Math.round(Math.abs(b.difference)/b.opening*100)+'%)':''}</span>
       </div>
 
       <!-- Mini movement list -->
@@ -54194,8 +54181,8 @@ function renderHealthDashboard(){
     </div>
     <div class="dash-budget-foot-v2">
       <div style="font-size:calc(9px*var(--app-text-scale,1));font-weight:700;color:var(--muted);text-transform:none;letter-spacing:.3px">⏳ ${L('Remaining Daily Budget','الميزانية اليومية المتبقية')}</div>
-      <div style="font-size:calc(20px*var(--app-text-scale,1));font-weight:900;margin-top:5px;color:${c.remainingDailyBudget>=0?'#0F7A55':'#DC2626'}">${hdFmt(c.remainingDailyBudget)}</div>
-      <div style="font-size:calc(10px*var(--app-text-scale,1));color:var(--sub);margin-top:2px">${L('per day for the next','يومياً لـ')} ${c.daysRemaining} ${L('days','أيام')}</div>
+      <div style="font-size:calc(20px*var(--app-text-scale,1));font-weight:900;margin-top:5px;color:${c.monthlyBudget>0?(c.remainingDailyBudget>=0?'#0F7A55':'#DC2626'):'var(--muted)'}">${c.monthlyBudget>0?hdFmt(c.remainingDailyBudget):'—'}</div>
+      <div style="font-size:calc(10px*var(--app-text-scale,1));color:var(--sub);margin-top:2px">${c.monthlyBudget>0?`${L('per day for the next','يومياً لـ')} ${c.daysRemaining} ${L('days','أيام')}`:L('Set a monthly budget to see this','حدد ميزانية شهرية لعرض هذا')}</div>
     </div>
   </div>`;
 
@@ -58211,5 +58198,112 @@ function mioraDismissGreetToast(){
   },true);
 })();
 </script>
+<style id="finora-polish">
+/* ═══════════════════════════════════════════════════════════════════════════
+   FINORA — polish layer (last in the cascade).
+   Scope: defects found in the audit; nothing here changes behavior or data.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── 1. Accounts privacy controls ────────────────────────────────────────────
+   These rules existed but were trapped inside the report-export template, so
+   the "Hide" pill and per-card eye toggle rendered as raw browser buttons.   */
+.banks-v2 .bnk-hero-eye{display:inline-flex;align-items:center;gap:5px;height:26px;padding:0 10px;border-radius:999px;border:0;background:var(--surface2);color:var(--muted);font:inherit;font-size:calc(10px*var(--app-text-scale,1));font-weight:800;cursor:pointer}
+.banks-v2 .bnk-hero-eye svg{width:14px;height:14px}
+.banks-v2 .bnk-hero-eye:active{transform:scale(.95)}
+.banks-v2 .bnk-eye{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;margin:-6px -4px -6px 0;border:0;background:transparent;color:inherit;opacity:.8;border-radius:50%;cursor:pointer;-webkit-tap-highlight-color:transparent}
+[dir="rtl"] .banks-v2 .bnk-eye{margin:-6px 0 -6px -4px}
+.banks-v2 .bnk-eye:active{background:rgba(128,128,128,.18)}
+.banks-v2 .bnk-eye svg{width:17px;height:17px}
+.banks-v2 .bnk-mask{letter-spacing:4px;opacity:.7}
+.bnk-privacy .bnk-hero-wallets,.bnk-privacy .bnk-hero-chip span,.bnk-privacy .bnk-sec-sum,.bnk-privacy .bnk-tl-amt,
+.bnk-privacy .bnk-analytics-chip,.bnk-privacy .bnk-donut-legend-item,.bnk-privacy .bnk-analytics-stat:not(.bnk-analytics-stat-top) .bnk-analytics-stat-val,
+.bnk-privacy .bnk-mv-list [class*="amt"],.bnk-privacy .bnk-mv-list [class*="amount"]{filter:blur(7px);-webkit-user-select:none;user-select:none;pointer-events:none}
+.banks-v2 .bnk-hero-eye:focus-visible,
+.banks-v2 .bnk-eye:focus-visible{outline:2px solid var(--green);outline-offset:2px}
+
+
+/* ── 2. Text contrast (WCAG AA) — light theme ────────────────────────────────
+   --sub/--muted were 2.5–4.0:1 on the cream surfaces at 9–11px. Both stay in
+   the same hue and keep their order in the hierarchy (text > muted > sub).   */
+:root:not([data-theme="dark"]){
+  --muted:#566359;
+  --sub:#5F6B63;
+  --orange:#9F5E17;
+  --success:#166534;
+  --fin-income:#17794F;
+}
+/* literal brand-semantic colors that JS templates write inline as text color */
+:root:not([data-theme="dark"]) [style^="color:#16a34a" i],:root:not([data-theme="dark"]) [style*=";color:#16a34a" i],:root:not([data-theme="dark"]) [style*="; color:#16a34a" i]{color:#166534!important}
+:root:not([data-theme="dark"]) [style^="color:#dc4f4f" i],:root:not([data-theme="dark"]) [style*=";color:#dc4f4f" i],:root:not([data-theme="dark"]) [style*="; color:#dc4f4f" i]{color:#C23B3B!important}
+:root:not([data-theme="dark"]) [style^="color:#c17d0a" i],:root:not([data-theme="dark"]) [style*=";color:#c17d0a" i],:root:not([data-theme="dark"]) [style*="; color:#c17d0a" i]{color:#8F5A00!important}
+:root:not([data-theme="dark"]) [style^="color:#0891b2" i],:root:not([data-theme="dark"]) [style*=";color:#0891b2" i],:root:not([data-theme="dark"]) [style*="; color:#0891b2" i]{color:#0E7490!important}
+:root:not([data-theme="dark"]) .fin-card-change.is-down,
+:root:not([data-theme="dark"]) .fin-hero-trend.is-down{color:#C23B3B}
+:root:not([data-theme="dark"]) .fin-qa-chip[style*="--qc:#c17d0a"]{--qc:#8F5A00!important}
+
+/* ── 3. Text contrast — dark theme ───────────────────────────────────────────
+   Brand emerald (#0F7A55) is a surface color; as TEXT on near-black it is only
+   3.3:1 and the dark-green badge text was 1.5:1 (unreadable).                */
+[data-theme="dark"] .sc-header-badge,
+[data-theme="dark"] .sc-header-badge.ok{color:var(--green-light)}
+[data-theme="dark"] .sc-header-badge.warn{color:var(--red-light)}
+[data-theme="dark"] .sc-header-badge.pending{color:var(--yellow)}
+[data-theme="dark"] .bnk-hero-eyebrow,
+[data-theme="dark"] .sc-field-value.green,
+[data-theme="dark"] .sec-title,
+[data-theme="dark"] .dfp-card-btn,
+[data-theme="dark"] .mr-export-btn,
+[data-theme="dark"] .bottom-nav .nav-btn.active span{color:var(--green-light)}
+/* per-account brand colors (navy etc.) are chosen on a light page; lift them on dark */
+[data-theme="dark"] .bnk-card-badge,
+[data-theme="dark"] .br-row-val[style*="color:#"]{filter:brightness(2.4) saturate(.85)}
+:root:not([data-theme="dark"]) .bnk-card-badge{filter:brightness(.82)}
+[data-theme="dark"] .dash-tile-val-v2,
+[data-theme="dark"] .br-kpi-val{filter:brightness(1.45)}
+[data-theme="dark"] .fin-card-change.is-down,
+[data-theme="dark"] .fin-hero-trend.is-down{color:var(--red-light)}
+/* inline `color:var(--green)` text (set by JS templates) */
+[data-theme="dark"] [style^="color:var(--green)"],
+[data-theme="dark"] [style*=";color:var(--green)"],
+[data-theme="dark"] [style*="; color:var(--green)"],
+[data-theme="dark"] [style*=" color:var(--green)"]{color:var(--green-light)!important}
+/* white-on-red active pills: dark-theme --danger is too light for white text */
+[data-theme="dark"] .yr-year-pill.active,
+[data-theme="dark"] .yr-source-tab.active{background:#B2534A;border-color:#B2534A}
+
+/* ── 4. Welcome tour ─────────────────────────────────────────────────────────
+   "Skip Tour" wrapped onto two lines; the closed overlay's buttons stayed in
+   the keyboard tab order even though the overlay was invisible.              */
+.tour-btn-skip{white-space:nowrap;flex-shrink:0}
+.tour-btn-next{white-space:nowrap}
+.tour-card.tour-welcome .tour-footer{flex-direction:column-reverse;align-items:stretch;gap:6px}
+.tour-card.tour-welcome .tour-btn-skip{align-self:center;padding:8px 14px;min-height:36px}
+#tabTourOverlay{visibility:hidden;transition:opacity var(--dur-slow,.3s) var(--ease-standard,ease),visibility 0s linear var(--dur-slow,.3s)}
+#tabTourOverlay.visible{visibility:visible;transition-delay:0s}
+
+/* ── 5. Touch targets ────────────────────────────────────────────────────────
+   Enlarge hit areas to ≥40px without changing what the eye sees.             */
+.tx-del,.header-month-slot .month-active-btn,.bal-fx-toggle,.fp-hero-toggle{position:relative}
+.tx-del::after,.header-month-slot .month-active-btn::after,.bal-fx-toggle::after,.fp-hero-toggle::after{
+  content:"";position:absolute;inset:-9px -7px}
+.banks-v2 .bnk-overflow-btn{min-width:40px;min-height:40px}
+
+/* ── 6. Desktop / tablet frame ───────────────────────────────────────────────
+   The app had no container: Accounts ran edge-to-edge at 1280px while the
+   dashboard hugged the left in a 640px column and the nav bar stretched across
+   the whole window. Give every screen one centered column and keep the header,
+   bottom nav and FAB aligned to it.                                          */
+@media (min-width:820px){
+  :root{--fin-col:760px;--fin-gutter:max(16px,calc((100vw - var(--fin-col))/2))}
+  .app-header{padding-inline:calc(var(--fin-gutter) + 4px)}
+  #mainContent{width:100%;max-width:var(--fin-col);margin-inline:auto}
+  #mainContent .wdash-wrap{margin-inline:auto;max-width:100%}
+  .bottom-nav{left:50%;right:auto;width:var(--fin-col);transform:translate3d(-50%,0,0);
+    border-radius:var(--radius-hero) var(--radius-hero) 0 0;border-inline:1px solid var(--border)}
+  .fab:not([style*="left"]):not([style*="top"]){right:calc(var(--fin-gutter) + 16px)}
+  [dir="rtl"] .fab:not([style*="left"]):not([style*="top"]){right:auto;left:calc(var(--fin-gutter) + 16px)}
+}
+
+</style>
 </body>
 </html>
