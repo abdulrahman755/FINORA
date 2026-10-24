@@ -16976,7 +16976,7 @@ function renderFinanceSummaryHeroV3(m){
         </div>
         <div class="dash-hero-main dv3-hero-main" style="position:relative;z-index:1">
           <div class="dash-hero-main-lbl">${L('Total Net Balance','صافي رصيدك')}</div>
-          <div class="dash-hero-main-val hnum-row"><span class="hnum-sign">${up?'+':'-'}</span>${heroAmountHTML(netBalance,true)}</div>
+          <div class="dash-hero-main-val hnum-row"><span class="hnum-sign ${up?'pos':'neg'}">${up?'+':'-'}</span>${heroAmountHTML(netBalance,true)}</div>
           <div class="dv3h-stat-row fp-hero-body" id="fpHeroBody">
             ${dv3hStat(L('Real Balance','الرصيد الفعلي'), netBanksOnlyNow, true)}
             <div class="dv3h-stat-sep"></div>
@@ -58308,6 +58308,288 @@ function mioraDismissGreetToast(){
    Tabular lining figures keep amounts column-aligned in lists and tables.   */
 body{font-variant-numeric:lining-nums tabular-nums}
 #modalContent:focus{outline:none}
+
+</style>
+<style id="finora-dash-v2">
+/* ═══════════════════════════════════════════════════════════════════════════
+   FINORA — Dashboard v2 ("ledger") · isolated phase
+   Scope: the dashboard HOME only (#mainContent .wdash-wrap). The detail sheets
+   (.wdash-sheet-body) and every other screen are untouched. CSS only: no
+   markup, handler, calculation or storage change. Remove this <style> block
+   (id="finora-dash-v2") to revert completely.
+
+   Direction — a private-bank statement rather than an app launcher:
+   · one flat page ground, surfaces separated by hairlines, not nested cards
+   · one radius (12) for every container; no pills except tiny status chips
+   · the balance is the only large type; everything else is quiet and tabular
+   · color carries meaning only: income / expense keep their semantic hue,
+     accounts and custody go neutral; a single gold hairline is the brand mark
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+#mainContent .wdash-wrap:not(.wdash-sheet-body){
+  --dd-r:12px;
+  --dd-rule:var(--border);
+  --dd-surface:var(--surface);
+  --dd-gap:12px;
+  display:flex;flex-direction:column;gap:var(--dd-gap);
+  background:transparent!important;border:0!important;box-shadow:none!important;
+  border-radius:0!important;padding:2px 0 123px!important;
+}
+#mainContent .wdash-wrap:not(.wdash-sheet-body) > *{margin-block:0!important}
+
+/* ── Customize: a quiet text control instead of a pill with its own border ── */
+#mainContent .wdash-wrap .wdash-manage-bar{display:flex;justify-content:flex-end;padding:0}
+#mainContent .wdash-wrap .wdash-manage-btn{
+  background:transparent!important;border:0!important;box-shadow:none!important;
+  color:var(--muted)!important;font:inherit;font-size:calc(12px*var(--app-text-scale,1))!important;font-weight:600;
+  padding:6px 2px!important;min-height:32px;border-radius:8px!important;position:relative}
+#mainContent .wdash-wrap .wdash-manage-btn::after{content:"";position:absolute;inset:-6px -8px}
+#mainContent .wdash-wrap .wdash-manage-btn:hover{color:var(--text)!important}
+
+/* ── Hero: the statement header ───────────────────────────────────────────── */
+#mainContent .wdash-wrap .dv3-hero-standalone{margin:0!important;padding:0!important}
+#mainContent .wdash-wrap .dfp-hero-v2.dv3-hero{
+  border-radius:var(--dd-r)!important;background:var(--dd-surface)!important;
+  border:1px solid var(--dd-rule)!important;border-top:2px solid var(--gold-light)!important;
+  box-shadow:none!important}
+#mainContent .wdash-wrap .dv3-hero .hnum-amt{
+  font-size:clamp(27px,9.4vw,40px)!important;font-weight:600!important;
+  letter-spacing:-.025em;line-height:1.06;font-variant-numeric:lining-nums tabular-nums;
+  padding-bottom:0!important}
+#mainContent .wdash-wrap .dfp-hero-v2.dv3-hero::before,
+#mainContent .wdash-wrap .dfp-hero-v2.dv3-hero::after{display:none!important}   /* old green nub: the gold hairline is the single brand mark */
+#mainContent .wdash-wrap .dv3-hero .hnum-amt,#mainContent .wdash-wrap .dv3-hero .sig-num{text-shadow:none!important;filter:none!important}
+#mainContent .wdash-wrap .dv3-hero .hnum-sign{font-weight:500!important;opacity:.75}
+#mainContent .wdash-wrap .dv3-hero .hnum-cur{
+  background:none!important;padding:0!important;border-radius:0!important;
+  font-size:calc(12px*var(--app-text-scale,1))!important;font-weight:700!important;
+  letter-spacing:.08em;color:var(--muted)!important;margin-inline-start:6px}
+#mainContent .wdash-wrap .dv3-hero .dv3h-stat-row{border-top:1px solid var(--dd-rule)!important}
+#mainContent .wdash-wrap .dv3-hero .dv3h-stat-lbl{
+  font-size:calc(11px*var(--app-text-scale,1))!important;font-weight:600!important;
+  color:var(--muted)!important;letter-spacing:.01em}
+#mainContent .wdash-wrap .dv3-hero .dv3h-stat-val{
+  font-size:calc(13.5px*var(--app-text-scale,1))!important;font-weight:700!important;
+  color:var(--text)!important;font-variant-numeric:lining-nums tabular-nums}
+#mainContent .wdash-wrap .dv3-hero .dv3h-stat-val.muted{color:var(--muted)!important;font-weight:600!important}
+/* three stats share one baseline: labels may wrap, values always sit on the bottom row */
+#mainContent .wdash-wrap .dv3-hero .dv3h-stat-row{display:grid!important;grid-template-columns:minmax(0,1.4fr) 1px minmax(0,1fr) 1px minmax(0,1fr);column-gap:14px;align-items:stretch!important;width:100%!important;max-width:none!important}
+#mainContent .wdash-wrap .dv3-hero .dv3h-stat{display:flex;flex-direction:column;justify-content:space-between;gap:3px;min-width:0}
+#mainContent .wdash-wrap .dv3-hero .dv3h-stat-sep{background:var(--dd-rule)!important;width:1px!important}
+#mainContent .wdash-wrap .fp-hero-toggle{background:transparent!important;border:1px solid var(--dd-rule)!important;box-shadow:none!important;color:var(--muted)}
+
+/* ── Movement ledger (income / expense / banks / custody) ─────────────────── */
+#mainContent .wdash-wrap .dfp-kpi3-row.dv3-kpi-row{
+  background:var(--dd-surface)!important;border:1px solid var(--dd-rule)!important;
+  border-radius:var(--dd-r)!important;box-shadow:none!important;overflow:hidden}
+#mainContent .wdash-wrap .dfp-kpi3-card{padding:12px 14px!important;box-shadow:none!important;background:transparent!important}
+#mainContent .wdash-wrap .dfp-kpi3-icon{background:none!important;width:20px!important;height:20px!important;border-radius:0!important;opacity:.95}
+#mainContent .wdash-wrap .dfp-kpi3-icon.kpi-neutral-dark{color:var(--muted)!important}
+#mainContent .wdash-wrap .dfp-kpi3-lbl{
+  font-size:calc(11px*var(--app-text-scale,1))!important;font-weight:600!important;color:var(--muted)!important}
+#mainContent .wdash-wrap .dfp-kpi3-val{
+  font-size:calc(14.5px*var(--app-text-scale,1))!important;font-weight:700!important;
+  font-variant-numeric:lining-nums tabular-nums;letter-spacing:-.005em}
+/* accounts & custody are balances, not flows: neutral ink, so income/expense lead */
+#mainContent .wdash-wrap .dfp-kpi3-val.kpi-neutral-dark{color:var(--text)!important}
+
+/* ── Quick actions: four equal 44px keys, neutral labels ──────────────────── */
+#mainContent .wdash-wrap .fp-qa-row{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;overflow:visible!important}
+#mainContent .wdash-wrap .fp-qa-btn{
+  min-height:44px;border-radius:var(--dd-r)!important;background:var(--dd-surface)!important;
+  border:1px solid var(--dd-rule)!important;box-shadow:none!important;padding:8px 4px!important;
+  justify-content:center;gap:5px}
+#mainContent .wdash-wrap .fp-qa-btn:active{background:var(--surface2)!important}
+#mainContent .wdash-wrap .fp-qa-label{color:var(--text2)!important;font-weight:650;font-size:calc(12px*var(--app-text-scale,1))!important}
+
+/* ── Attendance: one slim row instead of a 130px hero ─────────────────────── */
+#mainContent .wdash-wrap .att-quick{
+  display:flex!important;flex-direction:row!important;align-items:center;gap:10px;
+  min-height:0!important;padding:10px 12px!important;border-radius:var(--dd-r)!important;
+  background:var(--dd-surface)!important;border:1px solid var(--dd-rule)!important;box-shadow:none!important}
+#mainContent .wdash-wrap .att-quick-main{flex:1;min-width:0}
+#mainContent .wdash-wrap .att-quick-ic{width:36px!important;height:36px!important;border-radius:10px!important}
+#mainContent .wdash-wrap .att-fp{
+  width:auto!important;height:auto!important;padding:0!important;flex-direction:row!important;gap:8px;align-items:center}
+#mainContent .wdash-wrap .att-fp-disc{width:44px!important;height:44px!important}
+#mainContent .wdash-wrap .att-fp-ring,
+#mainContent .wdash-wrap .att-fp-disc::before,
+#mainContent .wdash-wrap .att-fp-disc::after{display:none!important}
+#mainContent .wdash-wrap .att-fp-core{width:44px!important;height:44px!important;box-shadow:none!important}
+#mainContent .wdash-wrap .att-fp-lb{font-size:calc(12px*var(--app-text-scale,1))!important;font-weight:700}
+
+/* ── Sections list: a compact ledger, not 13 identical tall rows ──────────── */
+#mainContent .wdash-wrap .wdash-apps-title{
+  margin:6px 2px -4px!important;font-size:calc(11px*var(--app-text-scale,1))!important;
+  letter-spacing:.1em;color:var(--muted)!important}
+#mainContent .wdash-wrap .wdash-apps{
+  border-radius:var(--dd-r)!important;box-shadow:none!important;background:var(--dd-surface)!important;
+  border:1px solid var(--dd-rule)!important;overflow:hidden}
+#mainContent .wdash-wrap .wdash-tile{min-height:52px;padding-block:6px!important;padding-inline-start:12px!important}
+#mainContent .wdash-wrap .wdash-tile-ico{width:34px!important;height:34px!important;border-radius:10px!important}
+/* section icons are navigation, not data: one neutral treatment instead of eight hues */
+#mainContent .wdash-wrap .wdash-tile .wdash-tile-ico{background:var(--surface2)!important;color:var(--text2)!important;border:1px solid var(--dd-rule)}
+#mainContent .wdash-wrap .wdash-tile-lbl{font-size:calc(14px*var(--app-text-scale,1))!important;font-weight:700!important}
+#mainContent .wdash-wrap .wdash-tile-sum{
+  font-size:calc(12px*var(--app-text-scale,1))!important;color:var(--muted)!important;
+  font-variant-numeric:lining-nums tabular-nums}
+#mainContent .wdash-wrap .wdash-showall{
+  width:100%;min-height:44px;border-radius:var(--dd-r)!important;background:transparent!important;
+  border:1px solid var(--dd-rule)!important;box-shadow:none!important;color:var(--text2)!important;font-weight:650}
+
+</style>
+<style id="finora-dashboard">
+/* ═══════════════════════════════════════════════════════════════════════════
+   FINORA — Dashboard "Ledger" direction (phase 2).
+   Scope: the home dashboard only (#mainContent > .wdash-wrap) — NOT the opened
+   card sheets, which reuse the .wdash-wrap class. Presentation only — no markup,
+   logic or data changes. Delete this whole <style id="finora-dashboard"> block
+   to revert to the phase-1 look.
+
+   Principles
+   · One focal point: the Total Net Balance. Everything else is quieter.
+   · Flat surfaces separated by hairlines instead of stacked floating cards.
+   · One radius for containers (14px), one for controls (12px).
+   · Amounts: tabular figures, currency set smaller and muted.
+   · Colour is semantic (income/expense) or brand (one gold rule on the hero).
+   ═══════════════════════════════════════════════════════════════════════════ */
+body #mainContent > .wdash-wrap.dv3-dark-v2{
+  --dl-line:color-mix(in srgb,var(--text) 12%,transparent);
+  --dl-soft:color-mix(in srgb,var(--text) 7%,transparent);
+  --dl-r:14px;--dl-rc:12px;
+  display:flex;flex-direction:column;gap:12px;
+}
+body #mainContent > .wdash-wrap.dv3-dark-v2 > *{margin-block:0}
+body #mainContent > .wdash-wrap.dv3-dark-v2 > .wdash-vault{position:absolute}
+
+/* ── Customize link: a quiet utility, not a button-shaped object ─────────── */
+body #mainContent > .wdash-wrap.dv3-dark-v2 .wdash-manage-bar{display:flex;justify-content:flex-end;min-height:36px;padding:0;margin:0}
+body #mainContent > .wdash-wrap.dv3-dark-v2 .wdash-manage-btn{background:transparent;border:0;box-shadow:none;color:var(--muted);font-size:calc(12.5px*var(--app-text-scale,1));font-weight:600;min-height:40px;padding:0 4px;gap:6px}
+body #mainContent > .wdash-wrap.dv3-dark-v2 .wdash-manage-btn:hover{color:var(--text)}
+
+/* ── Hero: the balance ───────────────────────────────────────────────────── */
+body #mainContent > .wdash-wrap.dv3-dark-v2 .dv3-hero-standalone{margin:0;padding:0}
+body #mainContent > .wdash-wrap.dv3-dark-v2 #fpHeroCard.dfp-hero-v2{
+  background:var(--surface);border:1px solid var(--dl-line);border-top:2px solid var(--gold-light,#D4AF37);
+  border-radius:var(--dl-r)!important;box-shadow:none;color:var(--text);
+  -webkit-backdrop-filter:none;backdrop-filter:none;overflow:hidden;
+}
+body #mainContent > .wdash-wrap.dv3-dark-v2 #fpHeroCard::before,
+body #mainContent > .wdash-wrap.dv3-dark-v2 #fpHeroCard::after,
+body #mainContent > .wdash-wrap.dv3-dark-v2 #fpHeroCard .dash-hero::before,
+body #mainContent > .wdash-wrap.dv3-dark-v2 #fpHeroCard .dash-hero::after{display:none}
+body #mainContent > .wdash-wrap.dv3-dark-v2 #fpHeroCard .dash-hero{padding:16px 18px 16px;background:none}
+body #mainContent > .wdash-wrap.dv3-dark-v2 #fpHeroCard .fp-hero-toggle{
+  position:absolute;top:8px;inset-inline-end:8px;width:36px;height:36px;border:0!important;background:transparent!important;box-shadow:none!important;color:var(--muted);border-radius:50%}
+body #mainContent > .wdash-wrap.dv3-dark-v2 #fpHeroCard .dash-hero-head{min-height:20px}
+body #mainContent > .wdash-wrap.dv3-dark-v2 #fpHeroCard .dash-hero-eyebrow{
+  background:none;border:0;padding:0;color:var(--muted);
+  font-size:calc(11px*var(--app-text-scale,1));font-weight:700;letter-spacing:.12em;text-transform:uppercase;gap:6px}
+body #mainContent > .wdash-wrap.dv3-dark-v2 #fpHeroCard .dash-hero-main-lbl{
+  margin-top:14px;color:var(--muted)!important;font-size:calc(12.5px*var(--app-text-scale,1));font-weight:600;letter-spacing:0;text-transform:none}
+body #mainContent > .wdash-wrap.dv3-dark-v2 #fpHeroCard .dash-hero-main-val{
+  color:var(--text)!important;margin-top:4px;
+  font-size:clamp(30px,9.4vw,42px);font-weight:700;letter-spacing:-.02em;line-height:1.08;
+  display:flex;align-items:baseline;flex-wrap:wrap;gap:0 6px;min-width:0}
+body #mainContent > .wdash-wrap.dv3-dark-v2 #fpHeroCard .hnum-sign{color:var(--muted);font-weight:600;font-size:.72em}
+body #mainContent > .wdash-wrap.dv3-dark-v2 #fpHeroCard .hnum-sign.pos{color:var(--fin-income);opacity:1}
+body #mainContent > .wdash-wrap.dv3-dark-v2 #fpHeroCard .hnum-sign.neg{color:var(--fin-outcome);opacity:1}
+body #mainContent > .wdash-wrap.dv3-dark-v2 #fpHeroCard .sig-num{display:inline-flex;align-items:baseline;gap:8px;min-width:0;max-width:100%}
+body #mainContent > .wdash-wrap.dv3-dark-v2 #fpHeroCard .hnum-amt{min-width:0;overflow-wrap:anywhere}
+body #mainContent > .wdash-wrap.dv3-dark-v2 #fpHeroCard .hnum-cur{
+  font-family:var(--font-body,inherit);font-size:calc(13px*var(--app-text-scale,1));font-weight:700;letter-spacing:.08em;color:var(--muted)!important}
+
+/* sub-figures: a three-column ruled strip (fixes the label/value overlap) */
+body #mainContent > .wdash-wrap.dv3-dark-v2 #fpHeroCard .dv3h-stat-row{
+  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0;
+  margin-top:16px;padding-top:12px;border-top:1px solid var(--dl-line);overflow:hidden}
+body #mainContent > .wdash-wrap.dv3-dark-v2 #fpHeroCard .dv3h-stat-sep{display:none}
+body #mainContent > .wdash-wrap.dv3-dark-v2 #fpHeroCard .dv3h-stat{
+  display:block;justify-content:flex-start;align-self:start;min-width:0;padding:0 0 0 12px;padding-inline:12px 0;border:0;border-inline-start:1px solid var(--dl-soft);text-align:start;flex:none}
+body #mainContent > .wdash-wrap.dv3-dark-v2 #fpHeroCard .dv3h-stat:first-child{padding-inline:0;border-inline-start:0}
+body #mainContent > .wdash-wrap.dv3-dark-v2 #fpHeroCard .dv3h-stat-lbl{
+  color:var(--muted)!important;font-size:calc(11px*var(--app-text-scale,1));font-weight:600;line-height:1.25;margin:0 0 4px;white-space:normal;letter-spacing:0;text-transform:none}
+body #mainContent > .wdash-wrap.dv3-dark-v2 #fpHeroCard .dv3h-stat-val{
+  display:block;margin:0;
+  font-size:calc(13.5px*var(--app-text-scale,1));font-weight:700;line-height:1.25;white-space:normal;overflow-wrap:anywhere;max-width:100%;letter-spacing:0}
+body #mainContent > .wdash-wrap.dv3-dark-v2 #fpHeroCard .dv3h-stat-val svg{display:inline-block;width:13px;height:13px;margin-inline-end:3px;vertical-align:-2px}
+body #mainContent > .wdash-wrap.dv3-dark-v2 #fpHeroCard.fp-hero-collapsed .dv3h-stat-row{padding-top:0;border-top-width:0}
+
+/* ── Income / Expense / Banks / Custody: one ruled 2×2 table ─────────────── */
+body #mainContent > .wdash-wrap.dv3-dark-v2 .dv3-kpi-row{
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0;
+  background:var(--surface);border:1px solid var(--dl-line);border-radius:var(--dl-r);box-shadow:none;overflow:hidden;margin:0}
+body #mainContent > .wdash-wrap.dv3-dark-v2 .dv3-kpi-row .dfp-kpi3-card{
+  background:transparent;border:0;border-radius:0;box-shadow:none;margin:0;min-width:0;
+  display:flex;align-items:flex-start;gap:10px;padding:14px 16px;
+  border-bottom:1px solid var(--dl-soft)}
+body #mainContent > .wdash-wrap.dv3-dark-v2 .dv3-kpi-row .dfp-kpi3-card:nth-child(odd){border-inline-end:1px solid var(--dl-soft)}
+body #mainContent > .wdash-wrap.dv3-dark-v2 .dv3-kpi-row .dfp-kpi3-card:nth-last-child(-n+2){border-bottom:0}
+body #mainContent > .wdash-wrap.dv3-dark-v2 .dv3-kpi-row .dfp-kpi3-card::before,
+body #mainContent > .wdash-wrap.dv3-dark-v2 .dv3-kpi-row .dfp-kpi3-card::after{display:none}
+body #mainContent > .wdash-wrap.dv3-dark-v2 .dv3-kpi-row .dfp-kpi3-icon{
+  width:18px;height:18px;min-width:18px;padding:0;margin-top:1px;border-radius:0;background:none!important}
+body #mainContent > .wdash-wrap.dv3-dark-v2 .dv3-kpi-row .dfp-kpi3-icon svg{width:16px;height:16px}
+body #mainContent > .wdash-wrap.dv3-dark-v2 .dv3-kpi-row .dv3-kpi-text{min-width:0;flex:1}
+body #mainContent > .wdash-wrap.dv3-dark-v2 .dv3-kpi-row .dfp-kpi3-lbl{
+  color:var(--muted);font-size:calc(11px*var(--app-text-scale,1));font-weight:600;line-height:1.25;white-space:normal;letter-spacing:0;text-transform:none}
+body #mainContent > .wdash-wrap.dv3-dark-v2 .dv3-kpi-row .dfp-kpi3-val{
+  margin-top:3px;font-size:calc(15.5px*var(--app-text-scale,1));font-weight:700;line-height:1.2;white-space:normal;overflow-wrap:anywhere;letter-spacing:0}
+
+/* ── Quick actions: four equal, clearly-labelled buttons ─────────────────── */
+body #mainContent > .wdash-wrap.dv3-dark-v2 .fp-qa-row{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;overflow:visible;padding:0;margin:0}
+body #mainContent > .wdash-wrap.dv3-dark-v2 .fp-qa-btn{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
+  width:auto;min-width:0;min-height:60px;padding:10px 4px;
+  background:var(--surface);border:1px solid var(--dl-line);border-radius:var(--dl-rc);box-shadow:none;
+  font-size:calc(12px*var(--app-text-scale,1));font-weight:600;color:var(--text)}
+body #mainContent > .wdash-wrap.dv3-dark-v2 .fp-qa-btn:active{background:var(--surface2)}
+body #mainContent > .wdash-wrap.dv3-dark-v2 .fp-qa-ico,
+body #mainContent > .wdash-wrap.dv3-dark-v2 .fp-qa-ico svg{width:18px;height:18px}
+body #mainContent > .wdash-wrap.dv3-dark-v2 .fp-qa-label{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+
+/* ── Attendance strip: present, but quieter than the money ───────────────── */
+body #mainContent > .wdash-wrap.dv3-dark-v2 .att-quick{
+  background:var(--surface);border:1px solid var(--dl-line);border-radius:var(--dl-r);box-shadow:none;margin:0;padding:10px 14px;min-height:64px}
+
+/* ── "Dashboards": a ledger list, label left / value right ───────────────── */
+body #mainContent > .wdash-wrap.dv3-dark-v2 .wdash-apps-title{
+  margin:8px 0 -4px;font-size:calc(11px*var(--app-text-scale,1));font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+body #mainContent > .wdash-wrap.dv3-dark-v2 .wdash-apps{
+  display:grid;grid-template-columns:minmax(0,1fr);background:var(--surface);border:1px solid var(--dl-line);border-radius:var(--dl-r);box-shadow:none;overflow:hidden;margin:0}
+body #mainContent > .wdash-wrap.dv3-dark-v2 .wdash-tile{
+  display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;column-gap:12px;
+  min-height:56px;padding-block:8px;padding-inline:14px 36px;border-bottom:1px solid var(--dl-soft)}
+body #mainContent > .wdash-wrap.dv3-dark-v2 .wdash-tile:last-of-type{border-bottom:0}
+body #mainContent > .wdash-wrap.dv3-dark-v2 .wdash-apps.is-collapsed .wdash-tile:nth-child(n+7){display:none}
+body #mainContent > .wdash-wrap.dv3-dark-v2 .wdash-apps.is-collapsed .wdash-tile:nth-child(6){border-bottom:0}
+body #mainContent > .wdash-wrap.dv3-dark-v2 .wdash-tile-txt{display:contents}
+body #mainContent > .wdash-wrap.dv3-dark-v2 .wdash-tile-lbl{grid-column:2;font-size:calc(15px*var(--app-text-scale,1));font-weight:600;color:var(--text);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+body #mainContent > .wdash-wrap.dv3-dark-v2 .wdash-tile-sum{grid-column:3;font-size:calc(12.5px*var(--app-text-scale,1));font-weight:600;max-width:44vw;text-align:end}
+body #mainContent > .wdash-wrap.dv3-dark-v2 .wdash-showall{
+  background:transparent!important;border:0!important;box-shadow:none!important;min-height:44px;color:var(--green);font-weight:700;font-size:calc(13px*var(--app-text-scale,1))}
+[data-theme="dark"] body #mainContent > .wdash-wrap.dv3-dark-v2 .wdash-showall{color:var(--green-light)}
+
+/* ── Narrow phones (≤380px): keep long figures inside their cells ────────── */
+@media (max-width:380px){
+  body #mainContent > .wdash-wrap.dv3-dark-v2 #fpHeroCard .dv3h-stat{padding-inline:8px 0}
+  body #mainContent > .wdash-wrap.dv3-dark-v2 #fpHeroCard .dv3h-stat-val{font-size:calc(12px*var(--app-text-scale,1))}
+  body #mainContent > .wdash-wrap.dv3-dark-v2 .dv3-kpi-row .dfp-kpi3-card{padding:12px}
+  body #mainContent > .wdash-wrap.dv3-dark-v2 .dv3-kpi-row .dfp-kpi3-val{font-size:calc(14px*var(--app-text-scale,1))}
+}
+
+/* ── Desktop: let the ledger breathe, keep one reading column ────────────── */
+@media (min-width:820px){
+  body #mainContent > .wdash-wrap.dv3-dark-v2{gap:14px}
+  body #mainContent > .wdash-wrap.dv3-dark-v2 #fpHeroCard .dash-hero{padding:22px 26px}
+  body #mainContent > .wdash-wrap.dv3-dark-v2 #fpHeroCard .dash-hero-main-val{font-size:48px}
+  body #mainContent > .wdash-wrap.dv3-dark-v2 #fpHeroCard .dv3h-stat-val{font-size:15px}
+  body #mainContent > .wdash-wrap.dv3-dark-v2 .dv3-kpi-row .dfp-kpi3-val{font-size:18px}
+}
+@media (prefers-reduced-motion:reduce){
+  body #mainContent > .wdash-wrap.dv3-dark-v2 .wdash-tile,body #mainContent > .wdash-wrap.dv3-dark-v2 .fp-qa-btn{transition:none}
+}
+
 
 </style>
 <script id="finora-polish-js">
