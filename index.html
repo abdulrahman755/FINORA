@@ -58283,7 +58283,7 @@ function mioraDismissGreetToast(){
 
 /* ── 5. Touch targets ────────────────────────────────────────────────────────
    Enlarge hit areas to ≥40px without changing what the eye sees.             */
-.tx-del,.header-month-slot .month-active-btn,.bal-fx-toggle,.fp-hero-toggle{position:relative}
+.tx-del,.bal-fx-toggle{position:relative}   /* month btn is already relative; .fp-hero-toggle is absolutely positioned — don't touch */
 .tx-del::after,.header-month-slot .month-active-btn::after,.bal-fx-toggle::after,.fp-hero-toggle::after{
   content:"";position:absolute;inset:-9px -7px}
 .banks-v2 .bnk-overflow-btn{min-width:40px;min-height:40px}
@@ -58304,6 +58304,59 @@ function mioraDismissGreetToast(){
   [dir="rtl"] .fab:not([style*="left"]):not([style*="top"]){right:auto;left:calc(var(--fin-gutter) + 16px)}
 }
 
+/* ── 7. Numerals & dialog focus ──────────────────────────────────────────────
+   Tabular lining figures keep amounts column-aligned in lists and tables.   */
+body{font-variant-numeric:lining-nums tabular-nums}
+#modalContent:focus{outline:none}
+
 </style>
+<script id="finora-polish-js">
+/* FINORA polish — accessibility behaviour for the shared modal sheet.
+   Additive only: no existing function is replaced; failures are swallowed so
+   the app can never be blocked by this layer. */
+(function(){
+  try{
+    var ov=document.getElementById('modalOverlay'), box=document.getElementById('modalContent');
+    if(ov && box){
+      var opener=null, wasOpen=false;
+      var vis=function(){ return getComputedStyle(ov).display!=='none'; };
+      var focusables=function(){
+        return Array.prototype.filter.call(box.querySelectorAll('a[href],button:not([disabled]),input:not([disabled]):not([type=hidden]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])'),
+          function(e){ return e.getClientRects().length>0 && getComputedStyle(e).visibility!=='hidden'; });
+      };
+      var sync=function(){
+        var open=vis();
+        if(open && !wasOpen){
+          var a=document.activeElement; opener=(a && a!==document.body)?a:null;
+          box.setAttribute('tabindex','-1');
+          setTimeout(function(){ if(vis() && !box.contains(document.activeElement)) box.focus({preventScroll:true}); },0);
+        } else if(!open && wasOpen){
+          var o=opener; opener=null;
+          if(o && document.contains(o) && o.focus){ try{ o.focus({preventScroll:true}); }catch(e){} }
+        }
+        wasOpen=open;
+      };
+      new MutationObserver(sync).observe(ov,{attributes:true,attributeFilter:['style','class']});
+      document.addEventListener('keydown',function(e){
+        if(!vis()) return;
+        var kb=document.getElementById('amtKb');
+        if(e.key==='Escape'){
+          if(kb && kb.classList.contains('open')) return;          // let the keypad close first
+          e.preventDefault(); try{ closeModal(); }catch(_){ ov.style.display='none'; }
+        } else if(e.key==='Tab'){
+          var f=focusables(); if(!f.length){ e.preventDefault(); box.focus(); return; }
+          var first=f[0], last=f[f.length-1], a=document.activeElement;
+          if(!box.contains(a)){ e.preventDefault(); first.focus(); }
+          else if(e.shiftKey && (a===first || a===box)){ e.preventDefault(); last.focus(); }
+          else if(!e.shiftKey && a===last){ e.preventDefault(); first.focus(); }
+        }
+      },true);
+    }
+    var t=document.getElementById('toast');
+    if(t){ t.setAttribute('role','status'); t.setAttribute('aria-live','polite'); t.setAttribute('aria-atomic','true'); }
+  }catch(err){ try{ console.warn('[finora-polish]',err); }catch(_){} }
+})();
+
+</script>
 </body>
 </html>
