@@ -58592,6 +58592,68 @@ body #mainContent > .wdash-wrap.dv3-dark-v2 .wdash-showall{
 
 
 </style>
+<style id="finora-screens">
+/* ═══════════════════════════════════════════════════════════════════════════
+   FINORA — "Ledger" language applied to the remaining screens (phase 3).
+   Layered after the dashboard layer. Presentation only: no markup/JS changes.
+   Scope: #mainContent (screens). The dashboard home keeps its own layer; opened
+   dashboard sheets live outside #mainContent and are intentionally untouched.
+   Revert: delete <style id="finora-screens"> (see REPORT).
+   ═══════════════════════════════════════════════════════════════════════════ */
+body #mainContent{
+  --sl-line:color-mix(in srgb,var(--text) 12%,transparent);
+  --sl-soft:color-mix(in srgb,var(--text) 7%,transparent);
+  --sl-r:14px;--sl-rc:12px}
+
+/* 1 ── Containers: flat surface, hairline, one radius, no drop shadow ───────── */
+body #mainContent :is(
+  .sc-card,.sc-main,.sc-kpi,.section,.ctr-kpi,.dash-tile-v2,.dash-budget-card-v2,.dsum-card,
+  .bnk-card,.bnk-timeline,.bnk-analytics,.tx-rows,.fin-card,.tlx-card,.pln-month-bar,.prj-bar,
+  .cx-hero,.cx-panel,.cx-glist,.list-empty,.br-bank-card,.pln-cal,.sc-summary-tile
+):not(.wdash-wrap *):not(.dash-hero-card):not(.dfp-hero-v2){
+  background:var(--surface);border:1px solid var(--sl-line);border-radius:var(--sl-r);box-shadow:none}
+
+/* 2 ── Hero cards that used soft gradient washes: flat surface + one gold rule ─ */
+body #mainContent :is(.bnk-hero,.dash-hero-health-v2,.fin-hero-card):not(.wdash-wrap *){
+  background:var(--surface);background-image:none;border:1px solid var(--sl-line);
+  border-top:2px solid var(--gold-light,#D4AF37);border-radius:var(--sl-r);box-shadow:none}
+body #mainContent .sc-main-header:not(.wdash-wrap *){background:transparent;background-image:none;box-shadow:none}
+
+/* 3 ── Tiles nested inside cards: no second box, a hairline instead ─────────── */
+body #mainContent :is(.sc-summary-tile,.bnk-analytics-stat,.sc-chip):not(.wdash-wrap *){
+  background:transparent;box-shadow:none}
+body #mainContent .sc-summary-tile:not(.wdash-wrap *){border:0;border-inline-start:1px solid var(--sl-soft);border-radius:0}
+
+body #mainContent .sc-card [style*="background:var(--surface2)"]:not(.wdash-wrap *){
+  background:transparent!important;border:1px solid var(--sl-soft);border-radius:var(--sl-rc)!important}
+
+/* 4 ── Controls share the 12px radius ──────────────────────────────────────── */
+body #mainContent :is(.tx-type-toggle,.amt-decimal-field,.sc-add-submit,.sc-btn,.sc-add-row,
+  .mr-source-tab,.yr-source-tab,.txlg-var-select,.txlg-seg,.fin-qa-chip,.cx-seg,.cx-save,.date-wrap-auto):not(.wdash-wrap *){
+  border-radius:var(--sl-rc)}
+body #mainContent :is(.sc-btn,.sc-add-submit,.card-add-btn):not(.wdash-wrap *){box-shadow:none}
+
+/* 5 ── Gradient award tiles: keep their colour, drop the gradient + corner ──── */
+body #mainContent .yr-award-card:not(.wdash-wrap *){border-radius:var(--sl-r);box-shadow:none}
+
+@media (prefers-reduced-motion:reduce){body #mainContent *{transition-duration:.01ms!important}}
+
+/* 6 ── Contrast on the flattened health hero ──────────────────────────────────
+   The score colour is written inline (green/amber/red) and was only ~3.4:1 on
+   the white surface; darken it in light mode. The eyebrow is emerald-as-text,
+   which fails on near-black, so lift it in dark mode.                        */
+:root:not([data-theme="dark"]) body #mainContent .dash-hero-health-v2 .dash-ring-v2 + div > div[style*="font-weight:900"]{filter:brightness(.72)}
+[data-theme="dark"] body #mainContent .dash-hero-health-v2 .dash-hero-eyebrow-v2{color:var(--green-light)}
+
+/* 7 ── Emerald used as TEXT on near-black (3.0–3.3:1) → the lighter emerald ───── */
+[data-theme="dark"] body #mainContent :is(.bnk-hero-chip.up,.cx-chip.ok,.cx-mv-amt.dep .cx-mn b,.cx-stat-v .cx-mn b){color:var(--green-light)}
+/* summary-tile figure in warning/gold on white (2.4:1) → the same darker gold used for other warning text */
+:root:not([data-theme="dark"]) body #mainContent .sc-summary-tile [style*="color:var(--warning)"]{color:#8F5A00!important}
+:root:not([data-theme="dark"]) body #mainContent [style*="color:var(--warning)"]{color:#8F5A00!important}
+[data-theme="dark"] body #mainContent [style*="color:#0F7A55" i]{color:var(--green-light)!important}
+:root:not([data-theme="dark"]) body #mainContent .empty-hero-btn{color:color-mix(in srgb,var(--accent,#0F7A55) 72%,#000)}
+
+</style>
 <script id="finora-polish-js">
 /* FINORA polish — accessibility behaviour for the shared modal sheet.
    Additive only: no existing function is replaced; failures are swallowed so
