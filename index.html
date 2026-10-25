@@ -16973,6 +16973,7 @@ function renderFinanceSummaryHeroV3(m){
       <div class="dash-hero dv3-hero-inner">
         <div class="dash-hero-head" style="position:relative;z-index:1">
           <span class="dash-hero-eyebrow">${ic('calendar', 12, 'aria-hidden="true"')} ${_monthDisplayLabel(activeMonth)}</span>
+          <button type="button" class="dash-hero-eye" onclick="bnkToggleHideAll()" aria-pressed="${_bnkHideAll}" aria-label="${_bnkHideAll?L('Show all balances','إظهار كل الأرصدة'):L('Hide all balances','إخفاء كل الأرصدة')}">${eyeSVG(!_bnkHideAll)}<span>${_bnkHideAll?L('Show','إظهار'):L('Hide','إخفاء')}</span></button>
         </div>
         <div class="dash-hero-main dv3-hero-main" style="position:relative;z-index:1">
           <div class="dash-hero-main-lbl">${L('Total Net Balance','صافي رصيدك')}</div>
@@ -18888,7 +18889,7 @@ function renderWorkspaceDashboard(m){
     ? `<button type="button" class="wdash-showall" id="wdashShowAllBtn" aria-expanded="${_wdashShowAll?'true':'false'}" onclick="wdashToggleAll()">${_wdashShowAll ? L('Show less','عرض أقل') : L('Show all','عرض الكل')+' ('+visible.length+')'}</button>`
     : '';
   const appsHtml = tiles ? `<div class="wdash-apps-title">${L('Dashboards','الأقسام')}</div><div class="wdash-apps${_wdashCollapsible && !_wdashShowAll ? ' is-collapsed' : ''}" id="wdashApps" role="group" aria-label="${L('Dashboards','الأقسام')}">${tiles}</div>${_wdashToggleHtml}` : '';
-  return `<div class="wdash-wrap dv3-dark-v2">${manageBar}${heroHtml}${quickActionsHtml}${attQuickHtml}${appsHtml}<div class="wdash-vault" aria-hidden="true" inert>${body}</div></div>`;
+  return `<div class="wdash-wrap dv3-dark-v2${_bnkHideAll?' dash-privacy':''}">${manageBar}${heroHtml}${quickActionsHtml}${attQuickHtml}${appsHtml}<div class="wdash-vault" aria-hidden="true" inert>${body}</div></div>`;
 }
 
 // -- Dashboard tiles: collapsed to the first N, "Show all" expands (presentation-only) --
@@ -58699,6 +58700,19 @@ body #mainContent :is(.cx-seg,.cx-tabs){box-shadow:none}
 /* F ── SMS import: the empty state sat in a card inside a card ─────────────────── */
 body #mainContent .sms-empty,body #mainContent .sms-inbox :is(.empty-hero,.list-empty){border:0;background:transparent;box-shadow:none}
 body #mainContent .fin-hero-card:not(.dash-hero-card)::before{display:none}
+
+</style>
+<style id="finora-dash-privacy">
+/* Dashboard balance hide/show — same state and behaviour as the Accounts screen
+   (shared flag _bnkHideAll / key wdp_bank_hide_all_v1). Presentation of the toggle + blur only. */
+body #mainContent > .wdash-wrap.dv3-dark-v2 #fpHeroCard .dash-hero-head{display:flex;align-items:center;justify-content:space-between;gap:8px;padding-inline-end:36px}
+body #mainContent > .wdash-wrap.dv3-dark-v2 .dash-hero-eye{display:inline-flex;align-items:center;gap:5px;height:28px;padding:0 10px;border-radius:999px;border:1px solid var(--dl-line);background:transparent;color:var(--muted);font:inherit;font-size:calc(11px*var(--app-text-scale,1));font-weight:700;cursor:pointer;position:relative;-webkit-tap-highlight-color:transparent}
+body #mainContent > .wdash-wrap.dv3-dark-v2 .dash-hero-eye::after{content:"";position:absolute;inset:-8px -4px}
+body #mainContent > .wdash-wrap.dv3-dark-v2 .dash-hero-eye svg{width:14px;height:14px}
+body #mainContent > .wdash-wrap.dv3-dark-v2 .dash-hero-eye:active{transform:scale(.96)}
+body #mainContent > .wdash-wrap.dv3-dark-v2 .dash-hero-eye:focus-visible{outline:2px solid var(--green);outline-offset:2px}
+body #mainContent > .wdash-wrap.dv3-dark-v2.dash-privacy :is(.dash-hero-main-val,.dv3h-stat-val,.dfp-kpi3-val,.wdash-tile-sum){
+  filter:blur(7px);-webkit-user-select:none;user-select:none;pointer-events:none}
 
 </style>
 <script id="finora-polish-js">
