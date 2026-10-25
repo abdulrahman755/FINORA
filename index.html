@@ -58711,8 +58711,55 @@ body #mainContent > .wdash-wrap.dv3-dark-v2 .dash-hero-eye::after{content:"";pos
 body #mainContent > .wdash-wrap.dv3-dark-v2 .dash-hero-eye svg{width:14px;height:14px}
 body #mainContent > .wdash-wrap.dv3-dark-v2 .dash-hero-eye:active{transform:scale(.96)}
 body #mainContent > .wdash-wrap.dv3-dark-v2 .dash-hero-eye:focus-visible{outline:2px solid var(--green);outline-offset:2px}
-body #mainContent > .wdash-wrap.dv3-dark-v2.dash-privacy :is(.dash-hero-main-val,.dv3h-stat-val,.dfp-kpi3-val,.wdash-tile-sum){
+/* Only bank-derived money is blurred: hero balance + its three figures, Income/Expense/Banks KPIs and the Cash Flow tile.
+   NOT blurred: Custody (site money, not a bank balance), counts, percentages, statuses, other tiles. */
+body #mainContent > .wdash-wrap.dv3-dark-v2.dash-privacy :is(
+  .dash-hero-main-val,.dv3h-stat-val,
+  .dfp-kpi3-card:not([onclick*="'expenses'"]) .dfp-kpi3-val,
+  .wdash-tile[data-cardid="cash"] .wdash-tile-sum){
   filter:blur(7px);-webkit-user-select:none;user-select:none;pointer-events:none}
+
+</style>
+<style id="finora-privacy">
+/* ═══════════════════════════════════════════════════════════════════════════
+   FINORA — hidden balances: frosted-glass blur (Accounts + Dashboard).
+   Real blur, but contained: a rounded frosted pane sits over the figure, so the
+   edges are crisp (no smeared halo into neighbours), the tint is uniform in both
+   themes, and every hidden figure looks the same. Where the app swaps the figure
+   for "● ● ●" placeholders, a blurred sample number is drawn instead of dots.
+   Presentation only; hide/show logic and state are untouched.
+   Revert: delete <style id="finora-privacy">.
+   ═══════════════════════════════════════════════════════════════════════════ */
+:root{--pv-tint:color-mix(in srgb,var(--surface,#fff) 34%,transparent);--pv-edge:color-mix(in srgb,var(--text,#000) 7%,transparent)}
+
+/* A ── figures that are really rendered: a true blur, clipped to a clean rounded pane.
+      clip-path is applied AFTER the filter, so the blur never smears into neighbouring text. */
+.banks-v2.bnk-privacy :is(.bnk-hero-wallets,.bnk-hero-chip span,.bnk-sec-sum,.bnk-tl-amt,.bnk-analytics-chip,
+  .bnk-donut-legend-item,.bnk-analytics-stat:not(.bnk-analytics-stat-top) .bnk-analytics-stat-val,
+  .bnk-mv-list [class*="amt"],.bnk-mv-list [class*="amount"]),
+body #mainContent > .wdash-wrap.dv3-dark-v2.dash-privacy :is(.dash-hero-main-val,.dv3h-stat-val,
+  .dfp-kpi3-card:not([onclick*="'expenses'"]) .dfp-kpi3-val,.wdash-tile[data-cardid="cash"] .wdash-tile-sum){
+  filter:blur(6px)!important;clip-path:inset(-2px -5px round 9px);
+  width:fit-content;max-width:100%;
+  -webkit-user-select:none;user-select:none;pointer-events:none}
+
+/* B ── placeholders ("● ● ● ●"): the dots are hidden and a blurred sample number is drawn in their place */
+.banks-v2 :is(.bnk-mask,.bnk-card-balance.hidden,.bal-avail-amount.hidden,.bal-meta-value.hidden){
+  position:relative;display:inline-block;min-width:5.2em;letter-spacing:0;opacity:1;
+  -webkit-text-fill-color:transparent;text-shadow:none;-webkit-user-select:none;user-select:none}
+.banks-v2 :is(.bnk-card-balance.hidden,.bal-avail-amount.hidden,.bal-meta-value.hidden){display:block;width:fit-content}
+.banks-v2 :is(.bnk-mask,.bnk-card-balance.hidden,.bal-avail-amount.hidden,.bal-meta-value.hidden)::before{
+  content:"88,888.88";position:absolute;inset:0;display:flex;align-items:center;white-space:nowrap;
+  -webkit-text-fill-color:currentColor;font-variant-numeric:tabular-nums lining-nums;opacity:.85;
+  filter:blur(6px);pointer-events:none}
+.banks-v2 :is(.bnk-mask,.bnk-card-balance.hidden,.bal-avail-amount.hidden,.bal-meta-value.hidden){clip-path:inset(-2px -5px round 9px)}
+
+/* dashboard hero figures stay on one line so the pane never grows to two rows */
+body #mainContent > .wdash-wrap.dv3-dark-v2.dash-privacy .dv3h-stat-val{white-space:nowrap!important}
+/* on dark surfaces a blurred light figure glows; calm it so it reads as "hidden", not "dim" */
+[data-theme="dark"] body #mainContent > .wdash-wrap.dv3-dark-v2.dash-privacy :is(.dash-hero-main-val,.dv3h-stat-val,.dfp-kpi3-card .dfp-kpi3-val,.wdash-tile[data-cardid="cash"] .wdash-tile-sum),
+[data-theme="dark"] .banks-v2.bnk-privacy :is(.bnk-hero-wallets,.bnk-hero-chip span,.bnk-sec-sum,.bnk-tl-amt,.bnk-analytics-chip,.bnk-donut-legend-item,.bnk-analytics-stat-val,.bnk-mv-list [class*="amt"],.bnk-mv-list [class*="amount"]),
+[data-theme="dark"] .banks-v2 :is(.bnk-mask,.bnk-card-balance.hidden,.bal-avail-amount.hidden,.bal-meta-value.hidden)::before{opacity:.6}
 
 </style>
 <script id="finora-polish-js">
