@@ -43966,17 +43966,26 @@ function _sdeRenderBox(fieldId, boxId, ctx){
   _sdeRenderConfirmed(box, r);
 }
 
+// "Object matched: lunch" -> label + value (value isolated so Arabic keywords sit correctly inside English text)
+function _sdeReasonLI(t){
+  const i = t.indexOf(': ');
+  if(i > 0 && i < 40) return `<li><span class="sde-r-k">${esc(t.slice(0,i))}:</span> <bdi class="sde-r-v">${esc(t.slice(i+2))}</bdi></li>`;
+  return `<li>${esc(t)}</li>`;
+}
+
 function _sdeRenderConfirmed(box, r){
   const c = _sdeConfColor(r.confidence);
   const learnedTag = r.source==='learned' ? `<span title="${L('Learned from your past entries','تم التعلّم من إدخالاتك السابقة')}">${ic('sparkle',11)}</span>` : '';
   const similarTag = r.source==='similar' ? `<span title="${L('Matched a similar past entry','تطابق مع إدخال سابق مشابه')}">${ic('sparkle',11)}</span>` : '';
-  // Smart Explanation v2 (§9): multi-reason "Detected because: ..." list,
-  // falls back to the original single-line explanation if no reasons were
-  // collected (keeps old behavior intact when explanationList is empty).
+  // Smart Explanation v2 (§9): every reason on its own line; falls back to the
+  // original single-line explanation if no reasons were collected.
   const reasons = r.explanationList && r.explanationList.length ? r.explanationList : null;
-  const explanationLine = reasons
-    ? `<div style="color:var(--muted);margin-top:3px">${esc(L('Detected because:','اتصنّف بسبب:'))} ${reasons.map(x=>esc(L(x.en,x.ar))).join(' · ')}</div>`
-    : (r.explanation ? `<div style="color:var(--muted);margin-top:3px">${esc(L(r.explanation.en, r.explanation.ar))}</div>` : '');
+  const reasonItems = reasons
+    ? reasons.map(x=>_sdeReasonLI(L(x.en,x.ar))).join('')
+    : (r.explanation ? _sdeReasonLI(L(r.explanation.en, r.explanation.ar)) : '');
+  const whyHTML = reasonItems
+    ? `<div class="sde-why"><div class="sde-why-t">${L('Why this category','سبب هذا التصنيف')}</div><ul class="sde-reasons">${reasonItems}</ul></div>`
+    : '';
 
   // Entity chips (v2, additive) — merchant / material / qty+unit / project / person
   const e = r.entities || {};
@@ -43986,20 +43995,21 @@ function _sdeRenderConfirmed(box, r){
   if(e.quantity!=null) chips.push(`${e.quantity} ${esc(L(e.unit||'', e.unitAr||''))}`);
   if(e.project) chips.push(`${ic('pin',11)} ${esc(e.project)}`);
   if(e.person) chips.push(`${ic('id',11)} ${esc(e.person)}`);
-  const entityLine = chips.length
-    ? `<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px;font-size:calc(10px*var(--app-text-scale,1));color:var(--muted)">${chips.map(x=>`<span style="background:var(--surface2);padding:2px 8px;border-radius:99px">${x}</span>`).join('')}</div>`
-    : '';
+  const entityLine = chips.length ? `<div class="sde-ent">${chips.map(x=>`<span>${x}</span>`).join('')}</div>` : '';
+
+  const catLbl = r.category ? L(r.category.en, r.category.ar) : '';
+  const subLbl = r.subcategory ? L(r.subcategory.en, r.subcategory.ar) : '';
+  const parentHTML = (r.category?.en && r.category.en!==r.subcategory?.en && catLbl!==subLbl)
+    ? `<span class="sde-parent">${L('in','ضمن')} ${esc(catLbl)}</span>` : '';
 
   box.innerHTML = `
-    <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:calc(11px*var(--app-text-scale,1))">
-      ${learnedTag}${similarTag}
-      ${renderCategoryBadge(r.subcategory?.en,{size:11})}
-      ${r.category?.en && r.category.en!==r.subcategory?.en ? `<span style="color:var(--muted)">${esc(L(r.category.en,r.category.ar))}</span>` : ''}
-      <span style="background:${c.bg};color:${c.fg};font-weight:900;padding:4px 9px;border-radius:99px">${r.confidence}%</span>
-      <button type="button" onclick="_sdeOpenPicker(this.closest('.sde-box').dataset.field,this.closest('.sde-box').id,this.closest('.sde-box').dataset.ctx)"
-        style="border:none;background:transparent;color:var(--muted);cursor:pointer;padding:2px" title="${L('Change','تغيير')}">${ic('edit',12)}</button>
+    <div class="sde-top">
+      <div class="sde-cat">${learnedTag}${similarTag}${renderCategoryBadge(r.subcategory?.en,{size:11})}${parentHTML}</div>
+      <span class="sde-conf" style="background:${c.bg};color:${c.fg}" title="${L('Confidence','نسبة الثقة')}">${r.confidence}%</span>
+      <button type="button" class="sde-change" onclick="_sdeOpenPicker(this.closest('.sde-box').dataset.field,this.closest('.sde-box').id,this.closest('.sde-box').dataset.ctx)"
+        aria-label="${L('Change category','تغيير التصنيف')}">${ic('edit',12)}<span>${L('Change','تغيير')}</span></button>
     </div>
-    <div style="font-size:calc(10px*var(--app-text-scale,1))">${explanationLine}</div>
+    ${whyHTML}
     ${entityLine}`;
 }
 
@@ -44340,12 +44350,12 @@ function _aipRender(fieldId, ctx){
   card.classList.toggle('aip-has-kw', !!kws.length);
   card.innerHTML = `
     <div class="aip-head">
-      <span class="aip-head-label">${ic('sparkle',12)} ${L('AI','الذكاء الاصطناعي')}</span>
+      <span class="aip-head-label">${ic('sparkle',12)} ${L('AI suggestion','اقتراح الذكاء الاصطناعي')}</span>
       ${confHTML}
     </div>
     ${captionHTML}
     ${kwHTML}
-    <div class="aip-actions">
+    <div class="aip-actions" role="group" aria-label="${L('Respond to the AI suggestion','الرد على اقتراح الذكاء الاصطناعي')}">
       <button type="button" class="aip-btn aip-accept" onclick="_aipAccept('${fieldId}','${ctx}')">${ic('check',11)} ${L('Accept AI','قبول')}</button>
       <button type="button" class="aip-btn" onclick="_aipReview('${fieldId}','${ctx}')">${ic('edit',11)} ${L('Review','مراجعة')}</button>
       <button type="button" class="aip-btn aip-ignore" onclick="_aipIgnore('${fieldId}','${ctx}')">${ic('close',11)} ${L('Ignore','تجاهل')}</button>
@@ -58760,6 +58770,63 @@ body #mainContent > .wdash-wrap.dv3-dark-v2.dash-privacy .dv3h-stat-val{white-sp
 [data-theme="dark"] body #mainContent > .wdash-wrap.dv3-dark-v2.dash-privacy :is(.dash-hero-main-val,.dv3h-stat-val,.dfp-kpi3-card .dfp-kpi3-val,.wdash-tile[data-cardid="cash"] .wdash-tile-sum),
 [data-theme="dark"] .banks-v2.bnk-privacy :is(.bnk-hero-wallets,.bnk-hero-chip span,.bnk-sec-sum,.bnk-tl-amt,.bnk-analytics-chip,.bnk-donut-legend-item,.bnk-analytics-stat-val,.bnk-mv-list [class*="amt"],.bnk-mv-list [class*="amount"]),
 [data-theme="dark"] .banks-v2 :is(.bnk-mask,.bnk-card-balance.hidden,.bal-avail-amount.hidden,.bal-meta-value.hidden)::before{opacity:.6}
+
+</style>
+<style id="finora-ai-panel">
+/* ═══════════════════════════════════════════════════════════════════════════
+   FINORA — AI classification panel (New Transaction / New Expense).
+   The suggestion card and the "why" card read as ONE panel: suggestion + actions
+   on top, the reasoning underneath. Presentation + small template restructure;
+   all handlers (_aipAccept/_aipReview/_aipIgnore/_sdeOpenPicker) unchanged.
+   Revert: restore backups/index.verified-phase7.html.
+   ═══════════════════════════════════════════════════════════════════════════ */
+#modalContent{--ai-line:color-mix(in srgb,var(--text) 12%,transparent);--ai-soft:color-mix(in srgb,var(--text) 8%,transparent)}
+
+/* ── 1. one joined panel ─────────────────────────────────────────────────── */
+#txEntries .tx-entry .aip-card[style*="flex"]:not(:empty){
+  margin-top:6px;padding:12px 14px;gap:8px;background:var(--surface2);border:1px solid var(--ai-line);border-radius:14px;max-height:none}
+#txEntries .tx-entry .aip-card[style*="flex"]:not(:empty):has(+ .sde-box:not(:empty)){border-radius:14px 14px 0 0;border-bottom-color:var(--ai-soft)}
+#txEntries .tx-entry .aip-card[style*="flex"]:not(:empty) + .sde-box:not(:empty){
+  margin-top:-6px;border-radius:0 0 14px 14px;border:1px solid var(--ai-line);border-top:0;background:var(--surface2)}  /* -6px cancels the field's flex gap so the two halves touch */
+#txEntries .tx-entry .sde-box:not(:empty){padding:12px 14px;border-radius:14px;border:1px solid var(--ai-line)}
+
+/* ── 2. suggestion: header, headline, actions ─────────────────────────────── */
+#txEntries .tx-entry .aip-head{display:flex}
+#txEntries .tx-entry .aip-head-label{font-size:calc(11px*var(--app-text-scale,1));font-weight:700;color:var(--muted)}
+#txEntries .tx-entry .aip-conf{font-size:calc(11px*var(--app-text-scale,1));padding:3px 10px}
+#txEntries .tx-entry .aip-caption{font-size:calc(15px*var(--app-text-scale,1));font-weight:600;color:var(--text);white-space:normal;line-height:1.35}
+#txEntries .tx-entry .aip-caption b{font-weight:800}
+#txEntries .tx-entry .aip-caption svg{vertical-align:-2px;margin-inline-end:6px}
+#txEntries .tx-entry .aip-actions{display:flex;align-items:center;gap:6px;margin-top:2px}
+#txEntries .tx-entry .aip-btn{
+  min-height:40px;padding:0 11px;border-radius:12px;border:1px solid var(--ai-line);background:var(--surface);white-space:nowrap;
+  color:var(--text2);font-size:calc(12.5px*var(--app-text-scale,1));font-weight:700;gap:5px}
+#txEntries .tx-entry .aip-btn.aip-accept{background:var(--green);border-color:var(--green);color:#fff}
+#txEntries .tx-entry .aip-btn.aip-ignore{margin-inline-start:auto;border-color:transparent;background:transparent;color:var(--muted);padding:0 6px}
+#txEntries .tx-entry .aip-btn:focus-visible{outline:2px solid var(--green);outline-offset:2px}
+
+/* ── 3. reasoning ("why") ──────────────────────────────────────────────────── */
+.sde-top{display:flex;align-items:center;gap:8px;flex-wrap:nowrap}
+.sde-cat{display:flex;align-items:center;gap:8px;flex:1 1 auto;min-width:0;flex-wrap:wrap;font-size:calc(12px*var(--app-text-scale,1))}
+.sde-parent{color:var(--muted)}
+.sde-conf{flex:0 0 auto;font-weight:800;padding:3px 10px;border-radius:99px;font-size:calc(11px*var(--app-text-scale,1))}
+.sde-change{flex:0 0 auto;display:inline-flex;align-items:center;gap:5px;min-height:36px;padding:0 10px;border:1px solid var(--ai-line,rgba(128,128,128,.25));background:transparent;
+  border-radius:10px;color:var(--text2);font:inherit;font-size:calc(12px*var(--app-text-scale,1));font-weight:700;cursor:pointer}
+.sde-change:focus-visible{outline:2px solid var(--green);outline-offset:2px}
+.sde-why{margin-top:10px;padding-top:10px;border-top:1px solid var(--ai-soft,rgba(128,128,128,.18))}
+.sde-why-t{font-size:calc(11px*var(--app-text-scale,1));font-weight:700;color:var(--muted);margin-bottom:6px}
+.sde-reasons{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:5px;font-size:calc(12.5px*var(--app-text-scale,1));color:var(--text2);line-height:1.4}
+.sde-reasons li{display:flex;align-items:baseline;gap:8px}
+.sde-reasons li::before{content:"";flex:0 0 auto;width:5px;height:5px;border-radius:50%;background:var(--green);transform:translateY(-1px)}
+.sde-r-v{font-weight:700;color:var(--text)}
+.sde-ent{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;font-size:calc(11px*var(--app-text-scale,1));color:var(--muted)}
+.sde-ent span{background:var(--surface);border:1px solid var(--ai-soft,rgba(128,128,128,.18));padding:3px 9px;border-radius:99px}
+/* confidence is already in the suggestion header when that card is showing */
+.aip-card[style*="flex"]:not(:empty) + .sde-box .sde-conf{display:none}
+
+/* ── 4. contrast: inline accent colours (blue/amber/green) fall below 4.5:1 on the tinted panel ── */
+:root:not([data-theme="dark"]) #modalContent :is(.aip-conf,.sde-conf,.sde-box .cat-badge){filter:brightness(.74) saturate(1.1)}
+[data-theme="dark"] #modalContent :is(.aip-conf,.sde-conf,.sde-box .cat-badge){filter:brightness(1.75) saturate(.9)}
 
 </style>
 <script id="finora-polish-js">
