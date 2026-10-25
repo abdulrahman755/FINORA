@@ -58654,6 +58654,53 @@ body #mainContent .yr-award-card:not(.wdash-wrap *){border-radius:var(--sl-r);bo
 :root:not([data-theme="dark"]) body #mainContent .empty-hero-btn{color:color-mix(in srgb,var(--accent,#0F7A55) 72%,#000)}
 
 </style>
+<style id="finora-screens2">
+/* ═══════════════════════════════════════════════════════════════════════════
+   FINORA — "Ledger" deep pass on the main tabs (phase 4).
+   My Finances, Accounts, Daily Spend, My Job, SMS import. CSS only.
+   Revert: delete <style id="finora-screens2">.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* A ── No box-in-a-box: lists and empty states inside a card are not cards ─── */
+body #mainContent .sc-card :is(.tx-rows,.empty-hero,.list-empty,.sav-row):not(.wdash-wrap *){
+  background:transparent!important;border:0!important;border-radius:0!important;box-shadow:none!important}
+body #mainContent .sc-card .tx-rows > :is(.sav-row,.tx-row,.tx-item):not(:last-child){border-bottom:1px solid var(--sl-soft)!important}
+body #mainContent .empty-hero:not(.wdash-wrap *){padding-block:18px}
+
+/* B ── My Finances ───────────────────────────────────────────────────────────── */
+/* hero: the colour stripe on one side is replaced by the shared gold top rule */
+body #mainContent .fin-hero-card:not(.dash-hero-card){border-inline-start:1px solid var(--sl-line)!important;box-shadow:none!important}
+/* the three figures read as one ruled table, not three floating cards */
+body #mainContent .fin-secondary-grid{gap:0!important;background:var(--surface);border:1px solid var(--sl-line);border-radius:var(--sl-r);overflow:hidden}
+body #mainContent .fin-secondary-grid > .fin-card{background:transparent!important;border:0!important;border-radius:0!important;box-shadow:none!important}
+body #mainContent .fin-secondary-grid > .fin-card + .fin-card{border-inline-start:1px solid var(--sl-soft)!important}
+/* section headers: quiet icon (no filled tile), outlined counter/add, hairline underneath */
+body #mainContent .fin-sec-hd{border-bottom:1px solid var(--sl-soft)}
+body #mainContent .fin-sec-ic{background:transparent;border:1px solid var(--sl-line);border-radius:var(--sl-rc);box-shadow:none}
+body #mainContent .fin-sec-n{background:transparent;border:1px solid var(--sl-line);box-shadow:none}
+body #mainContent .fin-sec-add{background:transparent;border:1px solid var(--sl-line);border-radius:var(--sl-rc);box-shadow:none}
+body #mainContent .fin-qa-chip{box-shadow:none}
+
+/* C ── Accounts ──────────────────────────────────────────────────────────────── */
+body #mainContent .bnk-card{border-inline-start-width:3px}      /* keep the per-account brand colour as the only accent */
+body #mainContent .bnk-hero-chip{box-shadow:none}
+body #mainContent .bnk-timeline :is(.bnk-tl-row,.bnk-tx-row):not(:last-child){border-bottom:1px solid var(--sl-soft)}
+
+/* D ── Daily Spend ───────────────────────────────────────────────────────────── */
+body #mainContent .dsum-card{border-inline-start:1px solid var(--sl-line);border-top:2px solid var(--gold-light,#D4AF37)}
+body #mainContent .dsum-card > *+*{border-top:1px solid var(--sl-soft)}
+body #mainContent .dsum-tgt{box-shadow:none}
+body #mainContent :is(.txlg-seg,.txlg-var-select){box-shadow:none}
+
+/* E ── My Job ────────────────────────────────────────────────────────────────── */
+body #mainContent .cx-hero{border-top:2px solid var(--gold-light,#D4AF37)}
+body #mainContent :is(.cx-seg,.cx-tabs){box-shadow:none}
+
+/* F ── SMS import: the empty state sat in a card inside a card ─────────────────── */
+body #mainContent .sms-empty,body #mainContent .sms-inbox :is(.empty-hero,.list-empty){border:0;background:transparent;box-shadow:none}
+body #mainContent .fin-hero-card:not(.dash-hero-card)::before{display:none}
+
+</style>
 <script id="finora-polish-js">
 /* FINORA polish — accessibility behaviour for the shared modal sheet.
    Additive only: no existing function is replaced; failures are swallowed so
