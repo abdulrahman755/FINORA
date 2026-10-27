@@ -30920,7 +30920,7 @@ function openRecurringPanel(){
     +'<div style="--mlx-acc:var(--green)">'
     +'<div class="recur-list">'+list+'</div>'
     +'<label class="mlx-lab" for="rcName">'+esc(L('Name','الاسم'))+'</label><input id="rcName" class="mlx-input" type="text" maxlength="60" placeholder="'+esc(L('e.g. Rent, Internet, Gym','مثال: إيجار، إنترنت، جيم'))+'">'
-    +'<div class="mlx-row"><div class="mlx-grow"><label class="mlx-lab" for="rcAmt">'+esc(L('Amount','المبلغ'))+(cur?' ('+esc(cur)+')':'')+'</label><input id="rcAmt" class="mlx-input" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0.00"></div>'
+    +'<div class="mlx-row"><div class="mlx-grow"><label class="mlx-lab" for="rcAmt">'+esc(L('Amount','المبلغ'))+(cur?' ('+esc(cur)+')':'')+'</label><input id="rcAmt" class="mlx-input" type="text" inputmode="decimal" placeholder="0.00"></div>'
     +'<div class="mlx-w90"><label class="mlx-lab" for="rcDay">'+esc(L('Day','اليوم'))+'</label><input id="rcDay" class="mlx-input" type="number" inputmode="numeric" min="1" max="31" value="1"></div></div>'
     +'<label class="recur-chk"><input id="rcNow" type="checkbox"> <span>'+esc(L('Also add it for this month (if its day has passed)','أضفه لهذا الشهر أيضاً (إن كان يومه قد مضى)'))+'</span></label>'
     +'<div class="recur-hint">'+esc(L('Posted items appear in Daily Spend and stay if you delete the bill here.','تظهر العناصر المسجلة في الصرف اليومي وتبقى حتى لو حذفت الفاتورة من هنا.'))+'</div>'
