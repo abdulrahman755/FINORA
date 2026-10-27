@@ -59330,6 +59330,108 @@ body #mainContent .bnk-hero,body #mainContent .banks-v2 .bnk-hero{border-inline-
 :root body .fab-choice .fc-label{font-weight:700}
 :root body .fab-choice .fc-icon{background:color-mix(in srgb,var(--green) 12%,var(--surface))!important;background-image:none!important;color:var(--green)!important;box-shadow:none!important}
 :root body .fab-choice .fc-icon svg{stroke:currentColor;color:var(--green)}
+
+/* ══════════════════════════════════════════════════════════════════════
+   Header — professional layout pass (presentation-only).
+   Same markup, ids and handlers. Logic: one grouped cluster on each side
+   instead of three loose items —
+     start:  menu · logo │ month chip          end:  search · MIORA · more · bell
+   The month used to float against the icon rail (it was forced dir=rtl),
+   leaving a dead gap beside the logo; it now sits with the brand it belongs
+   to, and the icon buttons use the freed width as larger touch targets.
+   ══════════════════════════════════════════════════════════════════════ */
+:root{--hdr-btn:40px}
+@media (max-width:400px){:root{--hdr-btn:36px}}
+
+/* row */
+:root body .app-header .header-toprow{gap:4px;min-height:var(--hdr-btn);align-items:center}
+
+/* brand cluster: logo │ month */
+:root body .app-header .app-brand{gap:8px;flex:1 1 auto;min-width:0}
+:root body .app-header .app-brand img{width:30px;height:30px;flex-shrink:0}
+:root body .app-header .app-brand-text{display:flex;align-items:center;gap:8px;min-width:0;flex:1 1 auto}
+:root body .app-header .app-brand-text::before{content:'';flex:0 0 1px;height:20px;background:var(--border)}
+:root body .app-header .header-month-slot{direction:inherit;justify-content:flex-start;flex:0 1 auto;min-width:0;overflow:visible}
+:root body .app-header .header-month-slot .month-selector-wrap{display:block;min-width:0}
+
+/* month chip */
+:root body .app-header .header-month-slot .month-active-btn{
+  height:32px;padding-block:0;padding-inline:12px 8px;gap:6px;max-width:100%;
+  border-radius:999px!important;line-height:1;white-space:nowrap;
+  background:var(--surface2)!important;border:1px solid var(--border)!important;
+  color:var(--text)!important;box-shadow:none!important;
+  font-size:calc(12px*var(--app-text-scale,1));font-weight:700;
+  transition:background .15s ease,border-color .15s ease;
+}
+:root body .app-header .header-month-slot .month-active-btn > span:not(.chevron){order:1;min-width:0;overflow:hidden;text-overflow:ellipsis}
+:root body .app-header .header-month-slot .month-active-btn .chevron{
+  order:2;display:inline-block;flex:0 0 14px;width:14px;height:14px;font-size:0;
+  background:var(--muted);transition:transform .2s ease,background .15s ease;
+  -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") center/contain no-repeat;
+          mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") center/contain no-repeat;
+}
+:root body .app-header .header-month-slot .month-active-btn:active,
+:root body .app-header .header-month-slot .month-active-btn.open{
+  background:var(--green-tint)!important;
+  border-color:color-mix(in srgb,var(--green) 35%,var(--border))!important;
+}
+:root body .app-header .header-month-slot .month-active-btn.open .chevron{background:var(--green);transform:rotate(180deg)}
+
+/* month dropdown opens from the chip's start edge (was pinned to its right edge → clipped once the chip moved) */
+:root body .app-header .month-dropdown{
+  right:auto;left:auto;inset-inline-start:0;top:calc(100% + 8px);
+  border:1px solid var(--border);border-radius:14px;box-shadow:var(--shadow-lg);
+}
+
+/* icon rail: one even row of larger, flat buttons */
+:root body .app-header .header-icon-rail{flex-shrink:0;gap:2px!important}
+:root body .app-header .header-toprow .icon-btn:not(.header-actions-extra .icon-btn),
+:root body .app-header .header-toprow .miora-header-btn{
+  width:var(--hdr-btn);height:var(--hdr-btn);min-width:var(--hdr-btn);min-height:var(--hdr-btn);
+  padding:0;border-radius:12px!important;
+  display:inline-flex;align-items:center;justify-content:center;
+}
+:root body .app-header .header-toprow .icon-btn:not(.header-actions-extra .icon-btn) > svg,
+:root body .app-header .header-toprow .miora-header-btn > svg{width:20px;height:20px}
+
+/* MIORA is the one accent in the rail */
+:root body .app-header .header-toprow .miora-header-btn{background:var(--green-tint)!important;color:var(--green)!important}
+:root[data-theme="dark"] body .app-header .header-toprow .miora-header-btn{color:var(--green-light)!important}
+
+/* notification badge re-seated on the bigger button */
+:root body .app-header .header-badge{
+  top:6px;right:auto;left:auto;inset-inline-end:6px;
+  min-width:15px;height:15px;font-size:calc(9px*var(--app-text-scale,1));
+}
+
+/* very narrow phones (≤380px): drop the divider and tighten so the month never truncates */
+@media (max-width:380px){
+  :root{--hdr-btn:34px}
+  :root body .app-header .app-brand{gap:6px}
+  :root body .app-header .app-brand img{width:28px;height:28px}
+  :root body .app-header .app-brand-text{gap:0}
+  :root body .app-header .app-brand-text::before{display:none}
+  :root body .app-header .header-icon-rail{gap:0!important}
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   Pages — align with the new header (presentation-only).
+   One 16px edge for header, page titles and cards (was 16 / 12 / 14 / 18),
+   and one title treatment on every screen.
+   ══════════════════════════════════════════════════════════════════════ */
+:root body #mainContent{padding-inline:16px;padding-top:8px}
+:root body #mainContent .sc-header{padding-inline:0!important;margin-inline:0}
+:root body #mainContent .sc-header .sc-header-title,:root body #mainContent .sc-header .sc-header-sub{padding-inline:0!important}
+:root body #mainContent .sc-header-title{font-size:calc(24px*var(--app-text-scale,1))!important;font-weight:800!important;letter-spacing:-.02em;line-height:1.2}
+:root body #mainContent .sc-header-sub{margin-top:2px}
+@media (min-width:820px){:root body #mainContent{padding-inline:16px}}
+
+:root body #mainContent{padding-top:12px}
+:root body #mainContent .cx-sec > .cx-sh{padding-inline:0}
+
+/* Customize Dashboard: keep the link clear of the floating Notes edge-tab (earlier padding was reset to 0 by later rules) */
+:root body #mainContent .wdash-wrap .wdash-manage-bar,
+:root body #mainContent > .wdash-wrap.dv3-dark-v2 .wdash-manage-bar{padding-inline-end:44px!important}
 </style>
 <script id="finora-polish-js">
 /* FINORA polish — accessibility behaviour for the shared modal sheet.
