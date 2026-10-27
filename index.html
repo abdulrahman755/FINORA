@@ -13396,6 +13396,10 @@ body #mainContent .bnk-hero,body #mainContent .banks-v2 .bnk-hero{border-inline-
               <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 1l4 4-4 4M3 11V9a4 4 0 0 1 4-4h14M7 23l-4-4 4-4M21 13v2a4 4 0 0 1-4 4H3"/></svg>
               <span data-i18n-en="Recurring Spending" data-i18n-ar="المصروفات المتكررة">Recurring Spending</span>
             </button>
+            <button class="hdr-more-item" id="hdrSmsItem" style="display:none" onclick="hdrCloseMoreMenu();setView('smsimport')">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              <span data-i18n-en="Import from SMS" data-i18n-ar="استيراد من الرسائل">Import from SMS</span>
+            </button>
             <button class="hdr-more-item" onclick="hdrCloseMoreMenu();openRemindersPanel()">
               <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
               <span data-i18n-en="Reminders" data-i18n-ar="التذكيرات">Reminders</span>
@@ -16126,6 +16130,7 @@ function wdpSkeletonFor(view){
 function renderHeaderExtraActions(){
   const hx=document.getElementById('headerExtraActions');
   if(!hx) return;
+  const _smsItem=document.getElementById('hdrSmsItem'); if(_smsItem) _smsItem.style.display=(currentView==='banks')?'':'none';
   const hdrPrint=document.getElementById('hdrPrintBtn');
   const hdrDownload=document.getElementById('hdrDownloadBtn');
   if(currentView==='banks'){
@@ -34912,7 +34917,7 @@ function renderTransactions(m){
       <div class="txlg-mid">
         <div class="txlg-notes">${esc(t.notes)||L('Untitled entry','بدون عنوان')}</div>
         <div class="txlg-ai-line" onclick="event.stopPropagation();openTxAISheet(${ri})" title="${L('View AI analysis','عرض التحليل الذكي')}">
-          <span class="txlg-ai-meta">${metaLineHTML}</span>${reviewBadgeHTML}${dupIconHTML}
+          <span class="txlg-ai-meta">${metaLineHTML}</span>${reviewBadgeHTML}${dupIconHTML}${t.recurId?`<span class="txlg-recur" role="img" aria-label="${L('Recurring','متكرر')}" title="${L('Recurring — posted automatically','متكرر — تم تسجيله تلقائياً')}">↻</span>`:''}
         </div>
       </div>
       <div class="txlg-side">
@@ -59693,6 +59698,31 @@ body #mainContent .bnk-hero,body #mainContent .banks-v2 .bnk-hero{border-inline-
 .recur-empty{padding:18px 12px;text-align:center;color:var(--muted);font-size:calc(13px*var(--app-text-scale,1));line-height:1.6}
 .recur-chk{display:flex;align-items:center;gap:8px;margin-top:12px;font-size:calc(13px*var(--app-text-scale,1));color:var(--sub)}
 .recur-hint{margin-top:8px;font-size:calc(12px*var(--app-text-scale,1));color:var(--muted);line-height:1.5}
+
+.txlg-recur{display:inline-flex;align-items:center;justify-content:center;flex:0 0 18px;width:18px;height:18px;margin-inline-start:6px;border-radius:50%;font-size:12px;font-weight:800;line-height:1;background:var(--green-tint);color:var(--green)}
+
+/* ══ Balance numerals — clearer figure / unit hierarchy (keeps the one-typeface rule above) ══
+   The figure is a touch larger and heavier with tighter tracking; the currency becomes a small
+   glass pill (same device as the hero) so “EGP” stops competing with the digits. Decimals stay
+   full-size on purpose (a smaller-decimals look was tried and rejected earlier). */
+.banks-v2 .bnk-card-front .bnk-card-balance{font-size:calc(30px*var(--app-text-scale,1))}
+.banks-v2 .bnk-card-front .bnk-card-balance .sig-num{align-items:center;gap:.3em}
+.banks-v2 .bnk-card-front .bnk-card-balance .sig-amt{font-weight:800!important;letter-spacing:-.025em;text-shadow:0 1px 2px rgba(0,0,0,.22)}
+.banks-v2 .bnk-card-front .bnk-card-balance .sig-cur{
+  opacity:1;font-size:.36em;letter-spacing:.1em;top:0;margin-inline-start:.15em;
+  padding:.36em .8em;border-radius:999px;
+  background:color-mix(in srgb,currentColor 16%,transparent);
+}
+.banks-v2 .bnk-hero-total .sig-amt{font-weight:800;letter-spacing:-.025em}
+[data-theme="dark"] .banks-v2 .bnk-hero-total .sig-amt{filter:drop-shadow(0 0 14px rgba(43,196,140,.22))}
+
+/* Header on Banks: the extra “Import from SMS” icon squeezed the month chip to “OCT 2…” on phones.
+   On narrow screens it moves into the ⋮ menu (item added there) and the chip never truncates. */
+@media (max-width:430px){
+  :root body .app-header .header-actions-extra{display:none!important}
+}
+@media (min-width:431px){ #hdrSmsItem{display:none!important} }
+:root body .app-header .header-month-slot .month-active-btn{flex-shrink:0}
 </style>
 <script id="finora-polish-js">
 /* FINORA polish — accessibility behaviour for the shared modal sheet.
