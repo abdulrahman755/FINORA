@@ -54505,11 +54505,64 @@ function _wdpWalletSVG(uid){
    +'<circle class="w-clasp" cx="36" cy="31.5" r="3"/></svg>';
 }
 // Confirmation after a pull-to-refresh: one pill at a time (a second pull replaces it, never stacks).
-function _wdpRefreshDone(){
+// What a pull-to-refresh actually does: re-fetches the live data the app shows (FX rates, gold spot),
+// checks for a new app version, then re-renders the current screen. Resolves with what really happened.
+function _wdpPullRefreshWork(){
+  const res={online:(navigator.onLine!==false),fxTried:false,fx:false,gold:false,update:false};
+  if(!res.online) return Promise.resolve(res);
+  const tasks=[];
+  function poll(get,before,done,onOk){
+    let n=0; const t=setInterval(function(){
+      n++; const st=get();
+      if(st && (st.fetchedAt||0)>before){ clearInterval(t); onOk(); done(); }
+      else if(n>30){ clearInterval(t); if(st && !st.fetchedAt) st.fetchedAt=before; done(); }
+    },150);
+  }
+  tasks.push(new Promise(function(done){
+    try{
+      if(typeof fxEnsureRates!=='function'){ done(); return; }
+      if(!FX_STATE && typeof fxLoadCached==='function') fxLoadCached();
+      if(!FX_STATE){ done(); return; }
+      res.fxTried=true;
+      const before=FX_STATE.fetchedAt||0;
+      FX_STATE.fetchedAt=0;           // bypass the 30-min throttle: the user asked for fresh data
+      fxEnsureRates();
+      poll(function(){return FX_STATE;},before,done,function(){res.fx=true;});
+    }catch(e){ done(); }
+  }));
+  tasks.push(new Promise(function(done){
+    try{
+      if(typeof goldEnsurePrice!=='function'){ done(); return; }
+      if(!GOLD_STATE && typeof goldLoadCached==='function') goldLoadCached();
+      const before=GOLD_STATE?(GOLD_STATE.fetchedAt||0):0;
+      if(GOLD_STATE) GOLD_STATE.fetchedAt=0;
+      goldEnsurePrice();
+      poll(function(){return GOLD_STATE;},before,done,function(){res.gold=true;});
+    }catch(e){ done(); }
+  }));
+  tasks.push(new Promise(function(done){
+    try{
+      if(!(navigator.serviceWorker&&navigator.serviceWorker.getRegistration)){ done(); return; }
+      navigator.serviceWorker.getRegistration().then(function(reg){
+        if(!reg){ done(); return; }
+        return reg.update().then(function(){ res.update=!!(reg.waiting||reg.installing); });
+      }).catch(function(){}).then(done);
+    }catch(e){ done(); }
+  }));
+  return Promise.all(tasks).then(function(){ return res; });
+}
+function _wdpRefreshDone(res){
+  res=res||{};
   const old=document.getElementById('wdpRefreshDone'); if(old) old.remove();
+  let warn=false, msg;
+  if(res.online===false){ warn=true; msg=L('Offline — showing saved data','بدون اتصال — بيانات محفوظة'); }
+  else if(res.update){ msg=L('Update ready — reopen the app','يتوفر تحديث — أعد فتح التطبيق'); }
+  else if(res.fx||res.gold){ msg=L('Rates updated','تم تحديث الأسعار'); }
+  else if(res.fxTried){ warn=true; msg=L('Couldn’t reach live rates','تعذّر تحديث الأسعار'); }
+  else { msg=L('Up to date','كل شيء محدّث'); }
   const el=document.createElement('div');
-  el.id='wdpRefreshDone'; el.className='wdp-rf-done';
-  el.innerHTML='<span class="wdp-rf-ico">'+_wdpWalletSVG('done')+'<svg class="wdp-rf-check" viewBox="0 0 24 24"><path d="M6 12.5l4 4 8-9" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>'+esc(L('Refreshed','تم التحديث'))+'</span><i class="wdp-rf-spark s1"></i><i class="wdp-rf-spark s2"></i><i class="wdp-rf-spark s3"></i>';
+  el.id='wdpRefreshDone'; el.className='wdp-rf-done'+(warn?' wdp-rf-warn':'');
+  el.innerHTML='<span class="wdp-rf-ico">'+_wdpWalletSVG('done')+'<svg class="wdp-rf-check" viewBox="0 0 24 24"><path d="M6 12.5l4 4 8-9" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>'+esc(msg)+'</span><i class="wdp-rf-spark s1"></i><i class="wdp-rf-spark s2"></i><i class="wdp-rf-spark s3"></i>';
   document.body.appendChild(el);
   requestAnimationFrame(()=>requestAnimationFrame(()=>el.classList.add('show')));
   setTimeout(()=>{ el.classList.remove('show'); setTimeout(()=>{ if(el.parentNode) el.remove(); },380); },1700);
@@ -54553,6 +54606,8 @@ function _wdpRefreshDone(){
     if(overlay && overlay.style.display==='flex') return;
     if(document.getElementById('fabPicker')) return;
     if(document.getElementById('sttOverlay')) return;
+    const _gs=document.getElementById('gSearchOverlay');
+    if(_gs && _gs.style.display && _gs.style.display!=='none') return;
     startY=e.touches[0].clientY;
     lastY=startY;
     pulling=true; triggered=false;
@@ -54593,11 +54648,17 @@ function _wdpRefreshDone(){
         page.style.transform='translateY('+(THRESHOLD*0.7)+'px)';
       }
       if(navigator.vibrate) try{ navigator.vibrate(8); }catch(e){}
-      setTimeout(function(){
-        try{ renderView(); }catch(e){_logErr('pullToRefresh:renderView',e);}
-        try{ _wdpRefreshDone(); }catch(e){_logErr('pullToRefresh:done',e);}
-        reset(el); busy=false;
-      }, 550);
+      const _t0=Date.now();
+      Promise.race([
+        _wdpPullRefreshWork(),
+        new Promise(function(r){ setTimeout(function(){ r({online:(navigator.onLine!==false),fxTried:true}); },6000); })
+      ]).catch(function(){ return {}; }).then(function(res){
+        setTimeout(function(){
+          try{ renderView(); }catch(e){_logErr('pullToRefresh:renderView',e);}
+          try{ _wdpRefreshDone(res); }catch(e){_logErr('pullToRefresh:done',e);}
+          reset(el); busy=false;
+        }, Math.max(0,550-(Date.now()-_t0)));
+      });
     } else {
       reset(el);
     }
@@ -59432,6 +59493,55 @@ body #mainContent .bnk-hero,body #mainContent .banks-v2 .bnk-hero{border-inline-
 /* Customize Dashboard: keep the link clear of the floating Notes edge-tab (earlier padding was reset to 0 by later rules) */
 :root body #mainContent .wdash-wrap .wdash-manage-bar,
 :root body #mainContent > .wdash-wrap.dv3-dark-v2 .wdash-manage-bar{padding-inline-end:44px!important}
+
+/* ══════════════════════════════════════════════════════════════════════
+   Global search — clean pass (presentation-only)
+   • bar now clears the status bar / notch (was drawn underneath it)
+   • softer field: filled pill, thin accent border + light glow on focus
+   • larger back button, tidier results & hint
+   ══════════════════════════════════════════════════════════════════════ */
+:root body .gsearch-bar{
+  gap:10px;
+  padding:calc(env(safe-area-inset-top,0px) + 10px) 16px 10px;
+  border-bottom:1px solid var(--border);background:var(--surface);
+}
+:root body .gsearch-back{width:42px;height:42px;border-radius:12px;background:var(--surface2);transition:background .15s ease,transform .1s ease}
+:root body .gsearch-back:active{background:var(--surface3,var(--border));transform:scale(.96)}
+:root body .gsearch-back svg{width:20px;height:20px}
+
+:root body .gsearch-input-wrap{min-width:0}
+:root body .gsearch-input-wrap > svg{
+  width:18px;height:18px;color:var(--muted);transition:color .15s ease;z-index:1;
+}
+:root body .gsearch-input-wrap:focus-within > svg{color:var(--green)}
+:root body .gsearch-input,
+:root[dir="rtl"] body .gsearch-input{
+  -webkit-appearance:none;appearance:none;
+  height:42px;border-radius:12px;
+  padding-block:0;padding-inline:42px 14px;
+  background:var(--surface2);border:1px solid transparent;
+  color:var(--text);font-weight:500;
+  transition:background .15s ease,border-color .15s ease,box-shadow .15s ease;
+}
+:root body .gsearch-input::placeholder{color:var(--muted);opacity:.85;font-weight:500}
+:root body .gsearch-input:focus{
+  outline:none;background:var(--surface);
+  border-color:color-mix(in srgb,var(--green) 55%,transparent);
+  box-shadow:0 0 0 3px var(--green-tint);
+}
+
+/* results area */
+:root body .gsearch-results{padding:4px 0 calc(40px + env(safe-area-inset-bottom,0px))}
+:root body .gsearch-cat{padding:16px 16px 6px}
+:root body .gsearch-item{padding:10px 16px;gap:12px}
+:root body .gsearch-item-icon{width:38px;height:38px;border-radius:12px}
+:root body .gsearch-hint,
+:root body .gsearch-empty{padding:44px 32px;max-width:340px;margin-inline:auto}
+:root body .gsearch-hint{font-size:calc(13px*var(--app-text-scale,1));color:var(--muted)}
+
+/* pull-to-refresh result pill: amber when the refresh could not reach live data */
+.wdp-rf-done{white-space:nowrap;max-width:calc(100vw - 32px)}
+.wdp-rf-done.wdp-rf-warn{background:linear-gradient(135deg,#8A5A00,#D98B00 60%,#F5B73D);box-shadow:0 10px 28px rgba(138,90,0,.35)}
 </style>
 <script id="finora-polish-js">
 /* FINORA polish — accessibility behaviour for the shared modal sheet.
