@@ -13388,6 +13388,14 @@ body #mainContent .bnk-hero,body #mainContent .banks-v2 .bnk-hero{border-inline-
               <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
               <span data-i18n-en="Download Backup" data-i18n-ar="تحميل نسخة احتياطية">Download Backup</span>
             </button>
+            <button class="hdr-more-item" onclick="hdrCloseMoreMenu();exportSpendingCSV()">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h8M8 9h2"/></svg>
+              <span data-i18n-en="Export Spending (CSV)" data-i18n-ar="تصدير المصروفات (CSV)">Export Spending (CSV)</span>
+            </button>
+            <button class="hdr-more-item" onclick="hdrCloseMoreMenu();openRecurringPanel()">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 1l4 4-4 4M3 11V9a4 4 0 0 1 4-4h14M7 23l-4-4 4-4M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+              <span data-i18n-en="Recurring Spending" data-i18n-ar="المصروفات المتكررة">Recurring Spending</span>
+            </button>
             <button class="hdr-more-item" onclick="hdrCloseMoreMenu();openRemindersPanel()">
               <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
               <span data-i18n-en="Reminders" data-i18n-ar="التذكيرات">Reminders</span>
@@ -30837,6 +30845,132 @@ function _bkExtrasApply(extras){
   return n;
 }
 
+// ── Recurring spending ───────────────────────────────────────────────────────────────────
+// Monthly bills (rent, subscriptions…) are defined once and posted into Daily Spend automatically on
+// their due day, for the CURRENT month only, once per month per bill. Posted items are ordinary
+// transactions (tagged recurId) — edit or delete them like any other. Templates live in their own
+// localStorage key, so they are included in backups automatically (extras) and survive restore.
+const RECUR_KEY='finora_recurring_v1';
+let RECUR=[];
+function recurLoad(){
+  try{
+    const a=JSON.parse(localStorage.getItem(RECUR_KEY)||'[]');
+    RECUR=(Array.isArray(a)?a:[]).filter(function(x){ return x&&x.id&&x.name&&x.amount>0&&x.day>=1&&x.day<=31; });
+  }catch(e){ RECUR=[]; }
+}
+function recurSave(){ try{ localStorage.setItem(RECUR_KEY,JSON.stringify(RECUR)); }catch(e){ try{_logErr('recurSave',e);}catch(_){} } }
+function _recurYM(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'); }
+function _recurISO(y,m,day){ return y+'-'+String(m+1).padStart(2,'0')+'-'+String(day).padStart(2,'0'); }
+function recurRunDue(){
+  try{
+    if(!RECUR.length||typeof DATA!=='object'||!DATA) return 0;
+    const now=new Date(), y=now.getFullYear(), mo=now.getMonth(), ym=_recurYM(now);
+    const mk=_monthKeyForDate(_recurISO(y,mo,1));
+    if(!mk||!DATA[mk]||!canMutateMonth(mk)) return 0;          // month missing or closed → never touch it
+    const dim=new Date(y,mo+1,0).getDate();
+    let n=0, changed=false;
+    RECUR.forEach(function(r){
+      if(!r.active||r.last===ym) return;
+      const due=Math.min(r.day,dim);                           // day 31 → last day of shorter months
+      if(now.getDate()<due) return;
+      const date=_recurISO(y,mo,due);
+      if(!Array.isArray(DATA[mk].transactions)) DATA[mk].transactions=[];
+      if(DATA[mk].transactions.some(function(t){ return t.recurId===r.id&&t.date===date; })){ r.last=ym; changed=true; return; }
+      const target=getDailyTarget(mk,date);
+      const running=_dailyPaymentsSum(mk,date,-1)+r.amount;
+      DATA[mk].transactions.push({date:date,payment:r.amount,target:target,provided:Math.round((target-running)*100)/100,notes:r.name,isProduct:false,recurId:r.id,_ts:Date.now()+n});
+      r.last=ym; n++; changed=true;
+    });
+    if(changed) recurSave();
+    if(n){
+      persistData();
+      try{ renderView(); }catch(_){}
+      showToast(L(n+(n>1?' recurring items added ✓':' recurring item added ✓'), n+' مصروف متكرر تمت إضافته ✓'),'success');
+    }
+    return n;
+  }catch(e){ try{_logErr('recurRunDue',e);}catch(_){} return 0; }
+}
+function recurTick(){
+  if(document.visibilityState!=='visible') return;
+  const h=document.querySelector('.app-header');
+  if(!h||!h.offsetHeight) return;                              // PIN / onboarding screen still up → wait
+  recurRunDue();
+}
+recurLoad();
+setTimeout(recurTick,4000);
+setInterval(recurTick,300000);
+document.addEventListener('visibilitychange',function(){ if(document.visibilityState==='visible') setTimeout(recurTick,1200); });
+
+function openRecurringPanel(){
+  const cur=(typeof CURRENT_CURRENCY!=='undefined'?CURRENT_CURRENCY:'');
+  const fmt=function(v){ return Number(v).toLocaleString('en-US',{maximumFractionDigits:2}); };
+  const list=RECUR.length
+    ? RECUR.map(function(r){
+        return '<div class="recur-row'+(r.active?'':' off')+'">'
+          +'<div class="recur-main"><div class="recur-name">'+esc(r.name)+'</div>'
+          +'<div class="recur-sub">'+esc(L('Every month · day '+r.day,'كل شهر · يوم '+r.day))+'</div></div>'
+          +'<div class="recur-amt">'+fmt(r.amount)+' <small>'+esc(cur)+'</small></div>'
+          +'<button class="recur-pill" onclick="recurToggle(\''+r.id+'\')" aria-label="'+esc(L('Pause or resume','إيقاف أو تشغيل'))+'">'+esc(r.active?L('On','مفعّل'):L('Paused','موقوف'))+'</button>'
+          +'<button class="recur-del" onclick="recurDelete(\''+r.id+'\')" aria-label="'+esc(L('Delete','حذف'))+'">✕</button></div>';
+      }).join('')
+    : '<div class="recur-empty">'+esc(L('No recurring items yet. Add rent, subscriptions or any monthly bill and it will be logged for you.','لا توجد مصروفات متكررة. أضف الإيجار أو الاشتراكات أو أي فاتورة شهرية وسيتم تسجيلها تلقائياً.'))+'</div>';
+  document.getElementById('modalContent').innerHTML=
+    '<div class="modal-handle"></div>'
+    +'<div class="modal-title">'+esc(L('Recurring Spending','المصروفات المتكررة'))+'</div>'
+    +'<div style="--mlx-acc:var(--green)">'
+    +'<div class="recur-list">'+list+'</div>'
+    +'<label class="mlx-lab" for="rcName">'+esc(L('Name','الاسم'))+'</label><input id="rcName" class="mlx-input" type="text" maxlength="60" placeholder="'+esc(L('e.g. Rent, Internet, Gym','مثال: إيجار، إنترنت، جيم'))+'">'
+    +'<div class="mlx-row"><div class="mlx-grow"><label class="mlx-lab" for="rcAmt">'+esc(L('Amount','المبلغ'))+(cur?' ('+esc(cur)+')':'')+'</label><input id="rcAmt" class="mlx-input" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0.00"></div>'
+    +'<div class="mlx-w90"><label class="mlx-lab" for="rcDay">'+esc(L('Day','اليوم'))+'</label><input id="rcDay" class="mlx-input" type="number" inputmode="numeric" min="1" max="31" value="1"></div></div>'
+    +'<label class="recur-chk"><input id="rcNow" type="checkbox"> <span>'+esc(L('Also add it for this month (if its day has passed)','أضفه لهذا الشهر أيضاً (إن كان يومه قد مضى)'))+'</span></label>'
+    +'<div class="recur-hint">'+esc(L('Posted items appear in Daily Spend and stay if you delete the bill here.','تظهر العناصر المسجلة في الصرف اليومي وتبقى حتى لو حذفت الفاتورة من هنا.'))+'</div>'
+    +'</div>'
+    +'<div class="modal-btns"><button class="mbtn save" onclick="recurAdd()">'+esc(L('Add','إضافة'))+'</button>'
+    +'<button class="mbtn cancel" onclick="closeModal()">'+esc(L('Close','إغلاق'))+'</button></div>';
+  document.getElementById('modalOverlay').style.display='flex';
+}
+function recurAdd(){
+  const name=(document.getElementById('rcName').value||'').trim().slice(0,60);
+  const amt=parseFloat(String(document.getElementById('rcAmt').value||'').replace(/,/g,''));
+  const day=parseInt(document.getElementById('rcDay').value,10);
+  if(!name||!isFinite(amt)||amt<=0||amt>1e9||!(day>=1&&day<=31)){
+    showToast(L('Enter a name, an amount and a day (1–31)','أدخل الاسم والمبلغ واليوم (1–31)'),'warn'); return;
+  }
+  const alsoNow=!!document.getElementById('rcNow').checked;
+  RECUR.push({id:'rc'+Date.now().toString(36)+Math.random().toString(36).slice(2,5),name:name,amount:Math.round(amt*100)/100,day:day,active:true,last:alsoNow?'':_recurYM(new Date())});
+  recurSave();
+  openRecurringPanel();
+  if(alsoNow) recurRunDue();
+  else showToast(L('Recurring item added ✓','تمت إضافة المصروف المتكرر ✓'),'success');
+}
+function recurToggle(id){ const r=RECUR.find(function(x){return x.id===id;}); if(!r) return; r.active=!r.active; recurSave(); openRecurringPanel(); if(r.active) recurRunDue(); }
+function recurDelete(id){ RECUR=RECUR.filter(function(x){return x.id!==id;}); recurSave(); openRecurringPanel(); }
+
+// Spending → CSV (opens cleanly in Excel / Google Sheets, Arabic included thanks to the UTF-8 BOM).
+// One row per Daily Spend transaction across every month; read-only, touches no data.
+function exportSpendingCSV(){
+  try{
+    const q=v=>{ v=(v==null?'':String(v)).replace(/\r?\n/g,' '); return /[",;]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v; };
+    const rows=[[L('Month','الشهر'),L('Date','التاريخ'),L('Description','الوصف'),L('Category','التصنيف'),L('Amount','المبلغ'),L('Currency','العملة')].map(q).join(',')];
+    let n=0;
+    (MONTHS_ORDER||[]).forEach(function(m){
+      const txs=(DATA[m]&&DATA[m].transactions)||[];
+      txs.slice().sort(function(a,b){ return String(a.date).localeCompare(String(b.date)) || ((a._ts||0)-(b._ts||0)); }).forEach(function(t){
+        let cat=''; try{ cat=_catNameOf(t)||''; }catch(_){ cat=t.smartCategory||''; }
+        rows.push([(MONTH_NAMES&&MONTH_NAMES[m])||m,t.date,t.notes,cat,(Math.round((+t.payment||0)*100)/100).toFixed(2),CURRENT_CURRENCY].map(q).join(','));
+        n++;
+      });
+    });
+    if(!n){ showToast(L('No spending to export yet','لا توجد مصروفات للتصدير بعد'),'warn'); return; }
+    const d=new Date(), ds=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+    const blob=new Blob(['\uFEFF'+rows.join('\r\n')],{type:'text/csv;charset=utf-8'});
+    const url=URL.createObjectURL(blob), a=document.createElement('a');
+    a.href=url; a.download='FINORA-spending-'+ds+'.csv';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function(){ URL.revokeObjectURL(url); },4000);
+    showToast(L(n+' transactions exported ✓',n+' معاملة تم تصديرها ✓'),'success');
+  }catch(e){ try{ _logErr('exportSpendingCSV',e); }catch(_){} showToast(L('Export failed','فشل التصدير'),'error'); }
+}
 function exportBackup() {
   try {
     const d   = new Date();
@@ -59542,6 +59676,23 @@ body #mainContent .bnk-hero,body #mainContent .banks-v2 .bnk-hero{border-inline-
 /* pull-to-refresh result pill: amber when the refresh could not reach live data */
 .wdp-rf-done{white-space:nowrap;max-width:calc(100vw - 32px)}
 .wdp-rf-done.wdp-rf-warn{background:linear-gradient(135deg,#8A5A00,#D98B00 60%,#F5B73D);box-shadow:0 10px 28px rgba(138,90,0,.35)}
+
+/* Recurring spending panel */
+.recur-list{display:flex;flex-direction:column;gap:8px;margin-bottom:14px}
+.recur-row{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--border);border-radius:var(--radius-sm,12px);background:var(--surface2)}
+.recur-row.off{opacity:.6}
+.recur-main{flex:1;min-width:0}
+.recur-name{font-weight:700;font-size:calc(14px*var(--app-text-scale,1));white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.recur-sub{font-size:calc(12px*var(--app-text-scale,1));color:var(--muted);margin-top:2px}
+.recur-amt{font-weight:800;font-variant-numeric:tabular-nums;font-size:calc(14px*var(--app-text-scale,1));white-space:nowrap}
+.recur-amt small{font-weight:600;color:var(--muted);font-size:.8em}
+.recur-pill{border:0;border-radius:999px;padding:6px 10px;font:inherit;font-size:calc(12px*var(--app-text-scale,1));font-weight:700;background:var(--green-tint);color:var(--green);cursor:pointer}
+.recur-row.off .recur-pill{background:var(--surface3,var(--border));color:var(--muted)}
+.recur-del{border:0;background:transparent;color:var(--muted);width:32px;height:32px;border-radius:10px;font-size:14px;cursor:pointer}
+.recur-del:active{background:var(--surface3,var(--border))}
+.recur-empty{padding:18px 12px;text-align:center;color:var(--muted);font-size:calc(13px*var(--app-text-scale,1));line-height:1.6}
+.recur-chk{display:flex;align-items:center;gap:8px;margin-top:12px;font-size:calc(13px*var(--app-text-scale,1));color:var(--sub)}
+.recur-hint{margin-top:8px;font-size:calc(12px*var(--app-text-scale,1));color:var(--muted);line-height:1.5}
 </style>
 <script id="finora-polish-js">
 /* FINORA polish — accessibility behaviour for the shared modal sheet.
