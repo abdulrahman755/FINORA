@@ -30101,6 +30101,11 @@ function openSettings(){
           <div class="stt-row-body"><div class="stt-row-title">${L('Ask MIORA','اسأل MIORA')}</div><div class="stt-row-sub">${L('Open your in-app assistant.','افتح مساعدك داخل البرنامج.')}</div></div>
           <div class="stt-row-trail">${sttChevron()}</div>
         </div>
+        <div class="stt-row" onclick="closeSettings();setTimeout(openNumStylePicker,380)" role="button" tabindex="0">
+          ${sttMakeIcon('reports')}
+          <div class="stt-row-body"><div class="stt-row-title">${L('Balance numbers','شكل الأرقام')}</div><div class="stt-row-sub">${L('Choose how balances look.','اختر شكل عرض الأرصدة.')}</div></div>
+          <div class="stt-row-trail">${sttChevron()}</div>
+        </div>
         <div class="stt-row" onclick="sttToggleLangGroup()" role="button" tabindex="0">
           ${sttMakeIcon('language')}
           <div class="stt-row-body"><div class="stt-row-title">${L('Language','اللغة')}</div></div>
@@ -30848,6 +30853,30 @@ function _bkExtrasApply(extras){
   });
   window._bkApplyFailed=failed;
   return n;
+}
+
+// ── Balance number style (Settings → Balance numbers) ───────────────────────────────────
+// Pure presentation: sets html[data-num-style]; the presets are CSS only (see "Balance numeral presets").
+const NUM_STYLE_KEY='finora_num_style_v1';
+const NUM_STYLES=[['classic','Classic','كلاسيك'],['slim','Slim','نحيف'],['bold','Bold','عريض'],['ledger','Ledger','دفتر حسابات'],['glow','Glow','متوهج']];
+function numStyleGet(){ try{ const v=localStorage.getItem(NUM_STYLE_KEY); return NUM_STYLES.some(function(x){return x[0]===v;})?v:'classic'; }catch(e){ return 'classic'; } }
+function numStyleApply(v){ document.documentElement.setAttribute('data-num-style',v||'classic'); }
+function numStyleSet(v){ try{ localStorage.setItem(NUM_STYLE_KEY,v); }catch(e){} numStyleApply(v); openNumStylePicker(); }
+numStyleApply(numStyleGet());
+function openNumStylePicker(){
+  const cur=numStyleGet();
+  const cc=(typeof CURRENT_CURRENCY!=='undefined'?CURRENT_CURRENCY:'EGP');
+  const opts=NUM_STYLES.map(function(x){
+    return '<button type="button" class="ns-opt'+(x[0]===cur?' on':'')+'" data-ns="'+x[0]+'" onclick="numStyleSet(\''+x[0]+'\')" aria-pressed="'+(x[0]===cur)+'">'
+      +'<span class="ns-name">'+esc(L(x[1],x[2]))+(x[0]===cur?' <i>✓</i>':'')+'</span>'
+      +'<span class="ns-sample" dir="ltr"><span class="sig-num sig-flat"><span class="sig-amt">460,456.69</span><span class="sig-cur">'+esc(cc)+'</span></span></span></button>';
+  }).join('');
+  document.getElementById('modalContent').innerHTML=
+    '<div class="modal-handle"></div>'
+    +'<div class="modal-title">'+esc(L('Balance numbers','شكل الأرقام'))+'</div>'
+    +'<div class="ns-list">'+opts+'</div>'
+    +'<div class="modal-btns"><button class="mbtn save" onclick="closeModal()">'+esc(L('Done','تم'))+'</button></div>';
+  document.getElementById('modalOverlay').style.display='flex';
 }
 
 // ── Recurring spending ───────────────────────────────────────────────────────────────────
@@ -59723,6 +59752,32 @@ body #mainContent .bnk-hero,body #mainContent .banks-v2 .bnk-hero{border-inline-
 }
 @media (min-width:431px){ #hdrSmsItem{display:none!important} }
 :root body .app-header .header-month-slot .month-active-btn{flex-shrink:0}
+
+/* ══ Balance numeral presets (Settings → Balance numbers) — presentation only ══
+   Classic = the look above. Others change typeface weight/shape and how the currency sits. */
+.ns-list{display:grid;gap:10px;margin:4px 0 14px}
+.ns-opt{all:unset;box-sizing:border-box;display:block;cursor:pointer;padding:10px 12px;border:1px solid var(--border);border-radius:14px;background:var(--surface2)}
+.ns-opt.on{border-color:var(--green);box-shadow:0 0 0 3px var(--green-tint)}
+.ns-name{display:block;font-size:calc(12px*var(--app-text-scale,1));font-weight:700;color:var(--muted);margin-bottom:8px}
+.ns-name i{font-style:normal;color:var(--green)}
+.ns-sample{display:block;padding:12px 14px;border-radius:12px;background:#4a0d0d;color:#fff;font-family:var(--font-display);font-size:28px;font-weight:700;line-height:1.1}
+.ns-sample .sig-num{display:inline-flex;align-items:center;gap:.3em}
+.ns-sample .sig-cur{font-size:.36em;padding:.36em .8em;border-radius:999px;background:color-mix(in srgb,currentColor 16%,transparent);letter-spacing:.1em;top:0}
+
+:is(html[data-num-style="slim"] .banks-v2 .bnk-card-front .bnk-card-balance,.ns-opt[data-ns="slim"] .ns-sample) .sig-amt{font-weight:400!important;letter-spacing:-.035em!important;font-size:1.1em}
+:is(html[data-num-style="slim"] .banks-v2 .bnk-card-front .bnk-card-balance,.ns-opt[data-ns="slim"] .ns-sample) .sig-cur{background:none!important;padding:0!important;opacity:.6!important;font-weight:600!important;letter-spacing:.14em!important}
+html[data-num-style="slim"] .banks-v2 .bnk-hero-total .sig-amt{font-weight:400!important;letter-spacing:-.035em!important}
+
+:is(html[data-num-style="bold"] .banks-v2 .bnk-card-front .bnk-card-balance,.ns-opt[data-ns="bold"] .ns-sample) .sig-amt{font-weight:900!important;letter-spacing:-.05em!important;font-size:1.04em}
+:is(html[data-num-style="bold"] .banks-v2 .bnk-card-front .bnk-card-balance,.ns-opt[data-ns="bold"] .ns-sample) .sig-cur{position:relative;top:-.9em!important;background:none!important;padding:0!important;opacity:.8!important;font-size:.3em!important;font-weight:800!important}
+html[data-num-style="bold"] .banks-v2 .bnk-hero-total .sig-amt{font-weight:900!important;letter-spacing:-.05em!important}
+
+:is(html[data-num-style="ledger"] .banks-v2 .bnk-card-front .bnk-card-balance,.ns-opt[data-ns="ledger"] .ns-sample) .sig-amt{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace!important;font-weight:700!important;letter-spacing:-.04em!important;font-size:.92em}
+:is(html[data-num-style="ledger"] .banks-v2 .bnk-card-front .bnk-card-balance,.ns-opt[data-ns="ledger"] .ns-sample) .sig-cur{background:none!important;border:1px solid color-mix(in srgb,currentColor 55%,transparent);border-radius:6px!important;padding:.3em .6em!important;opacity:.9!important}
+html[data-num-style="ledger"] .banks-v2 .bnk-hero-total .sig-amt{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace!important;font-weight:700!important;letter-spacing:-.04em!important;font-size:.92em}
+
+:is(html[data-num-style="glow"] .banks-v2 .bnk-card-front .bnk-card-balance,.ns-opt[data-ns="glow"] .ns-sample) .sig-amt{font-weight:800!important;background:none!important;-webkit-text-fill-color:color-mix(in srgb,currentColor 62%,#3fe0a4)!important;color:color-mix(in srgb,currentColor 62%,#3fe0a4)!important;text-shadow:0 0 14px color-mix(in srgb,#3fe0a4 55%,transparent),0 0 3px color-mix(in srgb,#3fe0a4 35%,transparent)!important;filter:none!important}
+html[data-num-style="glow"] .banks-v2 .bnk-hero-total .sig-amt{font-weight:800!important;filter:drop-shadow(0 0 18px rgba(43,196,140,.38))}
 </style>
 <script id="finora-polish-js">
 /* FINORA polish — accessibility behaviour for the shared modal sheet.
