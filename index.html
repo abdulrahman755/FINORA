@@ -12749,6 +12749,28 @@ function fpInitSmartHeader(){
 .jp-wrap .jp-ric{width:34px;height:34px;border-radius:10px}
 .jp-attrow .ic.grn{background:var(--green-tint);color:var(--green)}
 .jp-pct{flex:none;font-weight:700;font-size:calc(15px*var(--app-text-scale,1));color:var(--green);padding-inline-end:2px}
+.screen-wrap.jp-wrap{padding-bottom:calc(104px + env(safe-area-inset-bottom,0px))}
+.jp-grp{display:flex;align-items:center;gap:7px;margin-top:6px;padding:14px 0 2px;font-size:calc(10.5px*var(--app-text-scale,1));font-weight:800;letter-spacing:.9px;text-transform:uppercase;color:var(--muted)}
+.jp-grp i{width:6px;height:6px;border-radius:50%;background:var(--gold)}
+[dir="rtl"] .jp-grp{letter-spacing:0}
+.jp-grp+.jp-row{border-top:0}
+.jp-rb.done{background:var(--green-tint);color:var(--green)}
+.jp-attc{width:100%;display:flex;flex-direction:column;gap:12px;padding:14px;border-radius:var(--radius);border:1px solid var(--border);background:var(--surface);box-shadow:var(--shadow-sm);color:var(--text);font:inherit;cursor:pointer;text-align:start}
+.jp-attc:active{transform:scale(.99)}
+.jp-attc-h{display:flex;align-items:center;gap:12px}
+.jp-attc-h .ic{flex:none;width:40px;height:40px;border-radius:13px;background:var(--green-tint);color:var(--green);display:flex;align-items:center;justify-content:center}
+.jp-attc-h .tx{flex:1;min-width:0}
+.jp-attc-h .tx b{display:block;font-size:calc(14px*var(--app-text-scale,1));font-weight:700}
+.jp-attc-h .tx small{display:block;margin-top:2px;font-size:calc(11px*var(--app-text-scale,1));font-weight:600;color:var(--muted)}
+.jp-attc-h>svg{color:var(--muted);flex:none}
+.jp-bar{height:8px;border-radius:99px;background:var(--surface3,var(--surface2));overflow:hidden}
+.jp-bar i{display:block;height:100%;border-radius:inherit;background:var(--green);transition:width .6s ease}
+.jp-ast-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.jp-ast{padding:8px 6px;border-radius:12px;text-align:center;background:color-mix(in srgb,var(--c) 11%,transparent)}
+.jp-ast b{display:block;font-size:calc(17px*var(--app-text-scale,1));font-weight:800;line-height:1.1;color:var(--c);font-variant-numeric:tabular-nums}
+.jp-ast small{display:block;margin-top:2px;font-size:calc(10.5px*var(--app-text-scale,1));font-weight:700;color:var(--c);opacity:.9}
+.jp-ast.g{--c:var(--green)}.jp-ast.a{--c:var(--gold)}.jp-ast.r{--c:var(--red)}
+.jp-held{display:inline-flex;align-items:center;gap:4px;margin-top:6px;padding:2px 8px;border-radius:99px;background:var(--surface2);color:var(--muted);font-size:calc(10.5px*var(--app-text-scale,1));font-weight:700}
 
 /* ── My Job: profile bar (always visible) + 4-tab bar ── */
 .pf-bar{display:flex;align-items:center;gap:12px;width:100%;margin:4px 0 6px;padding:9px 14px;border:1px solid var(--border);border-radius:18px;background:var(--surface);box-shadow:var(--shadow-sm);font-family:inherit;color:var(--text);cursor:pointer;text-align:start}
@@ -36558,7 +36580,7 @@ function _jpRow(ico,label,valHtml,btn,gold){
 function _jpCopyBtn(v){ return v?`<button type="button" class="jp-rb" onclick="_jpCopy(this)" data-v="${esc(v)}" aria-label="${L('Copy','نسخ')}">${ic('copy',15)}</button>`:''; }
 function _jpCopy(btn){
   const t=btn.getAttribute('data-v')||''; if(!t) return;
-  const ok=()=>{ try{ showToast(L('Copied','تم النسخ'),'success'); }catch(_){} };
+  const ok=()=>{ try{ showToast(L('Copied','تم النسخ'),'success'); }catch(_){} try{ const o=btn.innerHTML; btn.innerHTML=ic('check',15); btn.classList.add('done'); setTimeout(()=>{ btn.innerHTML=o; btn.classList.remove('done'); },1200); }catch(_){} };
   const fb=()=>{ try{ const a=document.createElement('textarea'); a.value=t; a.style.cssText='position:fixed;opacity:0'; document.body.appendChild(a); a.select(); document.execCommand('copy'); a.remove(); ok(); }catch(e){} };
   if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(ok,fb); else fb();
 }
@@ -36607,9 +36629,13 @@ function _jpAttHTML(){
   </section>`;
 }
 function _jpAttBrief(){
-  const s=_jpAttStats(), c=s.c;
-  const sub=[s.label, c.present+' '+L('present','حضور')].concat(c.late?[c.late+' '+L('late','تأخير')]:[],c.absent?[c.absent+' '+L('absent','غياب')]:[]).join(' · ');
-  return `<button type="button" class="ca-manage jp-attrow" onclick="_cxSetTab('attendance')"><span class="ic grn">${ic('attendance',20)}</span><span class="tx"><b>${L('Attendance','الحضور والغياب')}</b><small dir="auto">${esc(sub)}</small></span><span class="jp-pct">${s.rate==null?'—':s.rate+'%'}</span>${ic('chevron',16)}</button>`;
+  const s=_jpAttStats(), c=s.c, r=s.rate==null?0:Math.max(0,Math.min(100,s.rate));
+  const t=(n,l,k)=>`<div class="jp-ast ${k}"><b>${n||0}</b><small>${l}</small></div>`;
+  return `<button type="button" class="jp-attc" onclick="_cxSetTab('attendance')">
+    <div class="jp-attc-h"><span class="ic">${ic('attendance',20)}</span><span class="tx"><b>${L('Attendance','الحضور والغياب')}</b><small dir="auto">${esc(s.label)}</small></span><span class="jp-pct">${s.rate==null?'—':s.rate+'%'}</span>${ic('chevron',16)}</div>
+    <div class="jp-bar" role="progressbar" aria-valuenow="${r}" aria-valuemin="0" aria-valuemax="100"><i style="width:${r}%"></i></div>
+    <div class="jp-ast-row">${t(c.present,L('Present','حضور'),'g')}${t(c.late,L('Late','تأخير'),'a')}${t(c.absent,L('Absent','غياب'),'r')}</div>
+  </button>`;
 }
 function _jpCustHTML(p){
   if(_caState()==='ok') return _caCustHTML();
@@ -37069,9 +37095,14 @@ function _caCustLine(k){
   const st=k.status==='with'?L('With me','معايا'):(k.status==='returned'?L('Returned','تم تسليمها'):L('Transferred','تم نقلها'));
   return [co,k.receivedOn?L('Received ','استلام ')+_jpDate(k.receivedOn):'',st+(k.closedOn?' '+_jpDate(k.closedOn):'')].filter(Boolean).join(' · ');
 }
+function _jpHeld(d){
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(d||'')) return '';
+  const n=Math.max(0,Math.floor((Date.now()-new Date(d+'T12:00:00').getTime())/864e5));
+  return n===0?L('Received today','استلمتها النهاردة'):n+' '+(n===1?L('day with you','يوم معاك'):L('days with you','يوم معاك'));
+}
 function _caCustRow(k,c){
   const gone=k.status!=='with';
-  return `<div class="jp-row" style="cursor:pointer" onclick="_caCustSheet('${k.id}')">${_custPhIcon(k)}<div class="jp-rtx"><b dir="auto">${esc(k.name)}${k.review?` <span class="ca-b rev">${L('Needs review','يحتاج مراجعة')}</span>`:''}</b>${k.note?`<small dir="auto" style="margin:3px 0 0">${esc(k.note)}</small>`:''}<small style="margin:3px 0 0">${esc(_caCustLine(k))}</small>${gone&&k.handoverNote?`<small dir="auto" style="margin:3px 0 0">${esc(k.handoverNote)}</small>`:''}</div><button type="button" class="jp-rb" onclick="event.stopPropagation();_caCustSheet('${k.id}')" aria-label="${L('Edit','تعديل')}">${ic('edit',15)}</button></div>`;
+  return `<div class="jp-row" style="cursor:pointer" onclick="_caCustSheet('${k.id}')">${_custPhIcon(k)}<div class="jp-rtx"><b dir="auto">${esc(k.name)}${k.review?` <span class="ca-b rev">${L('Needs review','يحتاج مراجعة')}</span>`:''}</b>${k.note?`<small dir="auto" style="margin:3px 0 0">${esc(k.note)}</small>`:''}<small style="margin:3px 0 0">${esc(_caCustLine(k))}</small>${!gone&&_jpHeld(k.receivedOn)?`<span class="jp-held">${ic('clock',11)} ${_jpHeld(k.receivedOn)}</span>`:''}${gone&&k.handoverNote?`<small dir="auto" style="margin:3px 0 0">${esc(k.handoverNote)}</small>`:''}</div><button type="button" class="jp-rb" onclick="event.stopPropagation();_caCustSheet('${k.id}')" aria-label="${L('Edit','تعديل')}">${ic('edit',15)}</button></div>`;
 }
 function _caCustHTML(){
   const c=_caLoad(), cAll=c.custody.filter(k=>_caKProj(c,k)===_PRJ.active), w=cAll.filter(k=>k.status==='with').sort((a,b)=>(b.receivedOn||'').localeCompare(a.receivedOn||'')), h=cAll.filter(k=>k.status!=='with').sort((a,b)=>(b.closedOn||'').localeCompare(a.closedOn||''));
@@ -37301,9 +37332,11 @@ function renderJobProfile(){
     p.nid?`<button type="button" class="jp-rb" id="jpNidEye" onclick="_jpToggleId()" aria-label="${L('Show / hide','إظهار / إخفاء')}">${ic(_jpShowId?'eyeoff':'eye',15)}</button>${_jpCopyBtn(p.nid)}`:'');
   const prjVal=hist&&A?`<b dir="auto">${esc(A.name)}</b>${(A.location||A.start)?`<small style="margin:3px 0 0" dir="auto">${esc([A.location,A.start?L('since ','من ')+_jpDate(A.start):''].filter(Boolean).join(' · '))}</small>`:''}`:_jpVal(prj);
   const sameMail=!!email&&!!medEmail&&email.trim().toLowerCase()===medEmail.trim().toLowerCase();
+  const grp=t=>`<div class="jp-grp"><i></i>${t}</div>`;
   const mailRows=sameMail
-    ?_jpRow('mail',L('Company & medical-insurance e-mail','إيميل الشركة والتأمين الطبي'),_jpVal(email,true),_jpCopyBtn(email))+_jpPwRow('emailPw',L('E-mail password','باسورد الإيميل'))
-    :_jpRow('mail',L('Company e-mail','إيميل الشركة'),_jpVal(email,true),_jpCopyBtn(email))+_jpPwRow('emailPw',L('Company e-mail password','باسورد إيميل الشركة'))+_jpRow('shield',L('Medical insurance e-mail','إيميل التأمين الطبي'),_jpVal(medEmail,true),_jpCopyBtn(medEmail))+_jpPwRow('medPw',L('Medical insurance e-mail password','باسورد إيميل التأمين الطبي'));
+    ?grp(L('Company & medical-insurance e-mail','إيميل الشركة والتأمين الطبي'))+_jpRow('mail',L('Address','العنوان'),_jpVal(email,true),_jpCopyBtn(email))+_jpPwRow('emailPw',L('Password','الباسورد'))
+    :grp(L('Company e-mail','إيميل الشركة'))+_jpRow('mail',L('Address','العنوان'),_jpVal(email,true),_jpCopyBtn(email))+_jpPwRow('emailPw',L('Password','الباسورد'))
+     +grp(L('Medical insurance','التأمين الطبي'))+_jpRow('shield',L('Address','العنوان'),_jpVal(medEmail,true),_jpCopyBtn(medEmail))+_jpPwRow('medPw',L('Password','الباسورد'));
   const joinedRow=_jpRow('join',L('Joined','تاريخ الالتحاق'),start?`<b dir="auto">${esc(_jpDate(start))}</b>`:_jpVal(''));
   return `<div class="screen-wrap cx-wrap jp-wrap">
   ${_pgHdr('Site','الموقع','My Job','My Job','Your work profile and attendance','بياناتك الوظيفية والحضور')}
@@ -37326,8 +37359,8 @@ function renderJobProfile(){
   </section>
   <section class="jp-card">
     <div class="jp-sec">${ic('id',17)}<span>${L('Personal & contact','البيانات الشخصية والتواصل')}</span></div>
-    ${joinedRow}
-    ${nidRow}
+    ${grp(L('Employment','التوظيف'))}${joinedRow}
+    ${grp(L('Identity','الهوية'))}${nidRow}
     ${mailRows}
   </section>
   ${_jpAttBrief()}
@@ -38105,14 +38138,20 @@ function _cvDraft(){
   }catch(e){ _logErr('_cvDraft',e); }
   return cv;
 }
-// ═══ CV design: 6 templates, accent colour, line spacing, text size, skills columns, profile photo ═══
+// ═══ CV design: 12 templates, accent colour, line spacing, text size, skills columns, profile photo ═══
 const _CV_TPL={
   classic:{en:'Classic',ar:'كلاسيك',acc:'#17324d',layout:'one'},
   modern:{en:'Modern',ar:'مودرن',acc:'#0f7a55',layout:'one'},
   executive:{en:'Executive',ar:'تنفيذي',acc:'#1f2937',layout:'one'},
   sidebar:{en:'Sidebar + photo',ar:'شريط جانبي + صورة',acc:'#17324d',layout:'side'},
   banner:{en:'Banner + photo',ar:'بانر + صورة',acc:'#0f7a55',layout:'one'},
-  minimal:{en:'Minimal',ar:'مينيمال',acc:'#475569',layout:'one'}
+  minimal:{en:'Minimal',ar:'مينيمال',acc:'#475569',layout:'one'},
+  ats:{en:'ATS Plain',ar:'ATS بسيط',acc:'#1f2937',layout:'one'},
+  bold:{en:'Bold bars',ar:'عناوين ملونة',acc:'#17324d',layout:'one'},
+  timeline:{en:'Timeline',ar:'تايم لاين',acc:'#0369a1',layout:'one'},
+  elegant:{en:'Elegant',ar:'أنيق',acc:'#9a3412',layout:'one'},
+  sidedark:{en:'Dark sidebar',ar:'شريط داكن + صورة',acc:'#17324d',layout:'side'},
+  sideright:{en:'Right sidebar',ar:'شريط يمين + صورة',acc:'#0f7a55',layout:'side',rev:1}
 };
 const _CV_ACCENTS=['#17324d','#0f7a55','#0369a1','#6d28d9','#9a3412','#1f2937'];
 const _CV_SP={compact:{g:.75,lh:1.26},normal:{g:1,lh:1.36},relaxed:{g:1.4,lh:1.58}};
@@ -38195,15 +38234,52 @@ ${R}.cvt-minimal .co{color:#0f172a}
 ${R}.cvt-minimal .sk li::before,${R}.cvt-minimal .bl li::before{content:'–'}
 ${R}.cvt-minimal .ph{border-color:#cbd5e1;border-width:1pt}
 /* Sidebar */
-${R}.cvt-sidebar .tb{display:table;width:100%;table-layout:fixed}
-${R}.cvt-sidebar .sd{display:table-cell;width:31%;vertical-align:top;padding:12pt 10pt;background:color-mix(in srgb,var(--acc) 9%,#fff);overflow-wrap:anywhere}
-${R}.cvt-sidebar .mn{display:table-cell;vertical-align:top;padding:12pt 0 0 15pt}
-${R}.cvt-sidebar .ph{display:block;width:calc(84pt*var(--ps,1));height:calc(84pt*var(--ps,1));margin:0 auto 10pt}
-${R}.cvt-sidebar h1{text-align:left;text-transform:none;font-size:calc(19pt*var(--fs,1));margin-bottom:2pt}
-${R}.cvt-sidebar .hl{color:var(--acc);font-weight:600;margin:0 0 6pt}
-${R}.cvt-sidebar .sd h2{font-size:calc(8.8pt*var(--fs,1));border-bottom:.8pt solid var(--acc);padding-bottom:2pt;margin-top:calc(9pt*var(--g,1))}
-${R}.cvt-sidebar .cl div{margin-bottom:3pt}
-${R}.cvt-sidebar .cl b{display:block;font-size:calc(6.8pt*var(--fs,1));text-transform:uppercase;color:var(--acc);letter-spacing:.4pt}
+${R}:is(.cvt-sidebar,.cvt-sidedark,.cvt-sideright) .tb{display:table;width:100%;table-layout:fixed}
+${R}:is(.cvt-sidebar,.cvt-sidedark,.cvt-sideright) .sd{display:table-cell;width:31%;vertical-align:top;padding:12pt 10pt;background:color-mix(in srgb,var(--acc) 9%,#fff);overflow-wrap:anywhere}
+${R}:is(.cvt-sidebar,.cvt-sidedark,.cvt-sideright) .mn{display:table-cell;vertical-align:top;padding:12pt 0 0 15pt}
+${R}:is(.cvt-sidebar,.cvt-sidedark,.cvt-sideright) .ph{display:block;width:calc(84pt*var(--ps,1));height:calc(84pt*var(--ps,1));margin:0 auto 10pt}
+${R}:is(.cvt-sidebar,.cvt-sidedark,.cvt-sideright) h1{text-align:left;text-transform:none;font-size:calc(19pt*var(--fs,1));margin-bottom:2pt}
+${R}:is(.cvt-sidebar,.cvt-sidedark,.cvt-sideright) .hl{color:var(--acc);font-weight:600;margin:0 0 6pt}
+${R}:is(.cvt-sidebar,.cvt-sidedark,.cvt-sideright) .sd h2{font-size:calc(8.8pt*var(--fs,1));border-bottom:.8pt solid var(--acc);padding-bottom:2pt;margin-top:calc(9pt*var(--g,1))}
+${R}:is(.cvt-sidebar,.cvt-sidedark,.cvt-sideright) .cl div{margin-bottom:3pt}
+${R}:is(.cvt-sidebar,.cvt-sidedark,.cvt-sideright) .cl b{display:block;font-size:calc(6.8pt*var(--fs,1));text-transform:uppercase;color:var(--acc);letter-spacing:.4pt}
+/* ATS plain */
+${R}.cvt-ats{--ff:Arial,Helvetica,sans-serif}
+${R}.cvt-ats h1{text-align:left;color:#000;font-size:calc(18pt*var(--fs,1))}
+${R}.cvt-ats .hl{color:#000;font-weight:600}
+${R}.cvt-ats h2{border-bottom:.8pt solid #000;padding-bottom:1.5pt}
+${R}.cvt-ats .co,${R}.cvt-ats .dt .dr{color:#000}
+${R}.cvt-ats .dt .dd{background:none;border:0;padding:0;color:#444;font-weight:400}
+/* Bold bars */
+${R}.cvt-bold h1{text-align:left;text-transform:none;font-size:calc(21pt*var(--fs,1))}
+${R}.cvt-bold .hl{color:#333;font-weight:600}
+${R}.cvt-bold h2{background:var(--acc);color:#fff;padding:2.5pt 7pt;border-radius:2pt;font-size:calc(9.2pt*var(--fs,1));letter-spacing:.6pt}
+${R}.cvt-bold .co{color:#111}
+/* Timeline */
+${R}.cvt-timeline h1{text-align:left;text-transform:none;font-size:calc(20pt*var(--fs,1))}
+${R}.cvt-timeline .hd{border-bottom:1pt solid var(--acc);padding-bottom:6pt}
+${R}.cvt-timeline .hl{color:var(--acc);font-weight:600}
+${R}.cvt-timeline h2{border-bottom:.6pt solid color-mix(in srgb,var(--acc) 40%,#fff);padding-bottom:2pt}
+${R}.cvt-timeline .job{position:relative;margin-inline-start:6pt;padding-inline-start:11pt;padding-bottom:3pt;border-inline-start:1.4pt solid color-mix(in srgb,var(--acc) 45%,#fff)}
+${R}.cvt-timeline .job::before{content:'';position:absolute;inset-inline-start:-4.4pt;top:calc(4pt*var(--g,1) + 2.5pt);width:7pt;height:7pt;border-radius:50%;background:var(--acc);border:1.2pt solid #fff;box-shadow:0 0 0 .8pt var(--acc)}
+${R}.cvt-timeline .co{color:#111;margin-top:0;padding-top:calc(4pt*var(--g,1))}
+/* Elegant */
+${R}.cvt-elegant{--ff:Georgia,'Times New Roman',serif}
+${R}.cvt-elegant h1{text-align:left;text-transform:none;font-weight:400;font-size:calc(22pt*var(--fs,1));letter-spacing:.4pt}
+${R}.cvt-elegant .hd{position:relative;padding-bottom:7pt;border-bottom:.8pt solid #bbb;margin-bottom:2pt}
+${R}.cvt-elegant .hd::after{content:'';position:absolute;left:0;bottom:-1.4pt;width:56pt;height:2.2pt;background:var(--acc)}
+${R}.cvt-elegant .hl{color:var(--acc);font-style:italic;font-size:calc(9.8pt*var(--fs,1))}
+${R}.cvt-elegant h2{text-transform:none;font-variant:small-caps;letter-spacing:1pt;font-size:calc(11pt*var(--fs,1))}
+${R}.cvt-elegant .co{color:#111}
+${R}.cvt-elegant .rl{font-style:italic}
+/* Dark sidebar */
+${R}.cvt-sidedark .sd{background:var(--acc);color:#fff;padding:14pt 11pt}
+${R}.cvt-sidedark .ph{border-color:#fff}
+${R}.cvt-sidedark .sd h2{color:#fff;border-bottom-color:rgba(255,255,255,.5)}
+${R}.cvt-sidedark .cl b{color:rgba(255,255,255,.7)}
+${R}.cvt-sidedark .sd .sk li::before,${R}.cvt-sidedark .sd .bl li::before{color:#fff}
+/* Right sidebar */
+${R}.cvt-sideright .mn{padding:12pt 15pt 0 0}
 /* user options (win over the template defaults) */
 ${D}.cp-upper h1,${D}.cp-upper h2{text-transform:uppercase}
 ${D}.cp-title h1,${D}.cp-title h2{text-transform:none}
@@ -38251,7 +38327,8 @@ function _cvDocHTML(m,stIn){
   const open=`<div class="${cls.join(' ')}" style="${_cvStyleVars(st)}">`;
   if(side){
     const cl=(!H('ct')&&m.ctl&&m.ctl.length)?sec('Contact',`<div class="cl">${m.ctl.map(x=>`<div dir="auto"><b>${esc(x[0])}</b>${x[2]?`<a href="${esc(x[2])}">${esc(x[1])}</a>`:esc(x[1])}</div>`).join('')}</div>`):'';
-    return `${open}<div class="tb"><div class="sd">${photo}${cl}${S.sk}${S.edu}${S.certs}${S.langs}</div><div class="mn">${m.name?`<h1>${esc(m.name)}</h1>`:''}<div class="hl">${esc(m.headline)}</div>${S.sum}${S.jobs}</div></div></div>`;
+    const sdH=`<div class="sd">${photo}${cl}${S.sk}${S.edu}${S.certs}${S.langs}</div>`, mnH=`<div class="mn">${m.name?`<h1>${esc(m.name)}</h1>`:''}<div class="hl">${esc(m.headline)}</div>${S.sum}${S.jobs}</div>`;
+    return `${open}<div class="tb">${T.rev?mnH+sdH:sdH+mnH}</div></div>`;
   }
   const ci=x=>`<span class="ci" dir="auto"><i>${esc(x[0])}:</i> ${x[2]?`<a href="${esc(x[2])}">${esc(x[1])}</a>`:esc(x[1])}</span>`;
   const rows=[(m.ctl||[]).filter(x=>x[0]==='Phone'||x[0]==='Email'),(m.ctl||[]).filter(x=>x[0]==='LinkedIn'||x[0]==='Location')].filter(r=>r.length);
@@ -38269,6 +38346,12 @@ function _cvThumb(k,a){
   else if(k==='executive') b=R(16,8,28,4,'#111')+R(20,15,20,2,g)+R(8,21,44,.8,'#999',0)+R(8,26,16,3,'#111')+R(8,30.5,44,.6,'#999',0)+ln(8,35,44,3)+R(8,54,16,3,'#111')+R(8,58.5,44,.6,'#999',0)+ln(8,63,44,2);
   else if(k==='sidebar') b=R(5,5,18,68,a+'22',2)+`<circle cx="14" cy="16" r="6" fill="${a}"/>`+ln(8,28,12,3)+ln(8,46,12,3)+R(28,8,26,4,a)+R(28,15,20,2,g)+R(28,24,14,3,a)+ln(28,30,26,4)+R(28,52,14,3,a)+ln(28,58,26,3);
   else if(k==='banner') b=R(4,4,52,20,a,3)+`<circle cx="14" cy="14" r="6" fill="#fff"/>`+R(24,10,26,4,'#fff')+R(24,17,18,2,'#ffffffaa')+R(8,30,16,3,a)+ln(8,36,44,3)+R(8,54,16,3,a)+ln(8,60,44,3);
+  else if(k==='ats') b=R(8,8,28,4,'#111')+R(8,15,22,2,'#555')+R(8,21,44,2,g)+R(8,28,16,3,a)+R(8,32.5,44,.8,'#111',0)+ln(8,37,44,3)+R(8,54,16,3,a)+R(8,58.5,44,.8,'#111',0)+ln(8,63,44,2);
+  else if(k==='bold') b=R(8,8,30,5,'#111')+R(8,15,22,2,g)+R(8,24,44,5,a,1)+ln(8,33,44,3)+R(8,50,44,5,a,1)+ln(8,59,44,3);
+  else if(k==='timeline') b=R(8,8,30,5,a)+R(8,15,22,2,g)+R(8,20,44,1.2,a,0)+R(8,26,16,3,a)+R(11,33,1,36,a+'66',0)+`<circle cx="11.5" cy="35" r="2.2" fill="${a}"/><circle cx="11.5" cy="53" r="2.2" fill="${a}"/>`+ln(17,34,35,3)+ln(17,52,35,3);
+  else if(k==='elegant') b=R(8,8,30,4,'#333')+R(8,15,20,2,a)+R(8,20,44,.6,'#bbb',0)+R(8,19.4,14,1.6,a,0)+R(8,27,16,2.5,a)+ln(8,33,44,3)+R(8,52,16,2.5,a)+ln(8,58,44,3);
+  else if(k==='sidedark') b=R(5,5,19,68,a,2)+`<circle cx="14.5" cy="16" r="6" fill="#fff"/>`+R(8,28,13,2,'#ffffffaa')+R(8,33,13,2,'#ffffffaa')+R(8,46,13,2,'#ffffffaa')+R(8,51,13,2,'#ffffffaa')+R(28,8,26,4,a)+R(28,15,20,2,g)+R(28,24,14,3,a)+ln(28,30,26,4)+R(28,52,14,3,a)+ln(28,58,26,3);
+  else if(k==='sideright') b=R(36,5,19,68,a+'22',2)+`<circle cx="45.5" cy="16" r="6" fill="${a}"/>`+ln(39,28,13,3)+ln(39,46,13,3)+R(6,8,26,4,a)+R(6,15,20,2,g)+R(6,24,14,3,a)+ln(6,30,24,4)+R(6,52,14,3,a)+ln(6,58,24,3);
   else b=R(8,8,26,3,'#334155')+R(8,14,18,1.5,g)+R(8,24,14,2,'#64748b')+R(8,27.5,44,.5,'#cbd5e1',0)+ln(8,32,44,3)+R(8,50,14,2,'#64748b')+R(8,53.5,44,.5,'#cbd5e1',0)+ln(8,58,44,3);
   return `<svg viewBox="0 0 60 78" width="100%" height="100%" aria-hidden="true"><rect x=".5" y=".5" width="59" height="77" rx="3" fill="#fff" stroke="#d5dbe1"/>${b}</svg>`;
 }
