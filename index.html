@@ -23148,7 +23148,7 @@ function renderSavings(){
     const metaBits = [`<span>${esc(x.date||'—')}</span>`];
     if(x.note) metaBits.push(`<span>${esc(x.note)}</span>`);
     return `<div class="sav-row" id="savrow-debt-${idx}" data-savtype="debt" data-savidx="${idx}">
-      <div class="sav-row-main" onclick="savEditDebt(${idx})">
+      <div class="sav-row-main" onclick="savDebtDetails(${idx})">
         <div class="sav-row-icon" style="position:relative;background:${_debtDisplay.color}1a;color:${_debtDisplay.color}">
           ${_debtDisplay.html}
           <span style="position:absolute;bottom:-2px;inset-inline-end:-2px;width:15px;height:15px;border-radius:50%;background:${accent};color:#fff;display:flex;align-items:center;justify-content:center;border:2px solid var(--surface)">${ic(isToMe?'arrow_down':'arrow_up',9)}</span>
@@ -23162,21 +23162,12 @@ function renderSavings(){
       </div>
       <div class="sav-row-actions">
         <div class="sav-drag-handle" data-savtype="debt" title="${L('Hold to reorder','اسحب لإعادة الترتيب')}">${_SAV_DRAG_DOTS}</div>
-        <button class="tx-edit-btn" onclick="savEditDebt(${idx});event.stopPropagation()">${ic('edit',13)}</button>
-        <button class="tx-del" aria-label="${L('Delete','حذف')}" title="${L('Delete','حذف')}" onclick="savDeleteDebt(${idx});event.stopPropagation()">${ic('trash',13)}</button>
       </div>
     </div>`;
   }).join('') : (_histF.length ? `<div class="sdb-allclear">✓ ${L('All debts are settled','كل المديونيات تمت تسويتها')}</div>` : _savEmptyState('debts'));
-  const debtSummaryHtml = _actAll.length ? `<div class="sav-debt-summary">
-    <div class="sav-debt-chip" style="background:var(--fin-income-tint);color:var(--fin-income);border-color:color-mix(in srgb,var(--fin-income) 27%,transparent)">
-      <span class="sav-debt-chip-label">${L('Owed to me','لي')}</span><span class="sav-debt-chip-val">${fmtEGP(totalOwedToMe)}</span>
-    </div>
-    <div class="sav-debt-chip" style="background:var(--fin-outcome-tint);color:var(--fin-outcome);border-color:color-mix(in srgb,var(--fin-outcome) 27%,transparent)">
-      <span class="sav-debt-chip-label">${L('Owed by me','عليّا')}</span><span class="sav-debt-chip-val">${fmtEGP(totalOwedByMe)}</span>
-    </div>
-    <div class="sav-debt-chip" style="background:${netDebt>=0?'var(--fin-income-tint)':'var(--fin-outcome-tint)'};color:${netDebt>=0?'var(--fin-income)':'var(--fin-outcome)'};border-color:${netDebt>=0?'color-mix(in srgb,var(--fin-income) 27%,transparent)':'color-mix(in srgb,var(--fin-outcome) 27%,transparent)'}">
-      <span class="sav-debt-chip-label">${L('Net','الصافي')}</span><span class="sav-debt-chip-val">${fmtEGP(netDebt)}</span>
-    </div>
+  const debtSummaryHtml = _actAll.length ? `<div class="sdb-strip">
+    <div class="sdb-strip-c"><small>${L('Owed to me','لي')}</small><b style="color:var(--fin-income)">${fmtEGP(totalOwedToMe)}</b></div>
+    <div class="sdb-strip-c"><small>${L('Owed by me','عليّا')}</small><b style="color:var(--fin-outcome)">${fmtEGP(totalOwedByMe)}</b></div>
   </div>` : '';
 
   if(!searchQ && !['incomes','outcomes','assets','debts'].some(k=>((SAVINGS&&SAVINGS[k])||[]).length)){
@@ -23770,17 +23761,16 @@ function _debtSync(x){
 function _sdbVerb(isToMe,past){ return isToMe ? (past?L('Received','تم التحصيل'):L('Receive','تحصيل')) : (past?L('Paid','تم السداد'):L('Pay','سداد')); }
 // progress + Settle button shown under an OPEN debt row
 function _debtExtraHTML(x,idx,isToMe){
-  const paid=_debtPaid(x), total=x.amount||0, rem=_debtRemaining(x);
+  const paid=_debtPaid(x), total=x.amount||0;
   let h='';
   if(paid>0){
     const pct=Math.max(0,Math.min(100,Math.round(paid/Math.max(total,1)*100)));
-    h+='<button type="button" class="sdb-prog" onclick="savDebtDetails('+idx+');event.stopPropagation()" aria-label="'+esc(L('Payment history','سجل الدفعات'))+'">'
-      +'<span class="sdb-prog-bar"><i style="width:'+pct+'%"></i></span>'
-      +'<span class="sdb-prog-tx" dir="ltr">'+fmt(paid)+' / '+fmt(total)+' · '+pct+'%</span></button>';
+    h+='<div class="sdb-prog"><span class="sdb-prog-bar"><i style="width:'+pct+'%"></i></span>'
+      +'<span class="sdb-prog-tx" dir="auto">'+esc(_sdbVerb(isToMe,true))+' '+fmt(paid)+' '+esc(L('of','من'))+' '+fmt(total)+'</span></div>';
   }
   h+='<button type="button" class="sdb-settle" onclick="savSettleDebt('+idx+');event.stopPropagation()">'
     +'<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>'
-    +esc(isToMe?L('Mark received','تم التحصيل'):L('Mark paid','تم السداد'))+'</button>';
+    +esc(L('Settle','تسوية'))+'</button>';
   return '<div class="sdb-cta">'+h+'</div>';
 }
 // collapsible History of settled debts (rows stay in the DOM even when collapsed so drag-reorder counts stay right)
@@ -23829,10 +23819,10 @@ function savSettleDebt(idx){
     +'<div class="sdb-sum-row"><span>'+esc(L('Original amount','المبلغ الأصلي'))+'</span><b dir="ltr">'+fmt(x.amount||0)+'</b></div>'
     +(paid>0?'<div class="sdb-sum-row"><span>'+esc(isToMe?L('Already received','تم تحصيله'):L('Already paid','تم سداده'))+'</span><b dir="ltr">'+fmt(paid)+'</b></div>':'')
     +'</div>'
-    +'<div class="field"><label>'+esc(isToMe?L('Amount received','المبلغ المستلم'):L('Amount paid','المبلغ المسدّد'))+' *</label>'
-    +'<input id="sdbAmt" type="text" inputmode="decimal" value="'+rem+'" oninput="_sdbUpdate('+idx+')">'
-    +'<div class="sdb-chips"><button type="button" class="sdb-chip" onclick="_sdbSet('+idx+',1)">'+esc(L('Full amount','المبلغ كامل'))+'</button>'
-    +'<button type="button" class="sdb-chip" onclick="_sdbSet('+idx+',0.5)">'+esc(L('Half','النصف'))+'</button></div></div>'
+    +'<div class="field"><label>'+esc(isToMe?L('How much did you receive?','استلمت كام؟'):L('How much did you pay?','سدّدت كام؟'))+' *</label>'
+    +'<input id="sdbAmt" class="sdb-amt-in" type="text" inputmode="decimal" value="'+rem+'" oninput="_sdbUpdate('+idx+')">'
+    +'<div class="sdb-seg"><button type="button" id="sdbSegFull" class="sdb-seg-b" onclick="_sdbSet('+idx+',1)">'+esc(L('Full amount','المبلغ كامل'))+'</button>'
+    +'<button type="button" id="sdbSegPart" class="sdb-seg-b" onclick="_sdbSet('+idx+',\'part\')">'+esc(L('Part of it','جزء منه'))+'</button></div></div>'
     +'<div class="ds-grid-2-tight"><div class="field"><label>'+esc(L('Date','التاريخ'))+'</label><input id="sdbDate" type="date" value="'+today()+'"></div>'
     +'<div class="field"><label>'+esc(L('Note','ملاحظة'))+'</label><input id="sdbNote" maxlength="120" placeholder="'+esc(L('optional…','اختياري…'))+'" dir="auto"></div></div>'
     +'<div class="sdb-hint" id="sdbHint"></div>'
@@ -23844,8 +23834,10 @@ function savSettleDebt(idx){
 function _sdbAmount(){ return Math.round((parseFloat(String((document.getElementById('sdbAmt')||{}).value||'').replace(/,/g,''))||0)*100)/100; }
 function _sdbSet(idx,frac){
   const x=SAVINGS.debts[idx]; if(!x) return;
+  const el=document.getElementById('sdbAmt');
+  if(frac==='part'){ if(el){ el.value=''; el.focus(); } _sdbUpdate(idx); return; }
   const v=Math.round(_debtRemaining(x)*frac*100)/100;
-  const el=document.getElementById('sdbAmt'); if(el){ el.value=v; } _sdbUpdate(idx);
+  if(el){ el.value=v; } _sdbUpdate(idx);
 }
 function _sdbUpdate(idx){
   const x=SAVINGS.debts[idx]; if(!x) return;
@@ -23853,6 +23845,9 @@ function _sdbUpdate(idx){
   const btn=document.getElementById('sdbBtn'), hint=document.getElementById('sdbHint');
   if(!btn||!hint) return;
   const full=amt>0 && amt>=rem-0.004;
+  const sf=document.getElementById('sdbSegFull'), sp=document.getElementById('sdbSegPart');
+  if(sf) sf.classList.toggle('on',full);
+  if(sp) sp.classList.toggle('on',!full);
   btn.innerHTML=ic('check',15)+' '+esc(full?L('Settle in full','تسوية كاملة'):L('Record partial payment','تسجيل دفعة جزئية'));
   if(amt>rem+0.004){ hint.className='sdb-hint bad'; hint.textContent=L('Amount is more than the remaining balance','المبلغ أكبر من المتبقي'); }
   else if(amt>0 && !full){ hint.className='sdb-hint'; hint.textContent=L('Remaining after this: ','المتبقي بعد ذلك: ')+fmtEGP(Math.round((rem-amt)*100)/100); }
@@ -36520,7 +36515,7 @@ function _jpLoad(){
     if(p&&typeof p==='object'){
       ['name','title','company','nid','email','medEmail','emailPw','medPw','code','start'].forEach(k=>{ o[k]=String(p[k]||''); });
       o.photo=/^data:image\//.test(p.photo||'')?p.photo:'';
-      if(Array.isArray(p.custody)) o.custody=p.custody.filter(x=>x&&typeof x==='object').map(x=>({id:String(x.id||''),name:String(x.name||''),note:String(x.note||''),date:String(x.date||'')}));
+      if(Array.isArray(p.custody)) o.custody=p.custody.filter(x=>x&&typeof x==='object').map(x=>({id:String(x.id||''),name:String(x.name||''),note:String(x.note||''),date:String(x.date||''),photos:_custPhClean(x.photos)}));
     }
   }catch(e){ _logErr('_jpLoad',e); }
   return o;
@@ -36618,7 +36613,7 @@ function _jpAttBrief(){
 }
 function _jpCustHTML(p){
   if(_caState()==='ok') return _caCustHTML();
-  const items=p.custody.map(x=>`<div class="jp-row" style="cursor:pointer" onclick="_jpEditCustody('${esc(x.id)}')"><span class="jp-ric gold">${ic(_jpCustIc(x.name),18)}</span><div class="jp-rtx"><b dir="auto">${esc(x.name||L('Item','عنصر'))}</b>${x.note?`<small dir="auto" style="margin:3px 0 0">${esc(x.note)}</small>`:''}${x.date?`<small style="margin:3px 0 0">${ic('calendar',11)} ${esc(_jpDate(x.date))}</small>`:''}</div><button type="button" class="jp-rb" onclick="event.stopPropagation();_jpEditCustody('${esc(x.id)}')" aria-label="${L('Edit','تعديل')}">${ic('edit',15)}</button></div>`).join('');
+  const items=p.custody.map(x=>`<div class="jp-row" style="cursor:pointer" onclick="_jpEditCustody('${esc(x.id)}')">${_custPhIcon(x)}<div class="jp-rtx"><b dir="auto">${esc(x.name||L('Item','عنصر'))}</b>${x.note?`<small dir="auto" style="margin:3px 0 0">${esc(x.note)}</small>`:''}${x.date?`<small style="margin:3px 0 0">${ic('calendar',11)} ${esc(_jpDate(x.date))}</small>`:''}</div><button type="button" class="jp-rb" onclick="event.stopPropagation();_jpEditCustody('${esc(x.id)}')" aria-label="${L('Edit','تعديل')}">${ic('edit',15)}</button></div>`).join('');
   return `<section class="jp-card">
     <div class="jp-sec">${ic('package',17)}<span>${L('My custody','العهدة اللي معايا')}</span>${p.custody.length?`<em style="font-style:normal;font-size:12px;color:var(--muted);font-weight:700">${p.custody.length}</em>`:''}<span class="sp"></span><button type="button" class="jp-add" onclick="_jpEditCustody(null)">${ic('plus',14)} ${L('Add','إضافة')}</button></div>
     ${items||`<div class="jp-empty">${L('No items yet — add your laptop, charger, mouse, bag…','لسه مفيش عهدة — ضيف اللاب توب والشاحن والماوس والشنطة…')}</div>`}
@@ -36655,7 +36650,7 @@ function _caLoad(){
   return {v:1,
     employments:arr(o.employments).map(e=>({id:String(e.id),company:_caT(e.company),title:_caT(e.title),code:_caT(e.code,40),email:_caT(e.email,120),medEmail:_caT(e.medEmail,120),start:_caD(e.start),end:_caD(e.end),notes:_caT(e.notes,400),pay:_caPayClean(e.pay),payAt:+e.payAt||0})),
     assignments:arr(o.assignments).map(a=>({id:String(a.id),empId:String(a.empId||''),projectId:String(a.projectId||''),name:_caT(a.name),location:_caT(a.location),start:_caD(a.start),end:_caD(a.end),notes:_caT(a.notes,400)})),
-    custody:arr(o.custody).map(k=>({id:String(k.id),name:_caT(k.name),note:_caT(k.note,400),empId:String(k.empId||''),asgId:String(k.asgId||''),receivedOn:_caD(k.receivedOn),condition:_caT(k.condition,20),status:(k.status==='returned'||k.status==='transferred')?k.status:'with',closedOn:_caD(k.closedOn),handoverNote:_caT(k.handoverNote,400),review:!!k.review,projectId:String(k.projectId||'')})),
+    custody:arr(o.custody).map(k=>({id:String(k.id),name:_caT(k.name),note:_caT(k.note,400),empId:String(k.empId||''),asgId:String(k.asgId||''),receivedOn:_caD(k.receivedOn),condition:_caT(k.condition,20),status:(k.status==='returned'||k.status==='transferred')?k.status:'with',closedOn:_caD(k.closedOn),handoverNote:_caT(k.handoverNote,400),review:!!k.review,projectId:String(k.projectId||''),photos:_custPhClean(k.photos)})),
     log:(Array.isArray(o.log)?o.log:[]).filter(x=>x&&typeof x==='object').slice(-500),
     createdAt:+o.createdAt||Date.now(), updatedAt:+o.updatedAt||0};
 }
@@ -36710,7 +36705,7 @@ function _caApplySetup(p){
   const e={id:_caId('e'),company:_caT(p.company),title:_caT(p.title),code:_caT(p.code,40),email:_caT(p.email,120),medEmail:_caT(p.medEmail,120),start:_caD(p.empStart),end:'',notes:''};
   const a={id:_caId('a'),empId:e.id,projectId:String(p.projectId||''),name:_caT(p.projName),location:_caT(p.location),start:_caD(p.asgStart),end:'',notes:''};
   c.employments.push(e); c.assignments.push(a);
-  (p.custody||[]).forEach(k=>{ if(k&&k.name) c.custody.push({id:_caId('k'),name:_caT(k.name),note:_caT(k.note,400),empId:e.id,asgId:a.id,receivedOn:_caD(k.date),condition:'',status:'with',closedOn:'',handoverNote:'',review:false}); });
+  (p.custody||[]).forEach(k=>{ if(k&&k.name) c.custody.push({id:_caId('k'),name:_caT(k.name),note:_caT(k.note,400),empId:e.id,asgId:a.id,receivedOn:_caD(k.date),condition:'',status:'with',closedOn:'',handoverNote:'',review:false,photos:_custPhClean(k.photos)}); });
   c.log.push({t:Date.now(),type:'setup',detail:`${e.company} / ${a.name}`});
   return c;
 }
@@ -36782,7 +36777,7 @@ function _caApplyCustody(c,p){
   const isNew=!k;
   if(isNew){ const cur=_caCur(c); k={id:_caId('k'),empId:cur.emp?cur.emp.id:'',asgId:cur.asg?cur.asg.id:'',projectId:_PRJ.active}; c.custody.push(k); }
   const prev=isNew?'':k.status;
-  Object.assign(k,{name,note:_caT(p.note,400),receivedOn:_caD(p.receivedOn),condition:_caT(p.condition,20),status,closedOn:status==='with'?'':_caD(p.closedOn),handoverNote:status==='with'?'':_caT(p.handoverNote,400),review:false});
+  Object.assign(k,{name,note:_caT(p.note,400),receivedOn:_caD(p.receivedOn),condition:_caT(p.condition,20),status,closedOn:status==='with'?'':_caD(p.closedOn),handoverNote:status==='with'?'':_caT(p.handoverNote,400),review:false,photos:_custPhClean(p.photos)});
   c.log.push({t:Date.now(),type:isNew?'custody-add':(prev!==status?'custody-'+status:'custody-edit'),detail:name,id:k.id});
   return _caValidateAll(c);
 }
@@ -36875,7 +36870,7 @@ function _caSetupGo(){
   if(!co){ _caWarn(L('Enter the company name','اكتب اسم الشركة')); return; }
   if(!pn){ _caWarn(L('Enter the current project','اكتب المشروع الحالي')); return; }
   const jp=_jpLoad();
-  const c=_caApplySetup({company:co,title:_caV('caTt'),code:_caV('caCd'),email:_caV('caEm'),medEmail:_caV('caMd'),empStart:_caV('caEs'),projName:pn,projectId:_PRJ.active,location:_caV('caLc'),asgStart:_caV('caPs'),custody:jp.custody.map(k=>({name:k.name,note:k.note,date:k.date}))});
+  const c=_caApplySetup({company:co,title:_caV('caTt'),code:_caV('caCd'),email:_caV('caEm'),medEmail:_caV('caMd'),empStart:_caV('caEs'),projName:pn,projectId:_PRJ.active,location:_caV('caLc'),asgStart:_caV('caPs'),custody:jp.custody.map(k=>({name:k.name,note:k.note,date:k.date,photos:k.photos}))});
   const err=_caValidateAll(c); if(err){ _caWarn(err); return; }
   if(!_caSave(c)) return;
   _caAfter(L('Work history started','تم بدء السجل الوظيفي'));
@@ -37076,7 +37071,7 @@ function _caCustLine(k){
 }
 function _caCustRow(k,c){
   const gone=k.status!=='with';
-  return `<div class="jp-row" style="cursor:pointer" onclick="_caCustSheet('${k.id}')"><span class="jp-ric gold">${ic(_jpCustIc(k.name),18)}</span><div class="jp-rtx"><b dir="auto">${esc(k.name)}${k.review?` <span class="ca-b rev">${L('Needs review','يحتاج مراجعة')}</span>`:''}</b>${k.note?`<small dir="auto" style="margin:3px 0 0">${esc(k.note)}</small>`:''}<small style="margin:3px 0 0">${esc(_caCustLine(k))}</small>${gone&&k.handoverNote?`<small dir="auto" style="margin:3px 0 0">${esc(k.handoverNote)}</small>`:''}</div><button type="button" class="jp-rb" onclick="event.stopPropagation();_caCustSheet('${k.id}')" aria-label="${L('Edit','تعديل')}">${ic('edit',15)}</button></div>`;
+  return `<div class="jp-row" style="cursor:pointer" onclick="_caCustSheet('${k.id}')">${_custPhIcon(k)}<div class="jp-rtx"><b dir="auto">${esc(k.name)}${k.review?` <span class="ca-b rev">${L('Needs review','يحتاج مراجعة')}</span>`:''}</b>${k.note?`<small dir="auto" style="margin:3px 0 0">${esc(k.note)}</small>`:''}<small style="margin:3px 0 0">${esc(_caCustLine(k))}</small>${gone&&k.handoverNote?`<small dir="auto" style="margin:3px 0 0">${esc(k.handoverNote)}</small>`:''}</div><button type="button" class="jp-rb" onclick="event.stopPropagation();_caCustSheet('${k.id}')" aria-label="${L('Edit','تعديل')}">${ic('edit',15)}</button></div>`;
 }
 function _caCustHTML(){
   const c=_caLoad(), cAll=c.custody.filter(k=>_caKProj(c,k)===_PRJ.active), w=cAll.filter(k=>k.status==='with').sort((a,b)=>(b.receivedOn||'').localeCompare(a.receivedOn||'')), h=cAll.filter(k=>k.status!=='with').sort((a,b)=>(b.closedOn||'').localeCompare(a.closedOn||''));
@@ -37098,6 +37093,7 @@ function _caCustSheet(id){
     _cvField('kName',L('Item','العنصر'),k?k.name:'',{ph:L('e.g. Dell Latitude laptop','مثال: لاب توب Dell Latitude')})+
     _cvField('kNote',L('Details (serial no., accessories…)','تفاصيل (سيريال، المشتملات…)'),k?k.note:'',{ta:1,rows:2})+
     `<div class="cv-2col">${_cvField('kRec',L('Received on','تاريخ الاستلام'),k?k.receivedOn:'',{type:'date',dir:'ltr'})}${_caSel('kCond',L('Condition','الحالة'),cond,k?k.condition:'')}</div>`+
+    _custPhField(k?k.photos:[])+
     _caSel('kSt',L('Status','الوضع'),[['with',L('With me','معايا')],['returned',L('Returned','تم تسليمها')],['transferred',L('Transferred','تم نقلها')]],st,`onchange="document.getElementById('kClose').style.display=this.value==='with'?'none':'block'"`)+
     `<div id="kClose" style="display:${st==='with'?'none':'block'}">${_cvField('kCls',L('Return / transfer date *','تاريخ التسليم / النقل *'),k?k.closedOn:'',{type:'date',dir:'ltr'})}${_cvField('kHo',L('Handover note','ملاحظة التسليم'),k?k.handoverNote:'')}</div>`+
     (k&&k.review?`<div class="ca-note small">${L('Saving clears the “needs review” flag.','الحفظ بيشيل علامة "يحتاج مراجعة".')}</div>`:'')+
@@ -37106,7 +37102,7 @@ function _caCustSheet(id){
 }
 function _caCustSave(){
   const c=_caLoad();
-  const err=_caApplyCustody(c,{id:_caCustId||'',name:_caV('kName'),note:_caV('kNote'),receivedOn:_caV('kRec'),condition:_caV('kCond'),status:_caV('kSt'),closedOn:_caV('kCls'),handoverNote:_caV('kHo')});
+  const err=_caApplyCustody(c,{id:_caCustId||'',name:_caV('kName'),note:_caV('kNote'),receivedOn:_caV('kRec'),condition:_caV('kCond'),status:_caV('kSt'),closedOn:_caV('kCls'),handoverNote:_caV('kHo'),photos:_custPh.slice()});
   if(err){ _caWarn(err); return; }
   if(!_caSave(c)) return;
   _caAfter(L('Saved','تم الحفظ'));
@@ -37282,6 +37278,15 @@ function _caLogOpen(more){
     `<div class="modal-btns"><button class="mbtn cancel" onclick="_caManageOpen()" style="flex:1">${L('Back','رجوع')}</button></div>`);
 }
 
+function _jpBarcode(code){
+  // decorative Code-39-style strip derived from the employee code
+  let x=0, r='';
+  const bar=(w)=>{ r+=`<rect x="${x}" y="0" width="${w}" height="40"/>`; x+=w; };
+  const gap=(w)=>{ x+=w; };
+  const put=(c)=>{ for(let i=0;i<4;i++){ bar(1+((c>>i)&1)); gap(1+((c>>(i+1))&1)); } gap(2); };
+  put(0x2A); for(const ch of String(code)) put(ch.charCodeAt(0)); put(0x2A);
+  return `<svg viewBox="0 0 ${x} 40" preserveAspectRatio="none" aria-hidden="true" fill="currentColor">${r}</svg>`;
+}
 function renderJobProfile(){
   const p=_jpLoad(), att=_jpAtt(), cs=_caState();
   let c=null, E=null, A=null;
@@ -37305,17 +37310,19 @@ function renderJobProfile(){
   ${_prjBarHTML()}
   ${_cxTabsHTML()}
   <section class="jp-hero v2">
-    <button type="button" class="jp-edit" onclick="_jpEditProfile()" aria-label="${L('Edit','تعديل')}">${ic('edit',15)}</button>
+    <div class="jp-bd-hd"><span class="jp-slot"></span><div class="jp-bd-co" dir="auto">${company?esc(company):L('Employee','موظف')}</div><div class="jp-bd-tag">${L('EMPLOYEE ID','بطاقة موظف')}</div>
+      <button type="button" class="jp-edit" onclick="_jpEditProfile()" aria-label="${L('Edit','تعديل')}">${ic('edit',15)}</button></div>
     <div class="jp-hero-top">
       <label class="jp-ph" for="jpPhotoIn" aria-label="${L('Change photo','تغيير الصورة')}"><span class="jp-ph-in">${p.photo?`<img src="${p.photo}" alt="">`:(ini?esc(ini):ic('photo',26))}</span><span class="jp-cam">${ic('photo',12)}</span></label>
       <input type="file" id="jpPhotoIn" accept="image/*" style="display:none" onchange="_jpPhotoPick(this)">
-      <div class="jp-id" style="padding-inline-end:36px"><div class="jp-nm" dir="auto">${p.name?esc(p.name):L('Add your name','أضف اسمك')}</div>
-        ${(title||company)?`<div class="jp-tt" dir="auto">${esc([title,company].filter(Boolean).join(' · '))}</div>`:''}</div>
+      <div class="jp-id"><div class="jp-nm" dir="auto">${p.name?esc(p.name):L('Add your name','أضف اسمك')}</div>
+        ${title?`<div class="jp-tt"><span class="jp-role" dir="auto">${esc(title)}</span></div>`:''}</div>
     </div>
     <div class="jp-hero-bot">
-      <div class="jp-chip"><small>${L('EMPLOYEE CODE','كود التوظيف')}</small><b dir="ltr" style="text-align:start">${code?esc(code):'—'}</b></div>
+      <div class="jp-chip"><small>${L('EMPLOYEE CODE','كود التوظيف')}</small><b dir="ltr">${code?esc(code):'—'}</b></div>
       <div class="jp-chip"><small>${L('TIME AT COMPANY','مدة الشغل')}</small><b dir="auto">${ten?esc(ten.short):'—'}</b></div>
     </div>
+    ${code?`<div class="jp-bc" dir="ltr">${_jpBarcode(code)}<span>${esc(code)}</span></div>`:''}
   </section>
   <section class="jp-card">
     <div class="jp-sec">${ic('id',17)}<span>${L('Personal & contact','البيانات الشخصية والتواصل')}</span></div>
@@ -37415,6 +37422,59 @@ function _jpPhotoPick(inp){
   rd.readAsDataURL(f);
 }
 function _jpPhotoRemove(){ const p=_jpLoad(); p.photo=''; if(_jpSave(p)){ try{ closeModal(); }catch(e){} renderView(); } }
+// ── Custody photos (shared by both custody sheets): up to 4 compressed JPEGs per item, stored inline with the record ──
+let _custPh=[];
+const _CUST_PH_MAX=4;
+function _custPhClean(a){ return Array.isArray(a)?a.filter(u=>typeof u==='string'&&/^data:image\//.test(u)).slice(0,_CUST_PH_MAX):[]; }
+function _custPhIcon(x){
+  const ph=_custPhClean(x&&x.photos);
+  if(!ph.length) return `<span class="jp-ric gold">${ic(_jpCustIc(x.name),18)}</span>`;
+  return `<span class="jp-ric gold cph-ric"><img src="${ph[0]}" alt="">${ph.length>1?`<em>${ph.length}</em>`:''}</span>`;
+}
+function _custPhHTML(){
+  const t=_custPh.map((u,i)=>`<div class="cph-t"><img src="${u}" alt="" onclick="_custPhView(${i})"><button type="button" class="cph-x" onclick="_custPhDel(${i})" aria-label="${L('Remove photo','حذف الصورة')}">${ic('close',11)}</button></div>`).join('');
+  const add=_custPh.length<_CUST_PH_MAX?`<button type="button" class="cph-add" onclick="document.getElementById('custPhIn').click()">${ic('photo',20)}<span>${L('Add photo','إضافة صورة')}</span></button>`:'';
+  return t+add;
+}
+function _custPhField(list){
+  _custPh=_custPhClean(list);
+  return `<div class="field"><label>${L('Photos','صور')} <span class="cph-n">${L('up to','حد أقصى')} ${_CUST_PH_MAX}</span></label><div class="cph-grid" id="custPhGrid">${_custPhHTML()}</div><input type="file" id="custPhIn" accept="image/*" multiple style="display:none" onchange="_custPhPick(this)"></div>`;
+}
+function _custPhRender(){ const g=document.getElementById('custPhGrid'); if(g) g.innerHTML=_custPhHTML(); }
+function _custPhPrep(dataUrl){
+  return new Promise((res,rej)=>{
+    const im=new Image();
+    im.onload=()=>{ try{
+      const w=im.naturalWidth, h=im.naturalHeight, k=Math.min(1,900/Math.max(w,h)), cw=Math.round(w*k), ch=Math.round(h*k);
+      const c=document.createElement('canvas'); c.width=cw; c.height=ch;
+      const x=c.getContext('2d'); x.fillStyle='#fff'; x.fillRect(0,0,cw,ch); x.drawImage(im,0,0,cw,ch);
+      res(c.toDataURL('image/jpeg',.72));
+    }catch(e){ rej(e); } };
+    im.onerror=rej; im.src=dataUrl;
+  });
+}
+function _custPhPick(inp){
+  const files=Array.from((inp&&inp.files)||[]).slice(0,Math.max(0,_CUST_PH_MAX-_custPh.length));
+  if(inp) inp.value='';
+  if(!files.length) return;
+  files.forEach(f=>{
+    if(f.size>20*1024*1024){ showToast(L('⚠️ Image too large (max 20MB)','⚠️ الصورة كبيرة جداً (٢٠ ميجا كحد أقصى)'),'warn'); return; }
+    const rd=new FileReader();
+    rd.onload=async ()=>{
+      try{ const u=await _custPhPrep(rd.result); if(_custPh.length<_CUST_PH_MAX){ _custPh.push(u); _custPhRender(); } }
+      catch(e){ _logErr('_custPhPick',e); showToast(L('⚠️ Could not read image','⚠️ تعذّرت قراءة الصورة'),'warn'); }
+    };
+    rd.onerror=()=>{ showToast(L('⚠️ Could not read image','⚠️ تعذّرت قراءة الصورة'),'warn'); };
+    rd.readAsDataURL(f);
+  });
+}
+function _custPhDel(i){ _custPh.splice(i,1); _custPhRender(); }
+function _custPhView(i){
+  const u=_custPh[i]; if(!u) return;
+  const d=document.createElement('div'); d.className='cph-view'; d.onclick=()=>d.remove();
+  d.innerHTML=`<img src="${u}" alt=""><button type="button" class="cph-vx" aria-label="${L('Close','إغلاق')}">${ic('close',18)}</button>`;
+  document.body.appendChild(d);
+}
 function _jpEditCustody(id){
   if(_caState()==='ok'){ _caCustSheet(id); return; }
   const p=_jpLoad(), x=id?p.custody.find(c=>c.id===id):null; if(id&&!x) return;
@@ -37424,13 +37484,14 @@ function _jpEditCustody(id){
     (x?'':`<div class="jp-chips">${sug.map(s=>`<button type="button" onclick="document.getElementById('jpcName').value='${L(s[0],s[1])}'">${L(s[0],s[1])}</button>`).join('')}</div>`)+
     _cvField('jpcName',L('Item','العنصر'),x?x.name:'',{ph:L('e.g. Dell Latitude laptop','مثال: لاب توب Dell Latitude')})+
     _cvField('jpcNote',L('Details (serial no., condition, accessories…)','تفاصيل (سيريال، الحالة، المشتملات…)'),x?x.note:'',{ta:1,rows:2})+
-    _cvField('jpcDate',L('Received on','تاريخ الاستلام'),x?x.date:'',{type:'date',dir:'ltr'}),
+    _cvField('jpcDate',L('Received on','تاريخ الاستلام'),x?x.date:'',{type:'date',dir:'ltr'})+
+    _custPhField(x?x.photos:[]),
     '_jpSaveCustody()',x?`_jpDelCustody('${esc(x.id)}')`:'');
 }
 function _jpSaveCustody(){
   const g=id=>(document.getElementById(id)?.value||'').trim(), name=g('jpcName');
   if(!name){ showToast(L('Enter the item name','اكتب اسم العنصر'),'warn'); return; }
-  const p=_jpLoad(), rec={id:_jpEditId||('c'+Date.now().toString(36)+Math.random().toString(36).slice(2,5)),name,note:g('jpcNote'),date:g('jpcDate')};
+  const p=_jpLoad(), rec={id:_jpEditId||('c'+Date.now().toString(36)+Math.random().toString(36).slice(2,5)),name,note:g('jpcNote'),date:g('jpcDate'),photos:_custPh.slice()};
   const i=p.custody.findIndex(c=>c.id===rec.id); if(i>=0) p.custody[i]=rec; else p.custody.push(rec);
   if(!_jpSave(p)) return;
   try{ closeModal(); }catch(e){}
@@ -59964,10 +60025,19 @@ html[data-num-style="glow"] .banks-v2 .bnk-hero-total .sig-amt{font-weight:800!i
   font-size:calc(12px*var(--app-text-scale,1));font-weight:600;color:var(--fin-income);
   background:var(--fin-income-tint);border:1px solid color-mix(in srgb,var(--fin-income) 28%,transparent);transition:transform .1s ease,background .15s ease}
 .sdb-settle:active{transform:scale(.96)}
-.sdb-prog{all:unset;box-sizing:border-box;display:block;width:100%;max-width:240px;cursor:pointer}
+.sdb-prog{display:block;width:100%;max-width:240px}
 .sdb-prog-bar{display:block;height:6px;border-radius:999px;background:var(--surface3,var(--border));overflow:hidden}
 .sdb-prog-bar i{display:block;height:100%;border-radius:999px;background:var(--fin-income)}
 .sdb-prog-tx{display:block;white-space:nowrap;margin-top:5px;font-size:calc(11px*var(--app-text-scale,1));font-weight:600;color:var(--muted);font-variant-numeric:tabular-nums}
+.sdb-strip{display:grid;grid-template-columns:1fr 1fr;margin:2px 12px 6px;border:1px solid var(--border);border-radius:14px;background:var(--surface2);overflow:hidden}
+.sdb-strip-c{display:flex;flex-direction:column;gap:3px;padding:10px 14px;min-width:0}
+.sdb-strip-c+.sdb-strip-c{border-inline-start:1px solid var(--border)}
+.sdb-strip-c small{font-size:calc(11px*var(--app-text-scale,1));font-weight:600;color:var(--muted)}
+.sdb-strip-c b{font-size:calc(15px*var(--app-text-scale,1));font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sdb-seg{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-top:10px;padding:3px;border-radius:12px;background:var(--surface2);border:1px solid var(--border)}
+.sdb-seg-b{all:unset;box-sizing:border-box;text-align:center;cursor:pointer;padding:9px 8px;border-radius:9px;font-size:calc(13px*var(--app-text-scale,1));font-weight:600;color:var(--muted);transition:background .15s ease,color .15s ease}
+.sdb-seg-b.on{background:var(--surface);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.18)}
+.sdb-amt-in{font-size:calc(20px*var(--app-text-scale,1))!important;font-weight:800;font-variant-numeric:tabular-nums}
 .sdb-allclear{padding:18px 12px;text-align:center;font-weight:600;color:var(--fin-income);font-size:calc(13px*var(--app-text-scale,1))}
 
 /* history */
@@ -60006,6 +60076,21 @@ html[data-num-style="glow"] .banks-v2 .bnk-hero-total .sig-amt{font-weight:800!i
 .sdb-hint{min-height:18px;margin:2px 2px 10px;font-size:calc(12px*var(--app-text-scale,1));color:var(--muted)}
 .sdb-hint.ok{color:var(--fin-income);font-weight:600}
 .sdb-hint.bad{color:var(--fin-outcome);font-weight:700}
+
+/* ── Custody photos ── */
+.cph-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.cph-t,.cph-add{position:relative;aspect-ratio:1;border-radius:12px;overflow:hidden;border:1px solid var(--border);background:var(--surface2)}
+.cph-t img{width:100%;height:100%;object-fit:cover;display:block;cursor:pointer}
+.cph-x{all:unset;box-sizing:border-box;position:absolute;top:4px;inset-inline-end:4px;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;background:rgba(0,0,0,.62);color:#fff}
+.cph-add{all:unset;box-sizing:border-box;position:relative;aspect-ratio:1;border-radius:12px;border:1.5px dashed var(--border);background:var(--surface2);color:var(--muted);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;font-size:calc(10px*var(--app-text-scale,1));font-weight:600;text-align:center;line-height:1.2}
+.cph-add:active{transform:scale(.97)}
+.cph-n{font-weight:500;color:var(--muted);font-size:.85em;margin-inline-start:6px}
+.jp-ric.cph-ric{position:relative;overflow:hidden;padding:0}
+.jp-ric.cph-ric img{width:100%;height:100%;object-fit:cover;display:block}
+.jp-ric.cph-ric em{position:absolute;bottom:1px;inset-inline-end:1px;min-width:14px;height:14px;padding:0 3px;border-radius:7px;background:rgba(0,0,0,.65);color:#fff;font-style:normal;font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.cph-view{position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.92);display:flex;align-items:center;justify-content:center;padding:16px}
+.cph-view img{max-width:100%;max-height:100%;object-fit:contain;border-radius:8px}
+.cph-vx{all:unset;position:absolute;top:calc(env(safe-area-inset-top,0px) + 14px);inset-inline-end:14px;width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.16);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer}
 .sdb-badges{display:flex;gap:8px;margin:-2px 0 12px}
 .sdb-b.ok{--sa:var(--fin-income)}
 .sdb-b.open{--sa:var(--muted)}
@@ -60025,6 +60110,40 @@ html[data-num-style="glow"] .banks-v2 .bnk-hero-total .sig-amt{font-weight:800!i
 .sdb-tl-amt em{font-style:normal;font-size:.75em;color:var(--muted);font-weight:700}
 .sdb-tl-empty{padding:10px 14px;font-size:calc(12px*var(--app-text-scale,1));color:var(--muted)}
 .mbtn.sdb-danger{color:var(--fin-outcome)}
+/* ══ My Job → Profile hero: corporate ID badge (theme-aware) ══ */
+.jp-wrap .jp-hero.v2{position:relative;overflow:hidden;padding:0 0 18px;border-radius:20px;color:var(--text);background:var(--surface);border:1px solid var(--border);display:flex;flex-direction:column;
+  box-shadow:0 1px 2px rgba(16,24,40,.08),0 18px 36px -22px rgba(16,24,40,.45)}
+[data-theme="dark"] .jp-wrap .jp-hero.v2{box-shadow:0 1px 2px rgba(0,0,0,.5),0 18px 36px -22px rgba(0,0,0,.85)}
+.jp-wrap .jp-hero.v2::before,.jp-wrap .jp-hero.v2::after{display:none}
+.jp-wrap .jp-hero.v2 .jp-bd-hd{position:relative;display:flex;flex-direction:column;align-items:center;padding:22px 52px 54px;text-align:center;color:#fff;
+  background:linear-gradient(180deg,#0E3C8C,#0A2B66)}
+.jp-wrap .jp-hero.v2 .jp-slot{position:absolute;top:9px;left:50%;width:44px;height:7px;margin-left:-22px;border-radius:4px;background:var(--surface);box-shadow:inset 0 1px 2px rgba(0,0,0,.35)}
+.jp-wrap .jp-hero.v2 .jp-bd-co{font-size:calc(15px*var(--app-text-scale,1));font-weight:800;letter-spacing:2.4px;text-transform:uppercase;line-height:1.3;overflow-wrap:anywhere}
+.jp-wrap .jp-hero.v2 .jp-bd-tag{margin-top:4px;font-size:calc(10px*var(--app-text-scale,1));font-weight:600;letter-spacing:2px;color:rgba(255,255,255,.62)}
+[dir="rtl"] .jp-wrap .jp-hero.v2 .jp-bd-co,[dir="rtl"] .jp-wrap .jp-hero.v2 .jp-bd-tag{letter-spacing:0}
+.jp-wrap .jp-hero.v2 .jp-edit{position:absolute;top:14px;inset-inline-end:12px;width:30px;height:30px;z-index:2;border:1px solid rgba(255,255,255,.28);background:rgba(255,255,255,.12);color:#fff;box-shadow:none;border-radius:50%}
+.jp-wrap .jp-hero.v2 .jp-edit:hover{background:rgba(255,255,255,.22)}
+.jp-wrap .jp-hero.v2 .jp-hero-top{position:relative;flex-direction:column;align-items:center;gap:12px;margin-top:-44px;padding:0 18px;text-align:center}
+.jp-wrap .jp-hero.v2 .jp-ph{width:104px;height:124px;padding:0;border-radius:16px;background:none!important;box-shadow:none}
+.jp-wrap .jp-hero.v2 .jp-ph-in{border-radius:16px;border:4px solid var(--surface);box-sizing:border-box;background:linear-gradient(var(--green-tint),var(--green-tint)),var(--surface)!important;color:var(--green)!important;font-size:38px;font-weight:700;
+  box-shadow:0 0 0 1px var(--border),0 10px 24px -10px rgba(10,43,102,.55)}
+.jp-wrap .jp-hero.v2 .jp-ph-in img{border-radius:12px}
+.jp-wrap .jp-hero.v2 .jp-cam{width:26px;height:26px;inset-inline-end:-6px;bottom:-6px;background:#0E3C8C!important;color:#fff!important;border:2px solid var(--surface)!important;box-shadow:none}
+.jp-wrap .jp-hero.v2 .jp-id{flex:none;width:100%;padding:0}
+.jp-wrap .jp-hero.v2 .jp-nm{font-family:inherit;font-size:calc(21px*var(--app-text-scale,1));font-weight:800;line-height:1.3;letter-spacing:-.2px;color:var(--text);text-shadow:none}
+.jp-wrap .jp-hero.v2 .jp-tt{display:block;margin-top:8px}
+.jp-wrap .jp-hero.v2 .jp-role{display:inline-block;padding:4px 14px;border-radius:999px;background:var(--green-tint);color:var(--green);font-size:calc(12px*var(--app-text-scale,1));font-weight:700;letter-spacing:.3px}
+.jp-wrap .jp-hero.v2 .jp-hero-bot{margin:20px 18px 0;padding:0;border:1px solid var(--border);border-radius:14px;gap:0;background:var(--surface2);overflow:hidden}
+.jp-wrap .jp-hero.v2 .jp-chip,.jp-wrap .jp-hero.v2 .jp-chip+.jp-chip{padding:12px 14px 13px;border:0;border-radius:0;background:transparent;box-shadow:none;text-align:center;-webkit-backdrop-filter:none;backdrop-filter:none}
+.jp-wrap .jp-hero.v2 .jp-chip+.jp-chip{border-inline-start:1px solid var(--border)}
+.jp-wrap .jp-hero.v2 .jp-chip::before{display:none}
+.jp-wrap .jp-hero.v2 .jp-chip small{margin-bottom:4px;font-size:calc(10px*var(--app-text-scale,1));font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted)!important}
+[dir="rtl"] .jp-wrap .jp-hero.v2 .jp-chip small{letter-spacing:0}
+.jp-wrap .jp-hero.v2 .jp-chip b{font-size:calc(15px*var(--app-text-scale,1));font-weight:800;font-variant-numeric:tabular-nums;color:var(--text);text-align:center}
+.jp-wrap .jp-hero.v2 .jp-chip b[dir="ltr"]{letter-spacing:1.5px}
+.jp-wrap .jp-hero.v2 .jp-bc{margin:16px 18px 0;color:var(--text);text-align:center;opacity:.9}
+.jp-wrap .jp-hero.v2 .jp-bc svg{display:block;width:100%;height:38px}
+.jp-wrap .jp-hero.v2 .jp-bc span{display:block;direction:ltr;unicode-bidi:isolate;margin-top:6px;font-size:calc(10.5px*var(--app-text-scale,1));font-weight:600;letter-spacing:4px;color:var(--muted);font-variant-numeric:tabular-nums}
 </style>
 <script id="finora-polish-js">
 /* FINORA polish — accessibility behaviour for the shared modal sheet.
