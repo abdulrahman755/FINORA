@@ -21,8 +21,8 @@
 <link rel="icon" type="image/png" sizes="512x512" href="icons/icon-512.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
-<noscript><link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&display=swap" rel="stylesheet"></noscript>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet"></noscript>
 <script>
 /* In-app browser (Facebook/Instagram/Messenger/TikTok/Line WebViews) detection.
    These WKWebViews have a known compositing bug: elements using
@@ -19124,7 +19124,7 @@ function renderWorkspaceDashboard(m){
     ? `<button type="button" class="wdash-showall" id="wdashShowAllBtn" aria-expanded="${_wdashShowAll?'true':'false'}" onclick="wdashToggleAll()">${_wdashShowAll ? L('Show less','عرض أقل') : L('Show all','عرض الكل')+' ('+visible.length+')'}</button>`
     : '';
   const appsHtml = tiles ? `<div class="wdash-apps-title">${L('Dashboards','الأقسام')}</div><div class="wdash-apps${_wdashCollapsible && !_wdashShowAll ? ' is-collapsed' : ''}" id="wdashApps" role="group" aria-label="${L('Dashboards','الأقسام')}">${tiles}</div>${_wdashToggleHtml}` : '';
-  return `<div class="wdash-wrap dv3-dark-v2${_bnkHideAll?' dash-privacy':''}">${manageBar}${heroHtml}${quickActionsHtml}${attQuickHtml}${appsHtml}<div class="wdash-vault" aria-hidden="true" inert>${body}</div></div>`;
+  return `<div class="wdash-wrap dv3-dark-v2${_bnkHideAll?' dash-privacy':''}">${manageBar}${canFinance?_wdashGreetHTML():''}${heroHtml}${quickActionsHtml}${attQuickHtml}${appsHtml}<div class="wdash-vault" aria-hidden="true" inert>${body}</div></div>`;
 }
 
 // -- Dashboard tiles: collapsed to the first N, "Show all" expands (presentation-only) --
@@ -21088,6 +21088,7 @@ function loadSavings(){
   if(!Array.isArray(SAVINGS.incomes)) SAVINGS.incomes=[];
   if(!Array.isArray(SAVINGS.assets))  SAVINGS.assets=[];
   if(!Array.isArray(SAVINGS.outcomes)) SAVINGS.outcomes=[]; // Sprint: Finance Summary premium redesign — new metric
+  if(!Array.isArray(SAVINGS.goals))    SAVINGS.goals=[];
   if(!Array.isArray(SAVINGS.debts))    SAVINGS.debts=[];    // Sprint: Debts tracker (money owed to/by the user)
 }
 function saveSavings(){
@@ -23252,6 +23253,8 @@ function renderSavings(){
         </div>
       </div>
     </div>
+
+    ${_savGoalsHTML()}
 
     <!-- Quick Actions -->
     <div class="fin-qa-row sav-qa-scroll">
@@ -27439,11 +27442,11 @@ function openBankInterestModal(key){
   const isUserOverride=!!bankInterestSettings[key];
   const defRate=cfg.rate;
   const defaultBadge=hasDefault&&!isUserOverride
-    ? '<div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:var(--radius-sm);padding:9px 13px;margin-bottom:12px;font-size:calc(11px*var(--app-text-scale,1));color:#c05600;line-height:1.6">'
+    ? '<div style="background:color-mix(in srgb,var(--warning) 13%,var(--surface));border:1px solid color-mix(in srgb,var(--warning) 38%,var(--border));border-radius:var(--radius-sm);padding:9px 13px;margin-bottom:12px;font-size:calc(11px*var(--app-text-scale,1));color:var(--warning);line-height:1.6">'
       +`${ic('electrical',15)} `+(lang==='ar'?'معدل افتراضي مبني على متوسط البنك — عدّله إن كانت لديك شهادة أو حساب خاص':'Default rate based on bank average — update if you have a certificate or special account')
       +'</div>'
     : (isUserOverride
-      ? '<div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:var(--radius-sm);padding:9px 13px;margin-bottom:12px;font-size:calc(11px*var(--app-text-scale,1));color:#15803d">'
+      ? '<div style="background:color-mix(in srgb,var(--success) 13%,var(--surface));border:1px solid color-mix(in srgb,var(--success) 38%,var(--border));border-radius:var(--radius-sm);padding:9px 13px;margin-bottom:12px;font-size:calc(11px*var(--app-text-scale,1));color:var(--success)">'
         +`${ic('check',15)} `+(lang==='ar'?'معدل مخصص — محفوظ يدوياً':'Custom rate — manually saved')
         +'</div>'
       : '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:9px 13px;margin-bottom:12px;font-size:calc(11px*var(--app-text-scale,1));color:var(--muted)">'
@@ -29144,6 +29147,7 @@ function renderBanks(m){
               <button type="button" class="bnk-menu-item" onclick="bnkCloseOverflow();toggleBal('${b.key}')">${eyeSVG(vis)} ${vis?L('Hide Balance','إخفاء الرصيد'):L('Show Balance','إظهار الرصيد')}</button>
               <button type="button" class="bnk-menu-item" onclick="bnkCloseOverflow();openBankColorPicker('${b.key}')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="8.5" cy="9" r="1.5" fill="currentColor" stroke="none"/><circle cx="15.5" cy="9" r="1.5" fill="currentColor" stroke="none"/><circle cx="12" cy="15" r="1.5" fill="currentColor" stroke="none"/></svg> ${L('Customize Card','تخصيص البطاقة')}</button>
               <button type="button" class="bnk-menu-item" onclick="bnkCloseOverflow();openBankLogoChanger('${b.key}')">${ic('photo',15)} ${L('Change Logo','تغيير الشعار')}</button>
+              <button type="button" class="bnk-menu-item" onclick="bnkCloseOverflow();openBankLowModal('${b.key}')">${ic('warning',15)} ${L('Low-balance alert','تنبيه الرصيد المنخفض')}</button>
               <button type="button" class="bnk-menu-item" onclick="bnkCloseOverflow();openBankAcctNumModal('${b.key}')">${ic('id',15)} ${L('Account Number & IBAN','رقم الحساب و IBAN')}</button>
               <button type="button" class="bnk-menu-item" onclick="bnkCloseOverflow();openBankInterestModal('${b.key}')" style="${monthInt>0?'color:var(--pos)':''}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg> ${L('Interest Rate','سعر الفائدة')}</button>
               <div class="bnk-menu-divider"></div>
@@ -29162,7 +29166,7 @@ function renderBanks(m){
           <div style="min-width:0;flex:1">
             <div class="bnk-card-name" style="${nameColor?'color:'+nameColor:(cardAutoFg?'color:'+cardAutoFg:'')}">${esc(bankDisplayName(b.name))}</div>
             <span class="bnk-card-badge" style="${_bdgStyle1}">${typeBadge}</span>
-            ${monthInt>0?`<span class="bnk-card-badge" style="${_bdgStyle2}">${L('Interest','فائدة')}</span>`:''}
+            ${monthInt>0?`<span class="bnk-card-badge" style="${_bdgStyle2}">${L('Interest','فائدة')}</span>`:''}${_bnkLowBadgeFor(b.key)}
           </div>
           <div class="bnk-card-controls">
                         <button type="button" class="bnk-overflow-btn" aria-label="${L('More actions','المزيد من الإجراءات')}" aria-haspopup="menu" onclick="bnkToggleOverflow(event,'${b.key}')"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="19" r="1.8"/></svg></button>
@@ -34783,6 +34787,129 @@ function renderMonthlyBudgetCard(m, monthKey){
 // icon guess from free-text notes, and simple view-filters. Nothing here
 // writes to DATA, changes IDs/order, or touches saveTx/deleteTx/persistData.
 // ══════════════════════════════════════════════════════════════════════════════
+// ═══ Premium additions: 7-day strip · dashboard greeting · bank low-balance alert · savings goals ═══
+const _pxIso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+function _pxCompact(n){ n=Math.round(n||0); return n>=1e6?(n/1e6).toFixed(1).replace(/\.0$/,'')+'M':n>=1e4?Math.round(n/1e3)+'k':n>=1e3?(n/1e3).toFixed(1).replace(/\.0$/,'')+'k':String(n); }
+function _pxDays(n){
+  const now=new Date(), days=[], idx={};
+  for(let i=n-1;i>=0;i--){ const d=new Date(now.getFullYear(),now.getMonth(),now.getDate()-i); const k=_pxIso(d); idx[k]=days.length; days.push({k,d,v:0,t:0}); }
+  Object.keys(DATA).forEach(mk=>{ const mo=DATA[mk]||{}; (mo.transactions||[]).forEach(t=>{ const i=idx[t.date]; if(i!=null) days[i].v+=parseFloat(t.payment)||0; }); const dt=mo.daily_targets||{}; days.forEach(x=>{ if(dt[x.k]) x.t=parseFloat(dt[x.k])||0; }); });
+  return days;
+}
+function _txWeekStripHTML(all){
+  try{
+    const days=_pxDays(7), tot=days.reduce((a,x)=>a+x.v,0);
+    let big=null; (all||[]).forEach(t=>{ if(!big||(parseFloat(t.payment)||0)>(parseFloat(big.payment)||0)) big=t; });
+    const bigV=big?(parseFloat(big.payment)||0):0;
+    if(!tot&&!bigV) return '';
+    const mx=Math.max(1,...days.map(x=>Math.max(x.v,x.t)));
+    const cols=days.map((x,i)=>{ const h=x.v?Math.max(8,Math.round(x.v/mx*100)):3; const over=x.t>0&&x.v>x.t; return `<div class="pxw-c${i===6?' today':''}${over?' over':''}${x.v?'':' zero'}" title="${esc(_pxIso(x.d))}"><i style="height:${h}%"></i>${x.t>0?`<u style="bottom:${Math.min(100,Math.round(x.t/mx*100))}%"></u>`:''}</div>`; }).join('');
+    const lbls=days.map((x,i)=>`<span class="${i===6?'today':''}"><em dir="ltr">${x.v?_pxCompact(x.v):'·'}</em><small>${esc(x.d.toLocaleDateString(_jpLoc(),{weekday:'narrow'}))}</small></span>`).join('');
+    const nm=((big&&big.notes)||'').trim().slice(0,22)||L('Entry','قيد');
+    return `<div class="sc-card pxw"><div class="pxw-hd"><span class="pxw-t">${ic('chart',14)} ${L('Last 7 days','آخر 7 أيام')}</span><b dir="ltr">${fmtEGP(tot)}</b></div><div class="pxw-plot">${cols}</div><div class="pxw-lbls">${lbls}</div><div class="pxw-ft"><span>${L('Avg / day','المتوسط / يوم')} <b dir="ltr">${fmtEGP(Math.round(tot/7))}</b></span>${bigV?`<span class="pxw-big">${ic('star',11)} ${L('Biggest this month','الأكبر الشهر ده')}: <b dir="auto">${esc(nm)}</b> · <b dir="ltr">${fmtEGP(bigV)}</b></span>`:''}</div></div>`;
+  }catch(e){ try{ _logErr('weekStrip',e); }catch(_){} return ''; }
+}
+function _wdashGreetHTML(){
+  try{
+    const h=new Date().getHours();
+    const g=h<5?L('Good night','أهلاً بيك'):h<12?L('Good morning','صباح الخير'):h<17?L('Good afternoon','نهارك سعيد'):L('Good evening','مساء الخير');
+    const name=((_jpLoc&&_jpLoad().name)||'').trim().split(/\s+/)[0]||'';
+    const d=_pxDays(1)[0], spent=d.v, tg=d.t;
+    const pct=tg>0?Math.min(100,Math.round(spent/tg*100)):0, over=tg>0&&spent>tg;
+    const right=tg>0?`<b dir="ltr">${fmtEGP(spent)}</b><small>${L('of','من')} <span dir="ltr">${fmtEGP(tg)}</span> ${L('today','النهاردة')}</small>`
+      :(spent?`<b dir="ltr">${fmtEGP(spent)}</b><small>${L('spent today','صرفت النهاردة')}</small>`:`<small>${L('Nothing spent today','لسه مصرفتش النهاردة')}</small>`);
+    return `<section class="wdash-greet" role="button" tabindex="0" onclick="setView('transactions')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();setView('transactions')}"><div class="wdash-greet-l"><small>${g}</small><b dir="auto">${name?esc(name):L('Welcome back','أهلاً بيك')}</b></div><div class="wdash-greet-r${over?' over':''}">${right}</div>${tg>0?`<div class="wdash-greet-bar"><i style="width:${pct}%"></i></div>`:''}</section>`;
+  }catch(e){ try{ _logErr('greet',e); }catch(_){} return ''; }
+}
+const BANK_LOW_KEY='wdp_bank_low_v1';
+let bankLowAlerts={};
+try{ const _r=localStorage.getItem(BANK_LOW_KEY); if(_r) bankLowAlerts=JSON.parse(_r)||{}; }catch(e){}
+function _persistBankLow(){ try{ localStorage.setItem(BANK_LOW_KEY,JSON.stringify(bankLowAlerts)); }catch(e){ try{ _logErr('persistBankLow',e); }catch(_){} } }
+function _bnkLowBadgeFor(key){
+  try{ const t=parseFloat(bankLowAlerts[key])||0; if(!(t>0)) return ''; const bal=getBankBalance(DATA[activeMonth],key)||0;
+    return bal<t?`<span class="bnk-card-badge bnk-low">${ic('warning',10)} ${L('Low balance','رصيد منخفض')}</span>`:''; }catch(e){ return ''; }
+}
+function openBankLowModal(key){
+  const b=getAllBanks().find(x=>x.key===key); if(!b) return;
+  const cur=parseFloat(bankLowAlerts[key])||0;
+  _jpSheet('warning',L('Low-balance alert','تنبيه الرصيد المنخفض'),esc(bankDisplayName(b.name)),
+    `<div class="ca-note small">${L('Shows a "Low balance" badge on this account whenever its balance drops below this amount.','هيظهر تنبيه "رصيد منخفض" على الحساب ده لما رصيده ينزل عن المبلغ ده.')}</div>`+
+    _cvField('blAmt',L('Alert when balance is below','نبّهني لما الرصيد يكون أقل من'),cur||'',{type:'number',dir:'ltr',ph:'0'})+
+    (cur?`<button type="button" class="prj-del-link" onclick="clearBankLow('${esc(key)}')">${ic('trash',14)} ${L('Remove alert','إزالة التنبيه')}</button>`:''),
+    `saveBankLow('${esc(key)}')`);
+}
+function saveBankLow(key){
+  const v=parseFloat(document.getElementById('blAmt')?.value)||0;
+  if(v>0) bankLowAlerts[key]=v; else delete bankLowAlerts[key];
+  _persistBankLow(); closeModal(); renderView();
+  showToast(v>0?L('✓ Alert saved','✓ تم حفظ التنبيه'):L('Alert removed','تم إزالة التنبيه'),'success');
+}
+function clearBankLow(key){ delete bankLowAlerts[key]; _persistBankLow(); closeModal(); renderView(); showToast(L('Alert removed','تم إزالة التنبيه'),'success'); }
+
+let _sgId=null;
+function _sgAll(){ if(!Array.isArray(SAVINGS.goals)) SAVINGS.goals=[]; return SAVINGS.goals; }
+function _sgEta(g){
+  const rem=Math.max(0,(g.target||0)-(g.saved||0)); if(rem<=0) return {done:true};
+  const log=(g.log||[]).filter(x=>x&&x.d&&x.a>0); if(!log.length) return {};
+  const first=new Date(log.reduce((m,x)=>x.d<m?x.d:m,log[0].d)+'T12:00:00');
+  const days=Math.max(14,Math.round((Date.now()-first.getTime())/864e5)+1);
+  const perDay=log.reduce((a,x)=>a+x.a,0)/days; if(!(perDay>0)) return {};
+  return {eta:new Date(Date.now()+Math.ceil(rem/perDay)*864e5)};
+}
+function _savGoalsHTML(){
+  try{
+    const gs=_sgAll();
+    const rows=gs.map(g=>{
+      const t=g.target||0, sv=g.saved||0, pct=t>0?Math.min(100,Math.round(sv/t*100)):0, e=_sgEta(g);
+      const note=e.done?`<span class="sg-ok">${ic('check',11)} ${L('Goal reached','وصلت للهدف')}</span>`
+        :e.eta?`<span>${L('On pace for','متوقع توصل في')} <b>${esc(e.eta.toLocaleDateString(_jpLoc(),{month:'long',year:'numeric'}))}</b></span>`
+        :`<span>${L('Add a deposit to see your ETA','ضيف إيداع عشان يتحسب الموعد المتوقع')}</span>`;
+      let need='';
+      if(!e.done&&g.date){ const dl=new Date(g.date+'T12:00:00');
+        need=dl>new Date()?`<span>${L('Needs','محتاج')} <b dir="ltr">${fmtEGP(Math.ceil((t-sv)/Math.max(1,(dl-Date.now())/(30*864e5))))}</b> ${L('per month for','في الشهر عشان')} ${esc(_jpDate(g.date))}</span>`:`<span class="sg-late">${L('Deadline passed','الموعد عدّى')}</span>`; }
+      return `<div class="sg-row"><div class="sg-top" onclick="savGoalSheet('${esc(g.id)}')"><div class="sg-nm" dir="auto">${esc(g.name)}</div><div class="sg-pct">${pct}%</div></div><div class="sg-bar"><i style="width:${pct}%"></i></div><div class="sg-amt"><b dir="ltr">${fmtEGP(sv)}</b><small>${L('of','من')} <span dir="ltr">${fmtEGP(t)}</span></small>${e.done?'':`<button type="button" class="jp-add sg-dep" onclick="savGoalDeposit('${esc(g.id)}')">${ic('plus',13)} ${L('Add money','إضافة مبلغ')}</button>`}</div><div class="sg-meta">${note}${need}</div></div>`;
+    }).join('');
+    return `<section class="jp-card sg-card"><div class="jp-sec">${ic('star',17)}<span>${L('Savings goals','أهداف الادخار')}</span>${gs.length?`<em style="font-style:normal;font-size:12px;color:var(--muted);font-weight:700">${gs.length}</em>`:''}<span class="sp"></span><button type="button" class="jp-add" onclick="savGoalSheet(null)">${ic('plus',14)} ${L('New goal','هدف جديد')}</button></div>${rows||`<div class="jp-empty">${L('Set a goal — a car, a trip, an emergency fund — and track it here.','حدد هدف — عربية، سفر، طوارئ — وتابعه من هنا.')}</div>`}</section>`;
+  }catch(e){ try{ _logErr('savGoals',e); }catch(_){} return ''; }
+}
+function savGoalSheet(id){
+  const g=id?_sgAll().find(x=>x.id===id):null; if(id&&!g) return; _sgId=g?g.id:null;
+  _jpSheet('star',g?L('Edit goal','تعديل الهدف'):L('New savings goal','هدف ادخار جديد'),L('Set a target and track your progress','حدد المبلغ وتابع تقدمك'),
+    _cvField('sgName',L('Goal name','اسم الهدف'),g?g.name:'',{ph:L('e.g. New car','مثال: عربية جديدة')})+
+    _cvField('sgTarget',L('Target amount','المبلغ المستهدف'),g?g.target:'',{type:'number',dir:'ltr'})+
+    _cvField('sgSaved',L('Saved so far','المدخر لحد دلوقتي'),g?g.saved:'',{type:'number',dir:'ltr',ph:'0'})+
+    _cvField('sgDate',L('Target date (optional)','تاريخ مستهدف (اختياري)'),g?g.date:'',{type:'date',dir:'ltr'}),
+    'savGoalSave()',g?`savGoalDel('${esc(g.id)}')`:'');
+}
+function savGoalSave(){
+  const gv=id=>(document.getElementById(id)?.value||'').trim();
+  const name=gv('sgName'), target=parseFloat(gv('sgTarget'))||0, saved=Math.max(0,parseFloat(gv('sgSaved'))||0);
+  if(!name){ showToast(L('Enter the goal name','اكتب اسم الهدف'),'warn'); return; }
+  if(!(target>0)){ showToast(L('Enter a target amount','اكتب المبلغ المستهدف'),'warn'); return; }
+  const list=_sgAll(); let g=_sgId?list.find(x=>x.id===_sgId):null;
+  if(!g){ g={id:'g'+Date.now().toString(36),log:[],created:_pxIso(new Date())}; list.push(g); }
+  g.name=name; g.target=target; g.saved=saved; g.date=gv('sgDate');
+  saveSavings(); closeModal(); renderView(); showToast(L('✓ Goal saved','✓ تم حفظ الهدف'),'success');
+}
+function savGoalDel(id){
+  if(!confirm(L('Delete this goal?','تحذف الهدف ده؟'))) return;
+  SAVINGS.goals=_sgAll().filter(x=>x.id!==id); saveSavings(); closeModal(); renderView();
+}
+function savGoalDeposit(id){
+  const g=_sgAll().find(x=>x.id===id); if(!g) return; _sgId=id;
+  _jpSheet('plus',L('Add money','إضافة مبلغ'),esc(g.name),
+    _cvField('sgDep',L('Amount','المبلغ'),'',{type:'number',dir:'ltr',ph:'0'})+_cvField('sgDepDate',L('Date','التاريخ'),_pxIso(new Date()),{type:'date',dir:'ltr'}),
+    'savGoalDepositSave()');
+}
+function savGoalDepositSave(){
+  const g=_sgAll().find(x=>x.id===_sgId); if(!g) return;
+  const a=parseFloat(document.getElementById('sgDep')?.value)||0, d=document.getElementById('sgDepDate')?.value||_pxIso(new Date());
+  if(!(a>0)){ showToast(L('Enter an amount','اكتب المبلغ'),'warn'); return; }
+  g.saved=(g.saved||0)+a; (g.log=g.log||[]).push({d,a});
+  saveSavings(); closeModal(); renderView();
+  showToast((g.saved>=g.target)?L('🎉 Goal reached','🎉 وصلت للهدف'):L('✓ Added','✓ اتضاف'),'success');
+}
+
 function _txGroupLabel(dateStr){
   if(!dateStr) return L('Earlier','سابقاً');
   const d=new Date(dateStr+'T12:00:00');
@@ -35146,9 +35273,9 @@ function renderTransactions(m){
     </div>`;
   };
 
-  const _dayTot={}; txns.forEach(x=>{ const k=_txGroupLabel(x.date); _dayTot[k]=(_dayTot[k]||0)+(x.payment||0); });
+  const _dayTot={}, _dayN={}; txns.forEach(x=>{ const k=_txGroupLabel(x.date); _dayTot[k]=(_dayTot[k]||0)+(x.payment||0); _dayN[k]=(_dayN[k]||0)+1; });
   const timelineHTML = groups.map(g=>`
-    <div class="txlg-group-label"><span>${g.label}</span><span class="txlg-group-total">${fmtEGP(_dayTot[g.label]||0)}</span></div>
+    <div class="txlg-group-label"><span>${g.label}${_dayN[g.label]>1?` <em class="txlg-group-n">${_dayN[g.label]}</em>`:''}</span><span class="txlg-group-total">${fmtEGP(_dayTot[g.label]||0)}</span></div>
     ${g.rows.map((row,i)=>rowHTML(row, i===0, i===g.rows.length-1)).join('')}
   `).join('');
 
@@ -35283,6 +35410,7 @@ ${_pgHdr('Finance','المالية','Daily Spend','الإنفاق اليومي',
 
   <!-- 1b. AI INSIGHT (Commit 1 — replaces AI Summary; see renderDailyAIInsight()) -->
   ${renderDailyAIInsight(activeMonth)}
+  ${_txWeekStripHTML(all)}
 
   <!-- 2. SMART FILTERS — Search, Time, Variance merged into one compact toolbar (Commit 2) -->
   <div class="sc-card txlg-filters">
@@ -53739,7 +53867,7 @@ function brLoadSavedReports(){
   try{const r=localStorage.getItem(BR_REPORTS_KEY);if(r)saved=JSON.parse(r);}catch(e){_logErr('brLoadSavedReports:read',e);}
   if(!saved.length){el.innerHTML=`<div class="list-empty">${L('No saved bank reports yet.','لا توجد تقارير بنكية محفوظة بعد.')}</div>`;return;}
   el.innerHTML=saved.map(r=>`<div style="display:flex;align-items:center;gap:var(--sp3);padding:10px 14px;border-bottom:1px solid var(--border)">
-    <div style="width:38px;height:38px;border-radius:var(--icon-r-3);background:#e0f2fe;color:#0284c7;display:flex;align-items:center;justify-content:center;font-size:calc(18px*var(--app-text-scale,1));flex-shrink:0">${ic('bank',18)}</div>
+    <div style="width:38px;height:38px;border-radius:var(--icon-r-3);background:color-mix(in srgb,#0284c7 15%,var(--surface));color:#0284c7;display:flex;align-items:center;justify-content:center;font-size:calc(18px*var(--app-text-scale,1));flex-shrink:0">${ic('bank',18)}</div>
     <div style="flex:1;min-width:0">
       <div style="font-size:calc(13px*var(--app-text-scale,1));font-weight:800;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${brEsc(r.monthName)}</div>
       <div style="font-size:calc(10px*var(--app-text-scale,1));color:var(--muted);margin-top:2px">${new Date(r.savedAt).toLocaleDateString(_dtLocale())} · ${r.banks} ${L('banks','بنوك')}</div>
@@ -60227,6 +60355,100 @@ html[data-num-style="glow"] .banks-v2 .bnk-hero-total .sig-amt{font-weight:800!i
 .jp-wrap .jp-hero.v2 .jp-bc{margin:16px 18px 0;color:var(--text);text-align:center;opacity:.9}
 .jp-wrap .jp-hero.v2 .jp-bc svg{display:block;width:100%;height:38px}
 .jp-wrap .jp-hero.v2 .jp-bc span{display:block;direction:ltr;unicode-bidi:isolate;margin-top:6px;font-size:calc(10.5px*var(--app-text-scale,1));font-weight:600;letter-spacing:4px;color:var(--muted);font-variant-numeric:tabular-nums}
+
+/* ═══ Premium polish layer (global, non-layout) ═══════════════════════════
+   Last block in the cascade. Only touches feel: rendering, focus, press
+   feedback, numerals, scrollbars, selection, motion preferences. No sizes,
+   margins or display values are changed, so no page layout can shift. */
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+body{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility;-webkit-tap-highlight-color:transparent}
+::selection{background:color-mix(in srgb,var(--green-light,#2BC48C) 32%,transparent)}
+button,[role="button"],a,summary,label[for]{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+a:focus-visible,button:focus-visible,[role="button"]:focus-visible,summary:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--green-light,#2BC48C);outline-offset:2px;border-radius:inherit}
+.mbtn,.jp-add,.jp-rb,.jp-link,.card-add-btn,.cx-seg-btn,.nav-btn,.ca-manage,.jp-attc{transition:transform .14s cubic-bezier(.2,.8,.2,1),background-color .18s ease,border-color .18s ease,box-shadow .18s ease,color .18s ease}
+.mbtn:active,.jp-add:active,.jp-link:active,.card-add-btn:active,.cx-seg-btn:active{transform:scale(.97)}
+.jp-card,.rq-card,.ca-manage,.jp-attc{transition:border-color .2s ease,box-shadow .2s ease,background-color .2s ease}
+:root:not([data-theme="dark"]) .jp-card,:root:not([data-theme="dark"]) .jp-attc,:root:not([data-theme="dark"]) .ca-manage{box-shadow:0 1px 2px rgba(60,48,20,.06),0 8px 22px -16px rgba(60,48,20,.22)}
+.screen-wrap b,.screen-wrap strong,.jp-pct,.jp-ast b,.jp-chip b{font-variant-numeric:tabular-nums}
+input,textarea,select{caret-color:var(--green)}
+input[type="number"]{font-variant-numeric:tabular-nums}
+.screen-wrap{scroll-behavior:smooth;overscroll-behavior-y:contain}
+@media (hover:hover) and (pointer:fine){
+  *{scrollbar-width:thin;scrollbar-color:var(--border-strong) transparent}
+  *::-webkit-scrollbar{width:8px;height:8px}
+  *::-webkit-scrollbar-thumb{background:var(--border-strong);border-radius:99px;border:2px solid transparent;background-clip:content-box}
+  .mbtn:hover,.jp-add:hover,.card-add-btn:hover{filter:brightness(1.04)}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
+}
+@media print{.bottom-nav,.fab,#toast{display:none!important}}
+
+/* ═══ Premium polish · money figures & touch feedback (no layout change) ═══ */
+.dash-hero-main-val,.dv3h-stat-val,.dfp-kpi3-val,.fin-hero-amount,.fin-card-amount,.fin-num,.bnk-card-balance,.bal-avail-amount,.balance-display,.dsum-num,.txlg-amt,.sav-row-amount,.hnum-row,.dfp-donut-center-val,.bnk-analytics-stat-val{font-variant-numeric:tabular-nums lining-nums;font-feature-settings:"tnum" 1,"lnum" 1}
+.dash-hero-main-val,.fin-hero-amount,.bnk-card-balance,.dsum-num{letter-spacing:-.01em}
+[dir="rtl"] .dash-hero-main-val,[dir="rtl"] .fin-hero-amount,[dir="rtl"] .bnk-card-balance,[dir="rtl"] .dsum-num{letter-spacing:0}
+.wdash-tile,.fin-card,.pur2-card,.fin-qa-chip,.wdash-manage-btn,.wdash-showall{transition:transform .14s cubic-bezier(.2,.8,.2,1),background-color .18s ease,border-color .18s ease,box-shadow .18s ease}
+.wdash-tile:active,.fin-card:active,.pur2-card:active,.fin-qa-chip:active,.wdash-manage-btn:active,.wdash-showall:active{transform:scale(.97)}
+.txlg-group-n{display:inline-block;margin-inline-start:6px;min-width:18px;padding:1px 6px;border-radius:99px;background:var(--surface3);color:var(--muted);font-style:normal;font-size:calc(10px*var(--app-text-scale,1));font-weight:800;text-align:center;letter-spacing:0;font-variant-numeric:tabular-nums;vertical-align:1px}
+
+/* ═══ Premium additions · styles ═══ */
+.pxw{padding:14px 14px 12px}
+.pxw-hd{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.pxw-t{display:inline-flex;align-items:center;gap:6px;font-size:calc(12px*var(--app-text-scale,1));font-weight:800;color:var(--muted);letter-spacing:.3px}
+.pxw-hd b{font-size:calc(15px*var(--app-text-scale,1));font-weight:800;font-variant-numeric:tabular-nums}
+.pxw-plot{display:grid;grid-template-columns:repeat(7,1fr);gap:7px;height:70px;margin-top:12px;align-items:end}
+.pxw-c{position:relative;height:100%;display:flex;align-items:flex-end}
+.pxw-c i{display:block;width:100%;border-radius:7px 7px 3px 3px;background:color-mix(in srgb,var(--green) 38%,var(--surface2));transition:height .5s cubic-bezier(.2,.8,.2,1)}
+.pxw-c.today i{background:var(--green)}
+.pxw-c.over i{background:var(--red)}
+.pxw-c.zero i{background:var(--surface3)}
+.pxw-c u{position:absolute;inset-inline:-2px;height:0;border-top:1.5px dashed var(--gold);text-decoration:none}
+.pxw-lbls{display:grid;grid-template-columns:repeat(7,1fr);gap:7px;margin-top:6px;text-align:center}
+.pxw-lbls span{display:flex;flex-direction:column;gap:1px;min-width:0}
+.pxw-lbls em{font-style:normal;font-size:calc(10px*var(--app-text-scale,1));font-weight:700;color:var(--text2);font-variant-numeric:tabular-nums}
+.pxw-lbls small{font-size:calc(10px*var(--app-text-scale,1));color:var(--muted);font-weight:600}
+.pxw-lbls .today em,.pxw-lbls .today small{color:var(--green);font-weight:800}
+.pxw-ft{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:10px;padding-top:10px;border-top:1px solid var(--border);font-size:calc(11.5px*var(--app-text-scale,1));color:var(--muted);font-weight:600}
+.pxw-ft b{color:var(--text);font-weight:800}
+.pxw-big{display:inline-flex;align-items:center;gap:5px;min-width:0;flex-wrap:wrap}
+.wdash-greet{position:relative;display:grid;grid-template-columns:1fr auto;align-items:center;gap:4px 12px;padding:14px 16px;border-radius:20px;background:var(--surface);border:1px solid var(--border);box-shadow:var(--shadow-sm);cursor:pointer;transition:transform .14s ease}
+.wdash-greet:active{transform:scale(.99)}
+.wdash-greet-l{min-width:0}
+.wdash-greet-l small{display:block;font-size:calc(12px*var(--app-text-scale,1));font-weight:600;color:var(--muted)}
+.wdash-greet-l b{display:block;margin-top:2px;font-size:calc(19px*var(--app-text-scale,1));font-weight:800;overflow-wrap:anywhere}
+.wdash-greet-r{text-align:end}
+.wdash-greet-r b{display:block;font-size:calc(16px*var(--app-text-scale,1));font-weight:800;font-variant-numeric:tabular-nums}
+.wdash-greet-r small{display:block;margin-top:1px;font-size:calc(11px*var(--app-text-scale,1));color:var(--muted);font-weight:600}
+.wdash-greet-r.over b{color:var(--red)}
+.wdash-greet-bar{grid-column:1/-1;height:6px;border-radius:99px;background:var(--surface3);overflow:hidden;margin-top:8px}
+.wdash-greet-bar i{display:block;height:100%;border-radius:inherit;background:var(--green)}
+.wdash-greet-r.over~.wdash-greet-bar i{background:var(--red)}
+.dash-privacy .wdash-greet-r{filter:blur(7px)}
+.bnk-card-badge.bnk-low{display:inline-flex;align-items:center;gap:4px;background:var(--red)!important;color:#fff!important}
+.sg-row{padding:12px 0;border-bottom:1px solid var(--border)}
+.sg-row:last-child{border-bottom:0}
+.sg-top{display:flex;justify-content:space-between;align-items:baseline;gap:10px;cursor:pointer}
+.sg-nm{font-weight:800;font-size:calc(14px*var(--app-text-scale,1));overflow-wrap:anywhere}
+.sg-pct{font-weight:800;color:var(--green);font-variant-numeric:tabular-nums}
+.sg-bar{height:8px;border-radius:99px;background:var(--surface3);overflow:hidden;margin:9px 0}
+.sg-bar i{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,var(--green),var(--green-light));transition:width .6s ease}
+.sg-amt{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.sg-amt b{font-size:calc(15px*var(--app-text-scale,1));font-weight:800;font-variant-numeric:tabular-nums}
+.sg-amt small{color:var(--muted);font-weight:600}
+.sg-dep{margin-inline-start:auto}
+.sg-meta{display:flex;flex-direction:column;gap:2px;margin-top:8px;font-size:calc(11.5px*var(--app-text-scale,1));color:var(--muted);font-weight:600}
+.sg-meta b{color:var(--text);font-weight:800}
+.sg-ok{color:var(--green);display:inline-flex;align-items:center;gap:4px;font-weight:800}
+.sg-late{color:var(--red)}
+
+/* ═══ Balance & money numerals — distinctive display face ═══════════════
+   Space Grotesk (tabular figures) for every amount; Arabic glyphs and the
+   currency suffix keep the UI face via fallback / their own classes. */
+:root{--font-num:'Space Grotesk','Manrope',system-ui,-apple-system,'Segoe UI',Arial,sans-serif}
+.dash-hero-main-val,.dv3h-stat-val,.dfp-kpi3-val,.fin-hero-amount,.fin-card-amount,.fin-num,.bnk-card-balance,.bal-avail-amount,.balance-display,.dsum-num,.txlg-amt,.sav-row-amount,.hnum-row,.hnum-row *,.dfp-donut-center-val,.bnk-analytics-stat-val,.pxw-hd b,.pxw-lbls em,.wdash-greet-r b,.sg-amt b,.pur2-pr span,.txlg-group-total,.jp-ast b,.jp-pct,.jp-chip b[dir="ltr"],.rq-amt{font-family:var(--font-num);font-variant-numeric:tabular-nums lining-nums;font-feature-settings:"tnum" 1,"lnum" 1}
+.dash-hero-main-val,.fin-hero-amount,.bnk-card-balance,.dsum-num,.balance-display{font-weight:700;letter-spacing:-.02em}
+.fin-cur,.bal-cur,.sav-cur,.hnum-sign,.pur2-pr small{font-family:var(--font);letter-spacing:0}
 </style>
 <script id="finora-polish-js">
 /* FINORA polish — accessibility behaviour for the shared modal sheet.
