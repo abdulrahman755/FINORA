@@ -15813,6 +15813,7 @@ function initApp(){loadTheme();loadSavedData();runStartupMigration();loadBanks()
   setTimeout(tourShow, 600);
   dailyTargetPromptInit();
   mioraInit();
+  try{ debtCheckDue(); }catch(e){}
 }
 // Header month display, localized (Sprint: header full-translation fix).
 // MONTH_NAMES[key] itself stays untouched — it's the canonical English
@@ -23166,7 +23167,7 @@ function renderSavings(){
     const _debtDisplay = savResolveIconDisplay('debt', x.person||'', x.iconOverride||null);
     const isOverdue = x.dueDate && x.dueDate < todayStr;
     const dueBadge = x.dueDate
-      ? `<span class="ctr-badge ${isOverdue?'overdue':'pending'}">${isOverdue?L('Overdue','متأخر'):L('Due','الاستحقاق')} ${esc(x.dueDate)}</span>`
+      ? `<span class="ctr-badge pending">${isOverdue?L('Expected','المتوقع')+' '+esc(x.dueDate)+' · '+L('passed','عدّى'):L('Expected','المتوقع')+' '+esc(x.dueDate)}</span>`
       : '';
     const metaBits = [`<span>${esc(x.date||'—')}</span>`];
     if(x.note) metaBits.push(`<span>${esc(x.note)}</span>`);
@@ -23793,9 +23794,10 @@ function _debtExtraHTML(x,idx,isToMe){
     h+='<div class="sdb-prog"><span class="sdb-prog-bar"><i style="width:'+pct+'%"></i></span>'
       +'<span class="sdb-prog-tx" dir="auto">'+esc(_sdbVerb(isToMe,true))+' '+fmt(paid)+' '+esc(L('of','من'))+' '+fmt(total)+'</span></div>';
   }
-  h+='<button type="button" class="sdb-settle" onclick="savSettleDebt('+idx+');event.stopPropagation()">'
-    +'<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>'
-    +esc(L('Settle','تسوية'))+'</button>';
+  h+='<div class="sdb-btns"><button type="button" class="sdb-settle part" onclick="savSettleDebt('+idx+',\'part\');event.stopPropagation()">'
+    +'<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>'+esc(L('Payment','دفعة'))+'</button>'
+    +'<button type="button" class="sdb-settle" onclick="savSettleDebt('+idx+');event.stopPropagation()">'
+    +'<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>'+esc(L('Settle in full','تسوية كاملة'))+'</button></div>';
   return '<div class="sdb-cta">'+h+'</div>';
 }
 // collapsible History of settled debts (rows stay in the DOM even when collapsed so drag-reorder counts stay right)
@@ -23830,13 +23832,13 @@ function savToggleDebtHistory(){
   el.classList.toggle('open',_sdbHistOpen);
   const b=el.querySelector('.sdb-hist-hd'); if(b) b.setAttribute('aria-expanded',_sdbHistOpen?'true':'false');
 }
-function savSettleDebt(idx){
+function savSettleDebt(idx,mode){
   const x=SAVINGS.debts[idx]; if(!x) return;
   const isToMe=x.direction==='to_me', rem=_debtRemaining(x), paid=_debtPaid(x);
   const accent=isToMe?'var(--fin-income)':'var(--fin-outcome)';
   document.getElementById('modalContent').innerHTML=
     '<div class="modal-handle"></div>'
-    +'<div class="modal-title">'+ic('scale',15)+' '+esc(L('Settle debt','تسوية مديونية'))+'</div>'
+    +'<div class="modal-title">'+ic('scale',15)+' '+esc(mode==='part'?(isToMe?L('Record a payment received','تسجيل دفعة مُستلمة'):L('Record a payment','تسجيل دفعة')):L('Settle debt','تسوية مديونية'))+'</div>'
     +'<div class="sdb-sum" style="--sa:'+accent+'">'
     +'<div class="sdb-sum-top"><div class="sdb-sum-who" dir="auto">'+esc(x.person||'')+'</div>'
     +'<span class="sdb-sum-dir">'+esc(isToMe?L('They owe you','مدين لك'):L('You owe them','أنت مدين له'))+'</span></div>'
@@ -23854,7 +23856,7 @@ function savSettleDebt(idx){
     +'<div class="modal-btns"><button class="mbtn save" id="sdbBtn" onclick="savConfirmSettle('+idx+')"></button>'
     +'<button class="mbtn cancel" onclick="closeModal()">'+esc(L('Cancel','إلغاء'))+'</button></div>';
   document.getElementById('modalOverlay').style.display='flex';
-  _sdbUpdate(idx);
+  if(mode==='part') _sdbSet(idx,'part'); else _sdbUpdate(idx);
 }
 function _sdbAmount(){ return Math.round((parseFloat(String((document.getElementById('sdbAmt')||{}).value||'').replace(/,/g,''))||0)*100)/100; }
 function _sdbSet(idx,frac){
@@ -23890,7 +23892,8 @@ function savConfirmSettle(idx){
   x.payments.push({id:'p'+Date.now().toString(36)+Math.random().toString(36).slice(2,5),date:date,amount:amt,note:note,ts:Date.now()});
   _debtSync(x);
   const done=!!x.settled;
-  saveSavings(); closeModal(); renderView();
+  if(done) _sdbHistOpen=true;
+  saveSavings(); debtCheckDue(); closeModal(); renderView();
   showToast(done?L('Debt settled ✓ — kept in History','تمت التسوية ✓ — محفوظة في السجل'):L('Payment recorded ✓','تم تسجيل الدفعة ✓'),'success');
 }
 // details: totals, payment timeline, reopen / delete
@@ -23900,7 +23903,8 @@ function savDebtDetails(idx){
   const paid=_debtPaid(x), rem=_debtRemaining(x), ps=(x.payments||[]);
   const tl=ps.length?ps.slice().reverse().map(function(p,i){
     return '<div class="sdb-tl-row"><span class="sdb-tl-dot"></span><div class="sdb-tl-tx"><b>'+esc(_sdbVerb(isToMe,true))+'</b><span>'+esc(p.date||'')+(p.note?' · '+esc(p.note):'')+'</span></div>'
-      +'<div class="sdb-tl-amt" dir="ltr">'+fmt(p.amount||0)+' <em>'+curLabel()+'</em></div></div>';
+      +'<div class="sdb-tl-amt" dir="ltr">'+fmt(p.amount||0)+' <em>'+curLabel()+'</em></div>'
+      +'<button type="button" class="sdb-tl-del" aria-label="'+esc(L('Remove payment','حذف الدفعة'))+'" onclick="savDelDebtPayment('+idx+','+(ps.length-1-i)+')">'+ic('trash',13)+'</button></div>';
   }).join(''):'<div class="sdb-tl-empty">'+esc(L('No payments recorded yet.','لا توجد دفعات مسجّلة بعد.'))+'</div>';
   document.getElementById('modalContent').innerHTML=
     '<div class="modal-handle"></div>'
@@ -23910,24 +23914,102 @@ function savDebtDetails(idx){
     +'<div class="sdb-stats"><div><small>'+esc(L('Original','الأصلي'))+'</small><b dir="ltr">'+fmt(x.amount||0)+'</b></div>'
     +'<div><small>'+esc(isToMe?L('Received','المُحصَّل'):L('Paid','المسدَّد'))+'</small><b dir="ltr">'+fmt(paid)+'</b></div>'
     +'<div><small>'+esc(L('Remaining','المتبقي'))+'</small><b dir="ltr">'+fmt(rem)+'</b></div></div>'
-    +'<div class="sdb-meta-line">'+esc(L('Date','التاريخ'))+': '+esc(x.date||'—')+(x.dueDate?' · '+esc(L('Due','الاستحقاق'))+': '+esc(x.dueDate):'')+(x.settledDate?' · '+esc(L('Settled on','سُوّيت في'))+': '+esc(x.settledDate):'')+(x.note?'<br>'+esc(x.note):'')+'</div>'
+    +'<div class="sdb-meta-line">'+esc(L('Date','التاريخ'))+': '+esc(x.date||'—')+(x.dueDate?' · '+esc(L('Expected','المتوقع'))+': '+esc(x.dueDate):'')+(x.settledDate?' · '+esc(L('Settled on','سُوّيت في'))+': '+esc(x.settledDate):'')+(x.note?'<br>'+esc(x.note):'')+'</div>'
     +'<div class="sdb-tl-hd">'+esc(L('Payments','الدفعات'))+'</div><div class="sdb-tl">'+tl+'</div>'
     +'<div class="modal-btns">'
     +(x.settled?'<button class="mbtn save" onclick="savReopenDebt('+idx+')">'+esc(L('Reopen (undo last settlement)','إعادة فتح (تراجع عن آخر تسوية)'))+'</button>'
-               :'<button class="mbtn save" onclick="closeModal();savSettleDebt('+idx+')">'+ic('check',15)+' '+esc(isToMe?L('Mark received','تم التحصيل'):L('Mark paid','تم السداد'))+'</button>')
+               :'<button class="mbtn save" onclick="closeModal();savSettleDebt('+idx+',\'part\')">'+ic('plus',15)+' '+esc(isToMe?L('Add payment received','إضافة دفعة مُستلمة'):L('Add payment','إضافة دفعة'))+'</button>'
+                 +'<button class="mbtn cancel" onclick="closeModal();savSettleDebt('+idx+')">'+ic('check',15)+' '+esc(isToMe?L('Mark all received','تم تحصيل الكل'):L('Mark all paid','تم سداد الكل'))+'</button>')
     +'<button class="mbtn cancel" onclick="closeModal();savEditDebt('+idx+')">'+esc(L('Edit details','تعديل البيانات'))+'</button>'
     +'<button class="mbtn cancel sdb-danger" onclick="closeModal();savDeleteDebt('+idx+')">'+esc(L('Delete record','حذف السجل'))+'</button>'
     +'<button class="mbtn cancel" onclick="closeModal()">'+esc(L('Close','إغلاق'))+'</button></div>';
   document.getElementById('modalOverlay').style.display='flex';
+}
+function savDelDebtPayment(idx,pi){
+  const x=SAVINGS.debts[idx]; if(!x||!Array.isArray(x.payments)||!x.payments[pi]) return;
+  const amt=x.payments[pi].amount||0;
+  showConfirm(L('Remove this payment of ','حذف دفعة بقيمة ')+fmtEGP(amt)+L('?','؟')+(x.settled?' '+L('The debt will reopen.','والمديونية هترجع مفتوحة.'):''), ()=>{
+    x.payments.splice(pi,1); _debtSync(x);
+    saveSavings(); debtCheckDue(); renderView(); savDebtDetails(idx);
+    showToast(L('Payment removed ✓','تم حذف الدفعة ✓'),'info');
+  });
 }
 function savReopenDebt(idx){
   const x=SAVINGS.debts[idx]; if(!x) return;
   if(Array.isArray(x.payments)&&x.payments.length) x.payments.pop();
   _debtSync(x);
   if(x.settled){ x.settled=false; delete x.settledDate; }
-  saveSavings(); closeModal(); renderView();
+  saveSavings(); debtCheckDue(); closeModal(); renderView();
   showToast(L('Debt reopened ✓','تمت إعادة فتح المديونية ✓'),'info');
 }
+// ═══ Debt reminders — feed the existing Notification Center (bell) ═══════════
+// One card per open debt that is close to / past its EXPECTED date (default 3
+// days before), or that has sat untouched for 30+ days. Nothing is enforced:
+// paying early or late is fine. "Later" snoozes the debt; paying it off or
+// switching reminders to Off stops them. Same local-only limits as Reminders.
+const _debtNotifSeen=new Set(); // per-session: don't re-push a card the user already cleared today
+function _debtRemindDays(x){ const v=x.remindDays; return v===-1?-1:(Number.isInteger(v)&&v>=0?v:3); }
+function _debtIdxById(id){ return (SAVINGS.debts||[]).findIndex(x=>x&&x.id===id); }
+function savSettleDebtById(id,mode){ const i=_debtIdxById(id); if(i>=0) savSettleDebt(i,mode); }
+function debtSnooze(id,days){
+  const i=_debtIdxById(id); if(i<0) return;
+  const d=new Date(); d.setDate(d.getDate()+(days||1));
+  SAVINGS.debts[i].snoozeUntil=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+  saveSavings(); notifDismiss('debt_'+id);
+  showToast(L('Okay — I will remind you later','تمام — هفكّرك بعدين'),'info');
+}
+function debtCheckDue(){
+  try{
+    if(typeof SAVINGS==='undefined'||!SAVINGS||!Array.isArray(SAVINGS.debts)) return;
+    const todayISO=today(), live=new Set(); let dirty=false;
+    SAVINGS.debts.forEach((x,idx)=>{
+      if(!x||x.settled) return;
+      if(!x.id){ x.id='d'+Date.now().toString(36)+idx; dirty=true; }
+      const rd=_debtRemindDays(x); if(rd===-1) return;
+      if(x.snoozeUntil&&x.snoozeUntil>todayISO) return;
+      const rem=_debtRemaining(x); if(!(rem>0)) return;
+      const isToMe=x.direction==='to_me', paid=_debtPaid(x);
+      let d=null, kind='', age=0;
+      if(x.dueDate){ d=remDaysUntil(x.dueDate); if(d>rd) return; kind=d<0?'passed':'soon'; }
+      else{
+        const lastP=(x.payments||[]).slice(-1)[0]; const last=(lastP&&lastP.date)||x.date||''; if(!last) return;
+        age=-remDaysUntil(last); if(age<30) return; kind='stale';
+      }
+      const nid='debt_'+x.id; live.add(nid);
+      const key=nid+'|'+todayISO+'|'+(x.dueDate||'')+'|'+rem;
+      if(_debtNotifSeen.has(key)) return;
+      _debtNotifSeen.add(key);
+      const sub=kind==='soon'?(d===0?L('Expected today','متوقع النهاردة'):d===1?L('Expected tomorrow','متوقع بكرة'):L(`Expected in ${d} days`,`متوقع بعد ${_remArDays(d)}`))
+        :kind==='passed'?L(`Expected date passed ${-d} day${-d>1?'s':''} ago`,`عدّى الميعاد المتوقع من ${_remArDays(-d)}`)
+        :L(`No activity for ${age} days`,`من ${age} يوم من غير حركة`);
+      const tone=(kind==='soon'&&d<=1)||kind==='passed'?'warn':'info';
+      notifPush({
+        id:nid, tone,
+        icon:ic('scale',20),
+        iconBg:isToMe?'linear-gradient(135deg,var(--green-dark),var(--green))':_REM_TONE_BG.danger,
+        eyebrow:isToMe?L('Owed to you','دين ليك'):L('You owe','دين عليك'),
+        title:esc(x.person||L('Debt','مديونية'))+' · '+esc(fmtEGP(rem)),
+        sub,
+        body:paid>0?esc(_sdbVerb(isToMe,true)+' '+fmt(paid)+' '+L('of','من')+' '+fmt(x.amount||0)):'',
+        primaryLabel:`${ic('plus',13)} ${isToMe?L('Add payment received','إضافة دفعة مُستلمة'):L('Add payment','إضافة دفعة')}`,
+        primaryFn:`closeModal();savSettleDebtById('${x.id}','part')`,
+        extraLabel:L('Open','فتح'),
+        extraFn:`closeModal();setView('savings')`,
+        secondaryLabel:L('Later','لاحقاً'),
+        secondaryFn:`debtSnooze('${x.id}',1)`
+      });
+      if(kind==='soon') remTryOsNotify({id:nid,title:(x.person||L('Debt','مديونية'))+' · '+fmtEGP(rem),date:x.dueDate},d);
+    });
+    // drop cards for debts that were settled / snoozed / switched off
+    const before=NOTIF_ITEMS.length;
+    NOTIF_ITEMS=NOTIF_ITEMS.filter(n=>!String(n.id).startsWith('debt_')||live.has(n.id));
+    if(NOTIF_ITEMS.length!==before){ notifUpdateBadge(); notifRenderList(); }
+    if(dirty) saveSavings();
+  }catch(e){ try{ _logErr('debtCheckDue',e); }catch(_){} }
+}
+document.addEventListener('visibilitychange',()=>{ if(!document.hidden) debtCheckDue(); });
+setInterval(debtCheckDue,30*60*1000);
+
 function savAddDebt(){ _savDebtModal(null); }
 function savEditDebt(idx){ _savDebtModal(idx); }
 function _savDebtModal(editIdx){
@@ -23954,7 +24036,13 @@ function _savDebtModal(editIdx){
     <div class="field"><label>${L('Amount','المبلغ')} *</label><input id="savDebtAmount" type="text" inputmode="decimal" value="${x.amount||''}" placeholder="0"></div>
     <div class="ds-grid-2-tight">
       <div class="field"><label>${L('Date','التاريخ')}</label><input id="savDebtDate" type="date" value="${x.date||today()}"></div>
-      <div class="field"><label>${L('Due Date','تاريخ الاستحقاق')}</label><input id="savDebtDue" type="date" value="${x.dueDate||''}"></div>
+      <div class="field"><label>${L('Expected date (optional)','التاريخ المتوقع (اختياري)')}</label><input id="savDebtDue" type="date" value="${x.dueDate||''}"></div>
+    </div>
+    <div class="field"><label>${L('Remind me','ذكّرني')}</label>
+      <select id="savDebtRemind">
+        ${[[3,L('3 days before the expected date','قبل التاريخ المتوقع بـ 3 أيام')],[0,L('On the expected date','في التاريخ المتوقع')],[1,L('1 day before','قبله بيوم')],[7,L('1 week before','قبله بأسبوع')],[-1,L('Off','بدون تذكير')]].map(o=>`<option value="${o[0]}" ${_debtRemindDays(x)===o[0]?'selected':''}>${o[1]}</option>`).join('')}
+      </select>
+      <div class="sdb-hint" style="margin-top:6px">${L('Also nudges you if a debt without a date sits untouched for 30 days.','وبينبّهك كمان لو مديونية من غير تاريخ مفيهاش حركة 30 يوم.')}</div>
     </div>
     <div class="field"><label>${L('Notes','ملاحظات')}</label><input id="savDebtNote" value="${esc(x.note||'')}" placeholder="${L('optional…','اختياري…')}" dir="auto"></div>
     <div class="modal-btns">
@@ -23975,13 +24063,15 @@ function savSaveDebt(editIdx){
     person, amount,
     date:(document.getElementById('savDebtDate').value||today()),
     dueDate:(document.getElementById('savDebtDue').value||''),
+    remindDays:(function(){ const v=parseInt((document.getElementById('savDebtRemind')||{}).value,10); return Number.isInteger(v)?v:3; })(),
     note:(document.getElementById('savDebtNote').value||'').trim(),
     iconOverride: _savIconOverride.debt || null,
   };
-  if(editIdx!=null && SAVINGS.debts[editIdx]){ Object.assign(SAVINGS.debts[editIdx], obj); _debtSync(SAVINGS.debts[editIdx]); }
+  if(editIdx!=null && SAVINGS.debts[editIdx]){ Object.assign(SAVINGS.debts[editIdx], obj); delete SAVINGS.debts[editIdx].snoozeUntil; _debtSync(SAVINGS.debts[editIdx]); }
   else SAVINGS.debts.push({id:Date.now().toString(), ...obj});
   _savIconOverride.debt = null;
   saveSavings();
+  debtCheckDue();
   closeModal();
   renderView();
   showToast(L('Debt saved ✓','تم حفظ المديونية ✓'),'success');
@@ -23992,6 +24082,7 @@ function savDeleteDebt(idx){
   showConfirm(x.settled?L('Delete this settled record? It will be removed from your history for good.','حذف هذا السجل المسوّى؟ سيُزال من السجل التاريخي نهائياً.'):L('Delete this debt entry? This cannot be undone.','حذف سجل المديونية هذا؟ لا يمكن التراجع.'), ()=>{
     SAVINGS.debts.splice(idx,1);
     saveSavings();
+    debtCheckDue();
     closeModal();
     renderView();
     showToast(L('Deleted ✓','تم الحذف ✓'),'info');
@@ -29904,14 +29995,13 @@ function toggleTheme(){
   applyTheme(newTheme, true);
   try{
     localStorage.setItem(THEME_KEY, newTheme);
-    // Any manual flip is treated as an explicit override — it stops the
-    // 7 PM/6 AM auto-schedule until the person turns Auto back on
-    // from Settings (mirrors how "Automatic" appearance modes work
-    // elsewhere: a manual choice always wins over the schedule).
-    localStorage.setItem(THEME_MODE_KEY, 'manual');
+    // Auto mode is a persistent setting: a manual flip NEVER turns it off.
+    // While Auto is on, the flip is a temporary override that lasts until the
+    // next scheduled switch (see applyAutoThemeIfDue).
+    let _m='auto'; try{ _m=localStorage.getItem(THEME_MODE_KEY)||'auto'; }catch(e){}
+    if(_m==='auto') localStorage.setItem(THEME_OVERRIDE_KEY, JSON.stringify({t:newTheme, until:_nextAutoBoundary(getAutoThemeRange())}));
   }
   catch(e){ console.warn('Could not save theme', e); }
-  stopAutoThemeScheduler();
   // Sprint W4: the active workspace's dark-mode primary/tint/glow are
   // derived live from its light-mode primary — recompute them now that
   // data-theme has changed, without touching anything else.
@@ -29923,18 +30013,39 @@ function toggleTheme(){
 // THEME_KEY/applyTheme() used by the manual toggle above, on a fixed daily
 // clock. A manual tap on the sun/moon button always overrides it (see
 // toggleTheme()).
+const AUTO_RANGE_KEY='wdp_theme_auto_range_v1';      // {dark:minutes, light:minutes}
+const THEME_OVERRIDE_KEY='wdp_theme_override_v1';     // {t:'dark'|'light', until:epoch-ms}
+function getAutoThemeRange(){
+  let r={}; try{ r=JSON.parse(localStorage.getItem(AUTO_RANGE_KEY)||'{}')||{}; }catch(e){}
+  const ok=v=>Number.isInteger(v)&&v>=0&&v<1440;
+  return {dark:ok(r.dark)?r.dark:19*60, light:ok(r.light)?r.light:6*60};
+}
+function _autoShouldBeDark(min,r){
+  // wraps past midnight when dark > light (e.g. 7 PM → 6 AM); plain window otherwise
+  return r.dark>r.light ? (min>=r.dark || min<r.light) : (min>=r.dark && min<r.light);
+}
+function _nextAutoBoundary(r){
+  const now=new Date(), nowMs=now.getTime(); let best=Infinity;
+  [r.dark,r.light].forEach(m=>{ for(let d=0;d<2;d++){ const t=new Date(now.getFullYear(),now.getMonth(),now.getDate()+d,Math.floor(m/60),m%60,0,0).getTime(); if(t>nowMs&&t<best) best=t; } });
+  return best;
+}
+function _autoFmtMin(min){
+  const h=Math.floor(min/60), m=min%60, pm=h>=12, h12=h%12||12;
+  return h12+(m?':'+String(m).padStart(2,'0'):'')+' '+(pm?L('PM','مساءً'):L('AM','صباحاً'));
+}
+function _autoOverrideActive(){
+  try{ const ov=JSON.parse(localStorage.getItem(THEME_OVERRIDE_KEY)||'null'); if(ov&&Date.now()<ov.until) return ov; }catch(e){}
+  return null;
+}
 function applyAutoThemeIfDue(){
   let mode='auto';
   try{ mode = localStorage.getItem(THEME_MODE_KEY) || 'auto'; }catch(e){}
   if(mode!=='auto') return;
-
+  // A manual flip holds until the next scheduled switch, then the schedule resumes.
+  if(_autoOverrideActive()) return;
+  try{ localStorage.removeItem(THEME_OVERRIDE_KEY); }catch(e){}
   const now=new Date();
-  const nowMin = now.getHours()*60 + now.getMinutes();
-  const darkFromMin  = 19*60; // 7:00 PM
-  const lightFromMin = 6*60;  // 6:00 AM
-  // Dark spans from 7 PM through the night to 6 AM the next morning — wraps
-  // past midnight, so it's an OR, not a simple between-check.
-  const shouldBeDark = nowMin>=darkFromMin || nowMin<lightFromMin;
+  const shouldBeDark=_autoShouldBeDark(now.getHours()*60+now.getMinutes(), getAutoThemeRange());
   const currentlyDark = document.documentElement.getAttribute('data-theme')==='dark';
   if(shouldBeDark!==currentlyDark){
     applyTheme(shouldBeDark?'dark':'light', true);
@@ -30358,13 +30469,14 @@ function openSettings(){
         <div class="stt-row" onclick="sttToggleAutoTheme()" role="button" tabindex="0">
           ${sttMakeIcon('autotheme')}
           <div class="stt-row-body">
-            <div class="stt-row-title">${L('Auto (7 PM \u2013 6 AM)','تلقائي (7 مساءً - 6 صباحاً)')}</div>
-            <div class="stt-row-sub">${L('Switch to Dark at 7 PM, Light at 6 AM','التحويل لليلي الساعة 7 مساءً، والنهاري الساعة 6 صباحاً')}</div>
+            <div class="stt-row-title">${_sttAutoTitle()}</div>
+            <div class="stt-row-sub">${_sttAutoSub()}</div>${_themeMode==='auto'&&_autoOverrideActive()?`<div class="stt-row-sub stt-auto-ov">${L('Manual until','يدوي لحد')} ${_autoFmtMin(new Date(_autoOverrideActive().until).getHours()*60+new Date(_autoOverrideActive().until).getMinutes())}</div>`:''}
           </div>
           <div class="stt-row-trail">
             <div class="stt-switch ${_themeMode==='auto'?'on':''}" id="sttAutoThemeSwitch"><div class="stt-switch-dot"></div></div>
           </div>
         </div>
+        ${_themeMode==='auto'?_sttAutoRangeHTML():''}
         <div class="stt-row" onclick="sttToggleTextSizeGroup()" role="button" tabindex="0">
           ${sttMakeIcon('textsize')}
           <div class="stt-row-body"><div class="stt-row-title">${L('Text Size','حجم النص')}</div></div>
@@ -30755,11 +30867,25 @@ function refreshSettingsSheet(){
   // place (no destroy/recreate), so it's safe to just call it directly.
   openSettings();
 }
+function _sttAutoTitle(){ const r=getAutoThemeRange(); return L('Auto','تلقائي')+' ('+_autoFmtMin(r.dark)+' \u2013 '+_autoFmtMin(r.light)+')'; }
+function _sttAutoSub(){ const r=getAutoThemeRange(); return L('Switch to Dark at '+_autoFmtMin(r.dark)+', Light at '+_autoFmtMin(r.light),'التحويل لليلي الساعة '+_autoFmtMin(r.dark)+'، والنهاري الساعة '+_autoFmtMin(r.light)); }
+function _sttAutoRangeHTML(){
+  const r=getAutoThemeRange(), hh=m=>String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0');
+  return `<div class="stt-auto-range"><label><small>${L('Dark from','داكن من')}</small><input type="time" id="sttAutoFrom" value="${hh(r.dark)}" onchange="sttSetAutoRange()"></label><label><small>${L('Light from','فاتح من')}</small><input type="time" id="sttAutoTo" value="${hh(r.light)}" onchange="sttSetAutoRange()"></label></div>`;
+}
+function sttSetAutoRange(){
+  const pm=v=>{ const m=/^(\d{1,2}):(\d{2})$/.exec(v||''); return m?(+m[1])*60+(+m[2]):null; };
+  const d=pm(document.getElementById('sttAutoFrom')?.value), l=pm(document.getElementById('sttAutoTo')?.value);
+  if(d==null||l==null) return;
+  if(d===l){ showToast(L('Start and end times must be different','لازم وقت البداية يختلف عن وقت النهاية'),'warn'); refreshSettingsSheet(); return; }
+  try{ localStorage.setItem(AUTO_RANGE_KEY,JSON.stringify({dark:d,light:l})); localStorage.removeItem(THEME_OVERRIDE_KEY); }catch(e){ _logErr('sttSetAutoRange',e); }
+  applyAutoThemeIfDue(); refreshSettingsSheet();
+}
 function sttToggleAutoTheme(){
   SoundManager.play('toggle');
   let mode='auto'; try{ mode=localStorage.getItem(THEME_MODE_KEY)||'auto'; }catch(e){_logErr('sttToggleAutoTheme:read',e);}
   const newMode = mode==='auto' ? 'manual' : 'auto';
-  try{ localStorage.setItem(THEME_MODE_KEY, newMode); }catch(e){_logErr('sttToggleAutoTheme:write',e);}
+  try{ localStorage.setItem(THEME_MODE_KEY, newMode); localStorage.removeItem(THEME_OVERRIDE_KEY); }catch(e){_logErr('sttToggleAutoTheme:write',e);}
   if(newMode==='auto') startAutoThemeScheduler();
   else stopAutoThemeScheduler();
   refreshSettingsSheet();
@@ -53640,7 +53766,7 @@ function renderBankReport(){
 
   // ── AI Summary ───────────────────────────────────────────────────────────────
   if(navigator.onLine){
-    h+=`<div style="background:linear-gradient(135deg,#e0f2fe,#eff6ff);border:1.5px solid #0891b233;border-radius:var(--radius);padding:16px;position:relative;overflow:hidden">
+    h+=`<div style="background:linear-gradient(135deg,color-mix(in srgb,#0891b2 15%,var(--surface)),color-mix(in srgb,#0284c7 7%,var(--surface)));border:1.5px solid #0891b233;border-radius:var(--radius);padding:16px;position:relative;overflow:hidden">
       <div style="position:absolute;top:-20px;right:-15px;width:80px;height:80px;border-radius:50%;background:rgba(8,145,178,.07);pointer-events:none"></div>
       <div style="display:flex;align-items:center;gap:var(--sp3);margin-bottom:12px">
         <div style="width:36px;height:36px;border-radius:var(--icon-r-3);background:linear-gradient(135deg,#0284c7,#0891b2);display:flex;align-items:center;justify-content:center;font-size:calc(18px*var(--app-text-scale,1));flex-shrink:0">${ic('bank',18)}</div>
@@ -60449,6 +60575,24 @@ input[type="number"]{font-variant-numeric:tabular-nums}
 .dash-hero-main-val,.dv3h-stat-val,.dfp-kpi3-val,.fin-hero-amount,.fin-card-amount,.fin-num,.bnk-card-balance,.bal-avail-amount,.balance-display,.dsum-num,.txlg-amt,.sav-row-amount,.hnum-row,.hnum-row *,.dfp-donut-center-val,.bnk-analytics-stat-val,.pxw-hd b,.pxw-lbls em,.wdash-greet-r b,.sg-amt b,.pur2-pr span,.txlg-group-total,.jp-ast b,.jp-pct,.jp-chip b[dir="ltr"],.rq-amt{font-family:var(--font-num);font-variant-numeric:tabular-nums lining-nums;font-feature-settings:"tnum" 1,"lnum" 1}
 .dash-hero-main-val,.fin-hero-amount,.bnk-card-balance,.dsum-num,.balance-display{font-weight:700;letter-spacing:-.02em}
 .fin-cur,.bal-cur,.sav-cur,.hnum-sign,.pur2-pr small{font-family:var(--font);letter-spacing:0}
+
+/* money numerals — second pass (every remaining amount class found app-wide) */
+.aiq-record-amt,.ast-sheet-value,.ast-sum-v,.att-pay-amt,.bnk-sec-sum,.bnk-tl-amt,.bnk-vc-balance,.ctr-kpi-val,.cx-amt,.cx-in-amt,.cx-mv-amt,.dash-hero-stat-val,.dfp-activity-amt,.dfp-cmp-vals,.dfp-trend-val,.dt-amt,.hnum-amt,.kpi3-amt,.note-row-amt,.pur-amt,.pur-sum-val,.recur-amt,.sc-summary-tile-val,.sdb-h-amt,.sdb-tl-amt,.sig-amt,.skel-bc-bal,.sms-card-amt,.tc-amt,.tx-amount,.tx-amt,.txai-summary-amt{font-family:var(--font-num);font-variant-numeric:tabular-nums lining-nums;font-feature-settings:"tnum" 1,"lnum" 1}
+
+/* Auto dark-mode schedule */
+.stt-auto-range{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:2px 14px 14px;padding:12px;border-radius:14px;background:var(--surface2);border:1px solid var(--border)}
+.stt-auto-range label{display:flex;flex-direction:column;gap:5px;min-width:0}
+.stt-auto-range small{font-size:calc(11px*var(--app-text-scale,1));font-weight:700;color:var(--muted)}
+.stt-auto-range input[type="time"]{width:100%;min-width:0;padding:9px 10px;border-radius:10px;border:1px solid var(--border);background:var(--surface);color:var(--text);font:inherit;font-weight:700;font-family:var(--font-num,inherit);color-scheme:light dark;direction:ltr;text-align:center}
+.stt-auto-range input[type="time"]:focus-visible{outline:2px solid var(--green-light,#2BC48C);outline-offset:1px}
+.stt-auto-ov{margin-top:3px;color:var(--gold,#C9922E);font-weight:700}
+
+/* Debts: partial payments UX */
+.sdb-btns{display:flex;flex-wrap:wrap;gap:8px}
+.sdb-settle.part{color:var(--text);background:var(--surface2);border:1px solid var(--border)}
+.sdb-tl-del{all:unset;box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:10px;color:var(--muted);cursor:pointer;flex:none;transition:background-color .15s,color .15s}
+.sdb-tl-del:hover,.sdb-tl-del:active{background:var(--red-tint);color:var(--red)}
+.sdb-tl-del:focus-visible{outline:2px solid var(--green-light,#2BC48C);outline-offset:1px}
 </style>
 <script id="finora-polish-js">
 /* FINORA polish — accessibility behaviour for the shared modal sheet.
