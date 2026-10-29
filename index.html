@@ -21564,7 +21564,28 @@ function _astProbe(img){
         if(x<minX)minX=x; if(x>maxX)maxX=x; if(y<minY)minY=y; if(y>maxY)maxY=y;
       }
     }
-    if(maxX<0 || kept<N*0.04){      // basically an all-white picture: leave it alone
+    // Safety net: a white/light product (earbuds, a white phone…) on a white backdrop gets eaten
+    // by the cut-out and only scattered dark fragments survive. Detect that (too little kept, or
+    // kept pixels shattered into many bits) and show the untouched picture instead.
+    let shattered=false;
+    if(maxX>=0 && kept>=N*0.04){
+      const lab=new Uint8Array(N); let largest=0;
+      for(let p0=0;p0<N;p0++){
+        if(seen[p0]||lab[p0]||d[p0*4+3]<=30) continue;
+        const stk=[p0]; lab[p0]=1; let sz=0;
+        while(stk.length){
+          const p=stk.pop(); sz++;
+          const x=p%cw, y=(p/cw)|0; let q;
+          if(x>0)    { q=p-1;  if(!seen[q]&&!lab[q]&&d[q*4+3]>30){ lab[q]=1; stk.push(q); } }
+          if(x<cw-1) { q=p+1;  if(!seen[q]&&!lab[q]&&d[q*4+3]>30){ lab[q]=1; stk.push(q); } }
+          if(y>0)    { q=p-cw; if(!seen[q]&&!lab[q]&&d[q*4+3]>30){ lab[q]=1; stk.push(q); } }
+          if(y<ch-1) { q=p+cw; if(!seen[q]&&!lab[q]&&d[q*4+3]>30){ lab[q]=1; stk.push(q); } }
+        }
+        if(sz>largest) largest=sz;
+      }
+      shattered = largest < kept*0.7 || kept < N*0.12;
+    }
+    if(maxX<0 || kept<N*0.04 || shattered){      // all-white picture, or a light product the cut-out would destroy: leave it alone
       if(key) _AST_CUT[key]='fit';
       box.dataset.astmode='fit'; return;
     }
@@ -23959,14 +23980,18 @@ function savReopenDebt(idx){
 // paying early or late is fine. "Later" snoozes the debt; paying it off or
 // switching reminders to Off stops them. Same local-only limits as Reminders.
 const _debtNotifSeen=new Set(); // per-session: don't re-push a card the user already cleared today
-function _debtRemindDays(x){ const v=x.remindDays; return v===-1?-1:(Number.isInteger(v)&&v>=0?v:3); }
+function _debtRemindDays(x){ const v=x.remindDays; return v===-1?-1:(Number.isInteger(v)&&v>=0?Math.min(v,2):2); }
+// A debt reminder, once cleared/dismissed/acted on, is switched off for good (stored on the debt itself).
+function _debtNotifOff(id){
+  try{ const i=_debtIdxById(id); if(i<0) return; if(!SAVINGS.debts[i].notifOff){ SAVINGS.debts[i].notifOff=true; saveSavings(); } }catch(_){}
+}
 function _debtIdxById(id){ return (SAVINGS.debts||[]).findIndex(x=>x&&x.id===id); }
 function savSettleDebtById(id,mode){ const i=_debtIdxById(id); if(i>=0) savSettleDebt(i,mode); }
 function debtSnooze(id,days){
   const i=_debtIdxById(id); if(i<0) return;
   const d=new Date(); d.setDate(d.getDate()+(days||1));
   SAVINGS.debts[i].snoozeUntil=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
-  saveSavings(); notifDismiss('debt_'+id);
+  saveSavings(); NOTIF_ITEMS=NOTIF_ITEMS.filter(n=>n.id!=='debt_'+id); notifUpdateBadge(); notifRenderList();
   showToast(L('Okay — I will remind you later','تمام — هفكّرك بعدين'),'info');
 }
 function debtCheckDue(){
@@ -23974,7 +23999,7 @@ function debtCheckDue(){
     if(typeof SAVINGS==='undefined'||!SAVINGS||!Array.isArray(SAVINGS.debts)) return;
     const todayISO=today(), live=new Set(); let dirty=false;
     SAVINGS.debts.forEach((x,idx)=>{
-      if(!x||x.settled) return;
+      if(!x||x.settled||x.notifOff) return;
       if(!x.id){ x.id='d'+Date.now().toString(36)+idx; dirty=true; }
       const rd=_debtRemindDays(x); if(rd===-1) return;
       if(x.snoozeUntil&&x.snoozeUntil>todayISO) return;
@@ -24003,13 +24028,13 @@ function debtCheckDue(){
         sub,
         body:paid>0?esc(_sdbVerb(isToMe,true)+' '+fmt(paid)+' '+L('of','من')+' '+fmt(x.amount||0)):'',
         primaryLabel:`${ic('plus',13)} ${isToMe?L('Add payment received','إضافة دفعة مُستلمة'):L('Add payment','إضافة دفعة')}`,
-        primaryFn:`closeModal();savSettleDebtById('${x.id}','part')`,
+        primaryFn:`notifDismiss('debt_${x.id}');closeModal();savSettleDebtById('${x.id}','part')`,
         extraLabel:L('Open','فتح'),
-        extraFn:`closeModal();setView('savings')`,
+        extraFn:`notifDismiss('debt_${x.id}');closeModal();setView('savings')`,
         secondaryLabel:L('Later','لاحقاً'),
         secondaryFn:`debtSnooze('${x.id}',1)`
       });
-      if(kind==='soon') remTryOsNotify({id:nid,title:(x.person||L('Debt','مديونية'))+' · '+fmtEGP(rem),date:x.dueDate},d);
+      if(kind==='soon' && !x.osNotified){ x.osNotified=true; dirty=true; remTryOsNotify({id:nid,title:(x.person||L('Debt','مديونية'))+' · '+fmtEGP(rem),date:x.dueDate},d); }
     });
     // drop cards for debts that were settled / snoozed / switched off
     const before=NOTIF_ITEMS.length;
@@ -24051,7 +24076,7 @@ function _savDebtModal(editIdx){
     </div>
     <div class="field"><label>${L('Remind me','ذكّرني')}</label>
       <select id="savDebtRemind">
-        ${[[3,L('3 days before the expected date','قبل التاريخ المتوقع بـ 3 أيام')],[0,L('On the expected date','في التاريخ المتوقع')],[1,L('1 day before','قبله بيوم')],[7,L('1 week before','قبله بأسبوع')],[-1,L('Off','بدون تذكير')]].map(o=>`<option value="${o[0]}" ${_debtRemindDays(x)===o[0]?'selected':''}>${o[1]}</option>`).join('')}
+        ${[[2,L('2 days before the expected date','قبل التاريخ المتوقع بيومين')],[1,L('1 day before','قبله بيوم')],[0,L('On the expected date','في التاريخ المتوقع')],[-1,L('Off','بدون تذكير')]].map(o=>`<option value="${o[0]}" ${_debtRemindDays(x)===o[0]?'selected':''}>${o[1]}</option>`).join('')}
       </select>
       <div class="sdb-hint" style="margin-top:6px">${L('Also nudges you if a debt without a date sits untouched for 30 days.','وبينبّهك كمان لو مديونية من غير تاريخ مفيهاش حركة 30 يوم.')}</div>
     </div>
@@ -24074,11 +24099,11 @@ function savSaveDebt(editIdx){
     person, amount,
     date:(document.getElementById('savDebtDate').value||today()),
     dueDate:(document.getElementById('savDebtDue').value||''),
-    remindDays:(function(){ const v=parseInt((document.getElementById('savDebtRemind')||{}).value,10); return Number.isInteger(v)?v:3; })(),
+    remindDays:(function(){ const v=parseInt((document.getElementById('savDebtRemind')||{}).value,10); return Number.isInteger(v)?v:2; })(),
     note:(document.getElementById('savDebtNote').value||'').trim(),
     iconOverride: _savIconOverride.debt || null,
   };
-  if(editIdx!=null && SAVINGS.debts[editIdx]){ Object.assign(SAVINGS.debts[editIdx], obj); delete SAVINGS.debts[editIdx].snoozeUntil; _debtSync(SAVINGS.debts[editIdx]); }
+  if(editIdx!=null && SAVINGS.debts[editIdx]){ Object.assign(SAVINGS.debts[editIdx], obj); delete SAVINGS.debts[editIdx].snoozeUntil; delete SAVINGS.debts[editIdx].notifOff; delete SAVINGS.debts[editIdx].osNotified; _debtSync(SAVINGS.debts[editIdx]); }
   else SAVINGS.debts.push({id:Date.now().toString(), ...obj});
   _savIconOverride.debt = null;
   saveSavings();
@@ -36904,7 +36929,7 @@ function _jpAttBrief(){
 }
 function _jpCustHTML(p){
   if(_caState()==='ok') return _caCustHTML();
-  const items=p.custody.map(x=>`<div class="jp-row" style="cursor:pointer" onclick="_jpEditCustody('${esc(x.id)}')">${_custPhIcon(x)}<div class="jp-rtx"><b dir="auto">${esc(x.name||L('Item','عنصر'))}</b>${x.note?`<small dir="auto" style="margin:3px 0 0">${esc(x.note)}</small>`:''}${x.date?`<small style="margin:3px 0 0">${ic('calendar',11)} ${esc(_jpDate(x.date))}</small>`:''}</div><button type="button" class="jp-rb" onclick="event.stopPropagation();_jpEditCustody('${esc(x.id)}')" aria-label="${L('Edit','تعديل')}">${ic('edit',15)}</button></div>`).join('');
+  const items=p.custody.map(x=>`<div class="jp-row jp-crow" style="cursor:pointer" onclick="_jpEditCustody('${esc(x.id)}')">${_custPhIcon(x)}<div class="jp-rtx"><b dir="auto">${esc(x.name||L('Item','عنصر'))}</b>${x.note?`<small dir="auto" class="jp-cdesc" style="margin:3px 0 0">${esc(x.note)}</small>`:''}${x.date?`<small class="jp-cmeta" style="margin:3px 0 0">${ic('calendar',11)} ${esc(_jpDate(x.date))}</small>`:''}</div><button type="button" class="jp-rb" onclick="event.stopPropagation();_jpEditCustody('${esc(x.id)}')" aria-label="${L('Edit','تعديل')}">${ic('edit',15)}</button></div>`).join('');
   return `<section class="jp-card">
     <div class="jp-sec">${ic('package',17)}<span>${L('My custody','العهدة اللي معايا')}</span>${p.custody.length?`<em style="font-style:normal;font-size:12px;color:var(--muted);font-weight:700">${p.custody.length}</em>`:''}<span class="sp"></span><button type="button" class="jp-add" onclick="_jpEditCustody(null)">${ic('plus',14)} ${L('Add','إضافة')}</button></div>
     ${items||`<div class="jp-empty">${L('No items yet — add your laptop, charger, mouse, bag…','لسه مفيش عهدة — ضيف اللاب توب والشاحن والماوس والشنطة…')}</div>`}
@@ -37367,7 +37392,7 @@ function _jpHeld(d){
 }
 function _caCustRow(k,c){
   const gone=k.status!=='with';
-  return `<div class="jp-row" style="cursor:pointer" onclick="_caCustSheet('${k.id}')">${_custPhIcon(k)}<div class="jp-rtx"><b dir="auto">${esc(k.name)}${k.review?` <span class="ca-b rev">${L('Needs review','يحتاج مراجعة')}</span>`:''}</b>${k.note?`<small dir="auto" style="margin:3px 0 0">${esc(k.note)}</small>`:''}<small style="margin:3px 0 0">${esc(_caCustLine(k))}</small>${!gone&&_jpHeld(k.receivedOn)?`<span class="jp-held">${ic('clock',11)} ${_jpHeld(k.receivedOn)}</span>`:''}${gone&&k.handoverNote?`<small dir="auto" style="margin:3px 0 0">${esc(k.handoverNote)}</small>`:''}</div><button type="button" class="jp-rb" onclick="event.stopPropagation();_caCustSheet('${k.id}')" aria-label="${L('Edit','تعديل')}">${ic('edit',15)}</button></div>`;
+  return `<div class="jp-row jp-crow" style="cursor:pointer" onclick="_caCustSheet('${k.id}')">${_custPhIcon(k)}<div class="jp-rtx"><b dir="auto">${esc(k.name)}${k.review?` <span class="ca-b rev">${L('Needs review','يحتاج مراجعة')}</span>`:''}</b>${k.note?`<small dir="auto" class="jp-cdesc" style="margin:3px 0 0">${esc(k.note)}</small>`:''}<small class="jp-cmeta" style="margin:3px 0 0">${esc(_caCustLine(k))}</small>${!gone&&_jpHeld(k.receivedOn)?`<span class="jp-held">${ic('clock',11)} ${_jpHeld(k.receivedOn)}</span>`:''}${gone&&k.handoverNote?`<small dir="auto" style="margin:3px 0 0">${esc(k.handoverNote)}</small>`:''}</div><button type="button" class="jp-rb" onclick="event.stopPropagation();_caCustSheet('${k.id}')" aria-label="${L('Edit','تعديل')}">${ic('edit',15)}</button></div>`;
 }
 function _caCustHTML(){
   const c=_caLoad(), cAll=c.custody.filter(k=>_caKProj(c,k)===_PRJ.active), w=cAll.filter(k=>k.status==='with').sort((a,b)=>(b.receivedOn||'').localeCompare(a.receivedOn||'')), h=cAll.filter(k=>k.status!=='with').sort((a,b)=>(b.closedOn||'').localeCompare(a.closedOn||''));
@@ -48110,7 +48135,9 @@ function closeModal(e){
   const sheet=document.getElementById('modalContent');
   overlay.classList.add('fp-closing');
   if(sheet) sheet.classList.add('fp-closing');
-  setTimeout(()=>{
+  clearTimeout(window._modalCloseT);
+  window._modalCloseT=setTimeout(()=>{
+    window._modalCloseT=0;
     overlay.style.display='none';
     overlay.classList.remove('fp-closing');
     if(sheet) sheet.classList.remove('fp-closing');
@@ -48126,6 +48153,14 @@ function closeModal(e){
   const orig = Object.getOwnPropertyDescriptor(Element.prototype, 'innerHTML');
   Object.defineProperty(mc, 'innerHTML', {
     set: function(html){
+      // A sheet opened while the previous one is still closing (closeModal();openOther())
+      // must not be hidden by the pending close timer.
+      if(window._modalCloseT){
+        clearTimeout(window._modalCloseT); window._modalCloseT=0;
+        const _ov=document.getElementById('modalOverlay');
+        if(_ov) _ov.classList.remove('fp-closing');
+        this.classList.remove('fp-closing');
+      }
       // Parse into a temp container
       const tmp = document.createElement('div');
       orig.set.call(tmp, html);
@@ -48896,6 +48931,7 @@ function notifPush(item){
   notifRenderList(); // no-op if the panel isn't currently open
 }
 function notifDismiss(id){
+  if(String(id).startsWith('debt_')){ try{ _debtNotifOff(String(id).slice(5)); }catch(_){} }
   NOTIF_ITEMS = NOTIF_ITEMS.filter(x=>x.id!==id);
   notifUpdateBadge();
   notifRenderList();
@@ -48926,6 +48962,7 @@ function notifCardHTML(item){
   </div>`;
 }
 function notifClearAll(){
+  NOTIF_ITEMS.forEach(n=>{ if(String(n.id).startsWith('debt_')){ try{ _debtNotifOff(String(n.id).slice(5)); }catch(_){} } });
   NOTIF_ITEMS = [];
   notifUpdateBadge();
   notifRenderList();
@@ -60436,6 +60473,22 @@ html[data-num-style="glow"] .banks-v2 .bnk-hero-total .sig-amt{font-weight:800!i
 .jp-ric.cph-ric{position:relative;overflow:hidden;padding:0}
 .jp-ric.cph-ric img{width:100%;height:100%;object-fit:cover;display:block}
 .jp-ric.cph-ric em{position:absolute;bottom:1px;inset-inline-end:1px;min-width:14px;height:14px;padding:0 3px;border-radius:7px;background:rgba(0,0,0,.65);color:#fff;font-style:normal;font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center}
+
+/* ── Custody list (My Job): larger framed photo, clamped specs, meta chip ── */
+.jp-card .jp-row.jp-crow{align-items:flex-start;gap:14px;padding:16px 0}
+.jp-card .jp-row.jp-crow+.jp-row.jp-crow::before{inset-inline-start:0}
+.jp-crow .jp-ric{width:76px;height:76px;border-radius:16px}
+.jp-crow .jp-ric svg{width:30px;height:30px}
+.jp-crow .jp-ric.cph-ric{background:#fff;border:1px solid var(--border);padding:6px;box-sizing:border-box;box-shadow:0 1px 2px rgba(20,20,20,.06),0 6px 14px -10px rgba(20,20,20,.25)}
+.jp-crow .jp-ric.cph-ric img{object-fit:contain;border-radius:10px}
+.jp-crow .jp-ric.cph-ric em{bottom:4px;inset-inline-end:4px}
+.jp-crow .jp-rtx{padding-top:2px}
+.jp-crow .jp-rtx b{font-size:calc(16px*var(--app-text-scale,1));line-height:1.3;letter-spacing:-.1px}
+.jp-crow .jp-cdesc{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;font-weight:500;line-height:1.5;color:var(--sub);overflow-wrap:anywhere}
+.jp-crow .jp-cmeta{display:inline-flex;align-items:center;flex-wrap:wrap;gap:5px;max-width:100%;margin-top:8px!important;padding:3px 10px;border-radius:10px;background:var(--surface2);color:var(--muted);font-weight:600}
+.jp-crow .jp-held{margin-inline-start:6px}
+.jp-crow .jp-rb{width:36px;height:36px;align-self:flex-start;margin-top:2px}
+.jp-wrap .jp-sec em{padding:1px 9px;border-radius:99px;background:var(--surface2);line-height:1.6}
 .cph-view{position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.92);display:flex;align-items:center;justify-content:center;padding:16px}
 .cph-view img{max-width:100%;max-height:100%;object-fit:contain;border-radius:8px}
 .cph-vx{all:unset;position:absolute;top:calc(env(safe-area-inset-top,0px) + 14px);inset-inline-end:14px;width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.16);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer}
