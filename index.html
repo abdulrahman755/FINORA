@@ -3826,6 +3826,17 @@ img.atl-img{position:absolute;left:0;top:0;width:100%;height:calc(100% - var(--b
   bottom:calc(var(--bar,0px) + 10px);width:48%;height:12px;border-radius:50%;
   background:radial-gradient(closest-side,rgba(20,20,20,.30),transparent);filter:blur(3px)}
 .ast-hero[data-astmode="cutout"]::after{bottom:14px;width:40%}
+
+/* white product on white backdrop: original photo, white blends into the tile (no white box, no dark blur) */
+[data-astmode="blend"] .atl-bg{opacity:0}
+[data-astmode="blend"] img.atl-img{padding:16px 14px 24px;mix-blend-mode:multiply;filter:none}
+.ast-hero[data-astmode="blend"] img.atl-img{padding:20px 20px 30px}
+[data-astmode="blend"].asset-tile .asset-tile-art::after,.ast-hero[data-astmode="blend"]::after{content:"";position:absolute;left:50%;transform:translateX(-50%);z-index:0;pointer-events:none;
+  bottom:calc(var(--bar,0px) + 10px);width:48%;height:12px;border-radius:50%;
+  background:radial-gradient(closest-side,rgba(20,20,20,.22),transparent);filter:blur(3px)}
+.ast-hero[data-astmode="blend"]::after{bottom:14px;width:40%}
+[data-theme="dark"] [data-astmode="blend"] img.atl-img{mix-blend-mode:normal;background:#fff;border-radius:16px;padding:10px;left:12px;top:12px;width:calc(100% - 24px);height:calc(100% - var(--bar,0px) - 24px)}
+[data-theme="dark"] [data-astmode="blend"].asset-tile .asset-tile-art::after,[data-theme="dark"] .ast-hero[data-astmode="blend"]::after{display:none}
 [data-theme="dark"] [data-astmode="cutout"].asset-tile .asset-tile-art::after,[data-theme="dark"] .ast-hero[data-astmode="cutout"]::after{background:radial-gradient(closest-side,rgba(0,0,0,.55),transparent)}
 
 /* full-bleed photos: gentle bottom fade so the info bar sits on the picture cleanly */
@@ -21487,7 +21498,7 @@ function _astProbe(img){
     const key = img.dataset.k || '';
     const hit = key ? _AST_CUT[key] : null;
     if(hit){
-      if(hit==='photo' || hit==='fit'){ box.dataset.astmode=hit; return; }
+      if(hit==='photo' || hit==='fit' || hit==='blend'){ box.dataset.astmode=hit; return; }
       img.src=hit; box.dataset.astmode='cutout'; return;
     }
     const w=img.naturalWidth, h=img.naturalHeight;
@@ -21585,9 +21596,13 @@ function _astProbe(img){
       }
       shattered = largest < kept*0.7 || kept < N*0.12;
     }
-    if(maxX<0 || kept<N*0.04 || shattered){      // all-white picture, or a light product the cut-out would destroy: leave it alone
+    if(maxX<0 || kept<N*0.04){      // basically an all-white picture: leave it alone
       if(key) _AST_CUT[key]='fit';
       box.dataset.astmode='fit'; return;
+    }
+    if(shattered){                  // white product on a white backdrop: keep the original pixels, but let the white blend into the tile
+      if(key) _AST_CUT[key]='blend';
+      box.dataset.astmode='blend'; return;
     }
     cx.putImageData(id,0,0);
     const pad=Math.round(Math.max(maxX-minX,maxY-minY)*0.04)+2;
@@ -34958,17 +34973,44 @@ function _pxDays(n){
   Object.keys(DATA).forEach(mk=>{ const mo=DATA[mk]||{}; (mo.transactions||[]).forEach(t=>{ const i=idx[t.date]; if(i!=null) days[i].v+=parseFloat(t.payment)||0; }); const dt=mo.daily_targets||{}; days.forEach(x=>{ if(dt[x.k]) x.t=parseFloat(dt[x.k])||0; }); });
   return days;
 }
+function _pxMonthDays(){
+  // every day of the ACTIVE month (up to today when it is the current month), oldest → newest
+  const mm=String(activeMonth||'').match(/^([A-Z]{3})-(\d{4})$/);
+  const ab=['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+  const now=new Date(); let y=now.getFullYear(), m=now.getMonth();
+  if(mm && ab.indexOf(mm[1])>=0){ m=ab.indexOf(mm[1]); y=+mm[2]; }
+  const last=new Date(y,m+1,0).getDate();
+  const isCur=(y===now.getFullYear()&&m===now.getMonth());
+  const past=new Date(y,m,1)>now ? 0 : 1;           // future month: nothing to show
+  const n=past?(isCur?now.getDate():last):0;
+  const days=[], idx={};
+  for(let d=1;d<=n;d++){ const dt=new Date(y,m,d), k=_pxIso(dt); idx[k]=days.length; days.push({k,d:dt,v:0,t:0}); }
+  Object.keys(DATA).forEach(mk=>{ const mo=DATA[mk]||{}; (mo.transactions||[]).forEach(t=>{ const i=idx[t.date]; if(i!=null) days[i].v+=parseFloat(t.payment)||0; }); const dt=mo.daily_targets||{}; days.forEach(x=>{ if(dt[x.k]) x.t=parseFloat(dt[x.k])||0; }); });
+  return {days,isCur};
+}
+function _pxScrollToToday(){
+  setTimeout(function(){ try{
+    const sc=document.getElementById('pxwScroll'); if(!sc) return;
+    const el=sc.querySelector('.pxw-col.today')||sc.querySelector('.pxw-col:last-child'); if(!el) return;
+    const a=sc.getBoundingClientRect(), b=el.getBoundingClientRect();
+    sc.scrollLeft += (b.left+b.width/2)-(a.left+a.width/2);
+  }catch(_){} },60);
+}
 function _txWeekStripHTML(all){
   try{
-    const days=_pxDays(7), tot=days.reduce((a,x)=>a+x.v,0);
+    const r=_pxMonthDays(), days=r.days, nd=days.length, tot=days.reduce((a,x)=>a+x.v,0);
     let big=null; (all||[]).forEach(t=>{ if(!big||(parseFloat(t.payment)||0)>(parseFloat(big.payment)||0)) big=t; });
     const bigV=big?(parseFloat(big.payment)||0):0;
-    if(!tot&&!bigV) return '';
+    if(!nd || (!tot&&!bigV)) return '';
     const mx=Math.max(1,...days.map(x=>Math.max(x.v,x.t)));
-    const cols=days.map((x,i)=>{ const h=x.v?Math.max(8,Math.round(x.v/mx*100)):3; const over=x.t>0&&x.v>x.t; return `<div class="pxw-c${i===6?' today':''}${over?' over':''}${x.v?'':' zero'}" title="${esc(_pxIso(x.d))}"><i style="height:${h}%"></i>${x.t>0?`<u style="bottom:${Math.min(100,Math.round(x.t/mx*100))}%"></u>`:''}</div>`; }).join('');
-    const lbls=days.map((x,i)=>`<span class="${i===6?'today':''}"><em dir="ltr">${x.v?_pxCompact(x.v):'·'}</em><small>${esc(x.d.toLocaleDateString(_jpLoc(),{weekday:'narrow'}))}</small></span>`).join('');
+    const todayK=_pxIso(new Date());
+    const cols=days.map(x=>{
+      const h=x.v?Math.max(8,Math.round(x.v/mx*100)):3, over=x.t>0&&x.v>x.t, td=r.isCur&&x.k===todayK;
+      return `<div class="pxw-col${td?' today':''}" title="${esc(x.k)}"><div class="pxw-c${td?' today':''}${over?' over':''}${x.v?'':' zero'}"><i style="height:${h}%"></i>${x.t>0?`<u style="bottom:${Math.min(100,Math.round(x.t/mx*100))}%"></u>`:''}</div><em dir="ltr">${x.v?_pxCompact(x.v):'·'}</em><small>${esc(x.d.toLocaleDateString(_jpLoc(),{weekday:'narrow'}))}</small><small class="pxw-dn" dir="ltr">${x.d.getDate()}</small></div>`;
+    }).join('');
     const nm=((big&&big.notes)||'').trim().slice(0,22)||L('Entry','قيد');
-    return `<div class="sc-card pxw"><div class="pxw-hd"><span class="pxw-t">${ic('chart',14)} ${L('Last 7 days','آخر 7 أيام')}</span><b dir="ltr">${fmtEGP(tot)}</b></div><div class="pxw-plot">${cols}</div><div class="pxw-lbls">${lbls}</div><div class="pxw-ft"><span>${L('Avg / day','المتوسط / يوم')} <b dir="ltr">${fmtEGP(Math.round(tot/7))}</b></span>${bigV?`<span class="pxw-big">${ic('star',11)} ${L('Biggest this month','الأكبر الشهر ده')}: <b dir="auto">${esc(nm)}</b> · <b dir="ltr">${fmtEGP(bigV)}</b></span>`:''}</div></div>`;
+    _pxScrollToToday();
+    return `<div class="sc-card pxw"><div class="pxw-hd"><span class="pxw-t">${ic('chart',14)} ${L('Daily spending','المصروف اليومي')} · ${nd} ${L('days','يوم')}</span><b dir="ltr">${fmtEGP(tot)}</b></div><div class="pxw-scroll" id="pxwScroll"><div class="pxw-track">${cols}</div></div><div class="pxw-ft"><span>${L('Avg / day','المتوسط / يوم')} <b dir="ltr">${fmtEGP(Math.round(tot/nd))}</b></span>${bigV?`<span class="pxw-big">${ic('star',11)} ${L('Biggest this month','الأكبر الشهر ده')}: <b dir="auto">${esc(nm)}</b> · <b dir="ltr">${fmtEGP(bigV)}</b></span>`:''}</div></div>`;
   }catch(e){ try{ _logErr('weekStrip',e); }catch(_){} return ''; }
 }
 function _wdashGreetHTML(){
@@ -36929,7 +36971,7 @@ function _jpAttBrief(){
 }
 function _jpCustHTML(p){
   if(_caState()==='ok') return _caCustHTML();
-  const items=p.custody.map(x=>`<div class="jp-row jp-crow" style="cursor:pointer" onclick="_jpEditCustody('${esc(x.id)}')">${_custPhIcon(x)}<div class="jp-rtx"><b dir="auto">${esc(x.name||L('Item','عنصر'))}</b>${x.note?`<small dir="auto" class="jp-cdesc" style="margin:3px 0 0">${esc(x.note)}</small>`:''}${x.date?`<small class="jp-cmeta" style="margin:3px 0 0">${ic('calendar',11)} ${esc(_jpDate(x.date))}</small>`:''}</div><button type="button" class="jp-rb" onclick="event.stopPropagation();_jpEditCustody('${esc(x.id)}')" aria-label="${L('Edit','تعديل')}">${ic('edit',15)}</button></div>`).join('');
+  const items=p.custody.map(x=>`<div class="jp-row jp-crow" style="cursor:pointer" onclick="_custView('jp','${esc(x.id)}')">${_custPhIcon(x)}<div class="jp-rtx"><b dir="auto">${esc(x.name||L('Item','عنصر'))}</b>${x.note?`<small dir="auto" class="jp-cdesc" style="margin:3px 0 0">${esc(x.note)}</small>`:''}${x.date?`<small class="jp-cmeta" style="margin:3px 0 0">${ic('calendar',11)} ${esc(_jpDate(x.date))}</small>`:''}</div><button type="button" class="jp-rb" onclick="event.stopPropagation();_jpEditCustody('${esc(x.id)}')" aria-label="${L('Edit','تعديل')}">${ic('edit',15)}</button></div>`).join('');
   return `<section class="jp-card">
     <div class="jp-sec">${ic('package',17)}<span>${L('My custody','العهدة اللي معايا')}</span>${p.custody.length?`<em style="font-style:normal;font-size:12px;color:var(--muted);font-weight:700">${p.custody.length}</em>`:''}<span class="sp"></span><button type="button" class="jp-add" onclick="_jpEditCustody(null)">${ic('plus',14)} ${L('Add','إضافة')}</button></div>
     ${items||`<div class="jp-empty">${L('No items yet — add your laptop, charger, mouse, bag…','لسه مفيش عهدة — ضيف اللاب توب والشاحن والماوس والشنطة…')}</div>`}
@@ -37392,7 +37434,7 @@ function _jpHeld(d){
 }
 function _caCustRow(k,c){
   const gone=k.status!=='with';
-  return `<div class="jp-row jp-crow" style="cursor:pointer" onclick="_caCustSheet('${k.id}')">${_custPhIcon(k)}<div class="jp-rtx"><b dir="auto">${esc(k.name)}${k.review?` <span class="ca-b rev">${L('Needs review','يحتاج مراجعة')}</span>`:''}</b>${k.note?`<small dir="auto" class="jp-cdesc" style="margin:3px 0 0">${esc(k.note)}</small>`:''}<small class="jp-cmeta" style="margin:3px 0 0">${esc(_caCustLine(k))}</small>${!gone&&_jpHeld(k.receivedOn)?`<span class="jp-held">${ic('clock',11)} ${_jpHeld(k.receivedOn)}</span>`:''}${gone&&k.handoverNote?`<small dir="auto" style="margin:3px 0 0">${esc(k.handoverNote)}</small>`:''}</div><button type="button" class="jp-rb" onclick="event.stopPropagation();_caCustSheet('${k.id}')" aria-label="${L('Edit','تعديل')}">${ic('edit',15)}</button></div>`;
+  return `<div class="jp-row jp-crow" style="cursor:pointer" onclick="_custView('ca','${k.id}')">${_custPhIcon(k)}<div class="jp-rtx"><b dir="auto">${esc(k.name)}${k.review?` <span class="ca-b rev">${L('Needs review','يحتاج مراجعة')}</span>`:''}</b>${k.note?`<small dir="auto" class="jp-cdesc" style="margin:3px 0 0">${esc(k.note)}</small>`:''}<small class="jp-cmeta" style="margin:3px 0 0">${esc(_caCustLine(k))}</small>${!gone&&_jpHeld(k.receivedOn)?`<span class="jp-held">${ic('clock',11)} ${_jpHeld(k.receivedOn)}</span>`:''}${gone&&k.handoverNote?`<small dir="auto" style="margin:3px 0 0">${esc(k.handoverNote)}</small>`:''}</div><button type="button" class="jp-rb" onclick="event.stopPropagation();_caCustSheet('${k.id}')" aria-label="${L('Edit','تعديل')}">${ic('edit',15)}</button></div>`;
 }
 function _caCustHTML(){
   const c=_caLoad(), cAll=c.custody.filter(k=>_caKProj(c,k)===_PRJ.active), w=cAll.filter(k=>k.status==='with').sort((a,b)=>(b.receivedOn||'').localeCompare(a.receivedOn||'')), h=cAll.filter(k=>k.status!=='with').sort((a,b)=>(b.closedOn||'').localeCompare(a.closedOn||''));
@@ -37418,7 +37460,7 @@ function _caCustSheet(id){
     _caSel('kSt',L('Status','الوضع'),[['with',L('With me','معايا')],['returned',L('Returned','تم تسليمها')],['transferred',L('Transferred','تم نقلها')]],st,`onchange="document.getElementById('kClose').style.display=this.value==='with'?'none':'block'"`)+
     `<div id="kClose" style="display:${st==='with'?'none':'block'}">${_cvField('kCls',L('Return / transfer date *','تاريخ التسليم / النقل *'),k?k.closedOn:'',{type:'date',dir:'ltr'})}${_cvField('kHo',L('Handover note','ملاحظة التسليم'),k?k.handoverNote:'')}</div>`+
     (k&&k.review?`<div class="ca-note small">${L('Saving clears the “needs review” flag.','الحفظ بيشيل علامة "يحتاج مراجعة".')}</div>`:'')+
-    `<div class="ca-note small">${L('Records are never deleted — change the status to log a return or transfer.','السجلات مبتتحذفش — غيّر الوضع لتسجيل تسليم أو نقل.')}</div>`,
+    `<div class="ca-note small">${L('To log a return or transfer, change the status. You can also delete the item from its details page.','لتسجيل تسليم أو نقل غيّر الوضع. وتقدر تحذف العنصر من صفحة تفاصيله.')}</div>`,
     _caFoot('_caCustSave()'));
 }
 function _caCustSave(){
@@ -37797,6 +37839,75 @@ function _custPhView(i){
   const d=document.createElement('div'); d.className='cph-view'; d.onclick=()=>d.remove();
   d.innerHTML=`<img src="${u}" alt=""><button type="button" class="cph-vx" aria-label="${L('Close','إغلاق')}">${ic('close',18)}</button>`;
   document.body.appendChild(d);
+}
+// ── Custody details sheet (tap a custody card): photo gallery, formatted description, Edit / Delete ──
+let _cdIdx=0;
+function _cdParse(txt){
+  txt=String(txt||'').replace(/\r/g,'').trim(); if(!txt) return null;
+  let intro='', rows=[];
+  const kv=t=>{ const m=t.match(/^([^:]{1,40}?):\s*([\s\S]+)$/); return m?[m[1].trim(),m[2].trim()]:null; };
+  if(/\s\*\s|\n/.test(txt)){
+    const seg=txt.split(/\s*\*\s+|\n+/).map(x=>x.trim()).filter(Boolean);
+    seg.forEach((t,i)=>{ const p=kv(t); if(p) rows.push(p); else if(!rows.length&&i===0) intro=t; else rows.push(['',t]); });
+  }else{
+    const re=/(?:^|\s)((?:[A-Z][a-z]+\s(?:(?:and|of)\s)?)?[A-Z][A-Za-z0-9()\/.-]*):\s/g; let m, hits=[];
+    while((m=re.exec(txt))) hits.push({k:m[1],s:m.index+(m[0].length-m[0].trimStart().length),e:m.index+m[0].length});
+    if(hits.length>=3){
+      intro=txt.slice(0,hits[0].s).trim();
+      hits.forEach((h,i)=>rows.push([h.k,txt.slice(h.e,i+1<hits.length?hits[i+1].s:undefined).trim()]));
+    }
+  }
+  if(rows.length<2 && !intro) return null;
+  return {intro,rows};
+}
+function _cdDescHTML(txt){
+  const d=_cdParse(txt);
+  if(!d) return txt?`<p class="cd-text" dir="auto">${esc(txt)}</p>`:`<p class="cd-none">${L('No description added.','مفيش وصف مضاف.')}</p>`;
+  return (d.intro?`<div class="cd-intro" dir="auto">${esc(d.intro)}</div>`:'')+
+    `<dl class="cd-specs">${d.rows.map(r=>r[0]?`<div class="cd-spec"><dt dir="auto">${esc(r[0])}</dt><dd dir="auto">${esc(r[1])}</dd></div>`:`<div class="cd-spec full"><dd dir="auto">${esc(r[1])}</dd></div>`).join('')}</dl>`;
+}
+function _cdPick(i){
+  const m=document.getElementById('cdMainImg'); if(!m||!_custPh[i]) return;
+  _cdIdx=i; m.src=_custPh[i];
+  document.querySelectorAll('.cd-th').forEach((b,j)=>b.classList.toggle('on',j===i));
+}
+function _custView(kind,id){
+  let k=null, ca=kind==='ca';
+  if(ca){ const c=_caLoad(); k=c.custody.find(x=>x.id===id); if(k) k=Object.assign({},k,{_line:_caCustLine(k)}); }
+  else{ const x=_jpLoad().custody.find(c=>c.id===id); if(x) k={id:x.id,name:x.name,note:x.note,photos:x.photos,receivedOn:x.date,status:'with'}; }
+  if(!k) return;
+  _custPh=_custPhClean(k.photos); _cdIdx=0;
+  const gone=k.status!=='with';
+  const stLbl=k.status==='with'?L('With me','معايا'):(k.status==='returned'?L('Returned','تم تسليمها'):L('Transferred','تم نقلها'));
+  const cond={new:L('New','جديد'),good:L('Good','جيد'),fair:L('Fair','مقبول'),repair:L('Needs repair','يحتاج صيانة')}[k.condition]||'';
+  const held=!gone?_jpHeld(k.receivedOn):'';
+  const hero=_custPh.length
+    ? `<div class="cd-hero"><button type="button" class="cd-main" onclick="_custPhView(_cdIdx)" aria-label="${L('View photo','عرض الصورة')}"><img id="cdMainImg" src="${_custPh[0]}" alt=""><span class="cd-zoom">${ic('search',14)}</span></button>${_custPh.length>1?`<div class="cd-ths">${_custPh.map((u,i)=>`<button type="button" class="cd-th${i===0?' on':''}" onclick="_cdPick(${i})"><img src="${u}" alt=""></button>`).join('')}</div>`:''}</div>`
+    : `<div class="cd-hero"><div class="cd-noimg">${ic(_jpCustIc(k.name),44)}<small>${L('No photo','مفيش صورة')}</small></div></div>`;
+  const cell=(l,v,ic2)=>v?`<div class="cd-cell"><small>${ic2?ic(ic2,12)+' ':''}${l}</small><b dir="auto">${esc(v)}</b></div>`:'';
+  const meta=[
+    cell(L('Received on','تاريخ الاستلام'),k.receivedOn?_jpDate(k.receivedOn):'','calendar'),
+    cell(L('Condition','الحالة'),cond),
+    gone?cell(k.status==='returned'?L('Returned on','تاريخ التسليم'):L('Transferred on','تاريخ النقل'),k.closedOn?_jpDate(k.closedOn):'','calendar'):'',
+    ca&&k._line?cell(L('Company / project','الشركة / المشروع'),(_caEmpName(_caLoad(),k.empId)||'')+(k.asgId?'':'')):''
+  ].join('');
+  const handover=gone&&k.handoverNote?`<div class="cd-sec">${L('Handover note','ملاحظة التسليم')}</div><p class="cd-text" dir="auto">${esc(k.handoverNote)}</p>`:'';
+  const body=`<div class="cd-body">${hero}
+    <div class="cd-chips"><span class="cd-chip ${gone?'off':'on'}">${stLbl}</span>${held?`<span class="cd-chip">${ic('clock',11)} ${held}</span>`:''}${k.review?`<span class="ca-b rev">${L('Needs review','يحتاج مراجعة')}</span>`:''}</div>
+    ${meta?`<div class="cd-meta">${meta}</div>`:''}
+    <div class="cd-sec">${L('Description','الوصف')}</div>${_cdDescHTML(k.note)}${handover}</div>
+    <div class="modal-btns cd-acts"><button type="button" class="mbtn cancel cd-del" onclick="_custDelFromView('${kind}','${esc(k.id)}')">${ic('trash',15)} ${L('Delete','حذف')}</button><button type="button" class="mbtn save cd-edit" onclick="_custEditFromView('${kind}','${esc(k.id)}')">${ic('edit',15)} ${L('Edit','تعديل')}</button></div>`;
+  _caSheet(_jpCustIc(k.name),esc(k.name||L('Item','عنصر')),esc(L('Custody item','عنصر عهدة')),body,'');
+}
+function _custEditFromView(kind,id){ if(kind==='ca') _caCustSheet(id); else _jpEditCustody(id); }
+function _custDelFromView(kind,id){ if(kind==='ca') _caCustDel(id); else _jpDelCustody(id); }
+function _caCustDel(id){
+  showConfirm(L('Delete this custody item? This cannot be undone.','حذف عنصر العهدة ده؟ لا يمكن التراجع.'),()=>{
+    const c=_caLoad(), k=c.custody.find(x=>x.id===id); if(!k) return;
+    c.custody=c.custody.filter(x=>x.id!==id);
+    c.log.push({t:Date.now(),type:'custody-delete',detail:k.name,id});
+    if(_caSave(c)) _caAfter(L('Deleted ✓','تم الحذف ✓'));
+  });
 }
 function _jpEditCustody(id){
   if(_caState()==='ok'){ _caCustSheet(id); return; }
@@ -60489,6 +60600,41 @@ html[data-num-style="glow"] .banks-v2 .bnk-hero-total .sig-amt{font-weight:800!i
 .jp-crow .jp-held{margin-inline-start:6px}
 .jp-crow .jp-rb{width:36px;height:36px;align-self:flex-start;margin-top:2px}
 .jp-wrap .jp-sec em{padding:1px 9px;border-radius:99px;background:var(--surface2);line-height:1.6}
+
+/* ── Custody details sheet ── */
+.cd-body{display:flex;flex-direction:column;gap:14px;padding:4px 0 6px}
+.cd-hero{display:flex;flex-direction:column;gap:10px}
+.cd-main{position:relative;display:block;width:100%;height:230px;padding:14px;border:1px solid var(--border);border-radius:20px;background:radial-gradient(120% 90% at 50% 0%,#fff 0%,#f3f5f9 100%);cursor:zoom-in;box-sizing:border-box;box-shadow:0 1px 2px rgba(20,20,20,.05),0 12px 24px -18px rgba(20,20,20,.35)}
+.cd-main img{width:100%;height:100%;object-fit:contain;display:block;border-radius:12px}
+.cd-zoom{position:absolute;inset-block-end:10px;inset-inline-end:10px;width:30px;height:30px;border-radius:50%;background:rgba(20,22,28,.6);color:#fff;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+.cd-ths{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none}
+.cd-ths::-webkit-scrollbar{display:none}
+.cd-th{flex:none;width:54px;height:54px;padding:4px;border:2px solid var(--border);border-radius:12px;background:#fff;cursor:pointer;box-sizing:border-box;opacity:.7;transition:opacity .15s,border-color .15s}
+.cd-th.on{border-color:var(--green);opacity:1}
+.cd-th img{width:100%;height:100%;object-fit:contain;display:block;border-radius:7px}
+.cd-noimg{height:150px;border-radius:20px;border:1px dashed var(--border);background:var(--surface2);color:var(--muted);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px}
+.cd-noimg small{font-size:calc(12px*var(--app-text-scale,1));font-weight:600}
+.cd-chips{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.cd-chip{display:inline-flex;align-items:center;gap:5px;padding:4px 11px;border-radius:999px;background:var(--surface2);color:var(--muted);font-size:calc(11.5px*var(--app-text-scale,1));font-weight:700}
+.cd-chip.on{background:var(--green-tint);color:var(--green)}
+.cd-meta{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.cd-cell{padding:11px 13px;border-radius:14px;background:var(--surface2);display:flex;flex-direction:column;gap:3px;min-width:0}
+.cd-cell small{display:flex;align-items:center;gap:5px;font-size:calc(11px*var(--app-text-scale,1));font-weight:600;color:var(--muted)}
+.cd-cell b{font-size:calc(13.5px*var(--app-text-scale,1));font-weight:700;color:var(--text);overflow-wrap:anywhere}
+.cd-sec{font-size:calc(11px*var(--app-text-scale,1));font-weight:800;letter-spacing:.7px;text-transform:uppercase;color:var(--muted);margin-top:2px}
+.cd-intro{font-size:calc(14px*var(--app-text-scale,1));font-weight:700;color:var(--text);line-height:1.45;margin:-6px 0 -4px}
+.cd-text{margin:-6px 0 0;font-size:calc(14px*var(--app-text-scale,1));line-height:1.65;color:var(--sub);white-space:pre-wrap;overflow-wrap:anywhere}
+.cd-none{margin:-6px 0 0;font-size:calc(13px*var(--app-text-scale,1));color:var(--muted)}
+.cd-specs{margin:0;border:1px solid var(--border);border-radius:16px;overflow:hidden;background:var(--surface)}
+.cd-spec{display:grid;grid-template-columns:minmax(96px,34%) 1fr;gap:12px;padding:11px 14px;align-items:baseline}
+.cd-spec+.cd-spec{border-top:1px solid var(--border)}
+.cd-spec:nth-child(odd){background:color-mix(in srgb,var(--surface2) 55%,transparent)}
+.cd-spec dt{font-size:calc(12px*var(--app-text-scale,1));font-weight:700;color:var(--muted)}
+.cd-spec dd{margin:0;font-size:calc(13.5px*var(--app-text-scale,1));font-weight:600;color:var(--text);line-height:1.5;overflow-wrap:anywhere}
+.cd-spec.full{grid-template-columns:1fr}
+.cd-acts{display:grid!important;grid-template-columns:1fr 1.4fr;gap:10px}
+.cd-acts .mbtn{display:flex;align-items:center;justify-content:center;gap:7px;height:48px;border-radius:14px}
+.cd-acts .cd-del{color:var(--red);border-color:color-mix(in srgb,var(--red) 35%,var(--border));background:transparent}
 .cph-view{position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.92);display:flex;align-items:center;justify-content:center;padding:16px}
 .cph-view img{max-width:100%;max-height:100%;object-fit:contain;border-radius:8px}
 .cph-vx{all:unset;position:absolute;top:calc(env(safe-area-inset-top,0px) + 14px);inset-inline-end:14px;width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.16);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer}
@@ -60602,6 +60748,17 @@ input[type="number"]{font-variant-numeric:tabular-nums}
 .pxw-ft{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:10px;padding-top:10px;border-top:1px solid var(--border);font-size:calc(11.5px*var(--app-text-scale,1));color:var(--muted);font-weight:600}
 .pxw-ft b{color:var(--text);font-weight:800}
 .pxw-big{display:inline-flex;align-items:center;gap:5px;min-width:0;flex-wrap:wrap}
+
+/* Daily spending: every day of the month, horizontally scrollable */
+.pxw-scroll{margin-top:12px;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;scrollbar-width:none;overscroll-behavior-x:contain;margin-inline:-4px;padding-inline:4px}
+.pxw-scroll::-webkit-scrollbar{display:none}
+.pxw-track{display:flex;gap:8px;width:max-content;min-width:100%}
+.pxw-col{flex:none;width:40px;display:flex;flex-direction:column;align-items:stretch;text-align:center;gap:1px}
+.pxw-col .pxw-c{height:70px;margin-bottom:6px}
+.pxw-col em{font-style:normal;font-size:calc(10px*var(--app-text-scale,1));font-weight:700;color:var(--text2);font-variant-numeric:tabular-nums}
+.pxw-col small{font-size:calc(10px*var(--app-text-scale,1));color:var(--muted);font-weight:600}
+.pxw-col .pxw-dn{opacity:.7;font-weight:500}
+.pxw-col.today em,.pxw-col.today small{color:var(--green);font-weight:800}
 .wdash-greet{position:relative;display:grid;grid-template-columns:1fr auto;align-items:center;gap:4px 12px;padding:14px 16px;border-radius:20px;background:var(--surface);border:1px solid var(--border);box-shadow:var(--shadow-sm);cursor:pointer;transition:transform .14s ease}
 .wdash-greet:active{transform:scale(.99)}
 .wdash-greet-l{min-width:0}
