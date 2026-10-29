@@ -23658,12 +23658,14 @@ function savOpenAssetCard(idx){
     meta.hasWarranty ? `<span class="asset-pill" style="--pc:#3D6FA3">${ic('check',10)} ${L('Warranty',"\u0636\u0645\u0627\u0646")}</span>` : '',
   ].join('');
   const row=(k,v)=> v ? `<div class="ast-sheet-row"><span>${k}</span><b dir="auto">${v}</b></div>` : '';
+  const _goldLv = (typeof _goldLiveNow==='function') ? _goldLiveNow(x) : null;
   const qty = x.qty ? (x.type==='gold' ? esc(x.qty)+' '+L('g',"\u062c\u0645") : esc(x.qty)) : '';
   const rows =
       row(L('Category',"\u0627\u0644\u062a\u0635\u0646\u064a\u0641"), esc(meta.catLabel))
     + row(L('Brand',"\u0627\u0644\u0645\u0627\u0631\u0643\u0629"), meta.brandLabel?esc(meta.brandLabel):'')
     + row(x.type==='gold'?L('Weight',"\u0627\u0644\u0648\u0632\u0646"):L('Quantity',"\u0627\u0644\u0643\u0645\u064a\u0629"), qty)
-    + row(L('Price / gram',"\u0633\u0639\u0631 \u0627\u0644\u062c\u0631\u0627\u0645"), (x.type==='gold' && x.goldPricePerGram) ? fmt(x.goldPricePerGram)+' '+curLabel() : '')
+    + ((typeof goldSheetRowsHtml==='function' && _goldLv) ? goldSheetRowsHtml(x)
+        : row(L('Price / gram',"\u0633\u0639\u0631 \u0627\u0644\u062c\u0631\u0627\u0645"), (x.type==='gold' && x.goldPricePerGram) ? fmt(x.goldPricePerGram)+' '+curLabel() : ''))
     + ((typeof goldCurrentValueRow==='function')?goldCurrentValueRow(x):'')
     + row(L('Unit price','سعر الوحدة'), x.unitPrice ? fmt(x.unitPrice)+' '+curLabel() : '')
     + row(L('Purchase date',"\u062a\u0627\u0631\u064a\u062e \u0627\u0644\u0634\u0631\u0627\u0621"), x.purchaseDate?esc(x.purchaseDate):'')
@@ -23676,7 +23678,8 @@ function savOpenAssetCard(idx){
         <button type="button" class="sheet-close-btn sq" onclick="closeModal()" aria-label="${L('Close',"\u0625\u063a\u0644\u0627\u0642")}">${ic('close',16)}</button>
       </div>
       ${_heroHTML}
-      <div class="ast-sheet-value"><span class="num">${fmt(x.value||0)}</span><span class="cur">${curLabel()}</span></div>
+      <div class="ast-sheet-value"><span class="num" id="goldSheetVal">${fmt(_goldLv?_goldLv.now:(x.value||0))}</span><span class="cur">${curLabel()}</span></div>
+      ${_goldLv?`<div class="mat-when gold-live${_goldLiveLabel().stale?' stale':''}" id="goldSheetLive" style="margin:2px 0 6px"><i class="gl-dot"></i>${_goldLiveLabel().txt}</div>`:''}
       ${pills?`<div class="asset-pill-row">${pills}</div>`:''}
       ${rows?`<div class="ast-sheet-rows">${rows}</div>`:''}
       <div class="modal-btns">
@@ -36997,10 +37000,13 @@ function _jpAttHTML(){
 function _jpAttBrief(){
   const s=_jpAttStats(), c=s.c, r=s.rate==null?0:Math.max(0,Math.min(100,s.rate));
   const t=(n,l,k)=>`<div class="jp-ast ${k}"><b>${n||0}</b><small>${l}</small></div>`;
+  const base=c.present+c.late+c.absent, w=n=>base?(n/base*100).toFixed(2):0;
+  const tone=s.rate==null?'':(s.rate>=90?'ok':(s.rate>=75?'mid':'low'));
   return `<button type="button" class="jp-attc" onclick="_cxSetTab('attendance')">
-    <div class="jp-attc-h"><span class="ic">${ic('attendance',20)}</span><span class="tx"><b>${L('Attendance','الحضور والغياب')}</b><small dir="auto">${esc(s.label)}</small></span><span class="jp-pct">${s.rate==null?'—':s.rate+'%'}</span>${ic('chevron',16)}</div>
-    <div class="jp-bar" role="progressbar" aria-valuenow="${r}" aria-valuemin="0" aria-valuemax="100"><i style="width:${r}%"></i></div>
+    <div class="jp-attc-h"><span class="ic">${ic('attendance',20)}</span><span class="tx"><b>${L('Attendance','الحضور والغياب')}</b><small dir="auto">${esc(s.label)}</small></span><span class="jp-pct ${tone}">${s.rate==null?'—':s.rate+'%'}</span>${ic('chevron',16)}</div>
+    <div class="jp-bar seg" role="progressbar" aria-valuenow="${r}" aria-valuemin="0" aria-valuemax="100"><i class="g" style="width:${w(c.present)}%"></i><i class="a" style="width:${w(c.late)}%"></i><i class="r" style="width:${w(c.absent)}%"></i></div>
     <div class="jp-ast-row">${t(c.present,L('Present','حضور'),'g')}${t(c.late,L('Late','تأخير'),'a')}${t(c.absent,L('Absent','غياب'),'r')}</div>
+    <div class="jp-attc-f"><span>${L('View attendance details','عرض تفاصيل الحضور')}</span>${ic('chevron',14)}</div>
   </button>`;
 }
 function _jpCustHTML(p){
@@ -37699,10 +37705,13 @@ function renderJobProfile(){
   const prjVal=hist&&A?`<b dir="auto">${esc(A.name)}</b>${(A.location||A.start)?`<small style="margin:3px 0 0" dir="auto">${esc([A.location,A.start?L('since ','من ')+_jpDate(A.start):''].filter(Boolean).join(' · '))}</small>`:''}`:_jpVal(prj);
   const sameMail=!!email&&!!medEmail&&email.trim().toLowerCase()===medEmail.trim().toLowerCase();
   const grp=t=>`<div class="jp-grp"><i></i>${t}</div>`;
+  const blk=(t,rows)=>`<div class="jp-blk">${grp(t)}${rows}</div>`;
+  // e-mail: may break only before "@" (never at a hyphen), so it never wraps as "dma-" / "mea.com"
+  const mv=v=>{ if(!v) return _jpVal(v,true); const s0=String(v), i=s0.indexOf('@'), f=x=>esc(x).replace(/-/g,'&#8209;'); return `<b class="mail"><bdi dir="ltr">${i>0?f(s0.slice(0,i))+'<wbr>'+f(s0.slice(i)):f(s0)}</bdi></b>`; };
   const mailRows=sameMail
-    ?grp(L('Company & medical-insurance e-mail','إيميل الشركة والتأمين الطبي'))+_jpRow('mail',L('Address','العنوان'),_jpVal(email,true),_jpCopyBtn(email))+_jpPwRow('emailPw',L('Password','الباسورد'))
-    :grp(L('Company e-mail','إيميل الشركة'))+_jpRow('mail',L('Address','العنوان'),_jpVal(email,true),_jpCopyBtn(email))+_jpPwRow('emailPw',L('Password','الباسورد'))
-     +grp(L('Medical insurance','التأمين الطبي'))+_jpRow('shield',L('Address','العنوان'),_jpVal(medEmail,true),_jpCopyBtn(medEmail))+_jpPwRow('medPw',L('Password','الباسورد'));
+    ?blk(L('Company & medical-insurance e-mail','إيميل الشركة والتأمين الطبي'),_jpRow('mail',L('Address','العنوان'),mv(email),_jpCopyBtn(email))+_jpPwRow('emailPw',L('Password','الباسورد')))
+    :blk(L('Company e-mail','إيميل الشركة'),_jpRow('mail',L('Address','العنوان'),mv(email),_jpCopyBtn(email))+_jpPwRow('emailPw',L('Password','الباسورد')))
+     +blk(L('Medical insurance','التأمين الطبي'),_jpRow('shield',L('Address','العنوان'),mv(medEmail),_jpCopyBtn(medEmail))+_jpPwRow('medPw',L('Password','الباسورد')));
   const joinedRow=_jpRow('join',L('Joined','تاريخ الالتحاق'),start?`<b dir="auto">${esc(_jpDate(start))}</b>`:_jpVal(''));
   return `<div class="screen-wrap cx-wrap jp-wrap">
   ${_pgHdr('Site','الموقع','My Job','My Job','Your work profile and attendance','بياناتك الوظيفية والحضور')}
@@ -37724,9 +37733,9 @@ function renderJobProfile(){
     ${code?`<div class="jp-bc" dir="ltr">${_jpBarcode(code)}<span>${esc(code)}</span></div>`:''}
   </section>
   <section class="jp-card">
-    <div class="jp-sec">${ic('id',17)}<span>${L('Personal & contact','البيانات الشخصية والتواصل')}</span></div>
-    ${grp(L('Employment','التوظيف'))}${joinedRow}
-    ${grp(L('Identity','الهوية'))}${nidRow}
+    <div class="jp-sec">${ic('id',17)}<span>${L('Personal & contact','البيانات الشخصية والتواصل')}</span><span class="jp-lock">${ic('lock',12)}<span>${L('On this device','على جهازك')}</span></span></div>
+    ${blk(L('Employment','التوظيف'),joinedRow)}
+    ${blk(L('Identity','الهوية'),nidRow)}
     ${mailRows}
   </section>
   ${_jpAttBrief()}
@@ -52784,10 +52793,13 @@ if(document.readyState === 'loading'){
 // ══════════════════════════════════════════════════════════════════════
 let _tourIdx = 0;
 
-// Each step: { view (null = no navigation needed), target (CSS selector,
-// null = no spotlight = centered card), icon, titleEn/titleAr,
-// descEn/descAr }. Order matches the approved 10-step plan: Welcome +
-// 8 spotlighted stops + a short closing step.
+// Each step: { view (null = no navigation needed), target (CSS selector OR an
+// array of selectors tried in order — first one that is actually visible
+// wins; none visible = centered card, so a tour step never points at
+// nothing), icon, titleEn/titleAr, descEn/descAr }.
+// 18 steps: Welcome → Dashboard (3) → the 5 main tabs → Add button →
+// header tools (Search, MIORA, Notifications, More) → Notes → Settings → Done.
+const _TI = d => '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round">'+d+'</svg>';
 const TOUR_STEPS = [
   { // 1 — Welcome
     view:null, target:null, welcome:true,
@@ -52796,68 +52808,124 @@ const TOUR_STEPS = [
     descEn:'Your money. Your future.<br>Manage your accounts, expenses, and savings all in one place.',
     descAr:'أموالك. مستقبلك.<br>إدارة حساباتك، مصروفاتك ومدخراتك في مكان واحد.'
   },
-  { // 2 — Dashboard
+  { // 2 — Dashboard tab
     view:'wsdash', target:'#navBtn-Dashboard',
-    icon:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>',
+    icon:_TI('<rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/>'),
     titleEn:'Dashboard — Home', titleAr:'Dashboard — الرئيسية',
-    descEn:'Your quick overview of balance, income, expenses and top indicators.',
-    descAr:'هنا ستجد نظرة سريعة على رصيدك، الدخل، المصروفات وأهم المؤشرات.'
+    descEn:'Your home base. One screen that shows where your money stands right now — and it updates as you add data.',
+    descAr:'شاشتك الرئيسية. تعرض وضعك المالي الآن في شاشة واحدة، وتتحدث تلقائياً كلما أضفت بيانات.'
   },
-  { // 3 — Dashboard KPI hero
-    view:'wsdash', target:'.wdash-wrap .dv3-hero',
-    icon:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l3 8 4-16 3 8h4"/></svg>',
+  { // 3 — Net balance hero
+    view:'wsdash', target:['.wdash-wrap .dv3-hero','.fr-hero'],
+    icon:_TI('<path d="M3 12h4l3 8 4-16 3 8h4"/>'),
     titleEn:'Total Net Balance', titleAr:'صافي الرصيد',
-    descEn:'Track your net balance and monthly change from one place.',
-    descAr:'تابع صافي رصيدك والتغير الشهري من مكان واحد.'
+    descEn:'Your net position across all accounts, plus how it changed this month. Tap the month at the top to look at any other month.',
+    descAr:'صافي رصيدك عبر كل الحسابات، مع التغير خلال الشهر. اختر الشهر من أعلى الشاشة لاستعراض أي شهر آخر.'
   },
-  { // 4 — Banks
+  { // 4 — Dashboard cards
+    view:'wsdash', target:['.wdash-wrap .sc-card','#wdashApps'],
+    icon:_TI('<path d="M12 2 2 7l10 5 10-5z"/><path d="m2 17 10 5 10-5M2 12l10 5 10-5"/>'),
+    titleEn:'Your Dashboard Cards', titleAr:'بطاقات الداشبورد',
+    descEn:'Cash flow, top accounts, recent activity and AI insights live here as cards. You can drag to reorder them, hide the ones you don\'t need, and give each its own color.',
+    descAr:'التدفق النقدي، أكبر الحسابات، آخر النشاط والتحليلات الذكية تظهر كبطاقات. يمكنك سحبها لإعادة الترتيب، وإخفاء ما لا تحتاجه، وتلوين كل بطاقة بلون خاص.'
+  },
+  { // 5 — Quick Actions
+    view:'wsdash', target:['.fp-qa-row','.fr-steps'],
+    icon:_TI('<path d="M13 2 4 14h7l-1 8 9-12h-7z"/>'),
+    titleEn:'Quick Actions', titleAr:'إجراءات سريعة',
+    descEn:'Shortcuts for the things you do most — log an expense, add income, move money — in a single tap from the Dashboard.',
+    descAr:'اختصارات لأكثر ما تفعله — تسجيل مصروف، إضافة دخل، تحويل مبلغ — بضغطة واحدة من الداشبورد.'
+  },
+  { // 6 — Accounts
     view:'banks', target:'#navBtn-Banks',
-    icon:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2.5"/><path d="M2 10h20"/><path d="M6 15h4"/></svg>',
+    icon:_TI('<rect x="2" y="5" width="20" height="14" rx="2.5"/><path d="M2 10h20"/><path d="M6 15h4"/>'),
     titleEn:'Accounts — Banks & Wallets', titleAr:'Accounts — البنوك والمحافظ',
-    descEn:'Add your bank accounts and e-wallets and track their balances and activity.',
-    descAr:'أضف حساباتك البنكية ومحافظك الإلكترونية وتابع أرصدتها وحركتها بسهولة.'
+    descEn:'Add every bank account and e-wallet. Record deposits, withdrawals and transfers, set interest and transfer fees, and watch each balance and its full history.',
+    descAr:'أضف كل حساباتك البنكية ومحافظك الإلكترونية. سجّل الإيداع والسحب والتحويل، وحدد الفائدة ورسوم التحويل، وتابع رصيد كل حساب وسجل حركته.'
   },
-  { // 5 — Daily
+  { // 7 — Daily Spend
     view:'transactions', target:'#navBtn-Daily',
-    icon:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h12a1 1 0 0 1 1 1v18l-2.5-1.5L14 21l-2-1.5L10 21l-2.5-1.5L5 21V3a1 1 0 0 1 1-1z"/><path d="M8 7.5h8"/><path d="M8 11.5h8"/><path d="M8 15.5h5"/></svg>',
+    icon:_TI('<path d="M6 2h12a1 1 0 0 1 1 1v18l-2.5-1.5L14 21l-2-1.5L10 21l-2.5-1.5L5 21V3a1 1 0 0 1 1-1z"/><path d="M8 7.5h8"/><path d="M8 11.5h8"/><path d="M8 15.5h5"/>'),
     titleEn:'Daily Spend — Spending Log', titleAr:'Daily Spend — الإنفاق اليومي',
-    descEn:'Log your daily spending and track it against your daily target.',
-    descAr:'سجّل مصروفاتك اليومية وتابعها مقابل المستهدف اليومي.'
+    descEn:'Write what you spent in plain words and FINORA does the math. Set a daily target and see at a glance whether you\'re on track.',
+    descAr:'اكتب ما أنفقته بكلمات عادية وFINORA يحسب لك. حدد هدفاً يومياً وتابع هل أنت ملتزم به أم لا.'
   },
-  { // 6 — My Job
+  { // 8 — My Job (tab)
     view:'expenses', target:'#navBtn-SiteCustody',
-    icon:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15a8 8 0 0 1 16 0"/><path d="M2 15h20"/><path d="M2 15v1.5a1.5 1.5 0 0 0 1.5 1.5h17a1.5 1.5 0 0 0 1.5-1.5V15"/><path d="M12 15V9"/></svg>',
+    icon:_TI('<path d="M4 15a8 8 0 0 1 16 0"/><path d="M2 15h20"/><path d="M2 15v1.5a1.5 1.5 0 0 0 1.5 1.5h17a1.5 1.5 0 0 0 1.5-1.5V15"/><path d="M12 15V9"/>'),
     titleEn:'My Job', titleAr:'My Job',
-    descEn:'Track deposited, spent and remaining custody amounts.',
-    descAr:'تابع المبالغ المودعة، المصروفات والمتبقي من العُهدة.'
+    descEn:'Everything for your work or site in one place: the custody money you received, what you spent from it, and what is left.',
+    descAr:'كل ما يخص عملك أو موقعك في مكان واحد: العُهدة التي استلمتها، وما صرفته منها، والمتبقي.'
   },
-  { // 7 — My Finances
+  { // 9 — My Job tabs
+    view:'expenses', target:['.cx-tabs','.cx-wrap .fr-hero'],
+    icon:_TI('<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M9 4v5"/>'),
+    titleEn:'Receipts, Custody, Attendance & CV', titleAr:'استلاماتي، العُهدة، الحضور وسيرتي',
+    descEn:'Four tabs: <b>Receipts</b> for requests, <b>Custody</b> for the money you hold, <b>Attendance</b> for your working days, and <b>My CV</b> for your profile.',
+    descAr:'أربع تبويبات: <b>استلاماتي</b> للإيصالات والطلبات، و<b>العُهدة</b> للمبالغ التي بحوزتك، و<b>الحضور</b> لأيام عملك، و<b>سيرتي</b> لملفك المهني.'
+  },
+  { // 10 — My Finances
     view:'savings', target:'#navBtn-MySavings',
-    icon:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="6" rx="8" ry="3"/><path d="M4 6v6c0 1.66 3.58 3 8 3s8-1.34 8-3V6"/><path d="M4 12v6c0 1.66 3.58 3 8 3s8-1.34 8-3v-6"/></svg>',
+    icon:_TI('<ellipse cx="12" cy="6" rx="8" ry="3"/><path d="M4 6v6c0 1.66 3.58 3 8 3s8-1.34 8-3V6"/><path d="M4 12v6c0 1.66 3.58 3 8 3s8-1.34 8-3v-6"/>'),
     titleEn:'My Finances', titleAr:'My Finances — أموالي',
-    descEn:'Track your income, assets, liabilities and net worth.',
-    descAr:'تابع دخلك، أصولك، التزاماتك وصافي ثروتك.'
+    descEn:'Your personal side: income, expenses, assets and debts, and your net worth. Gold assets are valued at today\'s live gold price automatically.',
+    descAr:'جانبك الشخصي: الدخل والمصروفات والأصول والديون وصافي ثروتك. أصول الذهب تُقيَّم تلقائياً بسعر الذهب اللحظي اليوم.'
   },
-  { // 8 — Quick Actions
-    view:'wsdash', target:'.fp-qa-row',
-    icon:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg>',
-    titleEn:'Quick Actions', titleAr:'Quick Actions — إجراءات سريعة',
-    descEn:'Log your most common financial actions in a tap, right from the Dashboard.',
-    descAr:'سجّل أهم العمليات المالية بسرعة من الاختصارات الموجودة في الداشبورد.'
+  { // 11 — Add (+) button
+    view:'transactions', target:['#fabBtn'],
+    icon:_TI('<path d="M12 5v14M5 12h14"/>'),
+    titleEn:'The Add Button', titleAr:'زر الإضافة',
+    descEn:'On screens that support it, the <b>+</b> button adds a new record for that screen — an expense, a movement, an asset. You can drag it anywhere that suits your thumb.',
+    descAr:'في الشاشات التي تدعمه، يضيف الزر <b>+</b> سجلاً جديداً لتلك الشاشة — مصروف، حركة، أو أصل. ويمكنك سحبه إلى المكان الأنسب لإبهامك.'
   },
-  { // 9 — Settings
+  { // 12 — Search
+    view:null, target:'#hdrSearchBtn',
+    icon:_TI('<circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/>'),
+    titleEn:'Search', titleAr:'البحث',
+    descEn:'Find any transaction, account, receipt or record from anywhere in the app.',
+    descAr:'ابحث عن أي عملية أو حساب أو إيصال أو سجل من أي مكان في التطبيق.'
+  },
+  { // 13 — MIORA
+    view:null, target:'#mioraBtn',
+    icon:_TI('<path d="M5 5h14a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-7l-4 3v-3H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z"/>'),
+    titleEn:'MIORA — Your Assistant', titleAr:'MIORA — مساعدك',
+    descEn:'Ask MIORA how any screen or button works, or ask it to do things for you, like changing an account\'s interest rate or transfer fee.',
+    descAr:'اسأل MIORA عن طريقة عمل أي شاشة أو زر، أو اطلب منها تنفيذ أمور نيابةً عنك مثل تغيير فائدة الحساب أو نسبة التحويل.'
+  },
+  { // 14 — Notifications
+    view:null, target:'.header-icon-rail > button:last-child',
+    icon:_TI('<path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9zM13.73 21a2 2 0 0 1-3.46 0"/>'),
+    titleEn:'Notifications', titleAr:'الإشعارات',
+    descEn:'Alerts and reminders gather here — upcoming payments, budget warnings and anything that needs your attention.',
+    descAr:'تتجمع هنا التنبيهات والتذكيرات — المدفوعات القادمة، تحذيرات الميزانية وكل ما يحتاج انتباهك.'
+  },
+  { // 15 — More menu
+    view:null, target:'#hdrMoreBtn',
+    icon:_TI('<circle cx="12" cy="5" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="12" cy="19" r="1.2"/>'),
+    titleEn:'More Tools', titleAr:'المزيد من الأدوات',
+    descEn:'<b>Spending Planner</b>, <b>Recurring Spending</b>, <b>Reminders</b>, <b>Place History</b>, <b>Backup</b> and CSV export, printing, plus quick switches for dark mode and language.',
+    descAr:'<b>مخطط المصروفات</b>، <b>المصروفات المتكررة</b>، <b>التذكيرات</b>، <b>سجل الأماكن</b>، <b>النسخ الاحتياطي</b> وتصدير CSV والطباعة، مع مفاتيح سريعة للوضع الداكن واللغة.'
+  },
+  { // 16 — Notes
+    view:null, target:'#notesEdgeTab',
+    icon:_TI('<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h5"/>'),
+    titleEn:'Quick Notes', titleAr:'ملاحظات سريعة',
+    descEn:'This small tab on the screen edge opens your notes from any screen, so an idea or a number never gets lost.',
+    descAr:'هذا التبويب الصغير على حافة الشاشة يفتح ملاحظاتك من أي شاشة، فلا تضيع منك فكرة أو رقم.'
+  },
+  { // 17 — Settings
     view:null, target:'#navBtn-SettingsHeader',
     icon:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>',
     titleEn:'Settings', titleAr:'Settings — الإعدادات',
-    descEn:'Control language, appearance, currency, sound and security here.',
-    descAr:'من هنا تقدر تتحكم في اللغة، المظهر، العملة، الصوت وإعدادات الأمان.'
+    descEn:'Language, appearance, currency, sound and security (PIN). You can also replay this tour from here whenever you like.',
+    descAr:'اللغة، المظهر، العملة، الصوت والأمان (رمز PIN). ويمكنك أيضاً إعادة هذه الجولة من هنا في أي وقت.'
   },
-  { // 10 — Closing
+  { // 18 — Closing
     view:null, target:null, welcome:true, closing:true,
     icon:'<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>',
     titleEn:"You're all set", titleAr:'كل شيء جاهز',
-    descEn:'You can start using FINORA now. Whenever you\'re stuck, tap the small MIORA button — I\'m here whenever you need help.',
-    descAr:'الآن يمكنك البدء باستخدام FINORA. إن احتجت مساعدة، اضغط على زر MIORA الصغير — أنا هنا إن احتجت أي شيء.'
+    descEn:'You can start using FINORA now. Tip: begin with one account and today\'s spending. Whenever you\'re stuck, tap the small MIORA button — I\'m here whenever you need help.',
+    descAr:'يمكنك الآن البدء باستخدام FINORA. نصيحة: ابدأ بحساب واحد ومصروف اليوم. وإن احتجت مساعدة، اضغط على زر MIORA الصغير — أنا هنا دائماً.'
   }
 ];
 
@@ -52905,13 +52973,36 @@ function _tourRender(){
   // Navigate first (if this step needs a different screen), then
   // position on the next frame so layout has settled — same routing
   // the app already uses everywhere else (setView), nothing new.
-  if(step.view && currentView!==step.view){ setView(step.view); }
+  const _navigated = !!(step.view && currentView!==step.view);
+  if(_navigated){ setView(step.view); }
 
-  requestAnimationFrame(()=>_tourPosition(step, total, overlay, spot, card));
+  // A view change renders asynchronously (heavy screens paint a skeleton
+  // first), so wait a beat before measuring in-page targets.
+  const _go = ()=>requestAnimationFrame(()=>_tourPosition(step, total, overlay, spot, card));
+  if(_navigated && step.target && !String(step.target).includes('#navBtn-')) setTimeout(_go, 420); else _go();
+}
+
+// First selector in the list that exists AND is actually visible wins.
+function _tourFindTarget(step){
+  if(!step.target) return null;
+  const list = Array.isArray(step.target) ? step.target : [step.target];
+  for(const sel of list){
+    let el = null;
+    try{ el = document.querySelector(sel); }catch(e){ el = null; }
+    if(!el) continue;
+    const r = el.getBoundingClientRect();
+    if(r.width>0 && r.height>0) return el;
+  }
+  return null;
 }
 
 function _tourPosition(step, total, overlay, spot, card){
-  const target = step.target ? document.querySelector(step.target) : null;
+  const target = _tourFindTarget(step);
+  // In-page targets may sit below the fold: bring them into view first so
+  // the spotlight rect we measure is the one the user will actually see.
+  if(target && !target.closest('.bottom-nav,.app-header') && getComputedStyle(target).position!=='fixed'){
+    try{ target.scrollIntoView({block:'center', behavior:'auto'}); }catch(e){}
+  }
   const scrim = document.getElementById('tourScrim');
   const blurT = document.getElementById('tourBlurT');
   const blurB = document.getElementById('tourBlurB');
@@ -52921,6 +53012,44 @@ function _tourPosition(step, total, overlay, spot, card){
   card.classList.toggle('tour-welcome', !!step.welcome);
   card.querySelector('.tour-arrow-up')?.remove();
   card.querySelector('.tour-arrow-down')?.remove();
+
+  // Fill content (language-aware, same L() helper the rest of the app uses)
+  const isLast  = _tourIdx === total-1;
+  const idxForBadge = _tourIdx+1;
+  document.getElementById('tourBadge').textContent  = step.welcome ? '' : `${idxForBadge} / ${total}`;
+  document.getElementById('tourBadge').style.display = step.welcome ? 'none' : '';
+  document.getElementById('tourIcon').innerHTML      = step.icon;
+  document.getElementById('tourTitle').textContent   = L(step.titleEn, step.titleAr);
+  document.getElementById('tourDesc').innerHTML      = L(step.descEn, step.descAr);
+
+  const backBtn = document.getElementById('tourBackBtn');
+  backBtn.style.display = (_tourIdx>0 && !step.welcome) ? 'inline-flex' : 'none';
+  backBtn.innerHTML = `${ic(_navDirIcon('prev'),14)} ${L('Back','رجوع')}`;
+  backBtn.setAttribute('aria-label', L('Back','رجوع'));
+
+  const progress = document.getElementById('tourProgress');
+  progress.style.display = step.welcome ? 'none' : 'flex';
+  document.getElementById('tourProgressCount').textContent = `${idxForBadge}/${total}`;
+  document.getElementById('tourProgressFill').style.width = `${(idxForBadge/total)*100}%`;
+
+  const skipBtn = document.getElementById('tourSkipBtn');
+  skipBtn.style.display = isLast ? 'none' : '';
+  skipBtn.textContent = L('Skip Tour','تخطي الجولة');
+
+  const nextBtn = document.getElementById('tourNextBtn');
+  if(_tourIdx===0){
+    nextBtn.textContent = L('Start Tour','ابدأ الجولة');
+  } else if(isLast){
+    nextBtn.textContent = L('Start Using FINORA','ابدأ استخدام FINORA');
+  } else {
+    nextBtn.innerHTML = `${L('Next','التالي')} ${ic(_navDirIcon('next'),14)}`;
+  }
+
+  // Accessibility: move focus to the card's primary action so screen
+  // readers announce the new step instead of staying on a now-hidden
+  // element behind the overlay.
+  nextBtn.focus({preventScroll:true});
+
 
   if(target){
     spot.style.display='block';
@@ -52993,42 +53122,6 @@ function _tourPosition(step, total, overlay, spot, card){
     card.style.top=''; card.style.bottom='';
   }
 
-  // Fill content (language-aware, same L() helper the rest of the app uses)
-  const isLast  = _tourIdx === total-1;
-  const idxForBadge = _tourIdx+1;
-  document.getElementById('tourBadge').textContent  = step.welcome ? '' : `${idxForBadge} / ${total}`;
-  document.getElementById('tourBadge').style.display = step.welcome ? 'none' : '';
-  document.getElementById('tourIcon').innerHTML      = step.icon;
-  document.getElementById('tourTitle').textContent   = L(step.titleEn, step.titleAr);
-  document.getElementById('tourDesc').innerHTML      = L(step.descEn, step.descAr);
-
-  const backBtn = document.getElementById('tourBackBtn');
-  backBtn.style.display = (_tourIdx>0 && !step.welcome) ? 'inline-flex' : 'none';
-  backBtn.innerHTML = `${ic(_navDirIcon('prev'),14)} ${L('Back','رجوع')}`;
-  backBtn.setAttribute('aria-label', L('Back','رجوع'));
-
-  const progress = document.getElementById('tourProgress');
-  progress.style.display = step.welcome ? 'none' : 'flex';
-  document.getElementById('tourProgressCount').textContent = `${idxForBadge}/${total}`;
-  document.getElementById('tourProgressFill').style.width = `${(idxForBadge/total)*100}%`;
-
-  const skipBtn = document.getElementById('tourSkipBtn');
-  skipBtn.style.display = isLast ? 'none' : '';
-  skipBtn.textContent = L('Skip Tour','تخطي الجولة');
-
-  const nextBtn = document.getElementById('tourNextBtn');
-  if(_tourIdx===0){
-    nextBtn.textContent = L('Start Tour','ابدأ الجولة');
-  } else if(isLast){
-    nextBtn.textContent = L('Start Using FINORA','ابدأ استخدام FINORA');
-  } else {
-    nextBtn.innerHTML = `${L('Next','التالي')} ${ic(_navDirIcon('next'),14)}`;
-  }
-
-  // Accessibility: move focus to the card's primary action so screen
-  // readers announce the new step instead of staying on a now-hidden
-  // element behind the overlay.
-  nextBtn.focus({preventScroll:true});
 }
 
 function tourNext(){
@@ -59491,6 +59584,10 @@ function mioraDismissGreetToast(){
 .tour-btn-next{white-space:nowrap}
 .tour-card.tour-welcome .tour-footer{flex-direction:column-reverse;align-items:stretch;gap:6px}
 .tour-card.tour-welcome .tour-btn-skip{align-self:center;padding:8px 14px;min-height:36px}
+/* Step footer: wrap instead of spilling past the card edge when labels are wide (Arabic, 2-digit step counts) */
+.tour-card:not(.tour-welcome) .tour-footer{flex-wrap:wrap;row-gap:10px;column-gap:8px}
+.tour-card:not(.tour-welcome) .tour-footer > div:last-child{margin-inline-start:auto}
+.tour-card:not(.tour-welcome) .tour-footer-left{min-width:0}
 #tabTourOverlay{visibility:hidden;transition:opacity var(--dur-slow,.3s) var(--ease-standard,ease),visibility 0s linear var(--dur-slow,.3s)}
 #tabTourOverlay.visible{visibility:visible;transition-delay:0s}
 
@@ -60049,6 +60146,28 @@ function goldLiveApply(prev,failed){
   const sheetOpen=(typeof _wdashSheetId!=='undefined'&&_wdashSheetId);
   if(!failed && currentView==='wsdash' && !sheetOpen){ try{ renderView(); }catch(e){} }
   const cm=document.getElementById('goldCurMkt'); if(cm&&!failed){ try{ cm.outerHTML=_goldCurHtml(window._goldCurAsset); }catch(e){} }
+  if(!failed){ try{ _goldSheetRefresh(); }catch(e){} }
+}
+function _goldLiveNow(x){
+  if(!x||x.type!=='gold') return null;
+  const g=parseFloat(x.qty), k=parseFloat(x.goldKarat)||21;
+  if(!GOLD_STATE||!GOLD_STATE.pricePerGramEGP||!(g>0)) return null;
+  return { ppg:Math.round(GOLD_STATE.pricePerGramEGP*k/24*100)/100, now:Math.round(g*GOLD_STATE.pricePerGramEGP*k/24*100)/100 };
+}
+function goldSheetRowsHtml(x){
+  const lv=_goldLiveNow(x); if(!lv) return '';
+  const r=(k,v,id)=>`<div class="ast-sheet-row"><span>${k}</span><b dir="auto"${id?` id="${id}"`:''}>${v}</b></div>`;
+  const rec=parseFloat(x.value)||0, recPpg=parseFloat(x.goldPricePerGram)||0;
+  const buy=rec>0 ? fmt(rec)+' '+curLabel()+(recPpg>0?` <small dir="ltr" style="opacity:.75">(${fmt(recPpg)}/${L('g','جم')})</small>`:'') : '';
+  return r(L('Price / gram','سعر الجرام'), fmt(lv.ppg)+' '+curLabel(), 'goldSheetPpg')
+       + (buy ? r(L('Purchase value','قيمة الشراء'), buy) : '');
+}
+function _goldSheetRefresh(){
+  const x=window._goldCurAsset; if(!x) return;
+  const lv=_goldLiveNow(x); if(!lv) return;
+  const v=document.getElementById('goldSheetVal'); if(v) v.textContent=fmt(lv.now);
+  const p=document.getElementById('goldSheetPpg'); if(p) p.textContent=fmt(lv.ppg)+' '+curLabel();
+  const l=document.getElementById('goldSheetLive'); if(l){ const gl=_goldLiveLabel(); l.classList.toggle('stale',gl.stale); l.lastChild.textContent=gl.txt; }
 }
 function goldCurrentValueRow(x){
   if(!x||x.type!=='gold') return '';
@@ -60950,6 +61069,65 @@ input[type="number"]{font-variant-numeric:tabular-nums}
 .pxw-col.today .pxw-dn{background:var(--green);color:#fff}
 .pxw-col.today small:not(.pxw-dn){color:var(--green)}
 </style>
+
+<style id="finora-profile-v3">
+/* ══ FINORA · My Job → Profile v3 — presentation-only polish (no logic / data changes) ══ */
+.jp-wrap{gap:14px}
+/* — Employee ID card — */
+.jp-wrap .jp-hero.v2{border-radius:24px;padding-bottom:20px}
+.jp-wrap .jp-hero.v2 .jp-bd-hd{padding:22px 56px 72px;background:
+  radial-gradient(120% 100% at 100% 0%,rgba(125,185,255,.40),transparent 55%),
+  radial-gradient(80% 90% at 0% 100%,rgba(255,255,255,.10),transparent 60%),
+  linear-gradient(160deg,#1A6FE8 0%,#0E3C8C 55%,#0A2B66 100%)}
+.jp-wrap .jp-hero.v2 .jp-bd-hd::after{content:'';position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(135deg,rgba(255,255,255,.05) 0 1px,transparent 1px 14px)}
+.jp-wrap .jp-hero.v2 .jp-slot{display:none}
+.jp-wrap .jp-hero.v2 .jp-bd-co,.jp-wrap .jp-hero.v2 .jp-bd-tag{position:relative;z-index:1}
+.jp-wrap .jp-hero.v2 .jp-bd-co{font-size:calc(14px*var(--app-text-scale,1));letter-spacing:2.2px}
+.jp-wrap .jp-hero.v2 .jp-bd-tag{margin-top:9px;padding:3px 12px;border-radius:99px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.24);font-size:calc(9.5px*var(--app-text-scale,1));letter-spacing:2px;color:#fff}
+.jp-wrap .jp-hero.v2 .jp-hero-top{margin-top:-58px;gap:14px}
+.jp-wrap .jp-hero.v2 .jp-ph{width:108px;height:108px;border-radius:50%}
+.jp-wrap .jp-hero.v2 .jp-ph-in{border-radius:50%;border:4px solid var(--surface);box-shadow:0 0 0 2px #2F7DE8,0 16px 28px -14px rgba(10,43,102,.7)}
+.jp-wrap .jp-hero.v2 .jp-ph-in img{border-radius:50%}
+.jp-wrap .jp-hero.v2 .jp-cam{inset-inline-end:2px;bottom:4px}
+.jp-wrap .jp-hero.v2 .jp-nm{font-size:calc(22px*var(--app-text-scale,1))}
+.jp-wrap .jp-hero.v2 .jp-hero-bot{margin:20px 18px 0;border:0;background:transparent;gap:10px;overflow:visible}
+.jp-wrap .jp-hero.v2 .jp-chip,.jp-wrap .jp-hero.v2 .jp-chip+.jp-chip{padding:12px 10px 13px;border:1px solid var(--border);border-radius:14px;background:var(--surface2)}
+.jp-wrap .jp-hero.v2 .jp-chip b{font-size:calc(14px*var(--app-text-scale,1))}
+.jp-wrap .jp-hero.v2 .jp-bc{margin:18px 18px 0;padding:16px 4px 0;border-top:1px dashed var(--border-strong);opacity:.85}
+.jp-wrap .jp-hero.v2 .jp-bc svg{height:34px}
+/* — Personal & contact — */
+.jp-wrap .jp-card{padding:16px;border-radius:22px}
+.jp-wrap .jp-card>.jp-sec{padding:0 0 2px;gap:10px;font-size:calc(12px*var(--app-text-scale,1));letter-spacing:.8px;color:var(--text2)}
+.jp-wrap .jp-card>.jp-sec>svg:first-child{width:30px;height:30px;padding:7px;box-sizing:border-box;border-radius:10px;background:var(--green-tint);color:var(--green)}
+.jp-wrap .jp-sec .jp-lock{margin-inline-start:auto;display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:99px;background:var(--surface2);border:1px solid var(--border);color:var(--muted);letter-spacing:0;text-transform:none}
+.jp-wrap .jp-sec .jp-lock span{font-size:calc(10.5px*var(--app-text-scale,1));font-weight:600}
+.jp-wrap .jp-sec .jp-lock svg{width:12px;height:12px;color:var(--muted)}
+.jp-wrap .jp-card>.jp-sec>span:not(.jp-lock){white-space:nowrap;letter-spacing:.5px}
+.jp-wrap .jp-sec .jp-lock{white-space:nowrap;flex:none}
+.jp-blk{margin-top:12px;padding:2px 14px;border:1px solid var(--border);border-radius:16px;background:var(--surface2)}
+.jp-blk .jp-grp{margin:0;padding:12px 0 2px}
+.jp-wrap .jp-blk .jp-row{padding:11px 0}
+.jp-wrap .jp-blk .jp-ric:not(.gold){background:var(--surface);box-shadow:0 0 0 1px var(--border)}
+.jp-wrap .jp-blk .jp-rb{background:var(--surface);box-shadow:0 0 0 1px var(--border)}
+.jp-wrap .jp-blk .jp-rb.done{background:var(--green-tint)}
+.jp-wrap .jp-rtx b.mail{font-size:calc(13.5px*var(--app-text-scale,1));hyphens:none;-webkit-hyphens:none;overflow-wrap:anywhere}
+/* — Attendance — */
+.jp-wrap .jp-attc{padding:16px;border-radius:22px;gap:14px}
+.jp-wrap .jp-attc-h .ic{width:42px;height:42px;border-radius:14px}
+.jp-wrap .jp-attc-h>svg{display:none}
+.jp-wrap .jp-pct{padding:5px 12px;border-radius:99px;background:var(--green-tint);color:var(--green);font-size:calc(14px*var(--app-text-scale,1));font-weight:800}
+.jp-wrap .jp-pct.mid{background:color-mix(in srgb,var(--gold) 16%,transparent);color:var(--gold)}
+.jp-wrap .jp-pct.low{background:color-mix(in srgb,var(--red) 14%,transparent);color:var(--red)}
+.jp-wrap .jp-bar.seg{display:flex;height:10px;background:var(--surface2)}
+.jp-wrap .jp-bar.seg i{flex:none;box-sizing:border-box;border-radius:0;transition:width .6s ease}
+.jp-wrap .jp-bar.seg i+i{border-inline-start:2px solid var(--surface)}
+.jp-wrap .jp-bar.seg i.g{background:var(--green)}.jp-wrap .jp-bar.seg i.a{background:var(--gold)}.jp-wrap .jp-bar.seg i.r{background:var(--red)}
+.jp-wrap .jp-ast{padding:12px 6px;border-radius:14px}
+.jp-wrap .jp-ast b{font-size:calc(22px*var(--app-text-scale,1))}
+.jp-attc-f{display:flex;align-items:center;justify-content:space-between;margin-top:-2px;padding-top:12px;border-top:1px solid var(--border);color:var(--green);font-size:calc(12.5px*var(--app-text-scale,1));font-weight:700}
+[dir="rtl"] .jp-attc-f svg{transform:scaleX(-1)}
+</style>
+
 <script id="finora-polish-js">
 /* FINORA polish — accessibility behaviour for the shared modal sheet.
    Additive only: no existing function is replaced; failures are swallowed so
