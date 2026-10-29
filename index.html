@@ -23794,10 +23794,8 @@ function _debtExtraHTML(x,idx,isToMe){
     h+='<div class="sdb-prog"><span class="sdb-prog-bar"><i style="width:'+pct+'%"></i></span>'
       +'<span class="sdb-prog-tx" dir="auto">'+esc(_sdbVerb(isToMe,true))+' '+fmt(paid)+' '+esc(L('of','من'))+' '+fmt(total)+'</span></div>';
   }
-  h+='<div class="sdb-btns"><button type="button" class="sdb-settle part" onclick="savSettleDebt('+idx+',\'part\');event.stopPropagation()">'
-    +'<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>'+esc(L('Payment','دفعة'))+'</button>'
-    +'<button type="button" class="sdb-settle" onclick="savSettleDebt('+idx+');event.stopPropagation()">'
-    +'<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>'+esc(L('Settle in full','تسوية كاملة'))+'</button></div>';
+  h+='<button type="button" class="sdb-settle" onclick="savSettleDebt('+idx+',\'part\');event.stopPropagation()">'
+    +'<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>'+esc(isToMe?L('Add payment received','إضافة دفعة مُستلمة'):L('Add payment','إضافة دفعة'))+'</button>';
   return '<div class="sdb-cta">'+h+'</div>';
 }
 // collapsible History of settled debts (rows stay in the DOM even when collapsed so drag-reorder counts stay right)
@@ -23856,13 +23854,13 @@ function savSettleDebt(idx,mode){
     +'<div class="modal-btns"><button class="mbtn save" id="sdbBtn" onclick="savConfirmSettle('+idx+')"></button>'
     +'<button class="mbtn cancel" onclick="closeModal()">'+esc(L('Cancel','إلغاء'))+'</button></div>';
   document.getElementById('modalOverlay').style.display='flex';
-  if(mode==='part') _sdbSet(idx,'part'); else _sdbUpdate(idx);
+  if(mode==='part') _sdbSet(idx,'part',true); else _sdbUpdate(idx);   // no auto-focus: iOS hides the keyboard for a field focused outside a tap, and a later tap on it does nothing
 }
 function _sdbAmount(){ return Math.round((parseFloat(String((document.getElementById('sdbAmt')||{}).value||'').replace(/,/g,''))||0)*100)/100; }
-function _sdbSet(idx,frac){
+function _sdbSet(idx,frac,noFocus){
   const x=SAVINGS.debts[idx]; if(!x) return;
   const el=document.getElementById('sdbAmt');
-  if(frac==='part'){ if(el){ el.value=''; el.focus(); } _sdbUpdate(idx); return; }
+  if(frac==='part'){ if(el){ el.value=''; if(!noFocus) el.focus(); } _sdbUpdate(idx); return; }
   const v=Math.round(_debtRemaining(x)*frac*100)/100;
   if(el){ el.value=v; } _sdbUpdate(idx);
 }
@@ -23900,29 +23898,42 @@ function savConfirmSettle(idx){
 function savDebtDetails(idx){
   const x=SAVINGS.debts[idx]; if(!x) return;
   const isToMe=x.direction==='to_me', accent=isToMe?'var(--fin-income)':'var(--fin-outcome)';
-  const paid=_debtPaid(x), rem=_debtRemaining(x), ps=(x.payments||[]);
+  const paid=_debtPaid(x), rem=_debtRemaining(x), total=x.amount||0, ps=(x.payments||[]);
+  const pct=x.settled?100:Math.max(0,Math.min(100,Math.round(paid/Math.max(total,1)*100)));
   const tl=ps.length?ps.slice().reverse().map(function(p,i){
     return '<div class="sdb-tl-row"><span class="sdb-tl-dot"></span><div class="sdb-tl-tx"><b>'+esc(_sdbVerb(isToMe,true))+'</b><span>'+esc(p.date||'')+(p.note?' · '+esc(p.note):'')+'</span></div>'
       +'<div class="sdb-tl-amt" dir="ltr">'+fmt(p.amount||0)+' <em>'+curLabel()+'</em></div>'
       +'<button type="button" class="sdb-tl-del" aria-label="'+esc(L('Remove payment','حذف الدفعة'))+'" onclick="savDelDebtPayment('+idx+','+(ps.length-1-i)+')">'+ic('trash',13)+'</button></div>';
-  }).join(''):'<div class="sdb-tl-empty">'+esc(L('No payments recorded yet.','لا توجد دفعات مسجّلة بعد.'))+'</div>';
+  }).join(''):'<div class="sdb-tl-empty">'+esc(L('No payments yet — add one whenever you receive or pay something.','لسه مفيش دفعات — ضيف دفعة وقت ما تستلم أو تدفع أي مبلغ.'))+'</div>';
+  let when='';
+  if(x.dueDate && !x.settled){
+    const d=remDaysUntil(x.dueDate);
+    const t=d<0?L('passed '+(-d)+' day'+(-d>1?'s':'')+' ago','عدّى من '+_remArDays(-d)):d===0?L('today','النهاردة'):d===1?L('tomorrow','بكرة'):L('in '+d+' days','بعد '+_remArDays(d));
+    when='<span class="sdb-when'+(d<0?' past':d<=3?' soon':'')+'">'+esc(t)+'</span>';
+  }
+  const info='<div class="sdb-info">'
+    +'<div><small>'+esc(L('Date','التاريخ'))+'</small><b dir="ltr">'+esc(x.date||'—')+'</b></div>'
+    +(x.dueDate?'<div><small>'+esc(L('Expected','المتوقع'))+'</small><b dir="ltr">'+esc(x.dueDate)+'</b>'+when+'</div>':'')
+    +(x.settledDate?'<div><small>'+esc(L('Settled on','سُوّيت في'))+'</small><b dir="ltr">'+esc(x.settledDate)+'</b></div>':'')
+    +'</div>';
   document.getElementById('modalContent').innerHTML=
     '<div class="modal-handle"></div>'
     +'<div class="modal-title">'+ic('scale',15)+' '+esc(x.person||L('Debt','مديونية'))+'</div>'
-    +'<div class="sdb-badges"><span class="sdb-b" style="--sa:'+accent+'">'+esc(isToMe?L('They owe you','مدين لك'):L('You owe them','أنت مدين له'))+'</span>'
+    +'<div class="sdb-sum" style="--sa:'+accent+'">'
+    +'<div class="sdb-sum-top"><span class="sdb-sum-dir">'+esc(isToMe?L('They owe you','مدين لك'):L('You owe them','أنت مدين له'))+'</span>'
     +'<span class="sdb-b '+(x.settled?'ok':'open')+'">'+esc(x.settled?L('Settled','تمت التسوية'):L('Open','مفتوحة'))+'</span></div>'
-    +'<div class="sdb-stats"><div><small>'+esc(L('Original','الأصلي'))+'</small><b dir="ltr">'+fmt(x.amount||0)+'</b></div>'
-    +'<div><small>'+esc(isToMe?L('Received','المُحصَّل'):L('Paid','المسدَّد'))+'</small><b dir="ltr">'+fmt(paid)+'</b></div>'
-    +'<div><small>'+esc(L('Remaining','المتبقي'))+'</small><b dir="ltr">'+fmt(rem)+'</b></div></div>'
-    +'<div class="sdb-meta-line">'+esc(L('Date','التاريخ'))+': '+esc(x.date||'—')+(x.dueDate?' · '+esc(L('Expected','المتوقع'))+': '+esc(x.dueDate):'')+(x.settledDate?' · '+esc(L('Settled on','سُوّيت في'))+': '+esc(x.settledDate):'')+(x.note?'<br>'+esc(x.note):'')+'</div>'
-    +'<div class="sdb-tl-hd">'+esc(L('Payments','الدفعات'))+'</div><div class="sdb-tl">'+tl+'</div>'
+    +'<div class="sdb-sum-rem"><small>'+esc(x.settled?L('Original amount','المبلغ الأصلي'):L('Remaining','المتبقي'))+'</small><b dir="ltr">'+fmt(x.settled?total:rem)+' <em>'+curLabel()+'</em></b></div>'
+    +'<div class="sdb-hprog"><span class="sdb-prog-bar"><i style="width:'+pct+'%"></i></span>'
+    +'<span class="sdb-prog-tx" dir="auto">'+esc(_sdbVerb(isToMe,true))+' '+fmt(paid)+' '+esc(L('of','من'))+' '+fmt(total)+' · '+pct+'%</span></div>'
+    +'</div>'
+    +info
+    +(x.note?'<div class="sdb-note" dir="auto">'+esc(x.note)+'</div>':'')
+    +'<div class="sdb-tl-hd">'+esc(L('Payments','الدفعات'))+(ps.length?' · '+ps.length:'')+'</div><div class="sdb-tl">'+tl+'</div>'
     +'<div class="modal-btns">'
     +(x.settled?'<button class="mbtn save" onclick="savReopenDebt('+idx+')">'+esc(L('Reopen (undo last settlement)','إعادة فتح (تراجع عن آخر تسوية)'))+'</button>'
-               :'<button class="mbtn save" onclick="closeModal();savSettleDebt('+idx+',\'part\')">'+ic('plus',15)+' '+esc(isToMe?L('Add payment received','إضافة دفعة مُستلمة'):L('Add payment','إضافة دفعة'))+'</button>'
-                 +'<button class="mbtn cancel" onclick="closeModal();savSettleDebt('+idx+')">'+ic('check',15)+' '+esc(isToMe?L('Mark all received','تم تحصيل الكل'):L('Mark all paid','تم سداد الكل'))+'</button>')
-    +'<button class="mbtn cancel" onclick="closeModal();savEditDebt('+idx+')">'+esc(L('Edit details','تعديل البيانات'))+'</button>'
-    +'<button class="mbtn cancel sdb-danger" onclick="closeModal();savDeleteDebt('+idx+')">'+esc(L('Delete record','حذف السجل'))+'</button>'
-    +'<button class="mbtn cancel" onclick="closeModal()">'+esc(L('Close','إغلاق'))+'</button></div>';
+               :'<button class="mbtn save" onclick="closeModal();savSettleDebt('+idx+',\'part\')">'+ic('plus',15)+' '+esc(isToMe?L('Add payment received','إضافة دفعة مُستلمة'):L('Add payment','إضافة دفعة'))+'</button>')
+    +'<div class="sdb-acts2"><button class="mbtn cancel" onclick="closeModal();savEditDebt('+idx+')">'+ic('edit',15)+' '+esc(L('Edit','تعديل'))+'</button>'
+    +'<button class="mbtn cancel sdb-danger" onclick="closeModal();savDeleteDebt('+idx+')">'+ic('trash',15)+' '+esc(L('Delete','حذف'))+'</button></div></div>';
   document.getElementById('modalOverlay').style.display='flex';
 }
 function savDelDebtPayment(idx,pi){
@@ -60593,6 +60604,22 @@ input[type="number"]{font-variant-numeric:tabular-nums}
 .sdb-tl-del{all:unset;box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:10px;color:var(--muted);cursor:pointer;flex:none;transition:background-color .15s,color .15s}
 .sdb-tl-del:hover,.sdb-tl-del:active{background:var(--red-tint);color:var(--red)}
 .sdb-tl-del:focus-visible{outline:2px solid var(--green-light,#2BC48C);outline-offset:1px}
+
+/* Debt details screen */
+.sdb-hprog{margin-top:2px}
+.sdb-hprog .sdb-prog-bar{height:8px}
+.sdb-hprog .sdb-prog-bar i{background:var(--sa)}
+.sdb-info{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin-bottom:12px}
+.sdb-info>div{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:9px 11px;min-width:0}
+.sdb-info small{display:block;font-size:calc(11px*var(--app-text-scale,1));font-weight:600;color:var(--muted);margin-bottom:2px}
+.sdb-info b{font-size:calc(13px*var(--app-text-scale,1));font-weight:700;font-variant-numeric:tabular-nums}
+.sdb-when{display:inline-block;margin-inline-start:6px;font-size:calc(11px*var(--app-text-scale,1));font-weight:700;color:var(--muted)}
+.sdb-when.soon{color:var(--gold,#C9922E)}
+.sdb-when.past{color:var(--muted);font-style:italic}
+.sdb-note{margin-bottom:12px;padding:9px 12px;border-inline-start:3px solid var(--border-strong,var(--border));border-radius:4px 12px 12px 4px;background:var(--surface2);font-size:calc(13px*var(--app-text-scale,1));line-height:1.55;color:var(--text2,var(--text))}
+.sdb-acts2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.sdb-acts2 .mbtn{width:100%;margin:0;display:inline-flex;align-items:center;justify-content:center;gap:6px}
+.sdb-sum-rem b{font-family:var(--font-num)}
 </style>
 <script id="finora-polish-js">
 /* FINORA polish — accessibility behaviour for the shared modal sheet.
