@@ -13026,6 +13026,10 @@ function fpInitSmartHeader(){
 .pur2-card .pur2-dt{font-size:calc(11px*var(--app-text-scale,1));font-weight:600;color:var(--muted)}
 .pur2-card .pur2-i > .pur2-pr{padding:8px 12px 12px;font-size:calc(16px*var(--app-text-scale,1));font-weight:700}
 .pur2-card .pur2-i > .pur2-pr small{font-size:calc(11px*var(--app-text-scale,1));font-weight:700}
+/* iOS fix: horizontal card scroller must not be interrupted. A transform on the card (or a scaling item) while the finger is down cancels the pan in WebKit. */
+.pur2-card,.pur2-card:active{transform:none!important;transition:none}
+.pur2-card .pur2-grid{touch-action:pan-x pan-y;overscroll-behavior-x:contain}
+.pur2-card .pur2-i:active{transform:none;background:color-mix(in srgb,var(--text) 5%,var(--surface))}
 </style>
 <style id="finora-identity-early">
 /* ══ FINORA identity v4 — neutral "social-blue" palette (Facebook/X-style) ══
@@ -15861,28 +15865,41 @@ function _mddNextKey(k){
   return i===11 ? 'JAN-'+(Y+1) : _MDD_ABBR()[i+1]+'-'+Y;
 }
 function _mddFull(k){ return _mddShort(k)+' '+_mddYear(k); }
+const _MDD_EN_FULL=['January','February','March','April','May','June','July','August','September','October','November','December'];
+function _mddName(k){
+  const i=_MDD_ABBR().indexOf(String(k).split('-')[0]);
+  if(i<0) return _mddShort(k);
+  return lang==='ar' ? MONTH_AR_NAMES[i] : _MDD_EN_FULL[i];
+}
 function _monthDDInner(){
   const years=[...new Set(MONTHS_ORDER.map(_mddYear))].sort((a,b)=>a-b);
   const grouped=years.length>1;
   if(!_mddOpenYears) _mddOpenYears=new Set([_mddYear(activeMonth)]);
   const curKey=_currentRealMonthKey();
-  const row=k=>`
-        <div class="month-dd-row">
-          <button class="month-dd-item ${k===activeMonth?'active':''} ${k===curKey?'cur':''}" onclick="selectMonth('${k}')">${grouped?_mddShort(k):_monthDisplayLabel(k)}</button>
-          ${MONTHS_ORDER.length>1?`<button class="month-dd-delete" onclick="confirmDeleteMonth(event,'${k}')" title="${L('Delete month','حذف الشهر')}">${ic('trash',14)}</button>`:''}
+  const row=k=>{
+    const on=k===activeMonth;
+    return `
+        <div class="mdd-row${on?' on':''}">
+          <button type="button" class="mdd-item" role="option" aria-selected="${on}" onclick="selectMonth('${k}')">
+            <span class="mdd-name">${_mddName(k)}</span>${grouped?'':`<span class="mdd-yr">${_mddYear(k)}</span>`}${k===curKey?`<span class="mdd-now">${L('Now','الحالي')}</span>`:''}
+            <span class="mdd-chk" aria-hidden="true">${on?ic('check',16):''}</span>
+          </button>
+          ${MONTHS_ORDER.length>1?`<button type="button" class="mdd-del" onclick="confirmDeleteMonth(event,'${k}')" aria-label="${L('Delete month','حذف الشهر')}" title="${L('Delete month','حذف الشهر')}">${ic('trash',15)}</button>`:''}
         </div>`;
+  };
   const list=grouped
     ? years.map(y=>{
         const ks=MONTHS_ORDER.filter(k=>_mddYear(k)===y), open=_mddOpenYears.has(y);
-        return `<button type="button" class="month-dd-year ${open?'open':''}" aria-expanded="${open}" onclick="toggleMonthYear(event,${y})"><span class="chev">▾</span><span>${y}</span><span class="cnt">${ks.length}</span></button>`+(open?ks.map(row).join(''):'');
+        return `<button type="button" class="mdd-year${open?' open':''}" aria-expanded="${open}" onclick="toggleMonthYear(event,${y})"><span class="chev">▾</span><span>${y}</span><span class="cnt">${ks.length}</span></button>`+(open?ks.map(row).join(''):'');
       }).join('')
     : MONTHS_ORDER.map(row).join('');
   const nextK=_mddNextKey(MONTHS_ORDER[MONTHS_ORDER.length-1]);
   const addLbl=nextK
-    ? L('+ Add '+String(nextK).split('-')[0]+' '+_mddYear(nextK),'+ إضافة '+_mddFull(nextK))
-    : L('+ Add Month','+ إضافة شهر');
-  return list+`
-        <button class="month-dd-item add" onclick="openAddMonth(${nextK?`'${nextK}'`:''})">${addLbl}</button>
+    ? L('Add '+_MDD_EN_FULL[_MDD_ABBR().indexOf(String(nextK).split('-')[0])]+' '+_mddYear(nextK),'إضافة '+_mddFull(nextK))
+    : L('Add month','إضافة شهر');
+  return `<div class="mdd-head"><span>${L('Select month','اختر الشهر')}</span><em>${MONTHS_ORDER.length}</em></div>
+      <div class="mdd-list" role="listbox">${list}</div>
+      <div class="mdd-foot"><button type="button" class="mdd-add" onclick="openAddMonth(${nextK?`'${nextK}'`:''})">${ic('plus',16)}<span>${addLbl}</span></button></div>
 `;
 }
 function toggleMonthYear(e,y){
@@ -15915,7 +15932,7 @@ function toggleMonthDropdown(e){
     setTimeout(()=>{ dd.style.display='none'; dd.classList.remove('fp-menu-closing'); },130);
   } else {
     dd.style.display='flex';
-    const a=dd.querySelector('.month-dd-item.active');
+    const a=dd.querySelector('.mdd-row.on');
     if(a) dd.scrollTop=Math.max(0,a.offsetTop-(dd.clientHeight-a.offsetHeight)/2);
   }
   btn.classList.toggle('open',!isOpen);
@@ -20676,6 +20693,19 @@ function attachCalcKb(){
     return el.closest('.modal, .stt-sheet, [id$="Sheet"], [id$="Content"]');
   }
   let scrollEl=null, scrollElOrig=null;
+  function reveal(el){
+    if(!kbEl || activeInput!==el || !kbEl.classList.contains('open')) return;
+    const sc=(scrollEl && scrollEl.isConnected)?scrollEl:null;
+    const bottomLimit=window.innerHeight-kbEl.offsetHeight-14;
+    const topLimit=(sc?Math.max(0,sc.getBoundingClientRect().top):0)+8;
+    const r=el.getBoundingClientRect();
+    const labelRoom=30;                       // keep the field's label visible too
+    let d=0;
+    if(r.bottom>bottomLimit) d=r.bottom-bottomLimit;
+    else if(r.top-labelRoom<topLimit) d=r.top-labelRoom-topLimit;
+    if(Math.abs(d)<2) return;
+    if(sc) sc.scrollBy({top:d,behavior:'smooth'}); else window.scrollBy({top:d,behavior:'smooth'});
+  }
   function show(el){
     clearTimeout(hideTimer);
     build();
@@ -20688,7 +20718,10 @@ function attachCalcKb(){
         scrollEl.style.overflowY='auto';
         scrollEl.style.paddingBottom=(kbEl.offsetHeight+16)+'px';
       }
-      setTimeout(()=>{ el.scrollIntoView({behavior:'smooth',block:'center'}); },120);
+      // Keep the field in the strip between the sheet's header and the keypad.
+      // (scrollIntoView 'center' ignores the keypad, so the field landed behind it.)
+      setTimeout(()=>reveal(el),120);
+      setTimeout(()=>reveal(el),420);
     });
   }
   function hide(){
@@ -35004,9 +35037,10 @@ function _txWeekStripHTML(all){
     if(!nd || (!tot&&!bigV)) return '';
     const mx=Math.max(1,...days.map(x=>Math.max(x.v,x.t)));
     const todayK=_pxIso(new Date());
+    const peakV=Math.max(0,...days.map(x=>x.v));
     const cols=days.map(x=>{
-      const h=x.v?Math.max(8,Math.round(x.v/mx*100)):3, over=x.t>0&&x.v>x.t, td=r.isCur&&x.k===todayK;
-      return `<div class="pxw-col${td?' today':''}" title="${esc(x.k)}"><div class="pxw-c${td?' today':''}${over?' over':''}${x.v?'':' zero'}"><i style="height:${h}%"></i>${x.t>0?`<u style="bottom:${Math.min(100,Math.round(x.t/mx*100))}%"></u>`:''}</div><em dir="ltr">${x.v?_pxCompact(x.v):'·'}</em><small>${esc(x.d.toLocaleDateString(_jpLoc(),{weekday:'narrow'}))}</small><small class="pxw-dn" dir="ltr">${x.d.getDate()}</small></div>`;
+      const h=x.v?Math.max(8,Math.round(x.v/mx*100)):3, over=x.t>0&&x.v>x.t, td=r.isCur&&x.k===todayK, pk=peakV>0&&x.v===peakV;
+      return `<div class="pxw-col${td?' today':''}${pk?' peak':''}" title="${esc(x.k)}"><div class="pxw-c${td?' today':''}${over?' over':''}${x.v?'':' zero'}"><i style="height:${h}%"></i>${x.t>0?`<u style="bottom:${Math.min(100,Math.round(x.t/mx*100))}%"></u>`:''}</div><em dir="ltr">${x.v?_pxCompact(x.v):'·'}</em><small>${esc(x.d.toLocaleDateString(_jpLoc(),{weekday:'narrow'}))}</small><small class="pxw-dn" dir="ltr">${x.d.getDate()}</small></div>`;
     }).join('');
     const nm=((big&&big.notes)||'').trim().slice(0,22)||L('Entry','قيد');
     _pxScrollToToday();
@@ -51735,10 +51769,15 @@ const ATT=(function(){
     }
     const legend=ST.map(x=>`<span class="att-lg att-st-${x.k}"><i></i>${stLbl(x)}</span>`).join('');
     // notes of the viewed month
-    const pre=vy+'-'+pad(vm+1);
-    const notes=Object.keys(db.days).filter(k=>k.indexOf(pre)===0&&db.days[k]&&db.days[k].n).sort().map(k=>{
-      const r=db.days[k], x=BY[r.s];
-      return `<button type="button" class="att-note att-st-${r.s}" onclick="ATT.openDay('${k}')"><span class="att-note-d">${parseInt(k.slice(8),10)}</span><span class="att-note-b"><b>${x?esc(stLbl(x)):''}</b><span dir="auto">${esc(r.n)}</span></span></button>`;
+    // Notes roll over at day 25: the viewed month shows prev-month days 26–end + this month days 1–25
+    // (notes written on the 26th or later belong to the NEXT month's list).
+    const NOTE_CUT=25;
+    const pre=vy+'-'+pad(vm+1), prePrev=(vm===0?(vy-1)+'-12':vy+'-'+pad(vm));
+    const noteMon=new Date(vm===0?vy-1:vy,vm===0?11:vm-1,1).toLocaleDateString(loc(),{month:'short'});
+    const noteIn=k=>{ const d=parseInt(k.slice(8),10); return (k.indexOf(pre)===0&&d<=NOTE_CUT)||(k.indexOf(prePrev)===0&&d>NOTE_CUT); };
+    const notes=Object.keys(db.days).filter(k=>noteIn(k)&&db.days[k]&&db.days[k].n).sort().map(k=>{
+      const r=db.days[k], x=BY[r.s], carried=k.indexOf(pre)!==0;
+      return `<button type="button" class="att-note att-st-${r.s}" onclick="ATT.openDay('${k}')"><span class="att-note-d">${parseInt(k.slice(8),10)}</span><span class="att-note-b"><b>${x?esc(stLbl(x)):''}${carried?' · '+esc(noteMon):''}</b><span dir="auto">${esc(r.n)}</span></span></button>`;
     }).join('');
     const sc=(k,en,ar)=>`<button type="button" class="att-seg${scope===k?' on':''}" aria-pressed="${scope===k}" onclick="ATT.setScope('${k}')">${L(en,ar)}</button>`;
     const isOpen = coOpen===null ? !db.company : coOpen;
@@ -60724,8 +60763,8 @@ input[type="number"]{font-variant-numeric:tabular-nums}
 .dash-hero-main-val,.dv3h-stat-val,.dfp-kpi3-val,.fin-hero-amount,.fin-card-amount,.fin-num,.bnk-card-balance,.bal-avail-amount,.balance-display,.dsum-num,.txlg-amt,.sav-row-amount,.hnum-row,.dfp-donut-center-val,.bnk-analytics-stat-val{font-variant-numeric:tabular-nums lining-nums;font-feature-settings:"tnum" 1,"lnum" 1}
 .dash-hero-main-val,.fin-hero-amount,.bnk-card-balance,.dsum-num{letter-spacing:-.01em}
 [dir="rtl"] .dash-hero-main-val,[dir="rtl"] .fin-hero-amount,[dir="rtl"] .bnk-card-balance,[dir="rtl"] .dsum-num{letter-spacing:0}
-.wdash-tile,.fin-card,.pur2-card,.fin-qa-chip,.wdash-manage-btn,.wdash-showall{transition:transform .14s cubic-bezier(.2,.8,.2,1),background-color .18s ease,border-color .18s ease,box-shadow .18s ease}
-.wdash-tile:active,.fin-card:active,.pur2-card:active,.fin-qa-chip:active,.wdash-manage-btn:active,.wdash-showall:active{transform:scale(.97)}
+.wdash-tile,.fin-card,.fin-qa-chip,.wdash-manage-btn,.wdash-showall{transition:transform .14s cubic-bezier(.2,.8,.2,1),background-color .18s ease,border-color .18s ease,box-shadow .18s ease}
+.wdash-tile:active,.fin-card:active,.fin-qa-chip:active,.wdash-manage-btn:active,.wdash-showall:active{transform:scale(.97)}
 .txlg-group-n{display:inline-block;margin-inline-start:6px;min-width:18px;padding:1px 6px;border-radius:99px;background:var(--surface3);color:var(--muted);font-style:normal;font-size:calc(10px*var(--app-text-scale,1));font-weight:800;text-align:center;letter-spacing:0;font-variant-numeric:tabular-nums;vertical-align:1px}
 
 /* ═══ Premium additions · styles ═══ */
@@ -60830,6 +60869,86 @@ input[type="number"]{font-variant-numeric:tabular-nums}
 .sdb-acts2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .sdb-acts2 .mbtn{width:100%;margin:0;display:inline-flex;align-items:center;justify-content:center;gap:6px}
 .sdb-sum-rem b{font-family:var(--font-num)}
+
+/* ── Month dropdown — clean list: sticky title, start-aligned rows, tinted active row, quiet delete, sticky Add button ── */
+:root body .app-header .month-dropdown{
+  min-width:min(280px,calc(100vw - 32px));max-width:calc(100vw - 32px);padding:0;gap:0;
+  border:1px solid var(--border);border-radius:18px;background:var(--surface);
+  box-shadow:0 18px 40px -14px rgba(0,0,0,.38),0 2px 8px rgba(0,0,0,.08);
+  max-height:min(66vh,470px);overflow-y:auto;overscroll-behavior:contain;
+}
+.mdd-head{position:sticky;top:0;z-index:2;display:flex;align-items:center;justify-content:space-between;padding:14px 16px 8px;background:var(--surface);
+  font-size:calc(11px*var(--app-text-scale,1));font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.mdd-head em{font-style:normal;min-width:22px;padding:2px 8px;border-radius:99px;background:var(--surface2);text-align:center;letter-spacing:0}
+.mdd-list{display:flex;flex-direction:column;gap:2px;padding:0 6px 8px}
+.mdd-row{display:flex;align-items:center;border-radius:12px;transition:background .15s}
+.mdd-row.on{background:var(--green-tint)}
+.mdd-row:not(.on):active{background:var(--surface2)}
+.mdd-item{flex:1;min-width:0;display:flex;align-items:center;gap:8px;min-height:46px;padding:0 12px;border:0;background:transparent;color:var(--text);
+  font:inherit;font-size:calc(15px*var(--app-text-scale,1));font-weight:600;text-align:start;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.mdd-name{white-space:nowrap}
+.mdd-yr{font-size:calc(13px*var(--app-text-scale,1));font-weight:500;color:var(--muted);font-variant-numeric:tabular-nums}
+.mdd-now{padding:2px 8px;border-radius:99px;background:var(--surface2);color:var(--muted);font-size:calc(10.5px*var(--app-text-scale,1));font-weight:700;letter-spacing:.02em}
+.mdd-row.on .mdd-now{background:color-mix(in srgb,var(--green) 16%,transparent);color:var(--green)}
+.mdd-row.on .mdd-name{color:var(--green);font-weight:700}
+.mdd-chk{margin-inline-start:auto;display:flex;align-items:center;width:18px;height:18px;color:var(--green)}
+:root[data-theme="dark"] .mdd-row.on .mdd-name,:root[data-theme="dark"] .mdd-row.on .mdd-now,:root[data-theme="dark"] .mdd-chk{color:var(--green-light)}
+.mdd-del{flex:none;width:38px;height:38px;margin-inline-end:4px;border:0;border-radius:10px;background:transparent;color:var(--muted);opacity:.45;
+  display:flex;align-items:center;justify-content:center;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:opacity .15s,background .15s,color .15s}
+.mdd-del:active{opacity:1;color:#dc4f4f;background:rgba(220,79,79,.12)}
+.mdd-year{display:flex;align-items:center;gap:8px;width:100%;margin-top:6px;padding:8px 12px;border:0;border-radius:10px;background:transparent;color:var(--muted);
+  font:inherit;font-size:calc(12px*var(--app-text-scale,1));font-weight:700;letter-spacing:.06em;cursor:pointer}
+.mdd-year:first-child{margin-top:0}
+.mdd-year .chev{transition:transform .2s;transform:rotate(-90deg)}
+.mdd-year.open .chev{transform:none}
+[dir="rtl"] .mdd-year:not(.open) .chev{transform:rotate(90deg)}
+.mdd-year .cnt{margin-inline-start:auto;padding:1px 8px;border-radius:99px;background:var(--surface2);letter-spacing:0}
+.mdd-foot{position:sticky;bottom:0;z-index:2;padding:8px;background:var(--surface);border-top:1px solid var(--border)}
+.mdd-add{width:100%;height:46px;display:flex;align-items:center;justify-content:center;gap:8px;border:1px dashed color-mix(in srgb,var(--green) 45%,var(--border));border-radius:12px;
+  background:color-mix(in srgb,var(--green) 8%,transparent);color:var(--green);font:inherit;font-size:calc(14px*var(--app-text-scale,1));font-weight:700;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.mdd-add:active{background:color-mix(in srgb,var(--green) 16%,transparent)}
+:root[data-theme="dark"] .mdd-add{color:var(--green-light)}
+
+/* ── Dark mode · white-backdrop product photos ("blend" mode) ──
+   Was: a small white rounded box floating inside the dark tile (box-in-a-box, with a visible seam).
+   Now: the photo area itself becomes a soft light "studio" backdrop, edge to edge, and the picture
+   multiplies into it — no inner box, no border radius clash. The info bar below stays dark. */
+[data-theme="dark"] .asset-tile[data-astmode="blend"] .asset-tile-art{background:linear-gradient(180deg,#eef0f4 0%,#dde1e8 100%)}
+[data-theme="dark"] .asset-tile[data-astmode="blend"] .asset-tile-meta{background:color-mix(in srgb,var(--accent) 7%,var(--surface));-webkit-backdrop-filter:none;backdrop-filter:none}
+[data-theme="dark"] .ast-hero[data-astmode="blend"]{background:linear-gradient(180deg,#eef0f4 0%,#dde1e8 100%)}
+[data-theme="dark"] [data-astmode="blend"] .atl-glow,
+[data-theme="dark"] [data-astmode="blend"] .atl-bg,
+[data-theme="dark"] .asset-tile[data-astmode="blend"] .asset-tile-art::before,
+[data-theme="dark"] .ast-hero[data-astmode="blend"]::before{display:none}
+[data-theme="dark"] [data-astmode="blend"] img.atl-img{
+  mix-blend-mode:multiply;background:none;border-radius:0;filter:none;
+  left:0;top:0;width:100%;height:calc(100% - var(--bar,0px));padding:16px 14px 24px}
+[data-theme="dark"] .ast-hero[data-astmode="blend"] img.atl-img{padding:20px 20px 30px}
+[data-theme="dark"] .asset-tile[data-astmode="blend"] .asset-tile-grip{
+  background:rgba(22,24,28,.62);border-color:rgba(255,255,255,.14);color:#fff;
+  -webkit-backdrop-filter:none;backdrop-filter:none}
+
+/* ── Daily spending bars — premium pass: slim pill bars on a soft track, gradient fills, quiet grid, edge-faded scroller ── */
+.pxw-scroll{-webkit-mask-image:linear-gradient(to right,transparent 0,#000 14px,#000 calc(100% - 14px),transparent 100%);mask-image:linear-gradient(to right,transparent 0,#000 14px,#000 calc(100% - 14px),transparent 100%);padding-inline:10px;margin-inline:-10px}
+.pxw-track{position:relative;gap:6px;--hair:color-mix(in srgb,var(--text) 7%,transparent)}
+.pxw-track::before{content:"";position:absolute;inset-inline:0;top:0;height:112px;pointer-events:none;
+  background:linear-gradient(var(--hair),var(--hair)) 0 0/100% 1px no-repeat,linear-gradient(var(--hair),var(--hair)) 0 50%/100% 1px no-repeat,linear-gradient(var(--hair),var(--hair)) 0 100%/100% 1px no-repeat}
+.pxw-col{position:relative;z-index:1;width:42px;gap:2px}
+.pxw-col .pxw-c{height:112px;margin-bottom:8px;justify-content:center}
+.pxw-c::before{content:"";position:absolute;top:0;bottom:0;left:50%;width:24px;transform:translateX(-50%);border-radius:12px;background:color-mix(in srgb,var(--text) 5%,transparent)}
+.pxw-c i{position:relative;z-index:1;width:24px;border-radius:12px 12px 7px 7px;
+  background:linear-gradient(180deg,color-mix(in srgb,var(--green-light) 78%,var(--surface)) 0%,color-mix(in srgb,var(--green) 60%,var(--surface)) 100%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.22)}
+.pxw-c.today i{background:linear-gradient(180deg,var(--green-light) 0%,var(--green) 100%);box-shadow:inset 0 1px 0 rgba(255,255,255,.35),0 8px 16px -6px color-mix(in srgb,var(--green) 80%,transparent)}
+.pxw-c.over i{background:linear-gradient(180deg,color-mix(in srgb,var(--red) 70%,#fff) 0%,var(--red) 100%);box-shadow:inset 0 1px 0 rgba(255,255,255,.28),0 8px 16px -6px color-mix(in srgb,var(--red) 75%,transparent)}
+.pxw-c.zero i{width:6px;height:6px!important;border-radius:50%;background:color-mix(in srgb,var(--text) 14%,transparent);box-shadow:none}
+.pxw-c u{z-index:2;inset-inline:-4px;border-top:1.5px dashed color-mix(in srgb,var(--gold) 85%,transparent)}
+.pxw-col em{color:var(--muted);font-weight:600;margin-top:2px}
+.pxw-col.peak em,.pxw-col.today em{color:var(--text);font-weight:800}
+.pxw-col small{font-weight:600;letter-spacing:.02em}
+.pxw-col .pxw-dn{opacity:1;font-weight:700;font-variant-numeric:tabular-nums;width:24px;margin:2px auto 0;padding:3px 0;border-radius:99px;color:var(--text2)}
+.pxw-col.today .pxw-dn{background:var(--green);color:#fff}
+.pxw-col.today small:not(.pxw-dn){color:var(--green)}
 </style>
 <script id="finora-polish-js">
 /* FINORA polish — accessibility behaviour for the shared modal sheet.
