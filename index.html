@@ -27489,7 +27489,7 @@ function openBankLinkModal(key, fromManager){
   document.getElementById('modalContent').innerHTML='\n    <div class="modal-handle"></div>\n    <div class="bl-edit-hdr" style="--c:'+esc(c)+'"><span class="bl-logo">'+_blLogo(b,40)+'</span>'
     +'<div><div class="modal-hdr-title">'+L('Quick Link','رابط سريع')+'</div><div class="modal-hdr-sub">'+esc(bankDisplayName(b.name))+'</div></div></div>'
     +'<div class="field"><label>'+L('Bank app / online banking link','رابط تطبيق أو موقع البنك')+'</label>'
-    +'<div class="bl-input-wrap"><input type="text" id="blUrlInput" dir="ltr" inputmode="url" autocomplete="off" autocapitalize="off" spellcheck="false" value="'+esc(cur)+'" placeholder="https://online.yourbank.com" oninput="blLivePreview()">'
+    +'<div class="bl-input-wrap"><input type="text" id="blUrlInput" dir="ltr" inputmode="url" autocomplete="off" autocapitalize="off" spellcheck="false" value="'+esc(cur)+'" placeholder="https://online.yourbank.com" oninput="blLivePreview()" onpaste="blOnPaste(event)" onblur="blAutoClean()">'
     +'<button type="button" class="bl-paste" onclick="blPaste()">'+_BL_ICO.paste+' '+L('Paste','لصق')+'</button></div>'
     +'<div class="bl-hint" id="blHint"></div></div>'
     +'<div class="modal-btns"><button class="mbtn save" onclick="saveBankLink(\''+key+'\','+(fromManager?'true':'false')+')">'+ic('check',15)+' '+L('Save','حفظ')+'</button>'
@@ -27498,6 +27498,14 @@ function openBankLinkModal(key, fromManager){
   document.getElementById('modalOverlay').style.display='flex';
   blLivePreview();
   setTimeout(function(){ const i=document.getElementById('blUrlInput'); if(i&&!cur) i.focus(); },120);
+}
+// keep ONLY the link, whatever else was pasted (share messages, Arabic text, hidden marks)
+function blAutoClean(){ const i=document.getElementById('blUrlInput'); if(!i) return; const n=_blNormalize(i.value); if(n&&n!==i.value){ i.value=n; } blLivePreview(); }
+function blOnPaste(e){
+  try{
+    const t=(e.clipboardData||window.clipboardData).getData('text'); const n=_blNormalize(t);
+    if(n){ e.preventDefault(); const i=e.target; i.value=n; blLivePreview(); }
+  }catch(x){}
 }
 function blLivePreview(){
   const i=document.getElementById('blUrlInput'), h=document.getElementById('blHint'); if(!i||!h) return;
