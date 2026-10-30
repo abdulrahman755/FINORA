@@ -13655,6 +13655,62 @@ const ENC_SALT_KEY         = 'wdp_enc_salt_v1';
 let _cryptoKey = null;   // CryptoKey object after PIN unlock
 let _encEnabled = false; // true once PIN is verified and key derived
 
+// ── Job-profile passwords (e-mail / medical-insurance) ─────────────────────────
+// Encrypted with the SAME PIN-derived key as the finance data, in their own key. The key name starts with
+// "wdp_enc_", so backups skip it by design (backup files never contain these passwords).
+// Plain copy in the profile is blanked only AFTER the encrypted copy is written and verified.
+// If there is no PIN/key (lock off) nothing changes: passwords stay plain and the screen says so.
+const JP_PW_ENC_KEY = 'wdp_enc_jp_pw_v1';
+let _JP_PW = { emailPw:'', medPw:'' };   // decrypted copy, memory only, cleared on lock
+let _JP_PW_READY = false;                 // true once the encrypted copy has been read (or there is none)
+function _jpPwClear(){ _JP_PW = { emailPw:'', medPw:'' }; _JP_PW_READY = false; }
+let _jpPwQ = Promise.resolve();
+function _jpPwPersistQ(){ _jpPwQ = _jpPwQ.then(_jpPwPersist).catch(e=>{ console.warn('[WDP] profile password encrypt failed:',e); return false; }); return _jpPwQ; }
+async function _jpPwPersist(){
+  if(!_encEnabled || !_cryptoKey || !_JP_PW_READY) return false;
+  const snap = { emailPw:_JP_PW.emailPw, medPw:_JP_PW.medPw };      // latest values at run time (calls are serialized)
+  await saveEncrypted(JP_PW_ENC_KEY, snap);
+  let shape=null; try{ shape=JSON.parse(localStorage.getItem(JP_PW_ENC_KEY)||'null'); }catch(e){}
+  if(!shape || !shape.iv || !shape.ct){ try{ localStorage.removeItem(JP_PW_ENC_KEY); }catch(e){} return false; }  // never leave a plain fallback behind
+  const back = await loadEncrypted(JP_PW_ENC_KEY);
+  if(!back || back.emailPw!==snap.emailPw || back.medPw!==snap.medPw) return false;
+  const pr = JSON.parse(localStorage.getItem(_JP_KEY)||'null');
+  if(pr && typeof pr==='object' && (pr.emailPw || pr.medPw)){ pr.emailPw=''; pr.medPw=''; localStorage.setItem(_JP_KEY, JSON.stringify(pr)); }
+  return true;
+}
+async function _jpPwLoadAfterUnlock(){
+  _jpPwClear();
+  if(localStorage.getItem(JP_PW_ENC_KEY)){
+    const o = await loadEncrypted(JP_PW_ENC_KEY);
+    if(!o || typeof o!=='object') return;            // wrong key / corrupt: touch nothing, stay "not ready" (saves keep plain)
+    _JP_PW.emailPw = String(o.emailPw||''); _JP_PW.medPw = String(o.medPw||'');
+  }
+  _JP_PW_READY = true;
+  // plain passwords still sitting in the profile (data from before this update, a backup restore, or a failed save) win and get encrypted now
+  try{
+    const pr = JSON.parse(localStorage.getItem(_JP_KEY)||'null');
+    if(pr && typeof pr==='object' && (pr.emailPw || pr.medPw)){
+      if(pr.emailPw) _JP_PW.emailPw = String(pr.emailPw);
+      if(pr.medPw)   _JP_PW.medPw   = String(pr.medPw);
+      await _jpPwPersistQ();
+    }
+  }catch(e){ console.warn('[WDP] profile password migration skipped:',e); }
+}
+// Lock switched off: no key will exist any more, so put the passwords back into the profile as plain first
+function _jpPwRestorePlain(){
+  try{
+    const hasBlob = !!localStorage.getItem(JP_PW_ENC_KEY);
+    if(hasBlob && !_JP_PW_READY) return true;         // could not read it this session: leave the encrypted copy untouched
+    if(!hasBlob && !_JP_PW.emailPw && !_JP_PW.medPw) return true;
+    const pr = JSON.parse(localStorage.getItem(_JP_KEY)||'null') || {};
+    pr.emailPw = _JP_PW.emailPw || pr.emailPw || ''; pr.medPw = _JP_PW.medPw || pr.medPw || '';
+    const str = JSON.stringify(pr); localStorage.setItem(_JP_KEY, str);
+    if(localStorage.getItem(_JP_KEY)!==str) return false;
+    localStorage.removeItem(JP_PW_ENC_KEY);
+    return true;
+  }catch(e){ return false; }
+}
+
 // ── Key Derivation ──────────────────────────────────────────────────────────
 async function deriveKeyFromPin(pin, salt) {
   // Encode PIN as bytes
@@ -13712,7 +13768,7 @@ async function _sessResume(){
     return true;
   }catch(e){
     console.warn('[WDP] Session resume failed, PIN required:',e);
-    _cryptoKey=null; _encEnabled=false; _sessClear();
+    _cryptoKey=null; _encEnabled=false; _sessClear(); _jpPwClear();
     return false;
   }
 }
@@ -13883,9 +13939,10 @@ async function _decryptToPlain(){
     localStorage.setItem(MONTHS_KEY, monthsStr);
     // verify the plain copy really landed before touching the encrypted one
     if(localStorage.getItem(STORAGE_KEY)!==dataStr || localStorage.getItem(MONTHS_KEY)!==monthsStr) return false;
+    if(!_jpPwRestorePlain()) return false;
     localStorage.removeItem(ENCRYPTED_DATA_KEY);
     localStorage.removeItem(ENCRYPTED_MONTHS_KEY);
-    _cryptoKey = null; _encEnabled = false; _sessClear();
+    _cryptoKey = null; _encEnabled = false; _sessClear(); _jpPwClear();
     return true;
   }catch(e){ console.warn('[WDP] decryptToPlain failed:', e); return false; }
 }
@@ -13904,6 +13961,7 @@ async function reEncryptWithNewPin(newPin) {
     // 3. Decrypt current data with OLD key (already in _cryptoKey)
     const currentData   = await loadEncrypted(ENCRYPTED_DATA_KEY);
     const currentMonths = await loadEncrypted(ENCRYPTED_MONTHS_KEY);
+    const currentJpPw   = localStorage.getItem(JP_PW_ENC_KEY) ? await loadEncrypted(JP_PW_ENC_KEY) : null;
     // 4. Switch to new salt + key
     localStorage.setItem(ENC_SALT_KEY, JSON.stringify(Array.from(newSalt)));
     _cryptoKey = newKey;
@@ -13911,6 +13969,7 @@ async function reEncryptWithNewPin(newPin) {
     // 5. Re-encrypt with new key
     if (currentData)   await saveEncrypted(ENCRYPTED_DATA_KEY,   currentData);
     if (currentMonths) await saveEncrypted(ENCRYPTED_MONTHS_KEY, currentMonths);
+    if (currentJpPw)   await saveEncrypted(JP_PW_ENC_KEY, currentJpPw);
     
     return true;
   } catch(e) {
@@ -14018,6 +14077,7 @@ async function loadEncryptedDataAfterPin(){
   }catch(e){
     console.warn('[WDP] Failed to load encrypted data:', e);
   }
+  try{ await _jpPwLoadAfterUnlock(); }catch(e){ console.warn('[WDP] profile passwords load failed:', e); }
 }
 function persistMonths(){
   const payload = { order: MONTHS_ORDER, names: MONTH_NAMES };
@@ -15741,7 +15801,7 @@ function lockApp(){
   // Clear crypto key from memory on lock for security
   _cryptoKey = null;
   _encEnabled = false;
-  _sessClear();
+  _sessClear(); _jpPwClear();
   _clearSessionTimer();
 }
 
@@ -35087,39 +35147,92 @@ function saveBankLow(key){
 }
 function clearBankLow(key){ delete bankLowAlerts[key]; _persistBankLow(); closeModal(); renderView(); showToast(L('Alert removed','تم إزالة التنبيه'),'success'); }
 
-let _sgId=null;
+let _sgId=null, _sgEnt=-1;
 function _sgAll(){ if(!Array.isArray(SAVINGS.goals)) SAVINGS.goals=[]; return SAVINGS.goals; }
+function _sgFind(id){ return _sgAll().find(x=>x.id===id); }
 function _sgEta(g){
   const rem=Math.max(0,(g.target||0)-(g.saved||0)); if(rem<=0) return {done:true};
-  const log=(g.log||[]).filter(x=>x&&x.d&&x.a>0); if(!log.length) return {};
+  const log=(g.log||[]).filter(x=>x&&x.d&&x.a>0&&!x.adj); if(!log.length) return {};
   const first=new Date(log.reduce((m,x)=>x.d<m?x.d:m,log[0].d)+'T12:00:00');
   const days=Math.max(14,Math.round((Date.now()-first.getTime())/864e5)+1);
   const perDay=log.reduce((a,x)=>a+x.a,0)/days; if(!(perDay>0)) return {};
   return {eta:new Date(Date.now()+Math.ceil(rem/perDay)*864e5)};
 }
+// Monthly amount needed to hit the target date (null when no date / already done / passed)
+function _sgNeed(g){
+  const rem=Math.max(0,(g.target||0)-(g.saved||0)); if(rem<=0||!g.date) return null;
+  const dl=new Date(g.date+'T12:00:00'); if(isNaN(dl)) return null;
+  if(dl<=new Date()) return {late:true};
+  return {amt:Math.ceil(rem/Math.max(1,(dl-Date.now())/(30*864e5)))};
+}
+// Encouraging, honest status line for a goal
+function _sgStatus(g,e,nd){
+  const pct=g.target>0?Math.round((g.saved||0)/g.target*100):0;
+  if(e.done) return {cls:'ok',t:L('Goal reached — well done!','وصلت للهدف — مبروك!')};
+  if(nd&&nd.late) return {cls:'late',t:L('Deadline passed — edit the date or keep going','الموعد عدّى — عدّل التاريخ أو كمّل ادخار')};
+  if(nd&&g.monthly>0){
+    return g.monthly>=nd.amt
+      ?{cls:'ok',t:L('Your monthly plan is enough to hit the date','خطتك الشهرية كافية توصلك في الموعد')}
+      :{cls:'warn',t:L('Raise your plan by','زوّد خطتك الشهرية بـ')+' '+fmtEGP(nd.amt-g.monthly)+' '+L('to hit the date','عشان توصل في الموعد')};
+  }
+  if(pct>=75) return {cls:'ok',t:L('Almost there — the finish line is close','قربت جدًا من الهدف')};
+  if(pct>=50) return {cls:'ok',t:L('Halfway there — keep going','عدّيت النص — كمّل')};
+  if(pct>=25) return {cls:'ok',t:L('A quarter done — great start','خلّصت ربع الهدف — بداية ممتازة')};
+  if(pct>0)   return {cls:'ok',t:L('You started — every deposit counts','بدأت — كل إيداع بيفرق')};
+  return {cls:'',t:L('Add your first deposit to get started','ضيف أول إيداع عشان تبدأ')};
+}
 function _savGoalsHTML(){
   try{
     const gs=_sgAll();
+    const totS=gs.reduce((a,g)=>a+(g.saved||0),0), totT=gs.reduce((a,g)=>a+(g.target||0),0);
     const rows=gs.map(g=>{
-      const t=g.target||0, sv=g.saved||0, pct=t>0?Math.min(100,Math.round(sv/t*100)):0, e=_sgEta(g);
-      const note=e.done?`<span class="sg-ok">${ic('check',11)} ${L('Goal reached','وصلت للهدف')}</span>`
-        :e.eta?`<span>${L('On pace for','متوقع توصل في')} <b>${esc(e.eta.toLocaleDateString(_jpLoc(),{month:'long',year:'numeric'}))}</b></span>`
-        :`<span>${L('Add a deposit to see your ETA','ضيف إيداع عشان يتحسب الموعد المتوقع')}</span>`;
-      let need='';
-      if(!e.done&&g.date){ const dl=new Date(g.date+'T12:00:00');
-        need=dl>new Date()?`<span>${L('Needs','محتاج')} <b dir="ltr">${fmtEGP(Math.ceil((t-sv)/Math.max(1,(dl-Date.now())/(30*864e5))))}</b> ${L('per month for','في الشهر عشان')} ${esc(_jpDate(g.date))}</span>`:`<span class="sg-late">${L('Deadline passed','الموعد عدّى')}</span>`; }
-      return `<div class="sg-row"><div class="sg-top" onclick="savGoalSheet('${esc(g.id)}')"><div class="sg-nm" dir="auto">${esc(g.name)}</div><div class="sg-pct">${pct}%</div></div><div class="sg-bar"><i style="width:${pct}%"></i></div><div class="sg-amt"><b dir="ltr">${fmtEGP(sv)}</b><small>${L('of','من')} <span dir="ltr">${fmtEGP(t)}</span></small>${e.done?'':`<button type="button" class="jp-add sg-dep" onclick="savGoalDeposit('${esc(g.id)}')">${ic('plus',13)} ${L('Add money','إضافة مبلغ')}</button>`}</div><div class="sg-meta">${note}${need}</div></div>`;
+      const t=g.target||0, sv=g.saved||0, pct=t>0?Math.min(100,Math.round(sv/t*100)):0, e=_sgEta(g), nd=_sgNeed(g), st=_sgStatus(g,e,nd);
+      const eta=e.eta?`<span>${L('On pace for','متوقع توصل في')} <b>${esc(e.eta.toLocaleDateString(_jpLoc(),{month:'long',year:'numeric'}))}</b></span>`:'';
+      const need=nd&&nd.amt?`<span>${L('Needs','محتاج')} <b dir="ltr">${fmtEGP(nd.amt)}</b> ${L('per month for','في الشهر عشان')} ${esc(_jpDate(g.date))}</span>`:'';
+      const quick=(!e.done&&g.monthly>0)?`<button type="button" class="jp-add sg-q" onclick="savGoalQuick('${esc(g.id)}')">${ic('plus',13)} ${fmtEGP(g.monthly)}</button>`:'';
+      return `<div class="sg-row"><div class="sg-top"><div class="sg-nm" dir="auto" onclick="savGoalView('${esc(g.id)}')">${esc(g.name)}</div><div class="sg-pct">${pct}%</div><button type="button" class="jp-rb sg-ib" onclick="savGoalSheet('${esc(g.id)}')" aria-label="${L('Edit','تعديل')}">${ic('edit',15)}</button><button type="button" class="jp-rb sg-ib sg-ibd" onclick="savGoalDel('${esc(g.id)}')" aria-label="${L('Delete','حذف')}">${ic('trash',15)}</button></div><div class="sg-bar" onclick="savGoalView('${esc(g.id)}')"><i style="width:${pct}%"></i></div><div class="sg-amt"><b dir="ltr">${fmtEGP(sv)}</b><small>${L('of','من')} <span dir="ltr">${fmtEGP(t)}</span></small>${e.done?'':`<button type="button" class="jp-add sg-dep" onclick="savGoalDeposit('${esc(g.id)}')">${ic('plus',13)} ${L('Add money','إضافة مبلغ')}</button>${quick}`}</div><div class="sg-meta"><span class="sg-st ${st.cls}">${st.t}</span>${eta}${need}<a class="sg-more" onclick="savGoalView('${esc(g.id)}')">${L('Details & history','التفاصيل والسجل')}</a></div></div>`;
     }).join('');
-    return `<section class="jp-card sg-card"><div class="jp-sec">${ic('star',17)}<span>${L('Savings goals','أهداف الادخار')}</span>${gs.length?`<em style="font-style:normal;font-size:12px;color:var(--muted);font-weight:700">${gs.length}</em>`:''}<span class="sp"></span><button type="button" class="jp-add" onclick="savGoalSheet(null)">${ic('plus',14)} ${L('New goal','هدف جديد')}</button></div>${rows||`<div class="jp-empty">${L('Set a goal — a car, a trip, an emergency fund — and track it here.','حدد هدف — عربية، سفر، طوارئ — وتابعه من هنا.')}</div>`}</section>`;
+    const sum=gs.length>1?`<div class="sg-sum"><span>${L('Total saved','إجمالي المدخر')}</span><b dir="ltr">${fmtEGP(totS)}</b><small>${L('of','من')} <span dir="ltr">${fmtEGP(totT)}</span></small></div>`:'';
+    return `<section class="jp-card sg-card"><div class="jp-sec">${ic('star',17)}<span>${L('Savings goals','أهداف الادخار')}</span>${gs.length?`<em style="font-style:normal;font-size:12px;color:var(--muted);font-weight:700">${gs.length}</em>`:''}<span class="sp"></span><button type="button" class="jp-add" onclick="savGoalSheet(null)">${ic('plus',14)} ${L('New goal','هدف جديد')}</button></div>${sum}${rows||`<div class="jp-empty">${L('Set a goal — a car, a trip, an emergency fund — and track it here.','حدد هدف — عربية، سفر، طوارئ — وتابعه من هنا.')}</div>`}</section>`;
   }catch(e){ try{ _logErr('savGoals',e); }catch(_){} return ''; }
 }
+// ── Goal details: summary + full deposit/withdrawal history (each entry editable/deletable)
+function savGoalView(id){
+  const g=_sgFind(id); if(!g) return; _sgId=id;
+  const t=g.target||0, sv=g.saved||0, pct=t>0?Math.min(100,Math.round(sv/t*100)):0, e=_sgEta(g), nd=_sgNeed(g), st=_sgStatus(g,e,nd);
+  const log=(g.log||[]).map((x,i)=>({x,i})).sort((a,b)=>(b.x.d||'').localeCompare(a.x.d||'')||b.i-a.i);
+  const items=log.map(({x,i})=>`<div class="sg-ent" onclick="savGoalEntry('${esc(id)}',${i})"><div class="sg-ent-l"><b>${x.adj?L('Adjustment','تسوية'):(x.a<0?L('Withdrawal','سحب'):L('Deposit','إيداع'))}</b><small>${esc(_jpDate(x.d)||x.d||'')}</small></div><div class="sg-ent-a ${x.a<0?'neg':'pos'}" dir="ltr">${x.a<0?'−':'+'}${fmtEGP(Math.abs(x.a))}</div><span class="sg-ent-e">${ic('edit',13)}</span></div>`).join('');
+  const info=[
+    g.date?`<div class="sg-kv"><small>${L('Target date','التاريخ المستهدف')}</small><b>${esc(_jpDate(g.date))}</b></div>`:'',
+    g.monthly>0?`<div class="sg-kv"><small>${L('Monthly plan','الخطة الشهرية')}</small><b dir="ltr">${fmtEGP(g.monthly)}</b></div>`:'',
+    nd&&nd.amt?`<div class="sg-kv"><small>${L('Needed / month','المطلوب / شهر')}</small><b dir="ltr">${fmtEGP(nd.amt)}</b></div>`:'',
+    e.eta?`<div class="sg-kv"><small>${L('On pace for','متوقع توصل')}</small><b>${esc(e.eta.toLocaleDateString(_jpLoc(),{month:'long',year:'numeric'}))}</b></div>`:'',
+    `<div class="sg-kv"><small>${L('Remaining','المتبقي')}</small><b dir="ltr">${fmtEGP(Math.max(0,t-sv))}</b></div>`
+  ].join('');
+  document.getElementById('modalContent').innerHTML=`<div class="modal-handle"></div><div class="rq-modal de-sheet prj-sheet">
+    <div class="modal-hdr"><div class="modal-hdr-icon" style="background:linear-gradient(135deg,#1565d8,#0b3f8f)">${ic('star',22)}</div>
+      <div style="flex:1;min-width:0"><div class="modal-hdr-title" dir="auto">${esc(g.name)}</div><div class="modal-hdr-sub"><span dir="ltr">${fmtEGP(sv)}</span> ${L('of','من')} <span dir="ltr">${fmtEGP(t)}</span> · ${pct}%</div></div>
+      <button type="button" class="sheet-close-btn sq" onclick="closeModal()" aria-label="${L('Close','إغلاق')}">${ic('close',16)}</button></div>
+    <div class="sg-bar" style="margin:4px 0 8px"><i style="width:${pct}%"></i></div>
+    <div class="sg-st ${st.cls}" style="margin-bottom:10px">${st.t}</div>
+    <div class="sg-kvs">${info}</div>
+    ${g.note?`<div class="ca-note small" dir="auto">${esc(g.note)}</div>`:''}
+    <div class="sg-acts">${e.done?'':`<button type="button" class="jp-add" onclick="savGoalDeposit('${esc(id)}')">${ic('plus',13)} ${L('Add money','إضافة مبلغ')}</button>`}<button type="button" class="jp-add" onclick="savGoalWithdraw('${esc(id)}')">${L('Withdraw','سحب')}</button><button type="button" class="jp-add" onclick="savGoalSheet('${esc(id)}')">${ic('edit',13)} ${L('Edit','تعديل')}</button></div>
+    <div class="sg-hist-h">${L('History','السجل')} <em>${log.length}</em></div>
+    <div class="sg-hist">${items||`<div class="jp-empty">${L('No deposits yet.','لسه مفيش إيداعات.')}</div>`}</div>
+    <button type="button" class="prj-del-link" onclick="savGoalDel('${esc(id)}')">${ic('trash',14)} ${L('Delete this goal','حذف الهدف ده')}</button>
+  </div>`;
+  document.getElementById('modalOverlay').style.display='flex';
+}
 function savGoalSheet(id){
-  const g=id?_sgAll().find(x=>x.id===id):null; if(id&&!g) return; _sgId=g?g.id:null;
+  const g=id?_sgFind(id):null; if(id&&!g) return; _sgId=g?g.id:null;
   _jpSheet('star',g?L('Edit goal','تعديل الهدف'):L('New savings goal','هدف ادخار جديد'),L('Set a target and track your progress','حدد المبلغ وتابع تقدمك'),
     _cvField('sgName',L('Goal name','اسم الهدف'),g?g.name:'',{ph:L('e.g. New car','مثال: عربية جديدة')})+
     _cvField('sgTarget',L('Target amount','المبلغ المستهدف'),g?g.target:'',{type:'number',dir:'ltr'})+
     _cvField('sgSaved',L('Saved so far','المدخر لحد دلوقتي'),g?g.saved:'',{type:'number',dir:'ltr',ph:'0'})+
-    _cvField('sgDate',L('Target date (optional)','تاريخ مستهدف (اختياري)'),g?g.date:'',{type:'date',dir:'ltr'}),
+    _cvField('sgDate',L('Target date (optional)','تاريخ مستهدف (اختياري)'),g?g.date:'',{type:'date',dir:'ltr'})+
+    _cvField('sgMonthly',L('Monthly plan (optional)','المبلغ الشهري المخطط (اختياري)'),g&&g.monthly?g.monthly:'',{type:'number',dir:'ltr',ph:'0'})+
+    _cvField('sgNote',L('Note (optional)','ملاحظة (اختياري)'),g?g.note:'',{ta:true,rows:2}),
     'savGoalSave()',g?`savGoalDel('${esc(g.id)}')`:'');
 }
 function savGoalSave(){
@@ -35129,26 +35242,77 @@ function savGoalSave(){
   if(!(target>0)){ showToast(L('Enter a target amount','اكتب المبلغ المستهدف'),'warn'); return; }
   const list=_sgAll(); let g=_sgId?list.find(x=>x.id===_sgId):null;
   if(!g){ g={id:'g'+Date.now().toString(36),log:[],created:_pxIso(new Date())}; list.push(g); }
+  // Editing the saved amount directly is recorded as an adjustment so the history always adds up
+  const diff=saved-(g.saved||0);
+  if(_sgId&&Math.abs(diff)>0.004){ (g.log=g.log||[]).push({d:_pxIso(new Date()),a:diff,adj:1}); }
   g.name=name; g.target=target; g.saved=saved; g.date=gv('sgDate');
+  g.monthly=Math.max(0,parseFloat(gv('sgMonthly'))||0); g.note=gv('sgNote');
   saveSavings(); closeModal(); renderView(); showToast(L('✓ Goal saved','✓ تم حفظ الهدف'),'success');
 }
 function savGoalDel(id){
-  if(!confirm(L('Delete this goal?','تحذف الهدف ده؟'))) return;
+  const g=_sgFind(id); if(!g) return;
+  const extra=(g.saved>0)?'\n'+L('Saved so far: ','المدخر لحد دلوقتي: ')+fmtEGP(g.saved)+'\n'+L('This also deletes its whole history.','وهيتمسح معاه كل السجل.'):'';
+  if(!confirm(L('Delete the goal "','تحذف الهدف "')+g.name+L('"?','"؟')+extra)) return;
   SAVINGS.goals=_sgAll().filter(x=>x.id!==id); saveSavings(); closeModal(); renderView();
+  showToast(L('Goal deleted','تم حذف الهدف'),'success');
 }
 function savGoalDeposit(id){
-  const g=_sgAll().find(x=>x.id===id); if(!g) return; _sgId=id;
+  const g=_sgFind(id); if(!g) return; _sgId=id;
+  const nd=_sgNeed(g), sug=g.monthly>0?g.monthly:(nd&&nd.amt?nd.amt:'');
   _jpSheet('plus',L('Add money','إضافة مبلغ'),esc(g.name),
-    _cvField('sgDep',L('Amount','المبلغ'),'',{type:'number',dir:'ltr',ph:'0'})+_cvField('sgDepDate',L('Date','التاريخ'),_pxIso(new Date()),{type:'date',dir:'ltr'}),
+    _cvField('sgDep',L('Amount','المبلغ'),sug,{type:'number',dir:'ltr',ph:'0'})+_cvField('sgDepDate',L('Date','التاريخ'),_pxIso(new Date()),{type:'date',dir:'ltr'}),
     'savGoalDepositSave()');
 }
+function _sgPush(g,a,d){
+  g.saved=Math.max(0,(g.saved||0)+a); (g.log=g.log||[]).push({d,a});
+  saveSavings(); closeModal(); renderView();
+}
 function savGoalDepositSave(){
-  const g=_sgAll().find(x=>x.id===_sgId); if(!g) return;
+  const g=_sgFind(_sgId); if(!g) return;
   const a=parseFloat(document.getElementById('sgDep')?.value)||0, d=document.getElementById('sgDepDate')?.value||_pxIso(new Date());
   if(!(a>0)){ showToast(L('Enter an amount','اكتب المبلغ'),'warn'); return; }
-  g.saved=(g.saved||0)+a; (g.log=g.log||[]).push({d,a});
-  saveSavings(); closeModal(); renderView();
-  showToast((g.saved>=g.target)?L('🎉 Goal reached','🎉 وصلت للهدف'):L('✓ Added','✓ اتضاف'),'success');
+  const was=g.saved||0; _sgPush(g,a,d);
+  showToast((was<g.target&&g.saved>=g.target)?L('🎉 Goal reached','🎉 وصلت للهدف'):L('✓ Added','✓ اتضاف'),'success');
+}
+function savGoalQuick(id){
+  const g=_sgFind(id); if(!g||!(g.monthly>0)) return;
+  if(!confirm(L('Add ','تضيف ')+fmtEGP(g.monthly)+L(' to "',' على "')+g.name+L('"?','"؟'))) return;
+  const was=g.saved||0; g.saved=was+g.monthly; (g.log=g.log||[]).push({d:_pxIso(new Date()),a:g.monthly});
+  saveSavings(); renderView();
+  showToast((was<g.target&&g.saved>=g.target)?L('🎉 Goal reached','🎉 وصلت للهدف'):L('✓ Added','✓ اتضاف'),'success');
+}
+function savGoalWithdraw(id){
+  const g=_sgFind(id); if(!g) return; _sgId=id;
+  _jpSheet('plus',L('Withdraw from goal','سحب من الهدف'),esc(g.name),
+    _cvField('sgWd',L('Amount','المبلغ'),'',{type:'number',dir:'ltr',ph:'0'})+_cvField('sgWdDate',L('Date','التاريخ'),_pxIso(new Date()),{type:'date',dir:'ltr'}),
+    'savGoalWithdrawSave()');
+}
+function savGoalWithdrawSave(){
+  const g=_sgFind(_sgId); if(!g) return;
+  const a=parseFloat(document.getElementById('sgWd')?.value)||0, d=document.getElementById('sgWdDate')?.value||_pxIso(new Date());
+  if(!(a>0)){ showToast(L('Enter an amount','اكتب المبلغ'),'warn'); return; }
+  if(a>(g.saved||0)){ showToast(L('More than the saved amount','المبلغ أكبر من المدخر'),'warn'); return; }
+  _sgPush(g,-a,d); showToast(L('✓ Withdrawn','✓ تم السحب'),'success');
+}
+// ── Edit / delete a single history entry (goal total is adjusted to match)
+function savGoalEntry(id,i){
+  const g=_sgFind(id); const x=g&&g.log&&g.log[i]; if(!x) return; _sgId=id; _sgEnt=i;
+  _jpSheet('edit',L('Edit entry','تعديل العملية'),esc(g.name),
+    _cvField('sgEA',L('Amount (negative = withdrawal)','المبلغ (بالسالب = سحب)'),x.a,{type:'number',dir:'ltr'})+_cvField('sgED',L('Date','التاريخ'),x.d||_pxIso(new Date()),{type:'date',dir:'ltr'}),
+    'savGoalEntrySave()',`savGoalEntryDel()`);
+}
+function savGoalEntrySave(){
+  const g=_sgFind(_sgId); const x=g&&g.log&&g.log[_sgEnt]; if(!x) return;
+  const a=parseFloat(document.getElementById('sgEA')?.value), d=document.getElementById('sgED')?.value||x.d;
+  if(!isFinite(a)||a===0){ showToast(L('Enter an amount','اكتب المبلغ'),'warn'); return; }
+  g.saved=Math.max(0,(g.saved||0)-x.a+a); x.a=a; x.d=d;
+  saveSavings(); renderView(); savGoalView(g.id); showToast(L('✓ Entry updated','✓ تم تعديل العملية'),'success');
+}
+function savGoalEntryDel(){
+  const g=_sgFind(_sgId); const x=g&&g.log&&g.log[_sgEnt]; if(!x) return;
+  if(!confirm(L('Delete this entry? The goal total will be reduced accordingly.','تحذف العملية دي؟ إجمالي الهدف هيتعدل معاها.'))) return;
+  g.saved=Math.max(0,(g.saved||0)-x.a); g.log.splice(_sgEnt,1);
+  saveSavings(); renderView(); savGoalView(g.id); showToast(L('Entry deleted','تم حذف العملية'),'success');
 }
 
 function _txGroupLabel(dateStr){
@@ -36906,13 +37070,17 @@ function _jpLoad(){
     if(p&&typeof p==='object'){
       ['name','title','company','nid','email','medEmail','emailPw','medPw','code','start'].forEach(k=>{ o[k]=String(p[k]||''); });
       o.photo=/^data:image\//.test(p.photo||'')?p.photo:'';
+      if(_encEnabled && _cryptoKey && _JP_PW_READY){ if(!o.emailPw) o.emailPw=_JP_PW.emailPw; if(!o.medPw) o.medPw=_JP_PW.medPw; }  // passwords live encrypted, not in this record
       if(Array.isArray(p.custody)) o.custody=p.custody.filter(x=>x&&typeof x==='object').map(x=>({id:String(x.id||''),name:String(x.name||''),note:String(x.note||''),date:String(x.date||''),photos:_custPhClean(x.photos)}));
     }
   }catch(e){ _logErr('_jpLoad',e); }
   return o;
 }
 function _jpSave(o){
-  try{ localStorage.setItem(_JP_KEY,JSON.stringify(o)); return true; }
+  try{
+    localStorage.setItem(_JP_KEY,JSON.stringify(o));
+    if(_encEnabled && _cryptoKey && _JP_PW_READY){ _JP_PW.emailPw=String(o.emailPw||''); _JP_PW.medPw=String(o.medPw||''); _jpPwPersistQ(); }  // encrypt, verify, then blank the plain copy
+    return true; }
   catch(e){ _logErr('_jpSave',e); try{ showToast(L('⚠️ Could not save (storage full)','⚠️ تعذّر الحفظ (التخزين ممتلئ)'),'warn'); }catch(_){} return false; }
 }
 function _jpAtt(){ try{ const p=JSON.parse(localStorage.getItem(_prjKey('wdp_attendance_v1'))||'null')||{}; return {days:(p.days&&typeof p.days==='object')?p.days:{}, company:String(p.company||''), hire:String((p.leave&&p.leave.hire)||'')}; }catch(e){ return {days:{},company:'',hire:''}; } }
@@ -37778,7 +37946,9 @@ function _jpPwFields(p){
   return (M.same
     ?_cvField('jpPwCo',L('E-mail password','باسورد الإيميل'),p.emailPw||p.medPw,{type:'password',dir:'ltr'})
     :_cvField('jpPwCo',L('Company e-mail password','باسورد إيميل الشركة'),p.emailPw,{type:'password',dir:'ltr'})+_cvField('jpPwMd',L('Medical insurance e-mail password','باسورد إيميل التأمين الطبي'),p.medPw,{type:'password',dir:'ltr'}))
-    +`<div class="ca-note small">${ic('lock',14)} ${L('Passwords are kept on this device only and are not encrypted — do not store anything critical here.','الباسوردات متخزنة على الجهاز ده بس ومش مشفرة — متحطش هنا حاجة حساسة جدًا.')}</div>`;
+    +`<div class="ca-note small">${ic('lock',14)} ${(_encEnabled&&_cryptoKey&&_JP_PW_READY)
+      ? L('Passwords are encrypted on this device with your PIN. They are not included in backups — keep a copy somewhere safe too.','الباسوردات متشفرة على الجهاز ده بالـ PIN بتاعك، ومش بتدخل في النسخ الاحتياطي — احتفظ بنسخة منها في مكان آمن كمان.')
+      : L('Passwords are kept on this device only and are not encrypted — turn on the PIN lock to encrypt them, and do not store anything critical here.','الباسوردات متخزنة على الجهاز ده بس ومش مشفرة — فعّل قفل الـ PIN عشان تتشفّر، ومتحطش هنا حاجة حساسة جدًا.')}</div>`;
 }
 function _jpEditProfile(){
   const p=_jpLoad(), att=_jpAtt();
@@ -61210,6 +61380,100 @@ body #mainContent .sc-card .tx-rows.asset-card-grid>.sav-row.asset-card.asset-ti
 #modalContent .rem-osw .rem-os-ic{width:36px;height:36px}
 .rem-sec{margin-top:20px}
 </style>
+
+<style id="finora-privacy-stars">
+/* ═══════════════════════════════════════════════════════════════════════════
+   FINORA — hidden balances shown as asterisks (∗∗∗∗∗∗∗) instead of blur.
+   Same selectors the blur used (Accounts + Dashboard), same hide/show logic and state;
+   only the look changes: the real figure is made invisible (its box keeps the layout) and a
+   fixed row of asterisks is drawn in its place, so the number's length is not hinted at either.
+   Revert: delete <style id="finora-privacy-stars">.
+   ═══════════════════════════════════════════════════════════════════════════ */
+/* A ── figures that are really rendered */
+.banks-v2.bnk-privacy :is(.bnk-hero-wallets,.bnk-hero-chip span,.bnk-sec-sum,.bnk-tl-amt,.bnk-analytics-chip,
+  .bnk-donut-legend-item,.bnk-analytics-stat:not(.bnk-analytics-stat-top) .bnk-analytics-stat-val,
+  .bnk-mv-list [class*="amt"],.bnk-mv-list [class*="amount"]),
+body #mainContent > .wdash-wrap.dv3-dark-v2.dash-privacy :is(.dash-hero-main-val,.dv3h-stat-val,
+  .dfp-kpi3-card:not([onclick*="'expenses'"]) .dfp-kpi3-val,.wdash-tile[data-cardid="cash"] .wdash-tile-sum),
+.dash-privacy .wdash-greet-r,
+/* B ── placeholders the app already swaps in for the figure */
+.banks-v2 :is(.bnk-mask,.bnk-card-balance.hidden,.bal-avail-amount.hidden,.bal-meta-value.hidden){
+  filter:none!important;clip-path:none!important;
+  position:relative;min-width:5.6em;opacity:1;letter-spacing:0;
+  -webkit-text-fill-color:transparent!important;text-shadow:none!important;
+  -webkit-user-select:none;user-select:none;pointer-events:none}
+.banks-v2 :is(.bnk-card-balance.hidden,.bal-avail-amount.hidden,.bal-meta-value.hidden){display:block;width:fit-content}
+.banks-v2.bnk-privacy :is(.bnk-hero-wallets,.bnk-hero-chip span,.bnk-sec-sum,.bnk-tl-amt,.bnk-analytics-chip,
+  .bnk-donut-legend-item,.bnk-analytics-stat:not(.bnk-analytics-stat-top) .bnk-analytics-stat-val,
+  .bnk-mv-list [class*="amt"],.bnk-mv-list [class*="amount"]),
+body #mainContent > .wdash-wrap.dv3-dark-v2.dash-privacy :is(.dash-hero-main-val,.dv3h-stat-val,
+  .dfp-kpi3-card:not([onclick*="'expenses'"]) .dfp-kpi3-val,.wdash-tile[data-cardid="cash"] .wdash-tile-sum),
+.dash-privacy .wdash-greet-r{width:fit-content;max-width:100%}
+/* the asterisks themselves */
+.banks-v2.bnk-privacy :is(.bnk-hero-wallets,.bnk-hero-chip span,.bnk-sec-sum,.bnk-tl-amt,.bnk-analytics-chip,
+  .bnk-donut-legend-item,.bnk-analytics-stat:not(.bnk-analytics-stat-top) .bnk-analytics-stat-val,
+  .bnk-mv-list [class*="amt"],.bnk-mv-list [class*="amount"])::before,
+body #mainContent > .wdash-wrap.dv3-dark-v2.dash-privacy :is(.dash-hero-main-val,.dv3h-stat-val,
+  .dfp-kpi3-card:not([onclick*="'expenses'"]) .dfp-kpi3-val,.wdash-tile[data-cardid="cash"] .wdash-tile-sum)::before,
+.dash-privacy .wdash-greet-r::before,
+.banks-v2 :is(.bnk-mask,.bnk-card-balance.hidden,.bal-avail-amount.hidden,.bal-meta-value.hidden)::before{
+  content:"∗∗∗∗∗∗∗";position:absolute;inset:0;display:flex;align-items:center;white-space:nowrap;overflow:visible;
+  -webkit-text-fill-color:currentColor;letter-spacing:.2em;font-weight:800;font-variant-numeric:normal;
+  opacity:.78;filter:none;transform:none;pointer-events:none}
+/* inner spans (digits, separators, decimals) set their own text colour — force them invisible too, so no digit shows through */
+:is(.banks-v2.bnk-privacy :is(.bnk-hero-wallets,.bnk-hero-chip span,.bnk-sec-sum,.bnk-tl-amt,.bnk-analytics-chip,
+  .bnk-donut-legend-item,.bnk-analytics-stat:not(.bnk-analytics-stat-top) .bnk-analytics-stat-val,
+  .bnk-mv-list [class*="amt"],.bnk-mv-list [class*="amount"]),
+  body #mainContent > .wdash-wrap.dv3-dark-v2.dash-privacy :is(.dash-hero-main-val,.dv3h-stat-val,
+  .dfp-kpi3-card:not([onclick*="'expenses'"]) .dfp-kpi3-val,.wdash-tile[data-cardid="cash"] .wdash-tile-sum),
+  .dash-privacy .wdash-greet-r,
+  .banks-v2 :is(.bnk-mask,.bnk-card-balance.hidden,.bal-avail-amount.hidden,.bal-meta-value.hidden)) *{
+  -webkit-text-fill-color:transparent!important;text-shadow:none!important;background-image:none!important}
+/* very large figures (dashboard hero): slightly smaller asterisks so they read as a mask, not as a headline */
+body #mainContent > .wdash-wrap.dv3-dark-v2.dash-privacy .dash-hero-main-val::before{font-size:.62em;letter-spacing:.24em}
+/* never clip the asterisks (the big card balance used to cut the last one) */
+.banks-v2 :is(.bnk-card-balance.hidden,.bal-avail-amount.hidden,.bal-meta-value.hidden,.bnk-mask){overflow:visible!important;min-width:6.4em}
+.banks-v2 .bnk-card-balance.hidden::before{font-size:.85em}
+/* right-hand figures (section totals, timeline amounts, the hero chips) anchor the asterisks to their END edge so they never run off-screen */
+body #mainContent .banks-v2.bnk-privacy :is(.bnk-sec-sum,.bnk-tl-amt,.bnk-hero-chip span,.bnk-hero-wallets)::before{
+  inset-inline-start:auto;inset-inline-end:0;width:max-content;justify-content:flex-end}
+/* the old dark-theme "calm the glow" opacity was for blur; asterisks need no such help */
+[data-theme="dark"] .banks-v2 :is(.bnk-mask,.bnk-card-balance.hidden,.bal-avail-amount.hidden,.bal-meta-value.hidden)::before{opacity:.78}
+/* RTL: start the asterisks on the reading side */
+[dir="rtl"] .banks-v2 :is(.bnk-mask,.bnk-card-balance.hidden,.bal-avail-amount.hidden,.bal-meta-value.hidden)::before{justify-content:flex-start}
+/* ── Savings goals: actions, status, details & history (additive) ── */
+.sg-top{cursor:default}
+.sg-nm{flex:1;min-width:0;cursor:pointer}
+.sg-bar{cursor:pointer}
+.sg-ib{width:30px;height:30px;flex:none;color:var(--muted)}
+.sg-ibd{color:var(--red)}
+.sg-q{background:var(--green-tint);color:var(--green);border:0}
+.sg-sum{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;padding:4px 0 10px;border-bottom:1px solid var(--border);font-weight:700;color:var(--muted);font-size:calc(12px*var(--app-text-scale,1))}
+.sg-sum b{color:var(--text);font-weight:800;font-size:calc(15px*var(--app-text-scale,1))}
+.sg-st{font-weight:800}
+.sg-st.ok{color:var(--green)}
+.sg-st.warn{color:var(--orange,#d98200)}
+.sg-st.late{color:var(--red)}
+.sg-more{color:var(--green);font-weight:800;cursor:pointer;margin-top:2px}
+.sg-kvs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:6px 0 10px}
+.sg-kv{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:8px 10px;display:flex;flex-direction:column;gap:2px}
+.sg-kv small{color:var(--muted);font-weight:700;font-size:calc(10.5px*var(--app-text-scale,1))}
+.sg-kv b{font-weight:800;font-size:calc(13px*var(--app-text-scale,1))}
+.sg-acts{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 12px}
+.sg-hist-h{font-weight:800;font-size:calc(13px*var(--app-text-scale,1));margin:4px 0 6px}
+.sg-hist-h em{font-style:normal;color:var(--muted);font-size:calc(12px*var(--app-text-scale,1))}
+.sg-hist{max-height:34vh;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.sg-ent{display:flex;align-items:center;gap:10px;padding:10px 2px;border-bottom:1px solid var(--border);cursor:pointer}
+.sg-ent:last-child{border-bottom:0}
+.sg-ent-l{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.sg-ent-l b{font-weight:800;font-size:calc(13px*var(--app-text-scale,1))}
+.sg-ent-l small{color:var(--muted);font-weight:600}
+.sg-ent-a{font-weight:800;font-variant-numeric:tabular-nums}
+.sg-ent-a.pos{color:var(--green)}
+.sg-ent-a.neg{color:var(--red)}
+.sg-ent-e{color:var(--muted);display:inline-flex}
+</style>
+
 
 
 
