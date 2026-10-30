@@ -32640,7 +32640,7 @@ function toggleBal(bank){
 function bnkToggleHideAll(){
   _bnkHideAll=!_bnkHideAll; _bnkReveal.clear();
   try{ localStorage.setItem(_BNK_HIDE_ALL_KEY,_bnkHideAll?'1':'0'); }catch(e){}
-  try{ showToast(_bnkHideAll?L('Balances hidden','تم إخفاء الأرصدة'):L('Balances shown','تم إظهار الأرصدة'),'info'); }catch(e){}
+  try{ showToast(_bnkHideAll?L('Balances hidden','تم إخفاء الأرصدة'):L('Balances shown','تم إظهار الأرصدة'),'info',1400); }catch(e){}
   renderView();
 }
 
@@ -49216,7 +49216,15 @@ function showToast(msg,type,dur,sound){
   // A trailing check mark in the message ("Asset saved \u2714") would double up with the icon badge
   text = String(text).replace(/\s*[\u2713\u2714\u2705]\uFE0F?\s*$/u,'');
   const duration = dur||2400;
+  // Same-message de-dupe: a toast that repeats (or that contradicts its
+  // predecessor, like "Balances shown" / "Balances hidden" when the eye is
+  // tapped repeatedly) REPLACES the one on screen instead of stacking under it.
+  const _tg = /balances (shown|hidden)|الأرصدة/i.test(text) ? 'balances' : String(text);
+  Array.prototype.slice.call(container.children).forEach(function(old){
+    if(old.dataset && old.dataset.tg===_tg){ clearTimeout(old._tid); old.remove(); }
+  });
   const el = document.createElement('div');
+  el.dataset.tg = _tg;
   el.id = 'toastItem'+(++_toastSeq);
   el.className = 'toast-item'+(type==='error'?' toast-error':type==='warn'?' toast-warn':type==='info'?' toast-info':' toast-success');
   el.setAttribute('role', type==='error' ? 'alert' : 'status');
@@ -55715,10 +55723,36 @@ function _wdpWalletSVG(uid){
 // Confirmation after a pull-to-refresh: one pill at a time (a second pull replaces it, never stacks).
 // What a pull-to-refresh actually does: re-fetches the live data the app shows (FX rates, gold spot),
 // checks for a new app version, then re-renders the current screen. Resolves with what really happened.
+// Re-reads everything the app persisted (main data, savings, custom banks) from storage into memory,
+// so edits made from another tab / installed copy of the app show up. Works offline. Never writes,
+// never touches the active month, and keeps the in-memory copy if the stored one is missing or invalid.
+async function _wdpReloadStoredData(){
+  let changed=false;
+  try{
+    let fresh=null;
+    if(typeof _encEnabled!=='undefined' && _encEnabled && _cryptoKey){
+      fresh=await loadEncrypted(ENCRYPTED_DATA_KEY);
+    } else {
+      const raw=localStorage.getItem(STORAGE_KEY);
+      if(raw) fresh=JSON.parse(raw);
+    }
+    if(fresh && typeof fresh==='object' && !Array.isArray(fresh)){
+      if(JSON.stringify(fresh)!==JSON.stringify(DATA)){ DATA=fresh; changed=true; }
+    }
+  }catch(e){ try{ _logErr('pullRefresh:data',e); }catch(_){} }
+  try{
+    const before=JSON.stringify(SAVINGS);
+    loadSavings();
+    if(JSON.stringify(SAVINGS)!==before) changed=true;
+  }catch(e){ try{ _logErr('pullRefresh:savings',e); }catch(_){} }
+  try{ if(typeof loadBanks==='function') loadBanks(); }catch(e){}
+  return changed;
+}
 function _wdpPullRefreshWork(){
-  const res={online:(navigator.onLine!==false),fxTried:false,fx:false,gold:false,update:false};
-  if(!res.online) return Promise.resolve(res);
-  const tasks=[];
+  const res={online:(navigator.onLine!==false),fxTried:false,fx:false,gold:false,update:false,applied:false,data:false};
+  const dataTask=_wdpReloadStoredData().then(function(c){ res.data=!!c; }).catch(function(){});
+  if(!res.online) return dataTask.then(function(){ return res; });
+  const tasks=[dataTask];
   function poll(get,before,done,onOk){
     let n=0; const t=setInterval(function(){
       n++; const st=get();
@@ -55753,7 +55787,16 @@ function _wdpPullRefreshWork(){
       if(!(navigator.serviceWorker&&navigator.serviceWorker.getRegistration)){ done(); return; }
       navigator.serviceWorker.getRegistration().then(function(reg){
         if(!reg){ done(); return; }
-        return reg.update().then(function(){ res.update=!!(reg.waiting||reg.installing); });
+        return reg.update().then(function(){
+          res.update=!!(reg.waiting||reg.installing);
+          if(!reg.waiting) return;
+          // a new version is already downloaded: activate it now (data lives in storage, so a reload is safe)
+          return new Promise(function(r){
+            const t=setTimeout(r,2500);
+            navigator.serviceWorker.addEventListener('controllerchange',function(){ clearTimeout(t); res.applied=true; r(); },{once:true});
+            try{ reg.waiting.postMessage({type:'SKIP_WAITING'}); }catch(e){ clearTimeout(t); r(); }
+          });
+        });
       }).catch(function(){}).then(done);
     }catch(e){ done(); }
   }));
@@ -55763,11 +55806,13 @@ function _wdpRefreshDone(res){
   res=res||{};
   const old=document.getElementById('wdpRefreshDone'); if(old) old.remove();
   let warn=false, msg;
-  if(res.online===false){ warn=true; msg=L('Offline — showing saved data','بدون اتصال — بيانات محفوظة'); }
-  else if(res.update){ msg=L('Update ready — reopen the app','يتوفر تحديث — أعد فتح التطبيق'); }
-  else if(res.fx||res.gold){ msg=L('Rates updated','تم تحديث الأسعار'); }
-  else if(res.fxTried){ warn=true; msg=L('Couldn’t reach live rates','تعذّر تحديث الأسعار'); }
-  else { msg=L('Up to date','كل شيء محدّث'); }
+  if(res.online===false){ warn=true; msg=res.data?L('Offline — saved data reloaded','بدون اتصال — تم تحديث البيانات المحفوظة'):L('Offline — showing saved data','بدون اتصال — بيانات محفوظة'); }
+  else if(res.applied){ msg=L('Updated — restarting…','تم التحديث — جارٍ إعادة التشغيل…'); }
+  else if(res.update){ msg=L('Update downloading — reopen the app','جارٍ تنزيل تحديث — أعد فتح التطبيق'); }
+  else if(res.fx||res.gold){ msg=res.data?L('Data & rates updated','تم تحديث البيانات والأسعار'):L('Rates updated','تم تحديث الأسعار'); }
+  else if(res.fxTried){ warn=true; msg=res.data?L('Data reloaded — rates unavailable','تم تحديث البيانات — الأسعار غير متاحة'):L('Couldn’t reach live rates','تعذّر تحديث الأسعار'); }
+  else if(res.data){ msg=L('Data reloaded','تم تحديث البيانات'); }
+  else { msg=L('Already up to date','كل شيء محدّث بالفعل'); }
   const el=document.createElement('div');
   el.id='wdpRefreshDone'; el.className='wdp-rf-done'+(warn?' wdp-rf-warn':'');
   el.innerHTML='<span class="wdp-rf-ico">'+_wdpWalletSVG('done')+'<svg class="wdp-rf-check" viewBox="0 0 24 24"><path d="M6 12.5l4 4 8-9" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>'+esc(msg)+'</span><i class="wdp-rf-spark s1"></i><i class="wdp-rf-spark s2"></i><i class="wdp-rf-spark s3"></i>';
@@ -55865,6 +55910,7 @@ function _wdpRefreshDone(res){
           try{ renderView(); }catch(e){_logErr('pullToRefresh:renderView',e);}
           try{ _wdpRefreshDone(res); }catch(e){_logErr('pullToRefresh:done',e);}
           reset(el); busy=false;
+          if(res && res.applied) setTimeout(function(){ try{ location.reload(); }catch(e){} },1100);
         }, Math.max(0,550-(Date.now()-_t0)));
       });
     } else {
@@ -61347,6 +61393,170 @@ body #mainContent .sc-card .tx-rows.asset-card-grid>.sav-row.asset-card.asset-ti
   box-shadow:0 1px 2px rgba(0,0,0,.06),0 12px 26px -20px rgba(0,0,0,.5)!important}
 body #mainContent .sc-card .tx-rows.asset-card-grid>.sav-row.asset-card.asset-tile.is-hv{
   border-color:rgba(212,175,55,.55)!important;box-shadow:0 0 0 1px rgba(212,175,55,.16),0 12px 28px -18px rgba(212,175,55,.55)!important}
+</style>
+
+<style id="finora-assets-v7">
+/* ══ FINORA · Assets v7 — Atelier finish (presentation-only; no logic / data / storage changes) ══
+   Boutique-style product cards: spotlight stage + floor reflection, unified photo treatment for every
+   mode (cut-out / blend / photo / fit / icon), hairline gold frame for high-value pieces, gold-emerald
+   summary strip. Revert: delete <style id="finora-assets-v7">. */
+
+/* ── grid rhythm ── */
+.sc-card .tx-rows.asset-card-grid{gap:14px;padding:var(--sp3) var(--sp3) var(--sp4)}
+
+/* ── card shell: layered surface + hairline light edge ── */
+body #mainContent .sc-card .tx-rows.asset-card-grid>.sav-row.asset-card.asset-tile{
+  position:relative;padding:7px 7px 6px;border-radius:24px!important;
+  background:
+    linear-gradient(180deg,color-mix(in srgb,var(--surface) 70%,var(--surface2)),var(--surface2))!important;
+  border:1px solid color-mix(in srgb,var(--border-strong,var(--border)) 80%,transparent)!important;
+  box-shadow:
+    0 1px 0 rgba(255,255,255,.55) inset,
+    0 1px 2px rgba(15,25,20,.06),
+    0 18px 34px -22px rgba(15,25,20,.45)!important;
+  transition:transform .25s cubic-bezier(.2,.8,.2,1),box-shadow .3s ease,border-color .3s ease}
+[data-theme="dark"] body #mainContent .sc-card .tx-rows.asset-card-grid>.sav-row.asset-card.asset-tile,
+body[data-theme="dark"] #mainContent .sc-card .tx-rows.asset-card-grid>.sav-row.asset-card.asset-tile{
+  box-shadow:0 1px 0 rgba(255,255,255,.06) inset,0 18px 34px -20px rgba(0,0,0,.75)!important}
+body #mainContent .sc-card .tx-rows.asset-card-grid>.sav-row.asset-card.asset-tile:active{transform:scale(.975)}
+
+/* ── high value: hairline gold frame + warm aura ── */
+body #mainContent .sc-card .tx-rows.asset-card-grid>.sav-row.asset-card.asset-tile.is-hv{
+  border-color:transparent!important;
+  background:
+    linear-gradient(var(--surface2),var(--surface2)) padding-box,
+    linear-gradient(150deg,#F3D87A 0%,rgba(212,175,55,.35) 38%,rgba(212,175,55,.10) 62%,#C9A227 100%) border-box!important;
+  box-shadow:0 1px 0 rgba(255,240,190,.35) inset,0 20px 36px -22px rgba(212,175,55,.65)!important}
+
+/* ── the stage (photo area) ── */
+.sav-row.asset-card.asset-tile .asset-tile-art{
+  border-radius:18px;
+  background:
+    radial-gradient(70% 55% at 50% 30%,rgba(255,255,255,.92),transparent 70%),
+    radial-gradient(110% 90% at 50% 100%,color-mix(in srgb,var(--accent) 22%,transparent),transparent 65%),
+    linear-gradient(180deg,color-mix(in srgb,var(--accent) 9%,#fbfaf7),color-mix(in srgb,var(--accent) 17%,#f1efe9));
+  box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--accent) 14%,rgba(0,0,0,.05)),inset 0 -22px 30px -26px rgba(0,0,0,.28)}
+[data-theme="dark"] .sav-row.asset-card.asset-tile .asset-tile-art{
+  background:
+    radial-gradient(70% 55% at 50% 30%,rgba(255,255,255,.14),transparent 70%),
+    radial-gradient(110% 90% at 50% 100%,color-mix(in srgb,var(--accent) 30%,transparent),transparent 65%),
+    linear-gradient(180deg,color-mix(in srgb,var(--accent) 14%,#1b2420),#121816);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.07),inset 0 -22px 30px -26px rgba(0,0,0,.7)}
+/* the older glow/spotlight layers are replaced by the stage above */
+.asset-tile .atl-glow,.asset-tile .asset-tile-art::before{opacity:0}
+/* soft vignette so every photo sits "inside" the frame */
+.sav-row.asset-card.asset-tile .asset-tile-art::before{opacity:1;z-index:2;background:radial-gradient(120% 120% at 50% 40%,transparent 62%,rgba(0,0,0,.10));mix-blend-mode:multiply}
+[data-theme="dark"] .sav-row.asset-card.asset-tile .asset-tile-art::before{background:radial-gradient(120% 120% at 50% 40%,transparent 55%,rgba(0,0,0,.35));mix-blend-mode:normal}
+
+/* ── cut-out products: larger, lifted, with a floor reflection ── */
+.asset-tile[data-astmode="cutout"] img.atl-img{
+  padding:20px 16px 30px;
+  filter:drop-shadow(0 2px 2px rgba(20,20,20,.18)) drop-shadow(0 14px 14px rgba(20,20,20,.16)) saturate(1.06) contrast(1.03)}
+.asset-tile[data-astmode="cutout"] .asset-tile-art::after{
+  bottom:15px!important;width:52%!important;height:14px!important;
+  background:radial-gradient(closest-side,rgba(20,20,20,.38),transparent)!important;filter:blur(4px)!important}
+.asset-tile[data-astmode="cutout"]:hover img.atl-img{transform:translateY(-3px) scale(1.04)}
+
+/* ── white-on-white products ── */
+.asset-tile[data-astmode="blend"] img.atl-img{padding:20px 16px 30px;mix-blend-mode:multiply;filter:saturate(1.05) contrast(1.04)}
+
+/* ── real photos: full-bleed with a gentle grade ── */
+.asset-tile[data-astmode="photo"] img.atl-img{filter:saturate(1.08) contrast(1.04)}
+.asset-tile[data-astmode="photo"] .asset-tile-art::after{height:46%!important;background:linear-gradient(to top,rgba(0,0,0,.22),transparent)!important}
+
+/* ── odd-shaped pictures (e.g. an image with its own square backdrop): framed like a mounted print,
+      over a soft blurred backdrop, instead of a loose box floating on the tile ── */
+.asset-tile[data-astmode="fit"] .atl-bg{opacity:.55;filter:blur(22px) saturate(1.25) brightness(1.02);inset:-25%}
+.asset-tile[data-astmode="fit"] img.atl-img{
+  inset:0;left:0;top:0;margin:auto;width:auto;height:auto;max-width:calc(100% - 30px);max-height:calc(100% - 30px);
+  padding:0;object-fit:contain;border-radius:14px;
+  box-shadow:0 0 0 1px rgba(255,255,255,.65),0 0 0 5px rgba(255,255,255,.28),0 16px 26px -10px rgba(20,20,20,.45);
+  filter:saturate(1.06) contrast(1.03)}
+[data-theme="dark"] .asset-tile[data-astmode="fit"] img.atl-img{box-shadow:0 0 0 1px rgba(255,255,255,.18),0 16px 26px -10px rgba(0,0,0,.8)}
+
+/* ── icon-only tiles: engraved medallion ── */
+[data-astmode="icon"] .asset-tile-art{background-blend-mode:normal}
+.asset-tile[data-astmode="icon"] .atl-ring{
+  width:70px;height:70px;margin-bottom:0;
+  background:linear-gradient(145deg,color-mix(in srgb,var(--accent) 38%,#fff),color-mix(in srgb,var(--accent) 14%,var(--surface)));
+  border:1px solid color-mix(in srgb,var(--accent) 50%,transparent);
+  box-shadow:0 0 0 7px color-mix(in srgb,var(--accent) 9%,transparent),0 0 0 15px color-mix(in srgb,var(--accent) 4%,transparent),0 14px 24px -10px color-mix(in srgb,var(--accent) 80%,transparent),inset 0 1px 0 rgba(255,255,255,.7)}
+
+/* ── controls floating on the stage ── */
+.sav-row.asset-card.asset-tile .asset-tile-grip{
+  top:14px;inset-inline-start:14px;width:28px;height:28px;z-index:5;
+  background:rgba(255,255,255,.62);border:1px solid rgba(255,255,255,.7);color:rgba(25,35,30,.62);
+  -webkit-backdrop-filter:blur(12px) saturate(1.4);backdrop-filter:blur(12px) saturate(1.4);box-shadow:0 4px 10px -4px rgba(0,0,0,.25)}
+[data-theme="dark"] .sav-row.asset-card.asset-tile .asset-tile-grip{background:rgba(20,28,24,.55);border-color:rgba(255,255,255,.12);color:rgba(255,255,255,.7)}
+.sav-row.asset-card.asset-tile .asset-tile-flag{
+  top:14px;inset-inline-end:14px;width:26px;height:26px;z-index:5;overflow:hidden;
+  background:linear-gradient(145deg,#FBE59A,#D4AF37 55%,#B98A12);
+  box-shadow:0 6px 14px -4px rgba(212,175,55,.75),inset 0 1px 0 rgba(255,255,255,.7)}
+.sav-row.asset-card.asset-tile .asset-tile-flag::after{content:"";position:absolute;inset:-60% auto -60% -80%;width:50%;transform:rotate(20deg);
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.75),transparent);animation:astSheen 4.8s ease-in-out infinite}
+@keyframes astSheen{0%,62%{left:-80%}100%{left:170%}}
+
+/* ── info block ── */
+.sav-row.asset-card.asset-tile .asset-tile-meta{padding:12px 8px 6px}
+.asset-tile .atl-cat{
+  display:inline-flex;align-items:center;gap:6px;margin-bottom:8px;padding:4px 10px 4px 8px;
+  font-size:calc(10px*var(--app-text-scale,1));font-weight:800;letter-spacing:.06em;text-transform:uppercase;
+  background:color-mix(in srgb,var(--accent) 11%,transparent);
+  box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--accent) 22%,transparent);
+  color:color-mix(in srgb,var(--accent) 82%,var(--text))}
+.asset-tile .atl-cat::before{content:"";width:5px;height:5px;border-radius:50%;flex:none;background:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 22%,transparent)}
+.asset-tile .asset-tile-meta b{font-size:calc(14px*var(--app-text-scale,1));font-weight:700;letter-spacing:-.005em;line-height:1.3}
+
+/* price: a hairline that fades out, large tabular figure, currency as a small caps tag */
+.asset-tile .asset-tile-meta small{
+  position:relative;border-top:0!important;padding-top:11px;margin-top:auto;gap:5px;
+  font-family:var(--font-num);font-size:calc(18px*var(--app-text-scale,1));font-weight:700;letter-spacing:-.02em}
+.asset-tile .asset-tile-meta small::before{content:"";position:absolute;top:0;inset-inline:0;height:1px;
+  background:linear-gradient(90deg,color-mix(in srgb,var(--accent) 45%,var(--border)),transparent 92%)}
+[dir="rtl"] .asset-tile .asset-tile-meta small::before{background:linear-gradient(270deg,color-mix(in srgb,var(--accent) 45%,var(--border)),transparent 92%)}
+.asset-tile .asset-tile-meta small em{
+  font-family:var(--font-num);font-size:calc(9.5px*var(--app-text-scale,1));font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  padding:2px 6px;border-radius:6px;background:color-mix(in srgb,var(--muted) 14%,transparent);color:var(--muted)}
+.sav-row.asset-card.asset-tile.is-hv .asset-tile-meta small{
+  background:linear-gradient(100deg,#8A6510,#C9A227 45%,#8A6510);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent}
+.sav-row.asset-card.asset-tile.is-hv .asset-tile-meta small span{-webkit-text-fill-color:transparent}
+.sav-row.asset-card.asset-tile.is-hv .asset-tile-meta small em{-webkit-text-fill-color:#8A6510;background:rgba(212,175,55,.16);color:#8A6510}
+[data-theme="dark"] .sav-row.asset-card.asset-tile.is-hv .asset-tile-meta small{background:linear-gradient(100deg,#F3D87A,#D4AF37 50%,#F3D87A);-webkit-background-clip:text;background-clip:text}
+[data-theme="dark"] .sav-row.asset-card.asset-tile.is-hv .asset-tile-meta small em{-webkit-text-fill-color:#F3D87A;color:#F3D87A}
+
+/* ── summary strip above the tiles ── */
+.ast-sum{
+  position:relative;overflow:hidden;padding:18px 18px 16px;border-radius:22px;
+  border:1px solid rgba(212,175,55,.35);
+  background:
+    radial-gradient(90% 140% at 100% 0%,rgba(212,175,55,.22),transparent 55%),
+    radial-gradient(80% 120% at 0% 100%,rgba(43,196,140,.18),transparent 60%),
+    linear-gradient(160deg,#0F2A22,#0A1A15);
+  box-shadow:0 1px 0 rgba(255,255,255,.08) inset,0 22px 36px -24px rgba(8,30,22,.8);color:#F4EFE0}
+.ast-sum::after{content:"";position:absolute;inset:0;pointer-events:none;border-radius:inherit;
+  background:linear-gradient(120deg,rgba(255,255,255,.10),transparent 32%)}
+.ast-sum-l{color:rgba(244,239,224,.62);font-weight:700;letter-spacing:.08em;text-transform:uppercase;font-size:calc(10.5px*var(--app-text-scale,1))}
+.ast-sum-v{font-family:var(--font-num)}
+.ast-sum-v b{font-family:var(--font-num);font-size:calc(30px*var(--app-text-scale,1));font-weight:700;letter-spacing:-.025em;color:#FFF8E1}
+.ast-sum-v em{color:#D4AF37;letter-spacing:.1em;text-transform:uppercase}
+.ast-sum-bar{height:6px;margin-top:16px;background:rgba(255,255,255,.08);padding:0;box-shadow:inset 0 1px 2px rgba(0,0,0,.4)}
+.ast-sum-leg span{color:rgba(244,239,224,.65)}
+.ast-sum-leg small{color:#FFF8E1;font-family:var(--font-num)}
+.ast-sum-leg i{box-shadow:0 0 0 3px rgba(255,255,255,.08)}
+
+/* ── details-sheet hero uses the same studio stage ── */
+.ast-hero{border-radius:24px;height:230px;
+  background:
+    radial-gradient(70% 55% at 50% 30%,rgba(255,255,255,.9),transparent 70%),
+    linear-gradient(180deg,color-mix(in srgb,var(--accent) 9%,#fbfaf7),color-mix(in srgb,var(--accent) 17%,#f1efe9));
+  box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--accent) 16%,rgba(0,0,0,.05)),0 20px 34px -24px rgba(0,0,0,.5)}
+[data-theme="dark"] .ast-hero{background:radial-gradient(70% 55% at 50% 30%,rgba(255,255,255,.12),transparent 70%),linear-gradient(180deg,color-mix(in srgb,var(--accent) 14%,#1b2420),#121816)}
+.ast-hero[data-astmode="fit"] img.atl-img{inset:0;margin:auto;width:auto;height:auto;max-width:calc(100% - 36px);max-height:calc(100% - 36px);padding:0;border-radius:16px;box-shadow:0 16px 28px -10px rgba(20,20,20,.5)}
+
+@media (prefers-reduced-motion:reduce){
+  .sav-row.asset-card.asset-tile .asset-tile-flag::after{animation:none}
+  body #mainContent .sc-card .tx-rows.asset-card-grid>.sav-row.asset-card.asset-tile{transition:none}
+}
 </style>
 
 <style id="finora-reminders-v3">
