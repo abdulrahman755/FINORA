@@ -37006,7 +37006,7 @@ function _jpAttBrief(){
     <div class="jp-attc-h"><span class="ic">${ic('attendance',20)}</span><span class="tx"><b>${L('Attendance','الحضور والغياب')}</b><small dir="auto">${esc(s.label)}</small></span><span class="jp-pct ${tone}">${s.rate==null?'—':s.rate+'%'}</span>${ic('chevron',16)}</div>
     <div class="jp-bar seg" role="progressbar" aria-valuenow="${r}" aria-valuemin="0" aria-valuemax="100"><i class="g" style="width:${w(c.present)}%"></i><i class="a" style="width:${w(c.late)}%"></i><i class="r" style="width:${w(c.absent)}%"></i></div>
     <div class="jp-ast-row">${t(c.present,L('Present','حضور'),'g')}${t(c.late,L('Late','تأخير'),'a')}${t(c.absent,L('Absent','غياب'),'r')}</div>
-    <div class="jp-attc-f"><span>${L('View attendance details','عرض تفاصيل الحضور')}</span>${ic('chevron',14)}</div>
+    <div class="jp-attc-f"><span>${L('View attendance details','عرض تفاصيل الحضور')}</span>${ic('chevron_right',14)}</div>
   </button>`;
 }
 function _jpCustHTML(p){
@@ -49320,6 +49320,14 @@ function remUpdatePreview(){
     : L('You will be alerted on ','\u0647\u062a\u062a\u0646\u0628\u0651\u0647 \u064a\u0648\u0645 ')+'<b>'+esc(remDateMid(alertISO))+'</b>'+(n>0?' ('+esc(remAlertLabel(n))+')':'')}</span>`;
 }
 
+// the add-form lives behind a "New reminder" button once there are reminders, so the list is what you see first
+function remToggleAdd(force){
+  const f=document.getElementById('remAdd'), b=document.getElementById('remNewBtn'); if(!f) return;
+  const open=(typeof force==='boolean')?force:f.classList.contains('is-collapsed');
+  f.classList.toggle('is-collapsed',!open);
+  if(b){ b.classList.toggle('open',open); b.setAttribute('aria-expanded',open?'true':'false'); }
+  if(open) setTimeout(()=>{ try{ f.scrollIntoView({block:'nearest',behavior:'smooth'}); document.getElementById('remTitleInput')?.focus({preventScroll:true}); }catch(_){} },60);
+}
 function remSubmitAdd(){
   const title=(document.getElementById('remTitleInput')?.value||'').trim();
   const date=document.getElementById('remDateInput')?.value||'';
@@ -49335,6 +49343,7 @@ function remSubmitAdd(){
   renderRemindersPanel();
   remUpdatePreview();
   remCheckDue();
+  try{ remToggleAdd(false); }catch(_){}
   showToast(L('Reminder added',"\u062a\u0645\u062a \u0625\u0636\u0627\u0641\u0629 \u0627\u0644\u062a\u0630\u0643\u064a\u0631"),'success');
 }
 function remDelete(id){
@@ -49426,7 +49435,8 @@ function openRemindersPanel(){
       </div>
     </div>
     <div id="remHero">${_remHeroHTML()}</div>
-    <div class="rem-add">
+    ${(()=>{ const _open=!REMINDERS.some(r=>!r.done); return `<button type="button" class="rem-newbtn${_open?' open':''}" id="remNewBtn" aria-expanded="${_open}" aria-controls="remAdd" onclick="remToggleAdd()"><span class="rem-nb-ic">${ic('plus',16)}</span><span class="rem-nb-tx">${L('New reminder','تذكير جديد')}</span><span class="rem-nb-chev">${ic('chevron_right',16)}</span></button>`; })()}
+    <div class="rem-add${REMINDERS.some(r=>!r.done)?' is-collapsed':''}" id="remAdd">
       <div class="rem-field">
         <label class="rem-lbl" for="remTitleInput">${L('What should we remind you about?',"\u0646\u0630\u0643\u0651\u0631\u0643 \u0628\u0625\u064a\u0647\u061f")}</label>
         <div class="rem-inwrap"><span class="rem-inic" aria-hidden="true">${ic('edit',17)}</span><input class="fin-inp rem-inp" id="remTitleInput" type="text" dir="auto" enterkeyhint="done" placeholder="${L('e.g. Contract renewal',"\u0645\u062b\u0627\u0644: \u062a\u062c\u062f\u064a\u062f \u0639\u0642\u062f")}"></div>
@@ -49451,8 +49461,8 @@ function openRemindersPanel(){
       <div class="rem-preview" id="remPreview"></div>
       <button type="button" onclick="remSubmitAdd()" class="rem-submit">${ic('plus',15)} ${L('Add Reminder',"\u0625\u0636\u0627\u0641\u0629 \u062a\u0630\u0643\u064a\u0631")}</button>
     </div>
-    ${_remOsRowHTML()}
-    <div id="remListBody"></div>`;
+    <div id="remListBody"></div>
+    <div class="rem-osw">${_remOsRowHTML()}</div>`;
   document.getElementById('modalOverlay').style.display='flex';
   renderRemindersPanel();
   remUpdatePreview();
@@ -61168,6 +61178,39 @@ body #mainContent .sc-card .tx-rows.asset-card-grid>.sav-row.asset-card.asset-ti
 body #mainContent .sc-card .tx-rows.asset-card-grid>.sav-row.asset-card.asset-tile.is-hv{
   border-color:rgba(212,175,55,.55)!important;box-shadow:0 0 0 1px rgba(212,175,55,.16),0 12px 28px -18px rgba(212,175,55,.55)!important}
 </style>
+
+<style id="finora-reminders-v3">
+/* ══ FINORA · Reminders v3 — list first, add-form on demand, calmer surfaces (presentation + toggle only) ══ */
+/* "New reminder" button + collapsible form */
+.rem-newbtn{width:100%;display:flex;align-items:center;gap:12px;margin:0 0 12px;padding:12px 14px;border-radius:18px;
+  border:1px dashed color-mix(in srgb,var(--green) 45%,var(--border));background:color-mix(in srgb,var(--green) 6%,var(--surface));
+  color:var(--text);font:inherit;font-size:calc(14px*var(--app-text-scale,1));font-weight:700;text-align:start;cursor:pointer;
+  transition:transform .14s ease,background-color .18s ease,border-color .18s ease}
+.rem-newbtn:active{transform:scale(.985)}
+.rem-nb-ic{flex:none;width:32px;height:32px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:var(--green);color:#fff}
+.rem-nb-tx{flex:1;min-width:0}
+.rem-nb-chev{flex:none;color:var(--muted);display:flex;transition:transform .2s ease}
+[dir="rtl"] .rem-nb-chev{transform:scaleX(-1)}
+.rem-newbtn.open{border-style:solid;border-color:color-mix(in srgb,var(--green) 35%,var(--border))}
+.rem-newbtn.open .rem-nb-chev,[dir="rtl"] .rem-newbtn.open .rem-nb-chev{transform:rotate(90deg)}
+#modalContent .rem-add.is-collapsed{display:none!important}
+/* "Remind me": 3 + 2 equal-width choices instead of a scroller with an orphan row */
+#remNotifyChips.rem-chips.rem-seg{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;overflow:visible;margin:0;padding:0}
+#remNotifyChips .rem-chip{grid-column:span 2;height:44px;padding:0 6px;display:flex;align-items:center;justify-content:center;white-space:nowrap}
+#remNotifyChips .rem-chip:nth-child(n+4){grid-column:span 3}
+#remNotifyChips .rem-chip.on{box-shadow:0 6px 14px -9px color-mix(in srgb,var(--green) 80%,transparent)}
+/* titles line up with the rest of the UI whatever language the title is typed in */
+.rem-title,.rem-hero-tx b{text-align:left}
+[dir="rtl"] .rem-title,[dir="rtl"] .rem-hero-tx b{text-align:right}
+/* calmer surfaces */
+.rem-submit{background:var(--green)!important;box-shadow:0 8px 16px -10px color-mix(in srgb,var(--green) 70%,transparent)!important}
+#modalContent .rem-item{padding:12px 14px;gap:14px;box-shadow:none;border-color:var(--border)}
+.rem-osw{margin-top:20px}
+#modalContent .rem-osw .rem-os{padding:12px 14px;gap:12px;border-radius:18px;margin:0}
+#modalContent .rem-osw .rem-os-ic{width:36px;height:36px}
+.rem-sec{margin-top:20px}
+</style>
+
 
 
 <script id="finora-polish-js">
