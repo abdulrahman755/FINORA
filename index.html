@@ -11714,6 +11714,8 @@ function fpInitSmartNav(){
 //  - Order and direction mirror the bottom nav (flipped automatically in RTL). Stays out of the way of every
 //    existing gesture: row swipes, drag handles, FAB, notes tab, charts, inputs, horizontal scrollers,
 //    open sheets/modals and pull-to-refresh.
+const SWIPE_SETTINGS_KEY='wdp_swipe_settings_v1';
+function swipeSettingsOn(){ try{ return localStorage.getItem(SWIPE_SETTINGS_KEY)!=='off'; }catch(e){ return true; } }
 function fpInitSwipeNav(){
   const ORDER = ['transactions','banks','wsdash','expenses','savings'];
   if(!document.getElementById('mainContent')) return;
@@ -11725,6 +11727,42 @@ function fpInitSwipeNav(){
   let st = null;              // active gesture
   let busy = false;           // an animated switch is running
   let raf = 0, pendingX = 0;
+  // ── "pull past the last page" → Settings ──────────────────────────────────────────────────────────────────────
+  // At the last tab, dragging further in the forward direction (left in LTR, right in RTL) stretches the page
+  // like iOS overscroll and reveals a gear in the gap. Past EDGE_PULL the gear fills + a haptic tick says "ready";
+  // releasing then springs the page back and slides Settings in from that same edge.
+  const EDGE_MAX = 104, EDGE_PULL = 120;
+  let edgeEl = null, edgeT = 0;
+  function ensureEdge(){
+    if(edgeEl && edgeEl.isConnected) return edgeEl;
+    edgeEl = document.createElement('div');
+    edgeEl.className = 'fp-edge'; edgeEl.setAttribute('aria-hidden','true');
+    edgeEl.innerHTML = '<div class="fp-edge-bubble">' + ic('settings',22) + '</div><div class="fp-edge-label"></div>';
+    document.body.appendChild(edgeEl);
+    return edgeEl;
+  }
+  function edgeUpdate(g){
+    const el = ensureEdge(), gap = Math.abs(g.shown), right = g.dx < 0;
+    clearTimeout(edgeT);
+    el.classList.remove('snap','go'); el.classList.add('on');
+    el.style.left = right ? 'auto' : '0'; el.style.right = right ? '0' : 'auto';
+    el.style.width = gap + 'px';
+    el.style.opacity = Math.min(1, gap / 26);
+    const b = el.firstChild, p = Math.min(1, g.pull / EDGE_PULL);
+    b.style.transform = 'scale(' + (0.45 + 0.55 * Math.min(1, gap / 50) + (g.ready ? 0.12 : 0)) + ')';
+    b.firstChild.style.transform = 'rotate(' + Math.round(p * 150) + 'deg)';
+    el.classList.toggle('ready', !!g.ready);
+    const lb = el.lastChild; lb.textContent = g.ready ? L('Release','اترك') : L('Settings','الإعدادات');
+    lb.style.opacity = Math.max(0, Math.min(1, (gap - 56) / 24));
+  }
+  function edgeHide(instant, opened){
+    if(!edgeEl) return;
+    const el = edgeEl;
+    if(instant){ el.classList.remove('on','ready','go','snap'); el.style.width = '0'; el.style.opacity = '0'; return; }
+    el.classList.add('snap'); if(opened) el.classList.add('go');
+    el.style.width = '0'; el.style.opacity = '0';
+    clearTimeout(edgeT); edgeT = setTimeout(function(){ el.classList.remove('on','ready','go','snap'); }, 320);
+  }
 
   const getHost = () => document.getElementById('mainContent');
   const isRTL = () => (document.documentElement.dir || document.body.dir || getComputedStyle(document.body).direction) === 'rtl';
@@ -11789,12 +11827,24 @@ function fpInitSwipeNav(){
     e.stopImmediatePropagation();
     st.dx = dx;
     st.target = targetFor(dx);
-    // at the first/last tab there is nothing beyond, so resist (rubber-band)
-    st.shown = st.target ? dx : Math.sign(dx) * Math.min(28, Math.abs(dx) * 0.22);
+    const fwd = ((dx < 0 ? 1 : -1) * (isRTL() ? -1 : 1)) === 1;
+    st.edge = !st.target && fwd && idx() === ORDER.length - 1 && swipeSettingsOn() && !reduceMotion;
+    if(st.edge){
+      // elastic stretch (diminishing returns) + readiness flag
+      const a = Math.abs(dx);
+      st.pull = a;
+      st.shown = Math.sign(dx) * EDGE_MAX * (1 - 1 / (a / (EDGE_MAX * 0.9) + 1));
+      const ready = a >= EDGE_PULL;
+      if(ready !== st.ready){ st.ready = ready; try{ if(navigator.vibrate) navigator.vibrate(ready ? 14 : 5); }catch(_){} }
+    } else {
+      st.ready = false;
+      // at the first/last tab there is nothing beyond, so resist (rubber-band)
+      st.shown = st.target ? dx : Math.sign(dx) * Math.min(28, Math.abs(dx) * 0.22);
+    }
     pendingX = st.shown;
     if(!raf) raf = requestAnimationFrame(function(){           // one style write per frame, no matter how fast events arrive
       raf = 0;
-      if(st && st.host) st.host.style.transform = tx(pendingX);
+      if(st && st.host){ st.host.style.transform = tx(pendingX); if(st.edge) edgeUpdate(st); else edgeHide(true); }
     });
     const now = performance.now();
     st.samples.push({x:t.clientX, t:now});
@@ -11859,6 +11909,16 @@ function fpInitSwipeNav(){
     const W = window.innerWidth;
     const a = g.samples[0], b = g.samples[g.samples.length-1];
     const v = (b.t - a.t) > 0 ? (b.x - a.x) / (b.t - a.t) : 0;           // px per ms
+    if(g.edge){
+      const open = !cancelled && (g.pull >= EDGE_PULL || (Math.abs(v) > 0.7 && g.pull >= EDGE_PULL * 0.65));
+      edgeHide(false, open);
+      springBack(g);
+      if(open){
+        window._sttForceSide = g.dx < 0 ? 'right' : 'left';
+        setTimeout(function(){ try{ openSettings(); }catch(err){ try{ _logErr('swipeNav:openSettings', err); }catch(_){} } }, 70);
+      }
+      return;
+    }
     const go = !cancelled && g.target && (Math.abs(g.dx) > W * 0.25 || (Math.abs(v) > 0.3 && Math.abs(g.dx) > 40));
     if(go) commit(g, v); else springBack(g);
   }
@@ -30622,6 +30682,15 @@ async function toggleLockEnabled(){
 }
 
 // ── Sound Effects settings (SoundManager on/off + volume) ───────────────────
+// ── Swipe past the last page → open Settings (option, default ON) ──
+function sttToggleSwipeSettings(){
+  const on = !swipeSettingsOn();
+  try{ localStorage.setItem(SWIPE_SETTINGS_KEY, on?'on':'off'); }catch(e){ _logErr('sttToggleSwipeSettings',e); }
+  const sw=document.getElementById('sttSwipeSwitch'); if(sw) sw.classList.toggle('on', on);
+  try{ SoundManager.play('toggle'); }catch(e){}
+  showToast(on ? L(`${ic('check',15)} Swipe to open Settings enabled`,`${ic('check',15)} تم تفعيل السحب لفتح الإعدادات`)
+               : L(`${ic('close',15)} Swipe to open Settings disabled`,`${ic('close',15)} تم تعطيل السحب لفتح الإعدادات`), 'info');
+}
 function sttToggleSound(){
   const nowEnabled = !SoundManager.isEnabled();
   SoundManager.setEnabled(nowEnabled);
@@ -30742,6 +30811,7 @@ const STT_ICONS={
   currency:  `<circle cx="12" cy="12" r="9"/><path d="M14.5 8.5a3.5 3.5 0 0 0-5 0c-1.5 1.5-1.5 5.5 0 7a3.5 3.5 0 0 0 5 0"/><path d="M9.5 11h5"/>`,
   darkmode:  `<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9z"/>`,
   autotheme: `<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/>`,
+  swipe:     `<path d="M3 12h13"/><path d="m12 7 5 5-5 5"/><path d="M21 5v14"/>`,
   textsize:  `<path d="M4 7V4h16v3"/><path d="M9 20h6"/><path d="M12 4v16"/>`,
   lock:      `<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>`,
   reset:     `<path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/>`,
@@ -31008,6 +31078,16 @@ function openSettings(){
             </div>
           </div>
         </div>` : ''}
+        <div class="stt-row" onclick="sttToggleSwipeSettings()" role="button" tabindex="0">
+          ${sttMakeIcon('swipe')}
+          <div class="stt-row-body">
+            <div class="stt-row-title">${L('Swipe to open Settings','السحب لفتح الإعدادات')}</div>
+            <div class="stt-row-sub">${L('Keep swiping past the last page to open Settings','كمّل السحب بعد آخر صفحة لفتح الإعدادات')}</div>
+          </div>
+          <div class="stt-row-trail">
+            <div class="stt-switch ${swipeSettingsOn()?'on':''}" id="sttSwipeSwitch"><div class="stt-switch-dot"></div></div>
+          </div>
+        </div>
         <div class="stt-row" onclick="sttToggleSoundGroup()" role="button" tabindex="0">
           ${sttMakeIcon('sound')}
           <div class="stt-row-body">
@@ -31272,6 +31352,7 @@ function openSettings(){
     const r=trigger.getBoundingClientRect();
     side = (r.left + r.width/2) > (window.innerWidth/2) ? 'right' : 'left';
   }
+  if(window._sttForceSide){ side=window._sttForceSide; window._sttForceSide=null; }   // edge-swipe: slide in from the edge that was pulled
   s.classList.add(side==='right' ? 'stt-side-right' : 'stt-side-left');
   s.dataset.side = side;
   s.style.transform = side==='right' ? 'translateX(100%)' : 'translateX(-100%)';
@@ -62514,6 +62595,17 @@ body #mainContent .banks-v2.bnk-privacy :is(.bnk-sec-sum,.bnk-tl-amt,.bnk-hero-c
 })();
 </script>
 
+<style id="finora-edge-swipe">
+/* Pull past the last page → Settings: gear that grows, rotates and fills when ready */
+.fp-edge{position:fixed;top:0;bottom:0;width:0;z-index:98;pointer-events:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;overflow:hidden;opacity:0}
+.fp-edge.snap{transition:width .26s cubic-bezier(.3,.6,.3,1),opacity .22s ease}
+.fp-edge-bubble{flex:none;width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--surface);color:var(--green);border:1px solid var(--border);box-shadow:var(--shadow-sm);transition:background .18s ease,color .18s ease,box-shadow .18s ease;will-change:transform}
+.fp-edge-bubble svg{display:block;will-change:transform}
+.fp-edge.ready .fp-edge-bubble{background:var(--green);color:#fff;border-color:transparent;box-shadow:0 6px 18px var(--green-glow)}
+.fp-edge.go .fp-edge-bubble{transform:scale(1.35)!important;transition:transform .24s cubic-bezier(.3,.6,.3,1),background .18s}
+.fp-edge-label{font-size:calc(11px*var(--app-text-scale,1));font-weight:700;color:var(--text,var(--muted));white-space:nowrap;letter-spacing:.01em}
+.fp-edge.ready .fp-edge-label{color:var(--green)}
+</style>
 <style id="finora-theme-perf">
 /* Theme switch: while data-theme flips, every element would otherwise start its own `transition: all`
    (hundreds of them) — suppress them for the 2 frames of the switch so the change is ONE repaint. */
