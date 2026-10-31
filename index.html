@@ -62487,5 +62487,37 @@ body #mainContent .banks-v2.bnk-privacy :is(.bnk-sec-sum,.bnk-tl-amt,.bnk-hero-c
 })();
 </script>
 
+<style id="finora-theme-perf">
+/* Theme switch: while data-theme flips, every element would otherwise start its own `transition: all`
+   (hundreds of them) — suppress them for the 2 frames of the switch so the change is ONE repaint. */
+html.theme-switching *,html.theme-switching *::before,html.theme-switching *::after{transition:none!important}
+/* notes rows only need their own compositor layer while being dragged (300 notes = 300 layers before) */
+.qn-swipe .qn-row{will-change:auto}
+.qn-swipe.dragging .qn-row{will-change:transform}
+/* Dark mode: the sticky header and bottom bar sit at 94% opaque #242526 — the 18px backdrop blur behind them is invisible
+   but is re-rendered on EVERY scroll frame. Make them solid (identical look) and drop the blur. */
+:root[data-theme="dark"] body .app-header,:root[data-theme="dark"] body .bottom-nav{
+  background:var(--surface)!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+</style>
+<script id="finora-theme-perf-js">
+(function(){
+  'use strict';
+  if(typeof applyTheme!=='function') return;
+  const orig = applyTheme;
+  let tmr = 0;
+  window.applyTheme = function(theme, animate){
+    const root = document.documentElement;
+    const cur = root.getAttribute('data-theme')==='dark' ? 'dark' : 'light';
+    if(theme === cur) return orig.call(this, theme, false);     // nothing changes visually — just refresh the toggle icon
+    root.classList.add('theme-switching');
+    const r = orig.call(this, theme, false);                      // the old fade is replaced by the instant, single-repaint switch
+    void root.offsetWidth;                                        // flush styles while transitions are off
+    clearTimeout(tmr);
+    requestAnimationFrame(function(){ requestAnimationFrame(function(){ tmr = setTimeout(function(){ root.classList.remove('theme-switching'); }, 30); }); });
+    return r;
+  };
+})();
+</script>
+
 </body>
 </html>
