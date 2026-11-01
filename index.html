@@ -28871,14 +28871,38 @@ function renderBankFxRow(bal, vis){
 // renderBanks()/renderMonthlyChart() already call, just against the prior
 // month's data object. Returns null on the very first month (nothing to
 // compare against) instead of guessing.
+// OPTIONAL "bank period start day" (Settings → Bank month starts on). Off by default = plain calendar month.
+// When set to e.g. 27, deposits/withdrawals made on day 27+ of the PREVIOUS month count toward the active month's
+// change and totals (balances themselves never change, only which period a movement is reported in).
+const BNK_CYCLE_KEY='wdp_bank_cycle_day_v1';
+function bnkCycleDay(){ try{ const n=parseInt(localStorage.getItem(BNK_CYCLE_KEY),10); return (n>=2&&n<=28)?n:0; }catch(e){ return 0; } }
+function sttSetCycleDay(v){
+  const n=parseInt(v,10)||0;
+  try{ if(n>=2&&n<=28) localStorage.setItem(BNK_CYCLE_KEY,String(n)); else localStorage.removeItem(BNK_CYCLE_KEY); }catch(e){ _logErr('sttSetCycleDay',e); }
+  try{ SoundManager.play('toggle'); }catch(e){}
+  showToast(n?L(`${ic('check',15)} Bank month now starts on day ${n}`,`${ic('check',15)} شهر البنوك بيبدأ من يوم ${n}`):L(`${ic('check',15)} Bank month = calendar month`,`${ic('check',15)} شهر البنوك = الشهر العادي`),'info');
+  try{ renderView(true); }catch(e){}
+}
+function bnkCarryIn(banks){
+  const D=bnkCycleDay(); if(!D) return null;
+  const idx=MONTHS_ORDER.indexOf(activeMonth); if(idx<=0) return null;
+  const pk=MONTHS_ORDER[idx-1], pm=DATA[pk]; if(!pm) return null;
+  const keys=banks.map(b=>b.key), set=new Set(keys);
+  const inCycle=d=>parseInt(String(d||'').slice(8,10),10)>=D;
+  let dep=0, wd=0;
+  (pm.bank_movements||[]).forEach(mv=>{ if(!set.has(mv.bank)||!inCycle(mv.date)) return; if(mv.type==='dep') dep+=(mv.amount||0); else if(mv.type==='with') wd+=(mv.amount||0); });
+  (pm.transactions||[]).forEach(t=>{ if(!inCycle(t.date)) return; keys.forEach(k=>{ dep+=(t[k+'Dep']||0); wd+=(t[k+'With']||0); }); });
+  return { dep, wd, net:dep-wd, day:D, month:pk };
+}
 function bnkMonthlyChangeInfo(banks, total){
   const idx = MONTHS_ORDER.indexOf(activeMonth);
   if(idx<=0) return null;
   const prevData = DATA[MONTHS_ORDER[idx-1]];
-  const prevTotal = banks.reduce((s,b)=>s+getBankBalance(prevData,b.key),0);
+  const carry = bnkCarryIn(banks);
+  const prevTotal = banks.reduce((s,b)=>s+getBankBalance(prevData,b.key),0) - (carry?carry.net:0);
   const delta = total - prevTotal;
   const pct = prevTotal!==0 ? (delta/Math.abs(prevTotal))*100 : (delta!==0?100:0);
-  return { delta, pct };
+  return { delta, pct, carry };
 }
 
 // Hero sparkline series — total balance for up to the last 6 months
@@ -30014,6 +30038,7 @@ function renderBanks(m){
   // the helpers near the top of this section (see comments there).
   const changeInfo = bnkMonthlyChangeInfo(bankOnly, totalBanks);
   const spark = bnkSparklineSVG(bnkDailyTrendSeries(m, bankOnly));
+  { const _cy=bnkCarryIn(banks); if(_cy){ _aggDep+=_cy.dep; _aggWith+=_cy.wd; } }
   const _flowTotal = _aggDep + _aggWith;
   const _depPct = _flowTotal>0 ? Math.round((_aggDep/_flowTotal)*100) : 0;
   const _withPct = _flowTotal>0 ? 100-_depPct : 0;
@@ -30046,6 +30071,7 @@ ${_pgHdr('Finance','المالية','Accounts','الحسابات','Banks and e-w
         <div class="bnk-hero-stat-lbl">${L('Accounts','الحسابات')}</div>
       </div>
     </div>
+    ${changeInfo&&changeInfo.carry?`<div class="bnk-hero-cycle">${L(`Counting from day ${changeInfo.carry.day} of ${_monthDisplayLabel(changeInfo.carry.month)}`,`محسوب من يوم ${changeInfo.carry.day} من ${_monthDisplayLabel(changeInfo.carry.month)}`)}</div>`:''}
     ${spark?`<div class="bnk-hero-spark">${spark}</div>`:''}
   </div>
 
@@ -30811,6 +30837,7 @@ const STT_ICONS={
   currency:  `<circle cx="12" cy="12" r="9"/><path d="M14.5 8.5a3.5 3.5 0 0 0-5 0c-1.5 1.5-1.5 5.5 0 7a3.5 3.5 0 0 0 5 0"/><path d="M9.5 11h5"/>`,
   darkmode:  `<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9z"/>`,
   autotheme: `<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/>`,
+  cycle:     `<rect x="3" y="4" width="18" height="17" rx="2"/><path d="M8 2v4M16 2v4M3 10h18"/><path d="m9 15 2 2 4-4"/>`,
   swipe:     `<path d="M3 12h13"/><path d="m12 7 5 5-5 5"/><path d="M21 5v14"/>`,
   textsize:  `<path d="M4 7V4h16v3"/><path d="M9 20h6"/><path d="M12 4v16"/>`,
   lock:      `<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>`,
@@ -31078,6 +31105,19 @@ function openSettings(){
             </div>
           </div>
         </div>` : ''}
+        <div class="stt-row" onclick="document.getElementById('sttCycleSel')&&document.getElementById('sttCycleSel').focus()">
+          ${sttMakeIcon('cycle')}
+          <div class="stt-row-body">
+            <div class="stt-row-title">${L('Bank month starts on','بداية شهر البنوك')}</div>
+            <div class="stt-row-sub">${L('Count deposits & withdrawals from this day of the previous month (e.g. 27). Off = calendar month','احسب الإيداعات والسحب من اليوم ده من الشهر اللي قبله (مثلاً 27). مقفول = الشهر العادي')}</div>
+          </div>
+          <div class="stt-row-trail">
+            <select id="sttCycleSel" class="stt-cycle-sel" onclick="event.stopPropagation()" onchange="sttSetCycleDay(this.value)" aria-label="${L('Bank month start day','يوم بداية شهر البنوك')}">
+              <option value="0"${bnkCycleDay()?'':' selected'}>${L('Off','مقفول')}</option>
+              ${Array.from({length:27},(_,i)=>i+2).map(d=>`<option value="${d}"${bnkCycleDay()===d?' selected':''}>${d}</option>`).join('')}
+            </select>
+          </div>
+        </div>
         <div class="stt-row" onclick="sttToggleSwipeSettings()" role="button" tabindex="0">
           ${sttMakeIcon('swipe')}
           <div class="stt-row-body">
@@ -38717,7 +38757,7 @@ function _cvAuto(st){   // shown on screen, in the UI language
 }
 function _cvAutoCV(st){   // the single line that goes into the CV (English, no rejected counts)
   if(!st||!st.n) return '';
-  return `Inspected and processed ${st.n} work-receipt request${st.n===1?'':'s'} across ${st.plots} plot${st.plots===1?'':'s'}`+(st.companies.length?` for contractors including ${st.companies.slice(0,4).join(', ')}`:'')+'.';
+  return `Inspected and processed ${st.n} work-receipt request${st.n===1?'':'s'} on ${st.plots} plot${st.plots===1?'':'s'}`+(st.companies.length?` (contractors: ${st.companies.slice(0,4).join(', ')})`:'')+'.';
 }
 // ---- the CV as data → text / HTML -----------------------------------------
 // Links in the CV: shown short (no protocol, www., tracking query or trailing slash), linked to the clean URL
@@ -38755,10 +38795,31 @@ function _cvSpan(items){
   });
   return {from,to:open?'':to};
 }
-function _cvModel(cvIn){
+// Text that reads as typed by a person, not pasted from a chatbot: no em dashes, emoji, markdown marks, zero-width / non-breaking spaces
+function _cvHuman(t){
+  return String(t)
+    .replace(/\*\*|__|`/g,'')
+    .replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{2B50}\u{2B06}\u{FE0F}\u{200D}]/gu,'')
+    .replace(/[\u200B\u2060\uFEFF]/g,'').replace(/[\u00A0\u202F]/g,' ')
+    .replace(/[ \t]*\u2014[ \t]*/g,' \u2013 ')
+    .replace(/[ \t]{2,}/g,' ').trim();
+}
+function _cvHumanDeep(o){
+  if(typeof o==='string') return /^data:/.test(o)?o:_cvHuman(o);
+  if(Array.isArray(o)) return o.map(_cvHumanDeep);
+  if(o&&typeof o==='object'){ const r={}; Object.keys(o).forEach(k=>{ r[k]=_cvHumanDeep(o[k]); }); return r; }
+  return o;
+}
+// "Project | role, dates" → [bold head, rest]; older CVs used " — " as the separator
+function _cvSubSplit(t){
+  let i=t.indexOf(' | '), n=3; if(i<0){ i=t.indexOf(' \u2014 '); n=3; }
+  return i<0?[t,'']:[t.slice(0,i),t.slice(i+n)];
+}
+function _cvModel(cvIn){ return _cvHumanDeep(_cvModel0(cvIn)); }
+function _cvModel0(cvIn){
   const cv=cvIn||_cvLoad(), p=cv.profile;
   const _bul=e=>{
-    const b=String(e.desc||'').split('\n').map(x=>_cvUrlShort(x.trim())).filter(Boolean).map(t=>t.startsWith('# ')?{sub:t.slice(2).trim()}:{t});
+    const b=String(e.desc||'').split('\n').map(x=>_cvUrlShort(x.trim())).filter(Boolean).map(t=>t.startsWith('# ')?{sub:t.slice(2).trim().replace(/\s\u2014\s/,' | ')}:{t});
     if(e.st&&!e.noauto){ const a=_cvAutoCV(e.st); if(a) b.push({t:a}); }
     return b;
   };
@@ -38767,7 +38828,7 @@ function _cvModel(cvIn){
     const company=[head,e.loc].filter(Boolean).join(', ');
     const roleLine=[e.role,e.company?e.name:''].filter(Boolean).join(' | ');
     const pp=_cvPeriodParts(e), period=pp.range, dur=pp.dur;
-    const bullets=String(e.desc||'').split('\n').map(x=>_cvUrlShort(x.trim())).filter(Boolean).map(t=>t.startsWith('# ')?{sub:t.slice(2).trim()}:{t});
+    const bullets=String(e.desc||'').split('\n').map(x=>_cvUrlShort(x.trim())).filter(Boolean).map(t=>t.startsWith('# ')?{sub:t.slice(2).trim().replace(/\s\u2014\s/,' | ')}:{t});
     if(e.st&&!e.noauto){ const a=_cvAutoCV(e.st); if(a) bullets.push({t:a}); }
     return {company,roleLine,period,dur,bullets};
   };
@@ -38778,7 +38839,7 @@ function _cvModel(cvIn){
     const bullets=[];
     g.items.forEach(e=>{
       const per=_cvPeriodParts(e).range;
-      const t=[e.name,[roles.length>1?e.role:'',per].filter(Boolean).join(', ')].filter(Boolean).join(' — ');
+      const t=[e.name,[roles.length>1?e.role:'',per].filter(Boolean).join(', ')].filter(Boolean).join(' | ');
       if(t) bullets.push({sub:t});
       _bul(e).forEach(x=>bullets.push(x));
     });
@@ -38787,7 +38848,7 @@ function _cvModel(cvIn){
   const edu=String(p.edu||'').split(/\n\s*\n/).map(b=>b.split('\n').map(x=>_cvUrlShort(x.trim())).filter(Boolean)).filter(b=>b.length);
   return {
     name:(p.name||'').trim(),
-    headline:(p.title||'').trim()||'Consultant Engineer',
+    headline:(p.title||'').trim(),
     photo:/^data:image\//.test(p.photo||'')?p.photo:'',
     ctl:[['Phone',p.phone,p.phone?'tel:'+String(p.phone).replace(/[^\d+]/g,''):''],['Email',p.email,p.email?'mailto:'+String(p.email).trim():''],['LinkedIn',_cvShortLink(p.linkedin),_cvLinkHref(p.linkedin)],['Location',p.loc,'']].filter(x=>x[1]),
     c1:[p.phone?'Phone: '+p.phone:'',p.email?'Email: '+p.email:''].filter(Boolean).join(' | '),
@@ -38798,7 +38859,7 @@ function _cvModel(cvIn){
 function _cvText(){
   const m=_cvModel(), o=[];
   if(m.name) o.push(m.name.toUpperCase());
-  o.push(m.headline); if(m.c1) o.push(m.c1); if(m.c2) o.push(m.c2);
+  if(m.headline) o.push(m.headline); if(m.c1) o.push(m.c1); if(m.c2) o.push(m.c2);
   if(m.summary) o.push('','SUMMARY',m.summary);
   if(m.skills.length){ o.push('','CORE SKILLS'); m.skills.forEach(x=>o.push('• '+x)); }
   if(m.jobs.length){
@@ -38824,7 +38885,7 @@ function cvPrint(){
   const ios=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
   const sec=(t,body)=>body?`<h2>${t}</h2>${body}`:'';
   const li=a=>`<ul class="bl">${a.map(x=>`<li dir="auto">${esc(x)}</li>`).join('')}</ul>`;
-  const subLine=s=>{ const i=s.indexOf(' — '); return i<0?`<b>${esc(s)}</b>`:`<b>${esc(s.slice(0,i))}</b> — ${esc(s.slice(i+3))}`; };
+  const subLine=s=>{ const q=_cvSubSplit(s); return q[1]?`<b>${esc(q[0])}</b> | ${esc(q[1])}`:`<b>${esc(q[0])}</b>`; };
   const jobsHTML=m.jobs.map(j=>{
     let body='', run=[];
     const flush=()=>{ if(run.length){ body+=li(run); run=[]; } };
@@ -38847,9 +38908,11 @@ function cvPrint(){
 }`;
   const html=`${(ios&&cvFoot)?`<div class="ft">Updated ${upd}</div>`:''}
 ${_cvDocHTML(m)}`;
-  const cleanup=()=>{ ['cvPrintRoot','cvPrintStyle'].forEach(id=>{ const e=document.getElementById(id); if(e) e.remove(); }); window.removeEventListener('afterprint',cleanup); };
+  const _t0=document.title;
+  const cleanup=()=>{ if(document.title!==_t0) document.title=_t0; ['cvPrintRoot','cvPrintStyle'].forEach(id=>{ const e=document.getElementById(id); if(e) e.remove(); }); window.removeEventListener('afterprint',cleanup); };
   try{
     cleanup();
+    document.title=(m.name?m.name.replace(/\s+/g,' ')+' - CV':'CV');
     const st=document.createElement('style'); st.id='cvPrintStyle'; st.textContent=css; document.head.appendChild(st);
     const root=document.createElement('div'); root.id='cvPrintRoot'; root.innerHTML=html; document.body.appendChild(root);
     window.addEventListener('afterprint',cleanup);
@@ -38871,7 +38934,7 @@ function renderMyCV(){
     return href?`<a class="cv-ct-r" href="${esc(href)}"${ico==='link'?' target="_blank" rel="noopener"':''} onclick="event.stopPropagation()">${inner}</a>`:`<div class="cv-ct-r">${inner}</div>`;
   }).join('');
   const hParts=_cvTitle(p).split(/\s*[|•·]\s*/).filter(Boolean);
-  const headHTML=hParts.length>1?`<div class="cv-tags" dir="auto">${hParts.map(x=>`<span>${esc(x)}</span>`).join('')}</div>`:`<small dir="auto">${esc(hParts[0]||'')}</small>`;
+  const headHTML=`<small dir="auto">${hParts.map(esc).join(' \u00b7 ')}</small>`;
   const secCard=(key,ico,en,ar,body,emptyEn,emptyAr)=>`<section class="cv-card cv-sc${body?' tap':''}"${body?` onclick="_cvEditSec('${key}')"`:''}><div class="cv-sec-row"><span class="cv-sec-t">${ic(ico,15)}<span>${L(en,ar)}</span></span><button type="button" class="cv-ib" onclick="event.stopPropagation();_cvEditSec('${key}')" aria-label="${L('Edit','تعديل')}">${ic('edit',15)}</button></div>${body||`<button type="button" class="cv-add" onclick="_cvEditSec('${key}')">${ic('plus',14)} ${L(emptyEn,emptyAr)}</button>`}</section>`;
   const sum=p.summary?`<p class="cv-sum" dir="auto">${esc(_cvClean(p.summary)).replace(/\n/g,'<br>')}</p>`:'';
   const skills=_cvList(p.skills), certs=_cvList(p.certs), langs=_cvList(p.langs);
@@ -38909,10 +38972,9 @@ function renderMyCV(){
   <section class="cv-card cv-prof">
     <div class="cv-prof-top">
       <span class="cv-av">${/^data:image\//.test(p.photo||'')?`<img src="${p.photo}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:inherit">`:(ini?esc(ini):ic('cv',22))}</span>
-      <div class="cv-prof-id"><b dir="auto">${p.name?esc(p.name):L('Add your name','أضف اسمك')}</b>${hParts.length>1?'':headHTML}</div>
+      <div class="cv-prof-id"><b dir="auto">${p.name?esc(p.name):L('Add your name','أضف اسمك')}</b>${hParts.length?headHTML:''}</div>
       <button type="button" class="cv-ib" onclick="_cvEditSec('hdr')" aria-label="${L('Edit','تعديل')}">${ic('edit',16)}</button>
     </div>
-    ${hParts.length>1?headHTML:''}
     ${contacts?`<div class="cv-cts rows">${contacts}</div>`:`<button type="button" class="cv-add" onclick="_cvEditSec('hdr')">${ic('plus',14)} ${L('Add contact details','أضف بيانات التواصل')}</button>`}
   </section>
   ${secCard('sum','cv','Summary','النبذة',sum,'Add a short summary','أضف نبذة عنك')}
@@ -39194,7 +39256,7 @@ function _cvDraft(){
   }catch(e){ _logErr('_cvDraft',e); }
   return cv;
 }
-// ═══ CV design: 12 templates, accent colour, line spacing, text size, skills columns, profile photo ═══
+// ═══ CV design: 20 templates, accent colour, line spacing, text size, skills columns, profile photo ═══
 const _CV_TPL={
   classic:{en:'Classic',ar:'كلاسيك',acc:'#17324d',layout:'one'},
   modern:{en:'Modern',ar:'مودرن',acc:'#0f7a55',layout:'one'},
@@ -39207,7 +39269,15 @@ const _CV_TPL={
   timeline:{en:'Timeline',ar:'تايم لاين',acc:'#0369a1',layout:'one'},
   elegant:{en:'Elegant',ar:'أنيق',acc:'#9a3412',layout:'one'},
   sidedark:{en:'Dark sidebar',ar:'شريط داكن + صورة',acc:'#17324d',layout:'side'},
-  sideright:{en:'Right sidebar',ar:'شريط يمين + صورة',acc:'#0f7a55',layout:'side',rev:1}
+  sideright:{en:'Right sidebar',ar:'شريط يمين + صورة',acc:'#0f7a55',layout:'side',rev:1},
+  split:{en:'Split header',ar:'ترويسة مقسومة',acc:'#0369a1',layout:'one'},
+  tinted:{en:'Soft header',ar:'ترويسة ناعمة',acc:'#0f7a55',layout:'one'},
+  topband:{en:'Top band',ar:'شريط علوي',acc:'#17324d',layout:'one'},
+  lefttitles:{en:'Left titles',ar:'عناوين جانبية',acc:'#9a3412',layout:'one'},
+  photoright:{en:'Photo right',ar:'صورة يمين',acc:'#6d28d9',layout:'one'},
+  mono:{en:'Tech mono',ar:'تقني',acc:'#1f2937',layout:'one'},
+  cards:{en:'Cards',ar:'كروت',acc:'#0369a1',layout:'one'},
+  centered:{en:'Centered rule',ar:'عناوين وسطية',acc:'#17324d',layout:'one'}
 };
 const _CV_ACCENTS=['#17324d','#0f7a55','#0369a1','#6d28d9','#9a3412','#1f2937'];
 const _CV_SP={compact:{g:.75,lh:1.26},normal:{g:1,lh:1.36},relaxed:{g:1.4,lh:1.58}};
@@ -39246,7 +39316,10 @@ ${D} .co{margin:calc(7pt*var(--g,1)) 0 calc(3pt*var(--g,1));font-size:calc(8.8pt
 ${D} .rl{margin-bottom:calc(4pt*var(--g,1));font-size:calc(8pt*var(--fs,1));color:#5e6d79;break-after:avoid}
 ${D} .dt{display:flex;flex-wrap:wrap;align-items:center;gap:4pt 7pt;margin:0 0 calc(3pt*var(--g,1));break-after:avoid}
 ${D} .dt .dr{font-size:calc(8.4pt*var(--fs,1));font-weight:700;color:var(--acc);letter-spacing:.1pt}
-${D} .dt .dd{font-size:calc(7.4pt*var(--fs,1));font-weight:600;color:var(--acc);padding:1pt 6pt;border-radius:8pt;background:color-mix(in srgb,var(--acc) 11%,#fff);border:.5pt solid color-mix(in srgb,var(--acc) 35%,#fff)}
+${D} .dt .dd{font-size:calc(8pt*var(--fs,1));font-weight:400;color:#5e6d79;padding:0;border:0;background:none;border-radius:0}
+${D} .dt .dd::before{content:'('}
+${D} .dt .dd::after{content:')'}
+${D} .hl:empty{display:none}
 ${D} .bl{list-style:none;margin:0;padding:0}
 ${D} .bl li{position:relative;padding-inline-start:10pt;margin-bottom:calc(3.6pt*var(--g,1));break-inside:avoid}
 ${D} .sub{margin:calc(7pt*var(--g,1)) 0 calc(4pt*var(--g,1));font-size:calc(8.2pt*var(--fs,1));break-after:avoid}
@@ -39336,6 +39409,66 @@ ${R}.cvt-sidedark .cl b{color:rgba(255,255,255,.7)}
 ${R}.cvt-sidedark .sd .sk li::before,${R}.cvt-sidedark .sd .bl li::before{color:#fff}
 /* Right sidebar */
 ${R}.cvt-sideright .mn{padding:12pt 15pt 0 0}
+/* Split header */
+${R}.cvt-split .hd{padding-bottom:7pt;border-bottom:1.4pt solid var(--acc);margin-bottom:2pt}
+${R}.cvt-split .hi{display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:16pt;align-items:start}
+${R}.cvt-split h1{grid-column:1;text-align:left;text-transform:none;font-size:calc(20pt*var(--fs,1))}
+${R}.cvt-split .hl{grid-column:1;color:var(--acc);font-weight:600}
+${R}.cvt-split .ct{grid-column:2;grid-row:1 / span 2;max-width:190pt;text-align:right}
+${R}.cvt-split .ct .cr{flex-direction:column;align-items:flex-end;gap:1pt}
+${R}.cvt-split .co{color:#111}
+/* Soft header */
+${R}.cvt-tinted .hd{background:color-mix(in srgb,var(--acc) 10%,#fff);border-inline-start:4pt solid var(--acc);padding:11pt 14pt;border-radius:5pt;margin-bottom:3pt;break-inside:avoid}
+${R}.cvt-tinted h1{text-align:left;text-transform:none;font-size:calc(19pt*var(--fs,1))}
+${R}.cvt-tinted .hl{color:var(--acc);font-weight:600}
+${R}.cvt-tinted h2{border-bottom:.6pt solid color-mix(in srgb,var(--acc) 35%,#fff);padding-bottom:2pt}
+${R}.cvt-tinted .co{color:#111}
+/* Top band */
+${R}.cvt-topband .hd{border-top:6pt solid var(--acc);border-bottom:.6pt solid #d5dbe1;padding:9pt 0 7pt;margin-bottom:2pt}
+${R}.cvt-topband h1{text-align:left;text-transform:none;color:#111;font-size:calc(20pt*var(--fs,1))}
+${R}.cvt-topband .hl{color:var(--acc);font-weight:600}
+${R}.cvt-topband h2::before{content:'';display:inline-block;width:6pt;height:6pt;background:var(--acc);margin-inline-end:6pt;vertical-align:.5pt}
+${R}.cvt-topband .co{color:#111}
+/* Left titles */
+${R}.cvt-lefttitles h1{text-align:left;text-transform:none;font-size:calc(20pt*var(--fs,1))}
+${R}.cvt-lefttitles .hd{padding-bottom:6pt;border-bottom:.8pt solid #cbd2d9;margin-bottom:2pt}
+${R}.cvt-lefttitles .hl{color:var(--acc);font-weight:600}
+${R}.cvt-lefttitles .sc{display:flow-root}
+${R}.cvt-lefttitles .sc>h2{float:left;width:21%;margin:calc(7pt*var(--g,1)) 0 0;font-size:calc(8.8pt*var(--fs,1));letter-spacing:.5pt}
+${R}.cvt-lefttitles .sc>*:not(h2){margin-inline-start:25%}
+${R}.cvt-lefttitles .sc>.job:first-of-type .co,${R}.cvt-lefttitles .sc>p,${R}.cvt-lefttitles .sc>ul{margin-top:calc(7pt*var(--g,1))}
+${R}.cvt-lefttitles .co{color:#111}
+/* Photo right */
+${R}.cvt-photoright .hd{flex-direction:row-reverse;padding-bottom:7pt;border-bottom:1.2pt solid var(--acc);margin-bottom:2pt}
+${R}.cvt-photoright h1{text-align:left;text-transform:none;font-size:calc(20pt*var(--fs,1))}
+${R}.cvt-photoright .hl{color:var(--acc);font-weight:600}
+${R}.cvt-photoright h2{background:color-mix(in srgb,var(--acc) 11%,#fff);padding:2pt 7pt;border-radius:2pt}
+${R}.cvt-photoright .co{color:#111}
+/* Tech mono */
+${R}.cvt-mono{--ff:'Courier New',Consolas,'Liberation Mono',monospace}
+${R}.cvt-mono.cvd{font-size:calc(7.6pt*var(--fs,1))}
+${R}.cvt-mono h1{text-align:left;text-transform:none;font-size:calc(17pt*var(--fs,1));color:#111}
+${R}.cvt-mono .hl{color:var(--acc);font-weight:700}
+${R}.cvt-mono .hd{padding-bottom:6pt;border-bottom:1pt dashed var(--acc);margin-bottom:2pt}
+${R}.cvt-mono h2{text-transform:lowercase;letter-spacing:.3pt}
+${R}.cvt-mono h2::before{content:'// ';opacity:.7}
+${R}.cvt-mono .co{color:#111}
+/* Cards */
+${R}.cvt-cards h1{text-align:left;text-transform:none;font-size:calc(20pt*var(--fs,1))}
+${R}.cvt-cards .hd{padding-bottom:6pt;border-bottom:1.2pt solid var(--acc);margin-bottom:2pt}
+${R}.cvt-cards .hl{color:var(--acc);font-weight:600}
+${R}.cvt-cards .job{border:.6pt solid #d9dfe5;border-radius:5pt;padding:2pt 9pt 5pt;margin-bottom:calc(5pt*var(--g,1));background:#fbfcfd}
+${R}.cvt-cards .co{margin-top:calc(4pt*var(--g,1))}
+${R}.cvt-cards h2{letter-spacing:.8pt}
+/* Centered rule */
+${R}.cvt-centered .hd{flex-direction:column;text-align:center;gap:5pt;padding-bottom:6pt}
+${R}.cvt-centered h1{text-transform:none;font-size:calc(20pt*var(--fs,1))}
+${R}.cvt-centered .hl{text-align:center;color:var(--acc);font-weight:600}
+${R}.cvt-centered .ct{text-align:center}
+${R}.cvt-centered .ct .cr{justify-content:center}
+${R}.cvt-centered h2{display:flex;align-items:center;justify-content:center;gap:8pt;text-align:center}
+${R}.cvt-centered h2::before,${R}.cvt-centered h2::after{content:'';flex:1;height:.7pt;background:var(--acc);opacity:.55}
+${R}.cvt-centered .co{color:#111}
 /* user options (win over the template defaults) */
 ${D}.cp-upper h1,${D}.cp-upper h2{text-transform:uppercase}
 ${D}.cp-title h1,${D}.cp-title h2{text-transform:none}
@@ -39357,7 +39490,7 @@ function _cvDocHTML(m,stIn){
   const hide=Array.isArray(st.hide)?st.hide:[];
   const sec=(t,body)=>body?`<section class="sc"><h2>${t}</h2>${body}</section>`:'';
   const li=a=>`<ul class="bl">${a.map(x=>`<li dir="auto">${esc(x)}</li>`).join('')}</ul>`;
-  const subLine=t=>{ const i=t.indexOf(' — '); return i<0?`<b>${esc(t)}</b>`:`<b>${esc(t.slice(0,i))}</b> — ${esc(t.slice(i+3))}`; };
+  const subLine=t=>{ const q=_cvSubSplit(t); return q[1]?`<b>${esc(q[0])}</b> | ${esc(q[1])}`:`<b>${esc(q[0])}</b>`; };
   const jobs=m.jobs.map(j=>{
     let body='', run=[];
     const flush=()=>{ if(run.length){ body+=li(run); run=[]; } };
@@ -39408,6 +39541,14 @@ function _cvThumb(k,a){
   else if(k==='elegant') b=R(8,8,30,4,'#333')+R(8,15,20,2,a)+R(8,20,44,.6,'#bbb',0)+R(8,19.4,14,1.6,a,0)+R(8,27,16,2.5,a)+ln(8,33,44,3)+R(8,52,16,2.5,a)+ln(8,58,44,3);
   else if(k==='sidedark') b=R(5,5,19,68,a,2)+`<circle cx="14.5" cy="16" r="6" fill="#fff"/>`+R(8,28,13,2,'#ffffffaa')+R(8,33,13,2,'#ffffffaa')+R(8,46,13,2,'#ffffffaa')+R(8,51,13,2,'#ffffffaa')+R(28,8,26,4,a)+R(28,15,20,2,g)+R(28,24,14,3,a)+ln(28,30,26,4)+R(28,52,14,3,a)+ln(28,58,26,3);
   else if(k==='sideright') b=R(36,5,19,68,a+'22',2)+`<circle cx="45.5" cy="16" r="6" fill="${a}"/>`+ln(39,28,13,3)+ln(39,46,13,3)+R(6,8,26,4,a)+R(6,15,20,2,g)+R(6,24,14,3,a)+ln(6,30,24,4)+R(6,52,14,3,a)+ln(6,58,24,3);
+  else if(k==='split') b=R(8,8,24,5,a)+R(8,15,18,2,g)+R(37,8,15,1.8,g)+R(39,12,13,1.8,g)+R(8,21,44,1,a,0)+R(8,27,16,3,a)+ln(8,33,44,3)+R(8,52,16,3,a)+ln(8,58,44,3);
+  else if(k==='tinted') b=R(5,5,50,18,a+'22',2)+R(5,5,2.5,18,a,0)+R(10,9,26,4,a)+R(10,16,18,2,g)+R(8,28,16,3,a)+ln(8,34,44,3)+R(8,52,16,3,a)+ln(8,58,44,3);
+  else if(k==='topband') b=R(0,0,60,4,a,0)+R(8,10,28,5,'#111')+R(8,17,20,2,g)+R(8,22,44,.8,g,0)+R(8,28,4,4,a,0)+R(14,28,14,3,a)+ln(8,36,44,3)+R(8,54,4,4,a,0)+R(14,54,14,3,a)+ln(8,62,44,2);
+  else if(k==='lefttitles') b=R(8,8,30,5,a)+R(8,15,22,2,g)+R(8,24,14,3,a)+ln(26,24,26,4)+R(8,46,14,3,a)+ln(26,46,26,4);
+  else if(k==='photoright') b=R(8,8,28,5,a)+R(8,15,20,2,g)+`<circle cx="46" cy="14" r="7" fill="${a}"/>`+R(8,26,44,.8,a,0)+R(8,32,44,4,a+'22')+ln(8,40,44,3)+R(8,56,44,4,a+'22')+ln(8,64,44,2);
+  else if(k==='mono') b=R(8,8,28,4,'#1f2937')+R(8,14,20,2,a)+R(8,19,44,.8,a,0)+R(8,26,3,3,a)+R(12,26,3,3,a)+R(17,26,14,3,'#1f2937')+ln(8,33,44,3)+R(8,52,3,3,a)+R(12,52,3,3,a)+R(17,52,14,3,'#1f2937')+ln(8,59,44,3);
+  else if(k==='cards') b=R(8,8,28,5,a)+R(8,15,20,2,g)+R(8,24,16,3,a)+`<rect x="8" y="30" width="44" height="18" rx="2" fill="#fbfcfd" stroke="#d5dbe1"/>`+ln(11,34,38,3)+`<rect x="8" y="52" width="44" height="18" rx="2" fill="#fbfcfd" stroke="#d5dbe1"/>`+ln(11,56,38,3);
+  else if(k==='centered') b=R(16,8,28,5,a)+R(20,15,20,2,g)+R(8,26,10,.8,a,0)+R(22,24,16,3,a)+R(42,26,10,.8,a,0)+ln(8,32,44,3)+R(8,50,10,.8,a,0)+R(22,48,16,3,a)+R(42,50,10,.8,a,0)+ln(8,56,44,3);
   else b=R(8,8,26,3,'#334155')+R(8,14,18,1.5,g)+R(8,24,14,2,'#64748b')+R(8,27.5,44,.5,'#cbd5e1',0)+ln(8,32,44,3)+R(8,50,14,2,'#64748b')+R(8,53.5,44,.5,'#cbd5e1',0)+ln(8,58,44,3);
   return `<svg viewBox="0 0 60 78" width="100%" height="100%" aria-hidden="true"><rect x=".5" y=".5" width="59" height="77" rx="3" fill="#fff" stroke="#d5dbe1"/>${b}</svg>`;
 }
@@ -62595,6 +62736,67 @@ body #mainContent .banks-v2.bnk-privacy :is(.bnk-sec-sum,.bnk-tl-amt,.bnk-hero-c
 })();
 </script>
 
+<style id="finora-cv-pro">
+/* My CV screen: one calm rhythm (12px gaps, 16px padding), quiet chrome, clear hierarchy */
+.cv-wrap{gap:0}
+.cv-wrap .cv-live{display:flex;align-items:center;gap:8px;padding:12px 2px 12px;font-size:calc(12px*var(--app-text-scale,1));font-weight:600;color:var(--muted)}
+.cv-wrap .cv-live-dot{width:7px;height:7px;box-shadow:0 0 0 3px color-mix(in srgb,var(--green) 18%,transparent)}
+.cv-wrap .cv-live em{margin-inline-start:0;padding:2px 8px;border-radius:99px;background:var(--surface2);color:var(--muted);font-size:calc(11px*var(--app-text-scale,1));font-weight:700}
+.cv-wrap .cv-live .cv-prev-top{margin-inline-start:auto;height:34px;padding:0 14px;border-radius:99px;box-shadow:none;font-size:calc(12.5px*var(--app-text-scale,1));font-weight:700;gap:6px}
+.cv-wrap .cv-card,.cv-wrap .cv-proj{border-radius:18px;padding:16px;margin-bottom:12px;border:1px solid var(--border);box-shadow:none}
+[data-theme="dark"] .cv-wrap .cv-card,[data-theme="dark"] .cv-wrap .cv-proj{border-color:color-mix(in srgb,var(--border) 80%,transparent)}
+/* profile */
+.cv-wrap .cv-prof{padding:18px 16px 6px}
+.cv-wrap .cv-prof-top{align-items:center;gap:14px}
+.cv-wrap .cv-av{width:64px;height:64px;border-radius:50%;flex:none;overflow:hidden;box-shadow:0 0 0 2px var(--surface),0 0 0 3.5px color-mix(in srgb,var(--green) 55%,var(--border))}
+.cv-wrap .cv-av img{border-radius:50%!important}
+.cv-wrap .cv-prof-id{gap:3px;padding:0}
+.cv-wrap .cv-prof-id b{font-size:calc(17px*var(--app-text-scale,1));font-weight:800;line-height:1.25;letter-spacing:0;text-transform:none}
+.cv-wrap .cv-prof-id small{margin:0;font-size:calc(12.5px*var(--app-text-scale,1));font-weight:600;line-height:1.45;color:var(--green)}
+.cv-wrap .cv-prof .cv-ib{align-self:flex-start;margin-top:-4px;margin-inline-end:-6px}
+.cv-wrap .cv-cts{margin-top:14px;padding-top:4px;border-top:1px solid var(--border);display:block}
+.cv-wrap .cv-ct-r{min-height:42px;padding:5px 0;gap:11px;font-size:calc(13px*var(--app-text-scale,1));font-weight:500;color:var(--text2)}
+.cv-wrap .cv-ct-r+.cv-ct-r{border-top:1px solid color-mix(in srgb,var(--border) 45%,transparent)}
+.cv-wrap .cv-ci{width:28px;height:28px;border-radius:9px;background:var(--surface2);color:var(--muted)}
+.cv-wrap a.cv-ct-r .cv-ci{color:var(--green)}
+/* section cards */
+.cv-wrap .cv-sc .cv-sec-row,.cv-wrap .cv-card .cv-sec-row{margin:0 0 10px;padding:0 0 10px;border:0;border-bottom:1px solid color-mix(in srgb,var(--border) 60%,transparent);min-height:0}
+.cv-wrap .cv-sec-t{gap:8px;font-size:calc(11.5px*var(--app-text-scale,1));font-weight:800;letter-spacing:.9px;color:var(--text2)}
+.cv-wrap .cv-card .cv-sec-t{margin:0}
+.cv-wrap .cv-ib{width:32px;height:32px;border-radius:10px;color:var(--muted)}
+.cv-wrap .cv-sum{font-size:calc(13.5px*var(--app-text-scale,1));line-height:1.7;font-weight:400;color:var(--text2);text-wrap:pretty}
+.cv-wrap .cv-sk{gap:8px 18px}
+.cv-wrap .cv-sk li{font-size:calc(13px*var(--app-text-scale,1));line-height:1.5;font-weight:400}
+.cv-wrap .cv-sk li::before{width:4px;height:4px;top:.65em;background:color-mix(in srgb,var(--green) 80%,var(--muted))}
+.cv-wrap .cv-ul{font-weight:400;gap:6px}
+.cv-wrap .cv-ed{padding:2px 0}
+.cv-wrap .cv-ed+.cv-ed{margin-top:10px;padding-top:10px;border-top:1px solid color-mix(in srgb,var(--border) 45%,transparent)}
+.cv-wrap .cv-langs{font-size:calc(13px*var(--app-text-scale,1));font-weight:400}
+/* experience header + cards */
+.cv-wrap>.cv-sec-row{margin:10px 2px 12px;padding:0;border:0}
+.cv-wrap>.cv-sec-row .cv-sec-t em{font-style:normal;padding:1px 7px;border-radius:99px;background:var(--surface2);color:var(--muted);font-size:calc(10.5px*var(--app-text-scale,1));letter-spacing:0}
+.cv-wrap .cv-newprj{min-height:32px;padding:0 12px;font-size:calc(12px*var(--app-text-scale,1));font-weight:700;box-shadow:none}
+.cv-wrap .cv-co-grp{padding:8px;border-radius:20px;background:var(--surface2);border:1px solid var(--border);gap:8px;margin-bottom:12px}
+.cv-wrap .cv-co-grp .cv-proj{margin-bottom:0}
+.cv-wrap .cv-co-hd{padding:4px 6px 2px}
+.cv-wrap .cv-co-hd b{font-size:calc(13.5px*var(--app-text-scale,1));font-weight:800}
+.cv-wrap .cv-co-hd small{opacity:1;color:var(--muted);font-weight:600}
+.cv-wrap .cv-projs{display:block}
+.cv-wrap .cv-proj-hd{gap:12px}
+.cv-wrap .cv-proj-ttl b{font-size:calc(14.5px*var(--app-text-scale,1));font-weight:700}
+.cv-wrap .cv-proj-ttl small{display:flex;flex-wrap:wrap;gap:0 6px;line-height:1.45}
+.cv-wrap .cv-proj-ttl small span+span::before{content:'\00b7';margin-inline-end:6px;color:var(--muted)}
+.cv-wrap .cv-proj-meta{gap:4px 14px;margin-top:10px;padding-top:10px;border-top:1px solid color-mix(in srgb,var(--border) 45%,transparent)}
+.cv-wrap .cv-db{font-weight:400}
+/* export block */
+.cv-wrap .cv-lbl{margin:14px 4px 10px;font-size:calc(11px*var(--app-text-scale,1));font-weight:800;letter-spacing:.9px;text-transform:uppercase;color:var(--muted)}
+.cv-wrap .cv-actions{gap:10px;margin:0 0 10px}
+.cv-wrap .cv-actions .cv-btn{min-height:46px;border-radius:14px;font-size:calc(13px*var(--app-text-scale,1))}
+</style>
+<style id="finora-bank-cycle">
+.stt-cycle-sel{min-width:68px;height:34px;padding:0 10px;border-radius:10px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font:inherit;font-size:calc(13px*var(--app-text-scale,1));font-weight:700}
+.bnk-hero-cycle{position:relative;z-index:1;margin-top:8px;font-size:calc(11px*var(--app-text-scale,1));font-weight:600;color:var(--muted)}
+</style>
 <style id="finora-edge-swipe">
 /* Pull past the last page → Settings: gear that grows, rotates and fills when ready */
 .fp-edge{position:fixed;top:0;bottom:0;width:0;z-index:98;pointer-events:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;overflow:hidden;opacity:0}
