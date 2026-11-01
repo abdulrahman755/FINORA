@@ -40344,6 +40344,14 @@ function renderMyRequests(){
        </div>`
     : `<div class="cx-none">${L('No results','لا نتائج')}</div>`;
 
+  // Running IR total: every IR receipt from the first month up to and including the month being viewed
+  const _rqOrd=k=>{ const m=/^([A-Za-z]{3})-(\d{4})$/.exec(String(k||'')); if(!m) return null; const i=_ROLLOVER_ABBR.findIndex(x=>String(x).toLowerCase()===m[1].toLowerCase()); return i<0?null:(+m[2])*12+i; };
+  const _rqActOrd=_rqOrd(activeMonth);
+  const _irCum=_everything.filter(r=>{
+    if(_rqTypeKey(r)!=='ir') return false;
+    const o=_rqOrd(_monthKeyForDate(r.date));
+    return o==null || _rqActOrd==null || o<=_rqActOrd;
+  }).length;
   const shown=(q||_rqFilter!=='all'||typeFilter)?`${list.length} / ${all.length}`:String(all.length);
   return `<div class="screen-wrap cx-wrap">
   ${_pgHdr('Site','الموقع','My Job','My Job','Receipts log and custody money','سجل الاستلامات وفلوس العهدة')}
@@ -40351,7 +40359,7 @@ function renderMyRequests(){
   ${_cxTabsHTML()}
   <section class="cx-sec">
     <div class="cx-sh">
-      <span class="cx-sh-l"><span class="cx-sh-t">${L('My Receipts','استلاماتي')}</span><span class="cx-sh-s">${esc(_rqMonthLbl())} · ${shown} ${L('receipts','استلامة')}<span class="rq-grand"> · ${L('Total','الإجمالي')} <b>${_everything.length}</b></span></span></span>
+      <span class="cx-sh-l"><span class="cx-sh-t">${L('My Receipts','استلاماتي')}</span><span class="cx-sh-s">${esc(_rqMonthLbl())} · ${shown} ${L('receipts','استلامة')}<span class="rq-grand"> · ${L('Total IR','إجمالي IR')} <b>${_irCum}</b></span></span></span>
       <button type="button" class="rq-more" onclick="rqMoreOpen()" aria-label="${L('More','المزيد')}"><svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg></button>
     </div>
     ${statsHTML}
@@ -63035,6 +63043,13 @@ body #mainContent > .wdash-wrap.dv3-dark-v2 .wdash-apps-head .wdash-manage-btn s
 :root[data-theme="dark"] .frc-chip.mid,:root[data-theme="dark"] .frc-note.warn,:root[data-theme="dark"] .frc-warns{color:#e0b25a}
 
 .frc-row2 .field{min-width:0}.frc-row2 input{width:100%;box-sizing:border-box;min-width:0}
+
+.frc-daily-row{display:flex;justify-content:flex-end;margin:0 0 10px}
+.frc-tx-scan{margin:0 0 10px}
+.frc-scan-btn{display:inline-flex;align-items:center;gap:8px;min-height:36px;padding:0 14px;border-radius:99px;border:1px solid var(--border);background:var(--surface);color:var(--text2,var(--text));font:inherit;font-size:calc(12.5px*var(--app-text-scale,1));font-weight:600;cursor:pointer;-webkit-tap-highlight-color:transparent;box-shadow:var(--shadow-sm)}
+.frc-scan-btn svg{color:#c17d0a}
+.frc-scan-btn:active{transform:scale(.97)}
+.frc-tx-scan .frc-scan-btn{width:100%;justify-content:center;min-height:42px;border-style:dashed;box-shadow:none}
 </style>
 <script id="finora-receipt-scan">
 /* ═══ FINORA · Scan Receipt v2 ════════════════════════════════════════════════
@@ -63450,12 +63465,17 @@ function validate(r){
 function isDuplicate(r){
   try{
     const v=(r.vendor||'').trim().toLowerCase();
+    if(typeof S!=='undefined' && S.dest==='daily'){
+      const k=(typeof _monthKeyForDate==='function')?_monthKeyForDate(r.date):null;
+      const list=(k&&DATA[k]&&DATA[k].transactions)||[];
+      return list.some(t=>t&&t.date===r.date && Math.abs((+t.payment||0)-r.total)<0.01);
+    }
     return (SAVINGS.outcomes||[]).some(o=>o.date===r.date && Math.abs((+o.amount||0)-r.total)<0.01 && (!v || String(o.source||'').trim().toLowerCase()===v));
   }catch(e){ return false; }
 }
 
 /* ── UI flow ─────────────────────────────────────────────────────────────── */
-const S={bmp:null,rot:0,thumb:'',result:null,busy:0};
+const S={bmp:null,rot:0,thumb:'',result:null,busy:0,dest:'savings'};
 const FR={hooks:{}};
 const icn=(n,s)=>{ try{ return ic(n,s||15); }catch(e){ return ''; } };
 function setModal(html){
@@ -63464,7 +63484,8 @@ function setModal(html){
 }
 function title(txt,ico){ return '<div class="modal-handle"></div><div class="modal-title">'+icn(ico||'photo')+' '+txt+'</div>'; }
 
-FR.start=function(){
+FR.start=function(opts){
+  S.dest=(opts&&opts.dest==='daily')?'daily':'savings';
   S.bmp=null; S.rot=0; S.result=null;
   setModal(title(_L('Scan Receipt','مسح إيصال'))+
   '<div class="frc-lead">'+_L('Take a photo or pick one from your gallery — any receipt, invoice or bill, Arabic or English.','صوّر أو اختار صورة من المعرض — أي إيصال أو فاتورة، عربي أو إنجليزي.')+'</div>'+
@@ -63489,7 +63510,7 @@ FR.handle=async function(file){
   run();
 };
 FR.rotate=function(){ S.rot=(S.rot+90)%360; run(); };
-FR.retake=function(){ FR.start(); };
+FR.retake=function(){ FR.start({dest:S.dest}); };
 FR.manual=function(){
   const r=S.result||{};
   try{ _savOutcomeModal(null); }catch(e){ closeModal(); return; }
@@ -63606,11 +63627,10 @@ function showReview(){
   br+items+
   (warns?'<ul class="frc-warns">'+warns+'</ul>':'')+
   '<div class="field"><label>'+_L('Notes','ملاحظات')+'</label><input id="frcNote" dir="auto" value="'+_esc(defaultNote(r))+'"></div>'+
-  '<div class="modal-btns"><button class="mbtn save" onclick="FinoraReceipt.save()">'+icn('check',15)+' '+_L('Save expense','حفظ المصروف')+'</button>'+
+  '<div class="modal-btns"><button class="mbtn save" onclick="FinoraReceipt.save()">'+icn('check',15)+' '+(S.dest==='daily'?_L('Add to Daily Spend','أضف للمصروفات اليومية'):_L('Save expense','حفظ المصروف'))+'</button>'+
   '<button class="mbtn cancel" onclick="closeModal()">'+_L('Cancel','إلغاء')+'</button></div>'+
   '<div class="frc-links"><button type="button" onclick="FinoraReceipt.rotate()">'+_L('Wrong? Rotate & rescan','مش مظبوط؟ لف وأعد المسح')+'</button><span>·</span>'+
-  '<button type="button" onclick="FinoraReceipt.retake()">'+_L('Retake','صوّر تاني')+'</button><span>·</span>'+
-  '<button type="button" onclick="FinoraReceipt.fullForm()">'+_L('Open full form','الفورم الكامل')+'</button></div>');
+  '<button type="button" onclick="FinoraReceipt.retake()">'+_L('Retake','صوّر تاني')+'</button>'+(S.dest==='daily'?'':'<span>·</span><button type="button" onclick="FinoraReceipt.fullForm()">'+_L('Open full form','الفورم الكامل')+'</button>')+'</div>');
 }
 function readForm(){
   const g=id=>(document.getElementById(id)||{}).value||'';
@@ -63624,6 +63644,7 @@ FR.fullForm=function(){
   setTimeout(()=>{ const n=document.getElementById('savOutNote'); if(n&&keepNote) n.value=keepNote; },60);
 };
 FR.save=function(){
+  if(S.dest==='daily') return FR.toDaily();
   const f=readForm(), r=S.result||{};
   if(!f.vendor){ showToast(_L('⚠️ Vendor is required','⚠️ اسم المحل مطلوب'),'warn'); return; }
   if(!(f.total>0)){ showToast(_L('⚠️ Enter a valid total','⚠️ اكتب إجمالي صحيح'),'warn'); const t=document.getElementById('frcTotal'); if(t) t.classList.add('frc-miss'); return; }
@@ -63636,10 +63657,64 @@ FR.save=function(){
   }catch(e){ _log('save',e); showToast(_L("Couldn't save — try the full form",'مقدرتش أحفظ — جرّب الفورم الكامل'),'warn'); }
 };
 
+
+/* Daily Spend: hand the reviewed receipt to the normal New Transaction sheet (it keeps its own validation,
+   month routing, daily-target maths and smart categorisation), pre-filled and ready to confirm. */
+FR.toDaily=function(){
+  const f=readForm();
+  if(!(f.total>0)){ showToast(_L('⚠️ Enter a valid total','⚠️ اكتب إجمالي صحيح'),'warn'); const t=document.getElementById('frcTotal'); if(t) t.classList.add('frc-miss'); return; }
+  const note=[f.vendor,(f.cat&&f.cat!==catLabel('Other'))?f.cat:''].filter(Boolean).join(' · ');
+  S.busy++; closeModal();
+  try{ showTxModal(null); }catch(e){ _log('daily',e); return; }
+  setTimeout(()=>{
+    const d=document.getElementById('mDate');
+    if(d){ d.value=f.date; try{ d.dispatchEvent(new Event('change',{bubbles:true})); }catch(e){} }
+    const a=document.getElementById('mPayment');
+    if(a){ a.value=String(r2(f.total)); try{ a.dispatchEvent(new Event('input',{bubbles:true})); a.dispatchEvent(new Event('change',{bubbles:true})); }catch(e){} }
+    const n=document.getElementById('mNotes');
+    if(n){ n.value=note; try{ n.dispatchEvent(new Event('input',{bubbles:true})); }catch(e){} }
+    try{ _txCalcProvided(); }catch(e){}
+    showToast(_L('Receipt filled in — review and save','اتملّى من الإيصال — راجع واحفظ'),'success');
+  },90);
+};
+
 /* public API */
 FR.parseText=parseText; FR.parseAmount=parseAmount; FR.validate=validate; FR.normalizeAI=normalizeAI; FR.state=S;
 window.FinoraReceipt=FR;
-window.savScanReceipt=FR.start;
+window.savScanReceipt=function(){ FR.start({dest:'savings'}); };
+
+/* Daily Spend entry points (wrappers keep the original functions untouched) */
+const scanChip=(cls)=>'<button type="button" class="'+cls+'" onclick="FinoraReceipt.start({dest:\'daily\'})">'+icn('photo',14)+' <span>'+_L('Scan Receipt','مسح إيصال')+'</span></button>';
+if(typeof window.showTxModal==='function'){
+  const _origTx=window.showTxModal;
+  window.showTxModal=function(tx){
+    const out=_origTx.apply(this,arguments);
+    try{
+      if(!tx){
+        const card=document.querySelector('#modalContent .txm-datecard');
+        if(card && !document.getElementById('frcTxScan')){
+          const row=document.createElement('div'); row.id='frcTxScan'; row.className='frc-tx-scan';
+          row.innerHTML=scanChip('frc-scan-btn'); card.insertAdjacentElement('afterend',row);
+        }
+      }
+    }catch(e){ _log('txhook',e); }
+    return out;
+  };
+}
+if(typeof window.renderTransactions==='function'){
+  const _origRT=window.renderTransactions;
+  window.renderTransactions=function(){
+    let h=_origRT.apply(this,arguments);
+    try{
+      if(typeof h==='string'){
+        const mark='<div class="txlg-sticky kpi3-hero dsum">';
+        if(h.indexOf(mark)>-1) h=h.replace(mark,'<div class="frc-daily-row">'+scanChip('frc-scan-btn')+'</div>'+mark);
+        else if(h.indexOf('data-fr-empty')>-1) h=h.replace(/<\/div>\s*$/,'<div class="frc-daily-row" style="justify-content:center">'+scanChip('frc-scan-btn')+'</div></div>');
+      }
+    }catch(e){ _log('rthook',e); }
+    return h;
+  };
+}
 })();
 
 </script>
