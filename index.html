@@ -36076,9 +36076,10 @@ function renderTransactions(m){
   const filtersActive = !!searchQ || !!txFilterPeriod || txFilterVariance!=='all';
 
   // Show latest 5 when no filter active and not expanded — same behavior as before
-  const PREVIEW=5;
+  const PREVIEW=8;
   const showAll=filtersActive || txShowAll;
-  const displayed=showAll ? [...txns].reverse() : txns.slice(-PREVIEW).reverse();
+  const _txByDate=txns.map((t,i)=>({t,i})).sort((a,b)=>String(b.t.date||'').localeCompare(String(a.t.date||''))||b.i-a.i).map(x=>x.t);
+  const displayed=showAll ? _txByDate : _txByDate.slice(0,PREVIEW);
   const hasMore=!showAll && txns.length>PREVIEW;
 
   // ── Group into Today / Yesterday / Month buckets, preserving list order ──
@@ -63707,8 +63708,12 @@ if(typeof window.renderTransactions==='function'){
     let h=_origRT.apply(this,arguments);
     try{
       if(typeof h==='string'){
-        const mark='<div class="txlg-sticky kpi3-hero dsum">';
-        if(h.indexOf(mark)>-1) h=h.replace(mark,'<div class="frc-daily-row">'+scanChip('frc-scan-btn')+'</div>'+mark);
+        const bar='<div class="dly-actions" role="group" aria-label="'+_L('Quick actions','إجراءات سريعة')+'">'+
+          '<button type="button" class="dly-act primary" onclick="showTxModal(null)">'+icn('plus',18)+'<span>'+_L('Add expense','أضف مصروف')+'</span></button>'+
+          '<button type="button" class="dly-act" onclick="FinoraReceipt.start({dest:\'daily\'})">'+icn('photo',18)+'<span>'+_L('Scan receipt','مسح إيصال')+'</span></button>'+
+          '<button type="button" class="dly-act" onclick="openDailyTargetModal()">'+icn('target',18)+'<span>'+_L('Target','التارجت')+'</span></button></div>';
+        const re=/(<div class="txlg-sticky kpi3-hero dsum">[\s\S]*?<\/section><\/div>)/;
+        if(re.test(h)) h=h.replace(re,'$1'+bar);
         else if(h.indexOf('data-fr-empty')>-1) h=h.replace(/<\/div>\s*$/,'<div class="frc-daily-row" style="justify-content:center">'+scanChip('frc-scan-btn')+'</div></div>');
       }
     }catch(e){ _log('rthook',e); }
@@ -63721,6 +63726,92 @@ if(typeof window.renderTransactions==='function'){
 <style id="finora-receipts-total">
 .cx-wrap .cx-sh-s .rq-grand{color:var(--muted);white-space:nowrap}
 .cx-wrap .cx-sh-s .rq-grand b{color:var(--blue,var(--accent,#1565d8));font-weight:700;font-variant-numeric:tabular-nums}
+</style>
+<style id="finora-daily-polish">
+/* ── Daily Spend: calmer, clearer, easier ───────────────────────────────────────────
+   Presentation layer. Today comes first (that's the number you act on), the month sits
+   underneath as context, one toolbar holds the three things you do here, and the
+   timeline reads newest-first with quiet rows. Markup/handlers are the app's own. */
+body #mainContent .txlg-wrap{--dl-gap:12px;--dl-r:20px;--dl-line:color-mix(in srgb,var(--border) 62%,transparent);
+  --dl-shadow:0 1px 2px rgba(16,24,40,.04),0 6px 18px rgba(16,24,40,.06)}
+:root[data-theme="dark"] body #mainContent .txlg-wrap{--dl-shadow:none}
+
+/* Header */
+body #mainContent .txlg-wrap .sc-header{margin-bottom:14px}
+body #mainContent .txlg-wrap .sc-header-sub{font-size:calc(13px*var(--app-text-scale,1));font-weight:400;color:var(--muted)}
+
+/* Summary: one calm card, Today first */
+body #mainContent .txlg-wrap .dsum-merged{display:flex;flex-direction:column;border-radius:var(--dl-r);overflow:hidden;
+  background:var(--surface);border:1px solid var(--dl-line);box-shadow:var(--dl-shadow);margin:0}
+body #mainContent .txlg-wrap .dsum-sec{border:0!important;border-radius:0!important;box-shadow:none!important}
+body #mainContent .txlg-wrap .dsum-sec::before,body #mainContent .txlg-wrap .dsum-sec::after{display:none!important}
+body #mainContent .txlg-wrap .dsum-day{order:1;padding:18px 18px 16px;background:transparent!important}
+body #mainContent .txlg-wrap .dsum-month{order:2;padding:14px 18px 15px;background:color-mix(in srgb,var(--text) 3.5%,transparent)!important;border-top:1px solid var(--dl-line)!important}
+body #mainContent .txlg-wrap .dsum-hd{align-items:center;margin-bottom:10px}
+body #mainContent .txlg-wrap .dsum-ttl b{font-size:calc(15px*var(--app-text-scale,1));font-weight:700;letter-spacing:-.1px}
+body #mainContent .txlg-wrap .dsum-ttl small{font-size:calc(11.5px*var(--app-text-scale,1));font-weight:500;letter-spacing:0;color:var(--muted)}
+body #mainContent .txlg-wrap .dsum-tgt{min-height:32px;border-radius:99px;padding:0 12px;font-weight:600}
+body #mainContent .txlg-wrap .dsum-lbl{font-size:calc(12px*var(--app-text-scale,1));font-weight:500;letter-spacing:0;color:var(--muted);text-transform:none}
+body #mainContent .txlg-wrap .dsum-day .sig-amt{font-size:calc(40px*var(--app-text-scale,1));font-weight:700;letter-spacing:-1px;line-height:1.05}
+body #mainContent .txlg-wrap .dsum-day .sig-cur{font-size:calc(12px*var(--app-text-scale,1));font-weight:600;opacity:.65}
+body #mainContent .txlg-wrap .dsum-month .sig-amt{font-size:calc(24px*var(--app-text-scale,1));font-weight:700;letter-spacing:-.4px}
+body #mainContent .txlg-wrap .dsum-month .sig-cur{font-size:calc(11px*var(--app-text-scale,1));font-weight:600;opacity:.6}
+body #mainContent .txlg-wrap .dsum-pctb{font-size:calc(12px*var(--app-text-scale,1));font-weight:700;padding:5px 11px;border-radius:99px}
+body #mainContent .txlg-wrap .dsum-bar{height:8px;border-radius:99px;margin:12px 0 10px;background:color-mix(in srgb,var(--muted) 16%,transparent);overflow:hidden}
+body #mainContent .txlg-wrap .dsum-bar i{border-radius:99px}
+body #mainContent .txlg-wrap .dsum-meta{font-size:calc(12.5px*var(--app-text-scale,1));font-weight:500;color:var(--muted)}
+body #mainContent .txlg-wrap .dsum-left{font-weight:600}
+body #mainContent .txlg-wrap .dsum-mode{font-weight:600}
+
+/* Quick actions toolbar */
+.dly-actions{display:grid;grid-template-columns:1.25fr 1fr 1fr;gap:10px;margin:var(--dl-gap,12px) 0}
+.dly-act{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-height:64px;padding:8px 6px;border-radius:16px;
+  border:1px solid color-mix(in srgb,var(--border) 62%,transparent);background:var(--surface);color:var(--text);font:inherit;
+  font-size:calc(12px*var(--app-text-scale,1));font-weight:600;line-height:1.2;text-align:center;cursor:pointer;-webkit-tap-highlight-color:transparent;
+  box-shadow:0 1px 2px rgba(16,24,40,.04),0 6px 18px rgba(16,24,40,.05)}
+:root[data-theme="dark"] .dly-act{box-shadow:none}
+.dly-act svg{color:#1565d8;flex:none}
+.dly-act:nth-child(2) svg{color:#c17d0a}
+.dly-act:nth-child(3) svg{color:var(--green)}
+.dly-act:active{transform:scale(.97)}
+.dly-act.primary{background:#1565d8;border-color:transparent;color:#fff;box-shadow:0 6px 16px rgba(21,101,216,.28)}
+:root[data-theme="dark"] .dly-act.primary{background:#2f6fe0;box-shadow:none}
+.dly-act.primary svg{color:#fff}
+
+/* Insight + chart: quiet cards */
+body #mainContent .txlg-wrap .txlg-aiinsight-card{margin:0 0 var(--dl-gap);padding:12px 14px;border-radius:16px;gap:10px;border:1px solid var(--dl-line);box-shadow:none;
+  background:color-mix(in srgb,var(--blue) 5%,var(--surface))}
+body #mainContent .txlg-wrap .txlg-aiinsight-text{font-size:calc(13px*var(--app-text-scale,1));font-weight:500;line-height:1.45}
+body #mainContent .txlg-wrap .txlg-aiinsight-link{font-size:calc(12px*var(--app-text-scale,1));font-weight:600;white-space:nowrap}
+body #mainContent .txlg-wrap .pxw{margin:0 0 var(--dl-gap);border-radius:var(--dl-r);border:1px solid var(--dl-line);box-shadow:var(--dl-shadow)}
+body #mainContent .txlg-wrap .pxw-t{font-size:calc(12.5px*var(--app-text-scale,1));font-weight:600}
+body #mainContent .txlg-wrap .pxw-hd b{font-size:calc(15px*var(--app-text-scale,1));font-weight:700}
+body #mainContent .txlg-wrap .pxw-ft{font-size:calc(12px*var(--app-text-scale,1));font-weight:500;line-height:1.6}
+
+/* Filters: one light row */
+body #mainContent .txlg-wrap .txlg-filters{margin:0 0 var(--dl-gap);padding:12px;border-radius:var(--dl-r);border:1px solid var(--dl-line);box-shadow:none;background:var(--surface)}
+body #mainContent .txlg-wrap .txlg-seg{background:color-mix(in srgb,var(--text) 5%,transparent);border-radius:12px;padding:3px}
+body #mainContent .txlg-wrap .txlg-seg button{border-radius:9px;font-size:calc(12.5px*var(--app-text-scale,1));font-weight:600;min-height:34px}
+body #mainContent .txlg-wrap .txlg-seg button.active{background:var(--surface);box-shadow:0 1px 3px rgba(16,24,40,.12);color:var(--text)}
+body #mainContent .txlg-wrap .txlg-var-select{border-radius:12px;font-weight:600;font-size:calc(12.5px*var(--app-text-scale,1))}
+
+/* Timeline */
+body #mainContent .txlg-wrap .sc-main{border-radius:var(--dl-r);border:1px solid var(--dl-line);box-shadow:var(--dl-shadow);overflow:hidden;margin:0 0 var(--dl-gap)}
+body #mainContent .txlg-wrap .sc-main-title{font-size:calc(15px*var(--app-text-scale,1));font-weight:700}
+body #mainContent .txlg-wrap .txlg-group-label{display:flex;justify-content:space-between;align-items:center;padding:9px 16px;margin:0;
+  font-size:calc(11.5px*var(--app-text-scale,1));font-weight:600;letter-spacing:.02em;color:var(--muted);text-transform:none;
+  background:color-mix(in srgb,var(--text) 3.5%,transparent);border-top:1px solid var(--dl-line)}
+body #mainContent .txlg-wrap .txlg-group-total{font-weight:700;color:var(--text2,var(--text));font-variant-numeric:tabular-nums}
+body #mainContent .txlg-wrap .txlg-row{border-bottom:1px solid var(--dl-line)}
+body #mainContent .txlg-wrap .txlg-row-content{padding:13px 16px;gap:12px}
+body #mainContent .txlg-wrap .txlg-ico{width:42px;height:42px;border-radius:13px}
+body #mainContent .txlg-wrap .txlg-notes{font-size:calc(14.5px*var(--app-text-scale,1));font-weight:600;letter-spacing:-.1px}
+body #mainContent .txlg-wrap .txlg-ai-meta{font-size:calc(12px*var(--app-text-scale,1));font-weight:500;color:var(--muted)}
+body #mainContent .txlg-wrap .txlg-amt{font-size:calc(15.5px*var(--app-text-scale,1));font-weight:700;font-variant-numeric:tabular-nums}
+body #mainContent .txlg-wrap .txlg-cur{font-size:calc(10px*var(--app-text-scale,1));font-weight:600;opacity:.6;margin-inline-start:3px}
+body #mainContent .txlg-wrap .txlg-conf-dot{width:6px;height:6px;opacity:.55}
+body #mainContent .txlg-wrap .txlg-viewall{font-weight:600;padding:14px;font-size:calc(13px*var(--app-text-scale,1))}
+body #mainContent .txlg-wrap .sc-bottom{margin-top:6px}
 </style>
 </body>
 </html>
