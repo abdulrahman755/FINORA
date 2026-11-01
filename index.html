@@ -62922,5 +62922,70 @@ body #mainContent > .wdash-wrap.dv3-dark-v2 .wdash-apps-head .wdash-apps-title{f
 body #mainContent > .wdash-wrap.dv3-dark-v2 .wdash-apps-head .wdash-manage-btn{flex:none;display:inline-flex;align-items:center;gap:6px;min-height:32px!important;padding:0 12px!important;border-radius:99px!important;background:var(--surface)!important;border:1px solid var(--border)!important;color:var(--text2)!important;font-size:calc(12px*var(--app-text-scale,1))!important;font-weight:600!important}
 body #mainContent > .wdash-wrap.dv3-dark-v2 .wdash-apps-head .wdash-manage-btn:active{background:var(--surface2)!important}
 </style>
+<style id="finora-dash-premium">
+/* ── Dashboard premium layer (CSS only, sits on top of finora-dash-polish) ─────────── */
+body #mainContent > .wdash-wrap.dv3-dark-v2{
+  --dpx-shadow:0 1px 2px rgba(16,24,40,.04),0 6px 18px rgba(16,24,40,.06);
+  --dpx-ring:inset 0 0 0 1px rgba(255,255,255,.55);
+}
+:root[data-theme="dark"] body #mainContent > .wdash-wrap.dv3-dark-v2{--dpx-shadow:none;--dpx-ring:none}
+
+/* One elevation language for the main cards */
+body #mainContent > .wdash-wrap.dv3-dark-v2 .wdash-greet,
+body #mainContent > .wdash-wrap.dv3-dark-v2 .dfp-hero-v2,
+body #mainContent > .wdash-wrap.dv3-dark-v2 > .dv3-kpi-row,
+body #mainContent > .wdash-wrap.dv3-dark-v2 .fp-qa-btn,
+body #mainContent > .wdash-wrap.dv3-dark-v2 .att-quick,
+body #mainContent > .wdash-wrap.dv3-dark-v2 .wdash-apps{
+  box-shadow:var(--dpx-shadow),var(--dpx-ring);border-color:color-mix(in srgb,var(--border) 70%,transparent)}
+
+/* Greeting: clears the floating notes tab, quieter label, slimmer progress */
+body #mainContent > .wdash-wrap.dv3-dark-v2 .wdash-greet{padding-inline-end:30px}
+body #mainContent > .wdash-wrap.dv3-dark-v2 .wdash-greet-l small{letter-spacing:.02em;color:var(--muted)}
+body #mainContent > .wdash-wrap.dv3-dark-v2 .wdash-greet-bar{height:4px;background:color-mix(in srgb,var(--muted) 16%,transparent)}
+body #mainContent > .wdash-wrap.dv3-dark-v2 .wdash-greet-bar i{border-radius:99px;background:linear-gradient(90deg,var(--green),color-mix(in srgb,var(--green) 70%,#7dd3fc))}
+
+/* Hero: soft top-lit surface, stats become an inset panel that spans the full card */
+body #mainContent > .wdash-wrap.dv3-dark-v2 .dfp-hero-v2{
+  background:linear-gradient(180deg,var(--surface) 0%,color-mix(in srgb,var(--surface) 94%,var(--green)) 100%)}
+:root[data-theme="dark"] body #mainContent > .wdash-wrap.dv3-dark-v2 .dfp-hero-v2{background:var(--surface)}
+body #mainContent > .wdash-wrap.dv3-dark-v2 .dash-hero-main-lbl{font-size:calc(12px*var(--app-text-scale,1));font-weight:500;letter-spacing:.02em;color:var(--muted)}
+body #mainContent > .wdash-wrap.dv3-dark-v2 .dash-hero-eyebrow{letter-spacing:.14em;font-weight:600}
+body #mainContent > .wdash-wrap.dv3-dark-v2 .dv3h-stat-row{
+  box-sizing:border-box;width:100%;max-width:none;align-self:stretch;margin:18px 0 0;padding:12px 12px;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr) minmax(0,1fr);
+  border:0;border-radius:14px;background:color-mix(in srgb,var(--text) 4%,transparent)}
+body #mainContent > .wdash-wrap.dv3-dark-v2 .dv3h-stat{padding:0 8px}
+body #mainContent > .wdash-wrap.dv3-dark-v2 .dv3h-stat:first-child{padding-inline-start:0}
+body #mainContent > .wdash-wrap.dv3-dark-v2 .dv3h-stat:last-child{padding-inline-end:0}
+body #mainContent > .wdash-wrap.dv3-dark-v2 .dv3h-stat + .dv3h-stat{border-inline-start:1px solid color-mix(in srgb,var(--text) 9%,transparent)}
+body #mainContent > .wdash-wrap.dv3-dark-v2 .dv3h-stat-lbl{color:var(--muted)!important;font-size:calc(10.5px*var(--app-text-scale,1))!important}
+body #mainContent > .wdash-wrap.dv3-dark-v2 .dv3h-stat-val{font-size:calc(13px*var(--app-text-scale,1))!important;font-weight:650;overflow-wrap:normal!important;word-break:normal!important;white-space:nowrap!important}
+
+/* KPI grid: tinted icon tiles, hairlines softer */
+body #mainContent > .wdash-wrap.dv3-dark-v2 .dv3-kpi-row .dfp-kpi3-icon{
+  flex:none;width:32px!important;height:32px!important;border-radius:10px!important;display:inline-flex;align-items:center;justify-content:center;
+  background:color-mix(in srgb,currentColor 11%,transparent)!important;opacity:1!important}
+body #mainContent > .wdash-wrap.dv3-dark-v2 .dv3-kpi-row .dfp-kpi3-icon svg{width:17px!important;height:17px!important}
+body #mainContent > .wdash-wrap.dv3-dark-v2 > .dv3-kpi-row .dfp-kpi3-card{padding:14px 10px 14px 12px;gap:8px}
+body #mainContent > .wdash-wrap.dv3-dark-v2 .dfp-kpi3-val{font-size:calc(14px*var(--app-text-scale,1))!important}
+body #mainContent > .wdash-wrap.dv3-dark-v2 .dfp-kpi3-cur{white-space:nowrap;display:inline-block}
+body #mainContent > .wdash-wrap.dv3-dark-v2 .dfp-kpi3-lbl{white-space:nowrap}
+body #mainContent > .wdash-wrap.dv3-dark-v2 > .dv3-kpi-row .dfp-kpi3-card:nth-child(odd){border-inline-end-color:color-mix(in srgb,var(--border) 60%,transparent)}
+body #mainContent > .wdash-wrap.dv3-dark-v2 > .dv3-kpi-row .dfp-kpi3-card:nth-child(-n+2){border-bottom-color:color-mix(in srgb,var(--border) 60%,transparent)}
+body #mainContent > .wdash-wrap.dv3-dark-v2 .dfp-kpi3-lbl{color:var(--muted)}
+
+/* Quick actions: icon in a soft circle */
+body #mainContent > .wdash-wrap.dv3-dark-v2 .fp-qa-btn{min-height:76px;padding:12px 4px 10px;gap:8px;border-radius:16px}
+body #mainContent > .wdash-wrap.dv3-dark-v2 .fp-qa-ico{width:34px;height:34px;border-radius:50%;align-items:center;justify-content:center;
+  background:color-mix(in srgb,var(--green) 11%,transparent)}
+body #mainContent > .wdash-wrap.dv3-dark-v2 .fp-qa-ico svg{width:18px;height:18px}
+body #mainContent > .wdash-wrap.dv3-dark-v2 .fp-qa-label{color:var(--text2)!important;font-size:calc(11.5px*var(--app-text-scale,1))}
+
+/* Section header: balanced pill */
+body #mainContent > .wdash-wrap.dv3-dark-v2 .wdash-apps-head{margin:6px 2px 12px}
+body #mainContent > .wdash-wrap.dv3-dark-v2 .wdash-apps-head .wdash-apps-title{letter-spacing:.14em;font-weight:600}
+body #mainContent > .wdash-wrap.dv3-dark-v2 .wdash-apps-head .wdash-manage-btn{min-height:30px!important;padding:0 12px!important;font-size:calc(11.5px*var(--app-text-scale,1))!important;box-shadow:var(--dpx-shadow)!important}
+body #mainContent > .wdash-wrap.dv3-dark-v2 .wdash-apps-head .wdash-manage-btn svg{width:14px;height:14px}
+</style>
 </body>
 </html>
