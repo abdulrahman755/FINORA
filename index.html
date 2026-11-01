@@ -17353,7 +17353,7 @@ function renderFinanceSummaryHeroV3(m){
       <div class="dfp-kpi3-icon dv3-kpi3-icon${neutralDark?' kpi-neutral-dark':''}" style="background:color-mix(in srgb,${k.color} 10%,transparent);color:${k.color}">${ic(k.icon, 20, 'aria-hidden="true"')}</div>
       <div class="dv3-kpi-text">
         <div class="dfp-kpi3-lbl">${k.lbl}</div>
-        <div class="dfp-kpi3-val${neutralDark?' kpi-neutral-dark':''}" style="color:${k.color}">${k.val<0?'-':''}${fmtEGP(Math.abs(k.val))}</div>
+        <div class="dfp-kpi3-val${neutralDark?' kpi-neutral-dark':''}" style="color:${k.color}">${k.val<0?'-':''}${fmt(Math.abs(k.val))}<span class="dfp-kpi3-cur">${curLabel()}</span></div>
       </div>
     </div>`;
   const kpiRowGroup = [
@@ -17381,7 +17381,7 @@ function renderFinanceSummaryHeroV3(m){
     const sign = isBalance ? (positive?'':'-') : (positive?'+':'-');
     return `<div class="dv3h-stat">
       <div class="dv3h-stat-lbl">${label}</div>
-      <div class="dv3h-stat-val ${isBalance?'':(positive?'up':'down')}">${!isBalance?ic(positive?'trend_up':'trend_down', 11, 'aria-hidden="true"'):''}${sign}${fmtEGP(Math.abs(val))}</div>
+      <div class="dv3h-stat-val ${isBalance?'':(positive?'up':'down')}">${!isBalance?ic(positive?'trend_up':'trend_down', 11, 'aria-hidden="true"'):''}${sign}${fmt(Math.abs(val))}</div>
     </div>`;
   };
   // Collapse preference persists across renders/sessions (Final Polish
@@ -19342,6 +19342,7 @@ function renderWorkspaceDashboard(m){
   const manageBar = candidates.length
     ? `<div class="wdash-manage-bar"><button type="button" class="wdash-manage-btn" onclick="wdashOpenManageSheet()">${ic('settings',15,'aria-hidden="true"')} ${L('Customize Dashboard','تخصيص لوحة المؤشرات')}${hiddenCount?` <span class="wdash-manage-badge">${hiddenCount}</span>`:''}</button></div>`
     : '';
+  const manageInline = candidates.length ? `<button type="button" class="wdash-manage-btn" onclick="wdashOpenManageSheet()">${ic('settings',15,'aria-hidden="true"')} ${L('Customize','تخصيص')}${hiddenCount?` <span class="wdash-manage-badge">${hiddenCount}</span>`:''}</button>` : '';
 
   const quickActionsHtml = canFinance ? fpRenderQuickActionsStrip() : '';
   // Attendance quick check-in/out: shown whenever the Attendance card is (a card hidden via Customize Dashboard hides this too)
@@ -19354,8 +19355,8 @@ function renderWorkspaceDashboard(m){
   const _wdashToggleHtml = _wdashCollapsible
     ? `<button type="button" class="wdash-showall" id="wdashShowAllBtn" aria-expanded="${_wdashShowAll?'true':'false'}" onclick="wdashToggleAll()">${_wdashShowAll ? L('Show less','عرض أقل') : L('Show all','عرض الكل')+' ('+visible.length+')'}</button>`
     : '';
-  const appsHtml = tiles ? `<div class="wdash-apps-title">${L('Dashboards','الأقسام')}</div><div class="wdash-apps${_wdashCollapsible && !_wdashShowAll ? ' is-collapsed' : ''}" id="wdashApps" role="group" aria-label="${L('Dashboards','الأقسام')}">${tiles}</div>${_wdashToggleHtml}` : '';
-  return `<div class="wdash-wrap dv3-dark-v2${_bnkHideAll?' dash-privacy':''}">${manageBar}${canFinance?_wdashGreetHTML():''}${heroHtml}${quickActionsHtml}${attQuickHtml}${appsHtml}<div class="wdash-vault" aria-hidden="true" inert>${body}</div></div>`;
+  const appsHtml = tiles ? `<div class="wdash-apps-head"><div class="wdash-apps-title">${L('Dashboards','الأقسام')}</div>${manageInline}</div><div class="wdash-apps${_wdashCollapsible && !_wdashShowAll ? ' is-collapsed' : ''}" id="wdashApps" role="group" aria-label="${L('Dashboards','الأقسام')}">${tiles}</div>${_wdashToggleHtml}` : '';
+  return `<div class="wdash-wrap dv3-dark-v2${_bnkHideAll?' dash-privacy':''}">${tiles?'':manageBar}${canFinance?_wdashGreetHTML():''}${heroHtml}${quickActionsHtml}${attQuickHtml}${appsHtml}<div class="wdash-vault" aria-hidden="true" inert>${body}</div></div>`;
 }
 
 // -- Dashboard tiles: collapsed to the first N, "Show all" expands (presentation-only) --
@@ -62877,5 +62878,49 @@ body{font-variant-numeric:tabular-nums}
   };
 })();
 </script>
+<style id="finora-dash-polish">
+/* ── Dashboard polish (layout rhythm + hierarchy) ───────────────────────────────────
+   Presentation only. Order: greeting → hero balance → KPI grid → quick actions →
+   attendance → "Dashboards" section (with Customize inline). All ids/handlers unchanged. */
+body #mainContent > .wdash-wrap.dv3-dark-v2{--dp-gap:12px}
+
+/* Greeting + daily budget */
+body #mainContent > .wdash-wrap.dv3-dark-v2 .wdash-greet{padding:16px 18px;margin:0 0 var(--dp-gap);border-radius:var(--radius);box-shadow:var(--shadow-sm)}
+body #mainContent > .wdash-wrap.dv3-dark-v2 .wdash-greet-l small{font-size:calc(12px*var(--app-text-scale,1));font-weight:500}
+body #mainContent > .wdash-wrap.dv3-dark-v2 .wdash-greet-l b{font-size:calc(20px*var(--app-text-scale,1));font-weight:700;letter-spacing:-.2px}
+body #mainContent > .wdash-wrap.dv3-dark-v2 .wdash-greet-r b{font-size:calc(17px*var(--app-text-scale,1));font-weight:700}
+body #mainContent > .wdash-wrap.dv3-dark-v2 .wdash-greet-r small{font-size:calc(11.5px*var(--app-text-scale,1));font-weight:500}
+body #mainContent > .wdash-wrap.dv3-dark-v2 .wdash-greet-bar{height:5px;margin-top:12px}
+
+/* Hero: one line per stat, three equal columns */
+body #mainContent > .wdash-wrap.dv3-dark-v2 .dv3-hero-standalone{margin:0 0 var(--dp-gap)}
+body #mainContent > .wdash-wrap.dv3-dark-v2 .dv3h-stat-row{width:100%;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0;margin-top:16px;padding-top:14px;border-top:1px solid var(--border)}
+body #mainContent > .wdash-wrap.dv3-dark-v2 .dv3h-stat{min-width:0;padding:0 8px;gap:4px}
+body #mainContent > .wdash-wrap.dv3-dark-v2 .dv3h-stat:first-child{padding-inline-start:0}
+body #mainContent > .wdash-wrap.dv3-dark-v2 .dv3h-stat:last-child{padding-inline-end:0}
+body #mainContent > .wdash-wrap.dv3-dark-v2 .dv3h-stat-lbl{font-size:calc(11px*var(--app-text-scale,1));font-weight:500;letter-spacing:0!important;opacity:1;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;font-weight:500!important}
+body #mainContent > .wdash-wrap.dv3-dark-v2 .dv3h-stat-val{font-size:calc(13px*var(--app-text-scale,1));font-weight:600;white-space:nowrap;overflow:visible;display:inline-flex;align-items:center;gap:3px}
+
+/* KPI grid: bold figure, quiet currency */
+body #mainContent > .wdash-wrap.dv3-dark-v2 > .dv3-kpi-row{margin:0 0 var(--dp-gap)}
+body #mainContent > .wdash-wrap.dv3-dark-v2 > .dv3-kpi-row .dfp-kpi3-card{min-height:68px;padding:14px;gap:10px;align-items:center}
+body #mainContent > .wdash-wrap.dv3-dark-v2 .dfp-kpi3-lbl{font-size:calc(11.5px*var(--app-text-scale,1));font-weight:500;letter-spacing:0;line-height:1.25}
+body #mainContent > .wdash-wrap.dv3-dark-v2 .dfp-kpi3-val{font-size:calc(16px*var(--app-text-scale,1));font-weight:700;letter-spacing:-.2px;white-space:nowrap;margin-top:3px}
+body #mainContent > .wdash-wrap.dv3-dark-v2 .dfp-kpi3-cur{margin-inline-start:4px;font-size:calc(10.5px*var(--app-text-scale,1));font-weight:600;letter-spacing:.02em;opacity:.6}
+
+/* Quick actions: even tiles */
+body #mainContent > .wdash-wrap.dv3-dark-v2 .fp-qa-row{gap:10px;margin:0 0 var(--dp-gap)}
+body #mainContent > .wdash-wrap.dv3-dark-v2 .fp-qa-btn{min-height:68px;gap:6px;border-radius:14px;background:var(--surface);border:1px solid var(--border);box-shadow:none}
+body #mainContent > .wdash-wrap.dv3-dark-v2 .fp-qa-label{font-size:calc(12px*var(--app-text-scale,1));font-weight:600}
+
+/* Attendance strip */
+body #mainContent > .wdash-wrap.dv3-dark-v2 .att-quick{margin:0 0 20px}
+
+/* "Dashboards" section header with the Customize action inline */
+body #mainContent > .wdash-wrap.dv3-dark-v2 .wdash-apps-head{display:flex;align-items:center;gap:10px;margin:4px 2px 10px}
+body #mainContent > .wdash-wrap.dv3-dark-v2 .wdash-apps-head .wdash-apps-title{flex:1;min-width:0;margin:0}
+body #mainContent > .wdash-wrap.dv3-dark-v2 .wdash-apps-head .wdash-manage-btn{flex:none;display:inline-flex;align-items:center;gap:6px;min-height:32px!important;padding:0 12px!important;border-radius:99px!important;background:var(--surface)!important;border:1px solid var(--border)!important;color:var(--text2)!important;font-size:calc(12px*var(--app-text-scale,1))!important;font-weight:600!important}
+body #mainContent > .wdash-wrap.dv3-dark-v2 .wdash-apps-head .wdash-manage-btn:active{background:var(--surface2)!important}
+</style>
 </body>
 </html>
