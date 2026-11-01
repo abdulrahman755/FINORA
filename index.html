@@ -63813,5 +63813,82 @@ body #mainContent .txlg-wrap .txlg-conf-dot{width:6px;height:6px;opacity:.55}
 body #mainContent .txlg-wrap .txlg-viewall{font-weight:600;padding:14px;font-size:calc(13px*var(--app-text-scale,1))}
 body #mainContent .txlg-wrap .sc-bottom{margin-top:6px}
 </style>
+
+
+
+<style id="finora-pages-polish">
+/* ── Pages polish: one visual language for Accounts · My Job · My Finances ────────────
+   Same tokens as Dashboard / Daily Spend: 20px radius, hairline borders, soft shadow,
+   calm type scale, tinted icon tiles. CSS only: markup, data and handlers untouched. */
+body #mainContent .screen-wrap{--pg-r:20px;--pg-line:color-mix(in srgb,var(--border) 62%,transparent);
+  --pg-shadow:0 1px 2px rgba(16,24,40,.04),0 6px 18px rgba(16,24,40,.06);--pg-gap:12px}
+:root[data-theme="dark"] body #mainContent .screen-wrap{--pg-shadow:none}
+
+/* Page headers */
+body #mainContent .screen-wrap .sc-header-eyebrow{font-size:calc(11px*var(--app-text-scale,1));font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+body #mainContent .screen-wrap .sc-header-title{font-size:calc(28px*var(--app-text-scale,1));font-weight:700;letter-spacing:-.4px;line-height:1.15}
+body #mainContent .screen-wrap .sc-header-sub{font-size:calc(13px*var(--app-text-scale,1));font-weight:400;color:var(--muted);line-height:1.45}
+
+/* Cards */
+body #mainContent .screen-wrap .sc-card,
+body #mainContent .screen-wrap .fin-hero-card,
+body #mainContent .screen-wrap .jp-card,
+body #mainContent .screen-wrap .prj-bar{border-radius:var(--pg-r);border:1px solid var(--pg-line);box-shadow:var(--pg-shadow)}
+body #mainContent .screen-wrap .fin-secondary-grid .fin-card{border-radius:16px;border:1px solid var(--pg-line);box-shadow:var(--pg-shadow)}
+body #mainContent .screen-wrap .bnk-hero{box-shadow:var(--pg-shadow)}
+
+/* Search fields */
+body #mainContent .screen-wrap .cx-sbox{border-radius:14px;border:1px solid var(--pg-line);background:var(--surface);box-shadow:none}
+
+/* Section titles */
+body #mainContent .screen-wrap .bnk-section-title,
+body #mainContent .screen-wrap .att-sec-t{font-size:calc(13px*var(--app-text-scale,1));font-weight:700;letter-spacing:.01em;color:var(--text2,var(--text))}
+body #mainContent .screen-wrap .bnk-section-title{margin:20px 2px 10px}
+body #mainContent .screen-wrap .bnk-section-title svg,
+body #mainContent .screen-wrap .att-sec-t svg{color:var(--muted)}
+body #mainContent .screen-wrap .fin-sec-t{font-size:calc(15px*var(--app-text-scale,1));font-weight:700}
+body #mainContent .screen-wrap .fin-sec-t small{font-size:calc(12.5px*var(--app-text-scale,1));font-weight:600}
+body #mainContent .screen-wrap .jp-sec{font-size:calc(14px*var(--app-text-scale,1));font-weight:700}
+
+/* My Finances: six equal action tiles instead of a scrolling mixed row */
+body #mainContent .screen-wrap .fin-qa-row.sav-qa-scroll{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;overflow:visible!important;padding:0!important;margin:var(--pg-gap) 0!important;flex-wrap:wrap}
+body #mainContent .screen-wrap .fin-qa-chip{display:flex!important;flex-direction:column;align-items:center;justify-content:center;gap:7px;
+  min-height:68px;height:auto!important;padding:10px 4px!important;border-radius:16px!important;white-space:normal;text-align:center;line-height:1.2;
+  background:var(--surface)!important;border:1px solid var(--pg-line)!important;color:var(--text)!important;box-shadow:var(--pg-shadow)!important;
+  font-size:calc(12px*var(--app-text-scale,1))!important;font-weight:600!important;-webkit-tap-highlight-color:transparent}
+body #mainContent .screen-wrap .fin-qa-chip:active{transform:scale(.97)}
+body #mainContent .screen-wrap .fin-qa-chip svg{width:20px!important;height:20px!important;flex:none}
+body #mainContent .screen-wrap .fin-qa-chip:nth-child(1) svg{color:var(--green,#0f7a55)}
+body #mainContent .screen-wrap .fin-qa-chip:nth-child(2) svg{color:var(--red,#d14343)}
+body #mainContent .screen-wrap .fin-qa-chip:nth-child(3) svg{color:#1565d8}
+body #mainContent .screen-wrap .fin-qa-chip:nth-child(4) svg{color:#7c5cd6}
+body #mainContent .screen-wrap .fin-qa-chip:nth-child(5) svg{color:#c17d0a}
+body #mainContent .screen-wrap .fin-qa-chip:nth-child(6) svg{color:#d9661f}
+
+/* My Job: tabs, project bar, section jump chips, today actions */
+body #mainContent .screen-wrap .cx-seg.cx-tabs{border-radius:16px;padding:4px;background:color-mix(in srgb,var(--text) 5%,transparent);border:0}
+body #mainContent .screen-wrap .cx-seg .cx-seg-btn{border-radius:12px;font-weight:600!important;font-size:calc(12px*var(--app-text-scale,1))!important;letter-spacing:0!important;padding-inline:4px!important;min-width:0;text-overflow:clip!important}
+body #mainContent .screen-wrap .cx-seg .cx-seg-btn.on{background:var(--surface);box-shadow:0 1px 3px rgba(16,24,40,.14);color:#1565d8}
+body #mainContent .screen-wrap .att-jump button{border-radius:99px;border:1px solid var(--pg-line);background:var(--surface);box-shadow:none;font-weight:600;font-size:calc(12.5px*var(--app-text-scale,1))}
+body #mainContent .screen-wrap .att-time{border-radius:16px;border:1px solid var(--pg-line)}
+body #mainContent .screen-wrap .atp-seg .atp-sb{border-radius:12px;font-weight:600}
+body #mainContent .screen-wrap .att-seg-row{border-radius:12px}
+body #mainContent .screen-wrap .att-seg-row .att-seg{border-radius:9px;font-weight:600}
+
+/* My Finances: summary → actions → goals → lists (actions sit right under the numbers) */
+body #mainContent .fin-page{display:flex;flex-direction:column}
+body #mainContent .fin-page>*{order:6}
+body #mainContent .fin-page>.sc-header{order:0}
+body #mainContent .fin-page>.fin-summary-grid{order:1}
+body #mainContent .fin-page>.fin-qa-row{order:2}
+body #mainContent .fin-page>.sg-card{order:3}
+body #mainContent .fin-page>.sav-search{order:4}
+
+/* Accounts rhythm */
+body #mainContent .banks-v2 .bnk-hero{border-radius:var(--pg-r);margin-bottom:4px}
+body #mainContent .banks-v2 .bnk-section-title{margin:18px 2px 10px}
+body #mainContent .screen-wrap .cx-seg .cx-seg-btn span{overflow:visible!important;text-overflow:clip!important;max-width:none!important;white-space:nowrap}
+body #mainContent .screen-wrap .cx-seg .cx-seg-btn{gap:3px!important}
+</style>
 </body>
 </html>
