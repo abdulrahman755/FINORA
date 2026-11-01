@@ -17257,8 +17257,11 @@ function renderFinanceSummaryHeroV3(m){
   const bankOnlyTotal = bankOnly.reduce((s,b)=>s+getBankBalance(m,b.key),0);
 
   const moves = m?.bank_movements || [];
-  const totalDeposits    = moves.filter(mv=>mv.type==='dep').reduce((s,mv)=>s+(mv.amount||0),0);
-  const totalWithdrawals = moves.filter(mv=>mv.type==='with').reduce((s,mv)=>s+(mv.amount||0),0);
+  let totalDeposits    = moves.filter(mv=>mv.type==='dep').reduce((s,mv)=>s+(mv.amount||0),0);
+  let totalWithdrawals = moves.filter(mv=>mv.type==='with').reduce((s,mv)=>s+(mv.amount||0),0);
+  // Optional "Bank month starts on" (Settings): movements from that day of last month count here (off by default)
+  const _cycleCarry = bnkCarryIn(banks);
+  if(_cycleCarry){ totalDeposits += _cycleCarry.mvDep; totalWithdrawals += _cycleCarry.mvWd; }
 
   const custDeps = m?.custody_deposits || [];
   let custIn=0, custOut=0;
@@ -17286,7 +17289,7 @@ function renderFinanceSummaryHeroV3(m){
   const _fsPrevKey   = _calendarPrevMonthKey(activeMonth);
   const _fsPrevMonth = _fsPrevKey && DATA[_fsPrevKey] ? DATA[_fsPrevKey] : null;
   const prevAllTotal = _fsPrevMonth ? banks.reduce((s,b)=>s+getBankBalance(_fsPrevMonth,b.key),0) : null;
-  const netProfit    = prevAllTotal!=null ? allTotal - prevAllTotal : null;
+  const netProfit    = prevAllTotal!=null ? allTotal - prevAllTotal + (_cycleCarry?_cycleCarry.net:0) : null;
   // Last month's Total Net Balance — same formula as this month's netBalance
   // above (banks total minus whatever custody cash was still on-site at the
   // end of that month), just evaluated for _fsPrevMonth instead of m.
@@ -28873,7 +28876,7 @@ function renderBankFxRow(bal, vis){
 // compare against) instead of guessing.
 // OPTIONAL "bank period start day" (Settings → Bank month starts on). Off by default = plain calendar month.
 // When set to e.g. 27, deposits/withdrawals made on day 27+ of the PREVIOUS month count toward the active month's
-// change and totals (balances themselves never change, only which period a movement is reported in).
+// change and Income/Expense on the DASHBOARD hero (balances themselves never change, only which period a movement is reported in).
 const BNK_CYCLE_KEY='wdp_bank_cycle_day_v1';
 function bnkCycleDay(){ try{ const n=parseInt(localStorage.getItem(BNK_CYCLE_KEY),10); return (n>=2&&n<=28)?n:0; }catch(e){ return 0; } }
 function sttSetCycleDay(v){
@@ -28885,24 +28888,22 @@ function sttSetCycleDay(v){
 }
 function bnkCarryIn(banks){
   const D=bnkCycleDay(); if(!D) return null;
-  const idx=MONTHS_ORDER.indexOf(activeMonth); if(idx<=0) return null;
-  const pk=MONTHS_ORDER[idx-1], pm=DATA[pk]; if(!pm) return null;
+  const pk=_calendarPrevMonthKey(activeMonth), pm=pk?DATA[pk]:null; if(!pm) return null;
   const keys=banks.map(b=>b.key), set=new Set(keys);
   const inCycle=d=>parseInt(String(d||'').slice(8,10),10)>=D;
-  let dep=0, wd=0;
-  (pm.bank_movements||[]).forEach(mv=>{ if(!set.has(mv.bank)||!inCycle(mv.date)) return; if(mv.type==='dep') dep+=(mv.amount||0); else if(mv.type==='with') wd+=(mv.amount||0); });
+  let dep=0, wd=0, mvDep=0, mvWd=0;
+  (pm.bank_movements||[]).forEach(mv=>{ if(!set.has(mv.bank)||!inCycle(mv.date)) return; const a=(mv.amount||0); if(mv.type==='dep'){ dep+=a; mvDep+=a; } else if(mv.type==='with'){ wd+=a; mvWd+=a; } });
   (pm.transactions||[]).forEach(t=>{ if(!inCycle(t.date)) return; keys.forEach(k=>{ dep+=(t[k+'Dep']||0); wd+=(t[k+'With']||0); }); });
-  return { dep, wd, net:dep-wd, day:D, month:pk };
+  return { dep, wd, mvDep, mvWd, net:dep-wd, day:D, month:pk };
 }
 function bnkMonthlyChangeInfo(banks, total){
   const idx = MONTHS_ORDER.indexOf(activeMonth);
   if(idx<=0) return null;
   const prevData = DATA[MONTHS_ORDER[idx-1]];
-  const carry = bnkCarryIn(banks);
-  const prevTotal = banks.reduce((s,b)=>s+getBankBalance(prevData,b.key),0) - (carry?carry.net:0);
+  const prevTotal = banks.reduce((s,b)=>s+getBankBalance(prevData,b.key),0);
   const delta = total - prevTotal;
   const pct = prevTotal!==0 ? (delta/Math.abs(prevTotal))*100 : (delta!==0?100:0);
-  return { delta, pct, carry };
+  return { delta, pct };
 }
 
 // Hero sparkline series — total balance for up to the last 6 months
@@ -30038,7 +30039,6 @@ function renderBanks(m){
   // the helpers near the top of this section (see comments there).
   const changeInfo = bnkMonthlyChangeInfo(bankOnly, totalBanks);
   const spark = bnkSparklineSVG(bnkDailyTrendSeries(m, bankOnly));
-  { const _cy=bnkCarryIn(banks); if(_cy){ _aggDep+=_cy.dep; _aggWith+=_cy.wd; } }
   const _flowTotal = _aggDep + _aggWith;
   const _depPct = _flowTotal>0 ? Math.round((_aggDep/_flowTotal)*100) : 0;
   const _withPct = _flowTotal>0 ? 100-_depPct : 0;
@@ -30071,7 +30071,6 @@ ${_pgHdr('Finance','المالية','Accounts','الحسابات','Banks and e-w
         <div class="bnk-hero-stat-lbl">${L('Accounts','الحسابات')}</div>
       </div>
     </div>
-    ${changeInfo&&changeInfo.carry?`<div class="bnk-hero-cycle">${L(`Counting from day ${changeInfo.carry.day} of ${_monthDisplayLabel(changeInfo.carry.month)}`,`محسوب من يوم ${changeInfo.carry.day} من ${_monthDisplayLabel(changeInfo.carry.month)}`)}</div>`:''}
     ${spark?`<div class="bnk-hero-spark">${spark}</div>`:''}
   </div>
 
@@ -31109,7 +31108,7 @@ function openSettings(){
           ${sttMakeIcon('cycle')}
           <div class="stt-row-body">
             <div class="stt-row-title">${L('Bank month starts on','بداية شهر البنوك')}</div>
-            <div class="stt-row-sub">${L('Count deposits & withdrawals from this day of the previous month (e.g. 27). Off = calendar month','احسب الإيداعات والسحب من اليوم ده من الشهر اللي قبله (مثلاً 27). مقفول = الشهر العادي')}</div>
+            <div class="stt-row-sub">${L('Dashboard Monthly Change, Income & Expense count deposits & withdrawals from this day of last month (e.g. 27). Off = calendar month','التغيّر الشهري والدخل والمصروف في الداشبورد بيحسبوا الإيداع والسحب من اليوم ده من الشهر اللي فات (مثلاً 27). مقفول = الشهر العادي')}</div>
           </div>
           <div class="stt-row-trail">
             <select id="sttCycleSel" class="stt-cycle-sel" onclick="event.stopPropagation()" onchange="sttSetCycleDay(this.value)" aria-label="${L('Bank month start day','يوم بداية شهر البنوك')}">
@@ -62795,7 +62794,6 @@ body #mainContent .banks-v2.bnk-privacy :is(.bnk-sec-sum,.bnk-tl-amt,.bnk-hero-c
 </style>
 <style id="finora-bank-cycle">
 .stt-cycle-sel{min-width:68px;height:34px;padding:0 10px;border-radius:10px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font:inherit;font-size:calc(13px*var(--app-text-scale,1));font-weight:700}
-.bnk-hero-cycle{position:relative;z-index:1;margin-top:8px;font-size:calc(11px*var(--app-text-scale,1));font-weight:600;color:var(--muted)}
 </style>
 <style id="finora-edge-swipe">
 /* Pull past the last page → Settings: gear that grows, rotates and fills when ready */
