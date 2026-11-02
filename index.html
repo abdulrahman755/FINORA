@@ -13317,6 +13317,7 @@ body #mainContent .bnk-hero,body #mainContent .banks-v2 .bnk-hero{border-inline-
 .pr-stat span{font-size:calc(11px*var(--app-text-scale,1));font-weight:600;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pr-stat.hot b{color:var(--blue)}
 .pr-scope{margin-bottom:10px}
+.cx-rqsub{margin:10px 0 2px}
 .pr-list{display:flex;flex-direction:column;gap:10px;margin-top:6px}
 .pr-day{display:flex;align-items:center;gap:8px;padding:12px 2px 2px;font-size:calc(13px*var(--app-text-scale,1));color:var(--text2)}
 .pr-day:first-child{padding-top:2px}
@@ -37605,8 +37606,14 @@ function _cxProfileBarHTML(){
   return `<button type="button" class="pf-bar" onclick="_cxSetTab('profile')" aria-label="${L('My profile','ملفي الشخصي')}"><span class="pf-av">${p.photo?`<img src="${p.photo}" alt="">`:(ini?`<span class="pf-ini">${esc(ini)}</span>`:ic('id',20))}</span><span class="pf-id"><b dir="auto">${p.name?esc(p.name):L('My profile','ملفي الشخصي')}</b><span class="pf-sub" dir="auto"><span>${sub?esc(sub):L('View my profile','عرض ملفي الشخصي')}</span></span></span><span class="pf-go">${ic('chevron',16)}</span></button>`;
 }
 function _cxTabsHTML(){
-  const t=(k,lbl,icn)=>`<button type="button" role="tab" class="cx-seg-btn${_cxTab===k?' on':''}" aria-selected="${_cxTab===k?'true':'false'}" onclick="_cxSetTab('${k}')">${ic(icn,18)}<span>${lbl}</span></button>`;
-  return `<div class="cx-seg cx-tabs v2" role="tablist">${t('requests',L('Receipts','استلاماتي'),'clipboard')}${t('pour',L('Pours','الصب'),'droplet')}${t('custody',L('Custody','العهدة'),'hardhat')}${t('attendance',L('Attendance','الحضور'),'attendance')}${t('cv',L('My CV','سيرتي'),'cv')}</div>`;
+  const t=(k,lbl,icn)=>{ const _on=(_cxTab===k)||(k==='requests'&&_cxTab==='pour'); return `<button type="button" role="tab" class="cx-seg-btn${_on?' on':''}" aria-selected="${_on?'true':'false'}" onclick="_cxSetTab('${k}')">${ic(icn,18)}<span>${lbl}</span></button>`; };
+  return `<div class="cx-seg cx-tabs v2" role="tablist">${t('requests',L('Receipts','استلاماتي'),'clipboard')}${t('custody',L('Custody','العهدة'),'hardhat')}${t('attendance',L('Attendance','الحضور'),'attendance')}${t('cv',L('My CV','سيرتي'),'cv')}</div>`;
+}
+// Receipts page sub-switch: Receipts | Pours (pours now live inside the Receipts tab)
+function _cxRqSubHTML(){
+  let rn=0,pn=0; try{ _rqLoad().forEach(r=>{ if(r.pour===true) pn++; else rn++; }); }catch(e){}
+  const b=(k,txt,n)=>{ const on=(k==='pour')===(_cxTab==='pour'); return `<button type="button" class="rq-scope-b${on?' on':''}" aria-pressed="${on}" onclick="_cxSetTab('${k}')">${txt}<em>${n}</em></button>`; };
+  return `<div class="pr-scope cx-rqsub"><div class="rq-scope" role="group">${b('requests',L('Receipts','الاستلامات'),rn)}${b('pour',L('CPP','CPP'),pn)}</div></div>`;
 }
 function _cxSetTab(k){
   const nk=(k==='requests'||k==='pour'||k==='attendance'||k==='cv'||k==='profile')?k:'custody';
@@ -39390,12 +39397,13 @@ ${D} h2{margin:calc(8pt*var(--g,1)) 0 calc(4pt*var(--g,1));font-size:calc(10.3pt
 ${D} p{margin:0}
 ${D} .sk{list-style:none;margin:0;padding:0;columns:2;column-gap:22pt}
 ${D} .sk.c1{columns:1}
-${D} .sk li{break-inside:avoid;padding-inline-start:9pt;position:relative;margin-bottom:calc(1.5pt*var(--g,1))}
-${D} .sk li::before,${D} .bl li::before{content:'•';position:absolute;inset-inline-start:2pt}
+${D} .sk li{break-inside:avoid;padding-inline-start:13pt;position:relative;margin-bottom:calc(1.5pt*var(--g,1))}
+${D} .sk li::before,${D} .bl li::before{content:'•';position:absolute;inset-inline-start:1.5pt}
 ${D} .job{margin-bottom:calc(2pt*var(--g,1))}
 ${D} .jh{break-inside:avoid;-webkit-column-break-inside:avoid;page-break-inside:avoid}
 ${D} h2,${D} .co,${D} .dt,${D} .rl,${D} .sub{-webkit-column-break-after:avoid;page-break-after:avoid;break-after:avoid}
 ${D} .sc,${D} .ed,${D} .bl li,${D} .sk li{-webkit-column-break-inside:avoid;page-break-inside:avoid}
+${D} .sc.sc-jobs{-webkit-column-break-inside:auto;page-break-inside:auto;break-inside:auto}
 ${D} .co{margin:calc(7pt*var(--g,1)) 0 calc(3pt*var(--g,1));font-size:calc(8.8pt*var(--fs,1));font-weight:700;color:var(--acc);break-after:avoid}
 ${D} .rl{margin-bottom:calc(4pt*var(--g,1));font-size:calc(8pt*var(--fs,1));color:#5e6d79;break-after:avoid}
 ${D} .dt{display:flex;flex-wrap:wrap;align-items:center;gap:4pt 7pt;margin:0 0 calc(3pt*var(--g,1));break-after:avoid}
@@ -39405,7 +39413,10 @@ ${D} .dt .dd::before{content:'('}
 ${D} .dt .dd::after{content:')'}
 ${D} .hl:empty{display:none}
 ${D} .bl{list-style:none;margin:0;padding:0}
-${D} .bl li{position:relative;padding-inline-start:10pt;margin-bottom:calc(3.6pt*var(--g,1));break-inside:avoid}
+${D} .bl li{position:relative;padding-inline-start:13pt;margin-bottom:calc(3.6pt*var(--g,1));break-inside:avoid}
+${D} h1,${D} .hl{text-wrap:balance;overflow-wrap:break-word}
+${D} p,${D} li{text-wrap:pretty}
+${R}.cvt-classic:not([class*="hs-"]) h2{padding-bottom:2pt;border-bottom:.6pt solid color-mix(in srgb,var(--acc) 35%,#fff)}
 ${D} .sub{margin:calc(7pt*var(--g,1)) 0 calc(4pt*var(--g,1));font-size:calc(8.2pt*var(--fs,1));break-after:avoid}
 ${D} .ed{margin-bottom:calc(4pt*var(--g,1))}
 ${D} .ed b{display:block;margin-bottom:3pt}
@@ -39572,7 +39583,7 @@ ${D}.na-left .ct .cr{justify-content:flex-start}
 function _cvDocHTML(m,stIn){
   const st=stIn||_cvStyleGet(), key=_CV_TPL[st.tpl]?st.tpl:'classic', T=_CV_TPL[key], side=T.layout==='side';
   const hide=Array.isArray(st.hide)?st.hide:[];
-  const sec=(t,body)=>body?`<section class="sc"><h2>${t}</h2>${body}</section>`:'';
+  const sec=(t,body,cls)=>body?`<section class="sc${cls?' '+cls:''}"><h2>${t}</h2>${body}</section>`:'';
   const li=a=>`<ul class="bl">${a.map(x=>`<li dir="auto">${esc(x)}</li>`).join('')}</ul>`;
   const subLine=t=>{ const q=_cvSubSplit(t); return q[1]?`<b>${esc(q[0])}</b> | ${esc(q[1])}`:`<b>${esc(q[0])}</b>`; };
   const jobs=m.jobs.map(j=>{
@@ -39590,7 +39601,7 @@ function _cvDocHTML(m,stIn){
   const H=k=>hide.indexOf(k)>=0;
   const S={
     sum:H('sum')?'':sec('Summary',m.summary?`<p dir="auto">${esc(m.summary).replace(/\n/g,'<br>')}</p>`:''),
-    sk:H('sk')?'':sec('Core Skills',skills), jobs:sec('Work Experience',jobs), edu:H('edu')?'':sec('Education',edu),
+    sk:H('sk')?'':sec('Core Skills',skills), jobs:sec('Work Experience',jobs,'sc-jobs'), edu:H('edu')?'':sec('Education',edu),
     certs:H('certs')?'':sec('Certifications &amp; Training',m.certs.length?li(m.certs):''),
     langs:H('langs')?'':sec('Languages',m.langs.length?`<p dir="auto">${esc(m.langs.join(' | '))}</p>`:'')
   };
@@ -39694,6 +39705,22 @@ function cvDzToggle(f){
 // A4 pagination for the preview: the CV is laid out in a fixed-height multi-column box (one column = one page), so
 // breaks follow the same break-inside / break-after rules the print engine uses; each page shows its own column.
 // Measures how many A4 pages a style needs (same multi-column engine the preview uses) + the single-flow height.
+// Page count of a fixed-height multi-column strip. scrollWidth alone under-reports on iOS Safari (the extra columns are
+// not counted), which showed "1 page" and silently clipped the rest of the CV. So take the max of three signals:
+// scrollWidth, the right edge of the laid-out text boxes (reliable in WebKit), and flow-height / page-height.
+function _cvCols(strip,CW,GAP,flowH,CH){
+  let n=1;
+  try{ n=Math.max(n,Math.ceil((strip.scrollWidth+GAP-6)/(CW+GAP))); }catch(e){}
+  try{
+    const x0=strip.getBoundingClientRect().left; let mr=0;
+    strip.querySelectorAll('h1,h2,.hl,.cr,.co,.dt,.rl,.sub,.ed,.ed div,li,p').forEach(el=>{
+      const rs=el.getClientRects(); for(let i=0;i<rs.length;i++){ if(rs[i].width>0&&rs[i].height>0) mr=Math.max(mr,rs[i].right-x0); }
+    });
+    if(mr>0) n=Math.max(n,Math.floor((mr-2)/(CW+GAP))+1);
+  }catch(e){}
+  if(flowH>0&&CH>0) n=Math.max(n,Math.ceil(flowH/CH-.02));
+  return Math.max(1,Math.min(n,30));
+}
 function _cvMeasure(m,st){
   const mg=_cvMarg(st), K=3.7795, PW=793.7, PH=1122.5, GAP=48;
   const CW=Math.round((PW-(mg[1]+mg[3])*K)*10)/10, CH=Math.round((PH-(mg[0]+mg[2])*K)*10)/10;
@@ -39702,7 +39729,7 @@ function _cvMeasure(m,st){
   meas.style.cssText='position:fixed;left:-99999px;top:0;visibility:hidden;pointer-events:none;zoom:1;width:'+PW+'px';
   meas.innerHTML=`<style>${css}</style><div class="cvp-strip" style="width:${CW}px;height:${CH}px;column-width:${CW}px;column-gap:${GAP}px;column-fill:auto;-webkit-column-fill:auto">${doc}</div><div class="cvp-flow" style="width:${CW}px">${doc}</div>`;
   document.body.appendChild(meas);
-  let n=1, H=CH; try{ n=Math.max(1,Math.ceil((meas.children[1].scrollWidth+GAP-6)/(CW+GAP))); H=meas.children[2].getBoundingClientRect().height; }catch(e){}
+  let n=1, H=CH; try{ H=meas.children[2].getBoundingClientRect().height; n=_cvCols(meas.children[1],CW,GAP,H,CH); }catch(e){}
   meas.remove(); return {n,H,CH};
 }
 // Auto-fit: when the CV spills only a little onto an extra page, tighten spacing / text size / margins (only the
@@ -39732,9 +39759,9 @@ function _cvBuildPages(m){
   const stripCss=`width:${CW}px;height:${CH}px;column-width:${CW}px;column-gap:${GAP}px;column-fill:auto;-webkit-column-fill:auto`;
   const meas=document.createElement('div'); meas.className='cvp-pgs';
   meas.style.cssText='position:fixed;left:-99999px;top:0;visibility:hidden;pointer-events:none;zoom:1;width:'+PW+'px';
-  meas.innerHTML=`<div class="cvp-strip" style="${stripCss}">${doc}</div>`;
+  meas.innerHTML=`<div class="cvp-strip" style="${stripCss}">${doc}</div><div class="cvp-flow" style="width:${CW}px">${doc}</div>`;
   document.body.appendChild(meas);
-  let n=1; try{ n=Math.max(1,Math.ceil((meas.firstChild.scrollWidth+GAP-6)/(CW+GAP))); }catch(e){}
+  let n=1; try{ n=_cvCols(meas.firstChild,CW,GAP,meas.children[1].getBoundingClientRect().height,CH); }catch(e){}
   meas.remove();
   const upd=new Date().toLocaleDateString('en-US',{month:'long',year:'numeric'});
   let out='';
@@ -39815,6 +39842,7 @@ function cvPreview(fromSheet,openDesign){
   document.body.appendChild(ov);
   _cvRerender();
   _cvPrevZoom('fit');
+  try{ if(document.fonts&&document.fonts.ready) document.fonts.ready.then(()=>{ if(document.getElementById('cvPrev')) _cvRerender(); }); }catch(e){}
   _cvDzRender(); if(openDesign) cvDzToggle(true);
 }
 function _cvPrevZoom(z){
@@ -40458,7 +40486,7 @@ function _prCardHTML(r){
   const work=_rqIrLabel(r), floor=_rqFloorLabel(r.floor), type=_rqDisplayValue(r,'type');
   const logo=_rqCoLogoSrc(r.company)?bankLogoHTML(_rqCoLogoSrc(r.company),48,{alt:esc(co)}):ic('building',24);
   const numeric=/^[\d\s\-–—\/.,]+$/.test(plot||'');
-  return `<button type="button" class="pr-card ${st.cls}" onclick="rqOpenCard('${r.id}')" aria-label="${esc(L('Pour','صب'))} ${esc(plot)} ${esc(work)}">
+  return `<button type="button" class="pr-card ${st.cls}" onclick="rqOpenCard('${r.id}')" aria-label="${esc(L('CPP','CPP'))} ${esc(plot)} ${esc(work)}">
     <span class="pr-logo">${logo}</span>
     <span class="pr-main">
       <span class="pr-top"><span class="pr-plot">${numeric?`<small>${L('Plot','قطعة')}</small>`:''}<b dir="auto">${esc(plot||'—')}</b></span><i class="rq-dot ${st.cls}" title="${esc(_rqStatusLabel(r.status))}"></i></span>
@@ -40489,14 +40517,14 @@ function renderPours(){
   const stat=(n,lbl,cls)=>`<div class="pr-stat ${cls||''}"><b>${n}</b><span>${lbl}</span></div>`;
   const summary=everything.length?`<div class="pr-sum">
       <div class="pr-sum-ic">${ic('droplet',22)}</div>
-      <div class="pr-sum-st">${stat(everything.length,L('Total pours','إجمالي الصب'))}${stat(monthN,L('This month','الشهر ده'))}${stat(todayN,L('Today','النهاردة'),todayN?'hot':'')}</div>
+      <div class="pr-sum-st">${stat(everything.length,L('Total CPP','إجمالي CPP'))}${stat(monthN,L('This month','الشهر ده'))}${stat(todayN,L('Today','النهاردة'),todayN?'hot':'')}</div>
     </div>`:'';
   const empty=everything.length===0
     ? `<div class="cst-empty-state">
          <div class="cst-empty-icon">${ic('droplet',26)}</div>
-         <div class="cst-empty-title">${L('No pour requests yet','لا توجد طلبات صب بعد')}</div>
-         <div class="cst-empty-sub">${L('Mark a receipt as Pour and it is listed here with its plot, work type, floor and date.','اختار "صب" في أي استلامة وهتظهر هنا برقم القطعة ونوع الاستلامة والدور والتاريخ.')}</div>
-         <button type="button" class="cst-empty-cta" onclick="window._rqPourPreset=true;openRequestModal(null)">${ic('plus',13)} ${L('New pour request','طلب صب جديد')}</button>
+         <div class="cst-empty-title">${L('No CPP requests yet','لا توجد طلبات CPP بعد')}</div>
+         <div class="cst-empty-sub">${L('Mark a receipt as CPP and it is listed here with its plot, work type, floor and date.','اختار "CPP" في أي استلامة وهتظهر هنا برقم القطعة ونوع الاستلامة والدور والتاريخ.')}</div>
+         <button type="button" class="cst-empty-cta" onclick="window._rqPourPreset=true;openRequestModal(null)">${ic('plus',13)} ${L('New CPP request','طلب CPP جديد')}</button>
        </div>`
     : `<div class="cx-none">${L('No results','لا نتائج')}</div>`;
   const body=list.length?groups.map(g=>`<div class="pr-day"><b>${esc(_prDayLabel(g.d))}</b><span>${g.items.length}</span></div><div class="pr-grid">${g.items.map(_prCardHTML).join('')}</div>`).join(''):empty;
@@ -40504,10 +40532,11 @@ function renderPours(){
   ${_pgHdr('Site','الموقع','My Job','My Job','Receipts log and custody money','سجل الاستلامات وفلوس العهدة')}
   ${_prjBarHTML()}
   ${_cxTabsHTML()}
+  ${_cxRqSubHTML()}
   <section class="cx-sec">
-    <div class="cx-sh"><span class="cx-sh-l"><span class="cx-sh-t">${L('Pours','الصب')}</span><span class="cx-sh-s">${everything.length} ${L('pour requests','طلب صب')}</span></span></div>
+    <div class="cx-sh"><span class="cx-sh-l"><span class="cx-sh-t">${L('CPP','CPP')}</span><span class="cx-sh-s">${everything.length} ${L('CPP requests','طلب CPP')}</span></span></div>
     ${summary}
-    ${everything.length?`<div class="pr-scope"><div class="rq-scope" role="group">${scopeBtn('all',L('All pours','كل الصب'),everything.length)}${scopeBtn('month',esc(mLbl),monthN)}</div></div>
+    ${everything.length?`<div class="pr-scope"><div class="rq-scope" role="group">${scopeBtn('all',L('All CPP','كل CPP'),everything.length)}${scopeBtn('month',esc(mLbl),monthN)}</div></div>
     <div class="sc-search cx-search"><span class="cx-sbox">
       <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
       <input placeholder="${L('Search plot, company, work…','ابحث برقم القطعة أو الشركة أو نوع الاستلامة…')}" value="${esc(searchQ)}" oninput="doSearch(this.value)"/>
@@ -40599,6 +40628,7 @@ function renderMyRequests(){
   ${_pgHdr('Site','الموقع','My Job','My Job','Receipts log and custody money','سجل الاستلامات وفلوس العهدة')}
   ${_prjBarHTML()}
   ${_cxTabsHTML()}
+  ${_cxRqSubHTML()}
   <section class="cx-sec">
     <div class="cx-sh">
       <span class="cx-sh-l"><span class="cx-sh-t">${L('My Receipts','استلاماتي')}</span><span class="cx-sh-s">${esc(_rqMonthLbl())} · ${shown} ${L('receipts','استلامة')}<span class="rq-grand"> · ${L('Total IR','إجمالي IR')} <b>${_irCum}</b></span></span></span>
@@ -40989,9 +41019,9 @@ function _bindBulletNotes(ta){
 let _rqPourSel=false;
 function _rqPourSecHTML(){
   const b=(v,lbl,icn)=>`<button type="button" class="rq-stbtn pr-opt ${v?'pr-yes':'pr-no'}${_rqPourSel===v?' on':''}" data-p="${v?1:0}" aria-pressed="${_rqPourSel===v}" onclick="_rqPickPour(${v})">${ic(icn,18)}<span>${lbl}</span></button>`;
-  return `<div class="rq-sec rq-pour-sec"><div class="rq-sec-hdr">${ic('droplet',15)}<span>${L('Concrete pour','حالة الصب')}</span></div>
-    <div class="field"><div class="rq-seg pr-seg">${b(true,L('Pour','صب'),'droplet')}${b(false,L('Not a pour','مش صب'),'close')}</div>
-    <div class="pr-hint" id="rqPourHint">${_rqPourSel?L('CPP · listed in the Pours tab only','CPP · هتظهر في تاب الصب بس'):L('Choose Pour to list it in the Pours tab','اختار صب عشان تظهر في تاب الصب')}</div></div>
+  return `<div class="rq-sec rq-pour-sec"><div class="rq-sec-hdr">${ic('droplet',15)}<span>${L('CPP status','حالة CPP')}</span></div>
+    <div class="field"><div class="rq-seg pr-seg">${b(true,L('CPP','CPP'),'droplet')}${b(false,L('Not CPP','مش CPP'),'close')}</div>
+    <div class="pr-hint" id="rqPourHint">${_rqPourSel?L('CPP · listed under Receipts → CPP only','CPP · هتظهر في الاستلامات ← CPP بس'):L('Choose CPP to list it under Receipts → CPP','اختار CPP عشان تظهر في الاستلامات ← CPP')}</div></div>
   </div>`;
 }
 let _rqPourAutoType=false;
@@ -41004,12 +41034,12 @@ function _rqPickPour(v){
   }
   document.querySelectorAll('.pr-opt').forEach(b=>{ const on=(b.dataset.p==='1')===_rqPourSel; b.classList.toggle('on',on); b.setAttribute('aria-pressed',on); });
   const h=document.getElementById('rqPourHint');
-  if(h) h.textContent=_rqPourSel?L('CPP · listed in the Pours tab only','CPP · هتظهر في تاب الصب بس'):L('Choose Pour to list it in the Pours tab','اختار صب عشان تظهر في تاب الصب');
+  if(h) h.textContent=_rqPourSel?L('CPP · listed under Receipts → CPP only','CPP · هتظهر في الاستلامات ← CPP بس'):L('Choose CPP to list it under Receipts → CPP','اختار CPP عشان تظهر في الاستلامات ← CPP');
 }
 function _rqPourBadge(r,mini){
   if(!r||!r.pour) return '';
-  return mini?`<span class="pr-badge mini" title="${L('Pour','صب')}">${ic('droplet',11)}</span>`
-             :`<span class="pr-badge">${ic('droplet',12)}${L('Pour','صب')}</span>`;
+  return mini?`<span class="pr-badge mini" title="${L('CPP','CPP')}">${ic('droplet',11)}</span>`
+             :`<span class="pr-badge">${ic('droplet',12)}${L('CPP','CPP')}</span>`;
 }
 function _rqPickStatus(k){
   if(!_RQ_STATUS[k]) return;
