@@ -64199,6 +64199,26 @@ body #mainContent .screen-wrap .cx-seg .cx-seg-btn{gap:3px!important}
 .ctr-kpi-label,.dash-ring-sub-v2,.dash-tile-sub-v2,.br-kpi-lbl,.br-month-chip,.sig-cur{
   font-size:calc(10px*var(--app-text-scale,1));
 }
+
+/* Daily insight tiles: very large amounts shrink to fit (see fit script at end of body); ellipsis is the last-resort fallback. */
+.dly-ins b{overflow:hidden;text-overflow:ellipsis;max-width:100%}
 </style>
+<script>
+// Shrinks oversized amounts in the Daily "insight" tiles (Daily average / Projected)
+// so a long figure is never cut off. Display-only: reads layout, never touches data.
+(function(){
+  var mc=document.getElementById('mainContent'); if(!mc||!window.MutationObserver) return;
+  var raf=0;
+  function fit(){
+    raf=0;
+    mc.querySelectorAll('.dly-ins b').forEach(function(b){
+      b.style.fontSize='';
+      var fs=parseFloat(getComputedStyle(b).fontSize)||17;
+      while(b.scrollWidth>b.clientWidth+1 && fs>10){ fs-=0.5; b.style.fontSize=fs+'px'; }
+    });
+  }
+  new MutationObserver(function(){ if(!raf) raf=requestAnimationFrame(fit); }).observe(mc,{childList:true,subtree:true});
+})();
+</script>
 </body>
 </html>
