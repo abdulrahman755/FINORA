@@ -63684,6 +63684,40 @@ FR.parseText=parseText; FR.parseAmount=parseAmount; FR.validate=validate; FR.nor
 window.FinoraReceipt=FR;
 window.savScanReceipt=function(){ FR.start({dest:'savings'}); };
 
+
+/* Daily Spend insights: average per day, month-end projection, under-target streak.
+   Pure read-only maths on the month's own transactions; nothing is stored. */
+function monthParts(key){
+  const m=/^([A-Za-z]{3})-(\d{4})$/.exec(String(key||'')); if(!m) return null;
+  const i=_ROLLOVER_ABBR.findIndex(x=>String(x).toLowerCase()===m[1].toLowerCase()); if(i<0) return null;
+  return {y:+m[2],m:i};
+}
+function dailyInsightsHTML(){
+  try{
+    const mp=monthParts(activeMonth); const list=(DATA[activeMonth]&&DATA[activeMonth].transactions)||[];
+    if(!mp||!list.length) return '';
+    const dim=new Date(mp.y,mp.m+1,0).getDate(), now=new Date();
+    const cur=(now.getFullYear()===mp.y&&now.getMonth()===mp.m);
+    const past=(new Date(mp.y,mp.m,1)<new Date(now.getFullYear(),now.getMonth(),1));
+    const elapsed=cur?now.getDate():(past?dim:0);
+    if(!elapsed) return '';
+    const byDay={}; let total=0;
+    list.forEach(t=>{ const v=+t.payment||0; total+=v; const d=String(t.date||''); if(!d) return;
+      const o=byDay[d]||(byDay[d]={spent:0,target:0}); o.spent+=v; if(+t.target>0) o.target=+t.target; });
+    const avg=total/elapsed, proj=avg*dim;
+    const days=Object.keys(byDay).sort().reverse();
+    let streak=0, hasTarget=false, tgt=0;
+    for(const d of days){ const o=byDay[d]; if(!(o.target>0)) continue; hasTarget=true; if(!tgt) tgt=o.target; if(o.spent<=o.target) streak++; else break; }
+    const over=hasTarget&&tgt>0&&proj>tgt*dim;
+    const tile=(lbl,val,sub,cls)=>'<div class="dly-ins '+(cls||'')+'"><span>'+lbl+'</span><b>'+val+'</b><small>'+sub+'</small></div>';
+    return '<div class="dly-insights">'+
+      tile(_L('Daily average','متوسط اليوم'),_fmt(avg),_cur()+_L(' / day',' / يوم'))+
+      tile(_L('Projected','المتوقّع'),_fmt(proj),over?_L('Over target','فوق التارجت'):(hasTarget?_L('On track','ماشي كويس'):_cur()),over?'bad':(hasTarget?'ok':''))+
+      tile(_L('Under target','تحت التارجت'),hasTarget?String(streak):'—',hasTarget?_L('in a row','ورا بعض'):_L('Set a target','حدد تارجت'),hasTarget&&streak>0?'ok':'')+
+    '</div>';
+  }catch(e){ _log('insights',e); return ''; }
+}
+
 /* Daily Spend entry points (wrappers keep the original functions untouched) */
 const scanChip=(cls)=>'<button type="button" class="'+cls+'" onclick="FinoraReceipt.start({dest:\'daily\'})">'+icn('photo',14)+' <span>'+_L('Scan Receipt','مسح إيصال')+'</span></button>';
 if(typeof window.showTxModal==='function'){
@@ -63712,8 +63746,10 @@ if(typeof window.renderTransactions==='function'){
           '<button type="button" class="dly-act primary" onclick="showTxModal(null)">'+icn('plus',18)+'<span>'+_L('Add expense','أضف مصروف')+'</span></button>'+
           '<button type="button" class="dly-act" onclick="FinoraReceipt.start({dest:\'daily\'})">'+icn('photo',18)+'<span>'+_L('Scan receipt','مسح إيصال')+'</span></button>'+
           '<button type="button" class="dly-act" onclick="openDailyTargetModal()">'+icn('target',18)+'<span>'+_L('Target','التارجت')+'</span></button></div>';
+
+        const ins=dailyInsightsHTML();
         const re=/(<div class="txlg-sticky kpi3-hero dsum">[\s\S]*?<\/section><\/div>)/;
-        if(re.test(h)) h=h.replace(re,'$1'+bar);
+        if(re.test(h)) h=h.replace(re,'$1'+bar+ins);
         else if(h.indexOf('data-fr-empty')>-1) h=h.replace(/<\/div>\s*$/,'<div class="frc-daily-row" style="justify-content:center">'+scanChip('frc-scan-btn')+'</div></div>');
       }
     }catch(e){ _log('rthook',e); }
@@ -63812,6 +63848,16 @@ body #mainContent .txlg-wrap .txlg-cur{font-size:calc(10px*var(--app-text-scale,
 body #mainContent .txlg-wrap .txlg-conf-dot{width:6px;height:6px;opacity:.55}
 body #mainContent .txlg-wrap .txlg-viewall{font-weight:600;padding:14px;font-size:calc(13px*var(--app-text-scale,1))}
 body #mainContent .txlg-wrap .sc-bottom{margin-top:6px}
+
+/* Insights strip */
+.dly-insights{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:0 0 var(--dl-gap,12px)}
+.dly-ins{display:flex;flex-direction:column;gap:3px;padding:12px 12px 11px;border-radius:16px;background:var(--surface);
+  border:1px solid color-mix(in srgb,var(--border) 62%,transparent);min-width:0}
+.dly-ins span{font-size:calc(11px*var(--app-text-scale,1));font-weight:500;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dly-ins b{font-size:calc(17px*var(--app-text-scale,1));font-weight:700;letter-spacing:-.3px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.dly-ins small{font-size:calc(10.5px*var(--app-text-scale,1));font-weight:600;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dly-ins.ok b,.dly-ins.ok small{color:var(--green)}
+.dly-ins.bad b,.dly-ins.bad small{color:var(--red,#d14343)}
 </style>
 
 
@@ -63889,6 +63935,139 @@ body #mainContent .banks-v2 .bnk-hero{border-radius:var(--pg-r);margin-bottom:4p
 body #mainContent .banks-v2 .bnk-section-title{margin:18px 2px 10px}
 body #mainContent .screen-wrap .cx-seg .cx-seg-btn span{overflow:visible!important;text-overflow:clip!important;max-width:none!important;white-space:nowrap}
 body #mainContent .screen-wrap .cx-seg .cx-seg-btn{gap:3px!important}
+</style>
+<style id="finora-finish">
+/* ── Finishing layer: motion, touch feedback, numerals, accessibility, small fixes ─────── */
+
+/* Page enter: a short fade-and-rise when you switch screens (class is added once per switch) */
+@keyframes frxEnter{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+#mainContent .screen-wrap.frx-enter{animation:frxEnter .26s cubic-bezier(.22,.8,.3,1) both}
+
+/* Touch feedback on tappable surfaces */
+.txlg-row-content,.bnk-card,.sav-row-main,.fin-card,.jp-add,.prj-bar,.dsum-main,.att-time,.atp-sb,.wdash-tile,.pf-chip,.txlg-aiinsight-card{
+  transition:transform .14s ease,background-color .14s ease,box-shadow .14s ease;-webkit-tap-highlight-color:transparent}
+.txlg-row-content:active,.sav-row-main:active{background:color-mix(in srgb,var(--text) 4%,transparent)}
+.bnk-card:active,.fin-card:active,.prj-bar:active,.att-time:active,.wdash-tile:active,.pf-chip:active,.txlg-aiinsight-card:active{transform:scale(.985)}
+
+/* Aligned numerals everywhere money is shown */
+.sig-amt,.sig-cur,.fin-num,.fin-card-amount,.fin-hero-amount,.sav-row-amount,.txlg-amt,.txlg-group-total,.dsum-num,.bnk-hero-total,.pxw em,.dv3h-stat-val,.dfp-kpi3-val{
+  font-variant-numeric:tabular-nums lining-nums;font-feature-settings:"tnum" 1,"lnum" 1}
+
+/* Keyboard / switch-control focus ring (touch users never see it) */
+:where(button,[role=button],input,select,textarea,a):focus-visible{outline:2px solid #1565d8;outline-offset:2px;border-radius:inherit}
+:where(button,[role=button]):focus:not(:focus-visible){outline:none}
+
+/* Smooth, comfortable scrolling */
+#mainContent{scroll-behavior:smooth;-webkit-overflow-scrolling:touch;overscroll-behavior-y:contain}
+#mainContent .screen-wrap{padding-bottom:calc(112px + env(safe-area-inset-bottom,0px))}
+
+/* Daily: breathing room around the scan chip inside New Transaction */
+.frc-tx-scan{margin:12px 0 12px}
+
+/* Settings: Auto dark-mode times no longer clip "PM / AM" */
+#sttAutoFrom,#sttAutoTo{min-width:0;width:100%;box-sizing:border-box;font-size:calc(14.5px*var(--app-text-scale,1));padding-inline:10px;letter-spacing:0}
+
+/* Bottom sheets: consistent grabber, title weight and rounded top */
+.modal-handle{width:38px;height:4px;border-radius:99px;background:color-mix(in srgb,var(--muted) 38%,transparent);margin:8px auto 6px}
+.modal-title{font-weight:700;letter-spacing:-.1px}
+
+/* Respect reduced-motion preferences */
+@media (prefers-reduced-motion:reduce){
+  #mainContent .screen-wrap.frx-enter{animation:none}
+  #mainContent{scroll-behavior:auto}
+  .txlg-row-content,.bnk-card,.fin-card,.prj-bar,.att-time,.wdash-tile{transition:none}
+}
+
+/* Settings: time pickers keep "PM/AM" visible */
+#sttAutoFrom,#sttAutoTo{padding-inline:6px 24px!important;font-size:calc(12px*var(--app-text-scale,1))!important;font-weight:600!important;letter-spacing:-.2px!important;font-variant-numeric:tabular-nums}
+#sttAutoFrom::-webkit-datetime-edit-fields-wrapper,#sttAutoTo::-webkit-datetime-edit-fields-wrapper{padding:0}
+#sttAutoFrom::-webkit-datetime-edit-hour-field,#sttAutoTo::-webkit-datetime-edit-hour-field,#sttAutoFrom::-webkit-datetime-edit-minute-field,#sttAutoTo::-webkit-datetime-edit-minute-field,#sttAutoFrom::-webkit-datetime-edit-ampm-field,#sttAutoTo::-webkit-datetime-edit-ampm-field{padding:0 1px}
+</style>
+<script id="finora-finish">
+
+/* Page-enter animation: tag the freshly rendered screen once per navigation (not on every re-render) */
+(function(){
+  try{
+    const host=document.getElementById('mainContent'); if(!host||!window.MutationObserver) return;
+    let last=(typeof currentView!=='undefined')?currentView:null, busy=false;
+    new MutationObserver(function(){
+      if(busy) return;
+      let v=null; try{ v=(typeof currentView!=='undefined')?currentView:null; }catch(e){}
+      if(v===last) return;
+      last=v;
+      const w=host.querySelector('.screen-wrap'); if(!w) return;
+      busy=true;
+      w.classList.add('frx-enter');
+      setTimeout(function(){ try{ w.classList.remove('frx-enter'); }catch(e){} busy=false; },400);
+    }).observe(host,{childList:true});
+  }catch(e){}
+})();
+</script>
+
+
+
+<style id="finora-analytics-polish">
+/* ── Analytics pages (Monthly Overview, Yearly Analytics) in the same language as the rest ── */
+#mainContent .sc-card{border-radius:20px;border:1px solid color-mix(in srgb,var(--border) 62%,transparent);box-shadow:0 1px 2px rgba(16,24,40,.04),0 6px 18px rgba(16,24,40,.06)}
+:root[data-theme="dark"] #mainContent .sc-card{box-shadow:none}
+#mainContent .sc-card + .sc-card,#mainContent .sc-card + .sc-header,#mainContent .sc-header + .sc-card{margin-top:12px}
+#mainContent .sc-card-label{font-size:calc(13px*var(--app-text-scale,1));font-weight:700;letter-spacing:.01em;color:var(--text2,var(--text));text-transform:none}
+#mainContent .sc-card-label svg{color:var(--muted)}
+
+/* Overview header: title, quiet badges, one clear Add action */
+#mainContent .sc-header--flex{align-items:flex-start;gap:12px}
+#mainContent .sc-header-meta{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+#mainContent .sc-header-badge{font-size:calc(11.5px*var(--app-text-scale,1));font-weight:600;padding:5px 11px;border-radius:99px;border:0;
+  background:color-mix(in srgb,var(--text) 6%,transparent);color:var(--text2,var(--text));letter-spacing:0}
+#mainContent .sc-header-badge.ok{background:color-mix(in srgb,var(--green) 13%,transparent);color:var(--green)}
+#mainContent .sc-header-action{display:inline-flex;align-items:center;gap:6px;min-height:38px;padding:0 16px;border-radius:99px;border:0;
+  background:#1565d8;color:#fff;font:inherit;font-size:calc(13px*var(--app-text-scale,1));font-weight:600;box-shadow:0 6px 16px rgba(21,101,216,.26)}
+#mainContent .sc-header-action svg{color:#fff}
+#mainContent .sc-header-action:active{transform:scale(.97)}
+
+/* Key figures: clean rows */
+#mainContent .sc-fields{display:block}
+#mainContent .sc-field{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:13px 0;border-bottom:1px solid color-mix(in srgb,var(--border) 62%,transparent)}
+#mainContent .sc-field:last-child{border-bottom:0;padding-bottom:2px}
+#mainContent .sc-field-label{font-size:calc(13px*var(--app-text-scale,1));font-weight:500;color:var(--muted)}
+#mainContent .sc-field-value{font-size:calc(15.5px*var(--app-text-scale,1));font-weight:700;font-variant-numeric:tabular-nums;display:inline-flex;align-items:center;gap:8px}
+#mainContent .sc-field-count{font-size:calc(11px*var(--app-text-scale,1));font-weight:600;min-width:22px;text-align:center;padding:2px 7px;border-radius:99px;background:color-mix(in srgb,var(--text) 7%,transparent);color:var(--muted)}
+#mainContent .sc-field-clickable:active{background:color-mix(in srgb,var(--text) 4%,transparent)}
+
+/* Primary action inside a card */
+#mainContent .sc-btn.primary{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:48px;border-radius:14px;border:0;
+  background:color-mix(in srgb,#1565d8 11%,transparent);color:#1565d8;font:inherit;font-size:calc(14px*var(--app-text-scale,1));font-weight:600}
+:root[data-theme="dark"] #mainContent .sc-btn.primary{color:#6aa4ff}
+#mainContent .sc-btn.primary svg{color:inherit}
+
+/* Summary tiles + collapsible card header */
+#mainContent .sc-main-header{padding-bottom:2px}
+#mainContent .sc-main-title{font-size:calc(14px*var(--app-text-scale,1));font-weight:700}
+#mainContent .sc-summary-tile{border-radius:16px;border:1px solid color-mix(in srgb,var(--border) 62%,transparent);background:color-mix(in srgb,var(--text) 3%,transparent)}
+#mainContent .sc-summary-tile-label{font-size:calc(11.5px*var(--app-text-scale,1));font-weight:500;color:var(--muted)}
+#mainContent .sc-summary-tile-val{font-weight:700;font-variant-numeric:tabular-nums}
+
+/* Yearly analytics: calm selectors (blue = selected, red is reserved for problems) */
+#mainContent .yr-year-pill,#mainContent .yr-source-tab{border:1px solid color-mix(in srgb,var(--border) 62%,transparent);background:var(--surface);color:var(--text2,var(--text));font-weight:600;box-shadow:none}
+#mainContent .yr-year-pill.active,#mainContent .yr-source-tab.active{background:#1565d8;border-color:transparent;color:#fff;box-shadow:0 6px 16px rgba(21,101,216,.26)}
+#mainContent .yr-source-tab.active svg{color:#fff}
+#mainContent .yr-award-card{border-radius:18px;padding:14px}
+#mainContent .yr-award-label{font-size:calc(10px*var(--app-text-scale,1));letter-spacing:.08em;font-weight:700}
+#mainContent .yr-award-month{font-size:calc(15px*var(--app-text-scale,1));font-weight:700}
+
+/* fixes from review */
+#mainContent .sc-header--flex{display:flex!important;flex-direction:row!important;align-items:flex-start;justify-content:space-between}
+#mainContent .sc-header--flex .sc-header-body{flex:1;min-width:0}
+#mainContent .sc-header--flex .sc-header-action{flex:none;margin-top:6px}
+#mainContent .sc-btn.primary{box-sizing:border-box!important;max-width:100%!important;margin:0!important;background:color-mix(in srgb,#1565d8 11%,transparent)!important;color:#1565d8!important;box-shadow:none!important}
+:root[data-theme="dark"] #mainContent .sc-btn.primary{color:#6aa4ff!important}
+#mainContent .sc-field,#mainContent .sc-field.sc-field-clickable{padding-inline:0!important;margin:0!important}
+#mainContent #monthClosingCard{padding:14px 16px 16px}
+#mainContent #monthClosingCard .sc-card-label{margin-bottom:12px}
+#mainContent .sc-card.sc-summary .sc-main-header{padding:2px 0}
+/* Yearly analytics: even rhythm between stacked cards */
+#mainContent > :not(.screen-wrap):not(style) + :not(style){margin-top:12px}
+#mainContent > .yr-source-tab,#mainContent > div > .yr-source-tab{min-height:40px}
 </style>
 </body>
 </html>
