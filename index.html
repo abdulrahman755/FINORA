@@ -13293,6 +13293,61 @@ body #mainContent .bnk-hero,body #mainContent .banks-v2 .bnk-hero{border-inline-
 .wdp-rf-check{background:var(--pos-light)!important;border-color:var(--green)!important}
 .wdp-rf-spark{display:none!important}
 </style>
+<style id="pour-css">
+/* ══ Pours (الصب): form toggle, badges, My Job → Pours tab ══ */
+.pr-seg{grid-template-columns:repeat(2,1fr)!important}
+.pr-opt{display:flex;align-items:center;justify-content:center;gap:8px;min-height:54px}
+.pr-opt svg{flex:none}
+.pr-opt.pr-yes.on{background:color-mix(in srgb,var(--blue) 14%,var(--surface));border-color:var(--blue);color:var(--blue)}
+.pr-opt.pr-no.on{background:var(--surface2);border-color:var(--text2);color:var(--text)}
+.pr-hint{margin-top:8px;font-size:calc(11.5px*var(--app-text-scale,1));font-weight:600;color:var(--muted)}
+.pr-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:99px;font-size:calc(11.5px*var(--app-text-scale,1));font-weight:700;line-height:1.3;background:color-mix(in srgb,var(--blue) 14%,var(--surface));color:var(--blue);white-space:nowrap}
+.pr-badge svg{flex:none}
+.pr-badge.mini{padding:0;width:18px;height:18px;justify-content:center;gap:0}
+.pr-chipcol{display:flex;flex-direction:column;align-items:flex-end;gap:5px;flex:none}
+.pr-rowend{display:inline-flex;align-items:center;gap:6px}
+.rq-tile{position:relative}
+.rq-tile>.pr-badge.mini{position:absolute;z-index:1;top:3px;inset-inline-start:3px;background:var(--blue);color:#fff}
+
+.pr-sum{display:flex;align-items:center;gap:14px;padding:14px;border-radius:var(--radius);background:linear-gradient(135deg,color-mix(in srgb,var(--blue) 16%,var(--surface)),var(--surface));border:1px solid color-mix(in srgb,var(--blue) 26%,var(--border));margin-bottom:12px}
+.pr-sum-ic{flex:none;width:46px;height:46px;border-radius:15px;display:flex;align-items:center;justify-content:center;background:var(--blue);color:#fff;box-shadow:0 8px 16px -8px var(--blue)}
+.pr-sum-st{flex:1;min-width:0;display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.pr-stat{display:flex;flex-direction:column;gap:2px;min-width:0}
+.pr-stat b{font-size:calc(22px*var(--app-text-scale,1));font-weight:800;line-height:1;color:var(--text);font-variant-numeric:tabular-nums}
+.pr-stat span{font-size:calc(11px*var(--app-text-scale,1));font-weight:600;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pr-stat.hot b{color:var(--blue)}
+.pr-scope{margin-bottom:10px}
+.pr-list{display:flex;flex-direction:column;gap:10px;margin-top:6px}
+.pr-day{display:flex;align-items:center;gap:8px;padding:12px 2px 2px;font-size:calc(13px*var(--app-text-scale,1));color:var(--text2)}
+.pr-day:first-child{padding-top:2px}
+.pr-day b{font-weight:700;color:var(--text)}
+.pr-day::after{content:'';order:1;flex:1;height:1px;background:var(--border)}
+.pr-day span{order:2;font-weight:700;font-size:calc(11px*var(--app-text-scale,1));color:var(--muted);background:var(--surface2);padding:1px 8px;border-radius:99px;font-variant-numeric:tabular-nums}
+.pr-grid{display:flex;flex-direction:column;gap:8px}
+.pr-card{--pc:var(--green);display:flex;align-items:stretch;gap:12px;width:100%;padding:10px;border:1px solid color-mix(in srgb,var(--pc) 26%,var(--border));border-inline-start:4px solid var(--pc);border-radius:16px;background:var(--surface);font-family:inherit;text-align:start;color:var(--text);cursor:pointer;-webkit-tap-highlight-color:transparent;box-shadow:var(--shadow-xs);transition:transform .14s,background .2s}
+.pr-card.ok{--pc:var(--green)}.pr-card.low{--pc:var(--gold)}.pr-card.over{--pc:var(--red)}
+.pr-card:active{transform:scale(.985);background:color-mix(in srgb,var(--pc) 8%,var(--surface))}
+.pr-logo{flex:none;width:62px;height:62px;align-self:center;border-radius:15px;background:#fff;display:flex;align-items:center;justify-content:center;overflow:hidden;border:1px solid var(--border);color:var(--muted)}
+.pr-logo .bl-img,.pr-logo img{width:100%!important;height:100%!important;object-fit:contain!important;border-radius:0!important;box-shadow:none!important;background:transparent!important}
+.pr-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:5px}
+.pr-top{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.pr-plot{display:inline-flex;align-items:baseline;gap:6px;min-width:0}
+.pr-plot small{font-size:calc(11px*var(--app-text-scale,1));font-weight:700;color:var(--muted)}
+.pr-plot b{font-size:calc(21px*var(--app-text-scale,1));font-weight:800;line-height:1.1;color:var(--text);font-variant-numeric:tabular-nums;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pr-work{font-size:calc(14px*var(--app-text-scale,1));font-weight:700;color:var(--blue);line-height:1.3;overflow-wrap:anywhere}
+.pr-work.none{color:var(--muted);font-weight:600}
+.pr-meta{display:flex;flex-wrap:wrap;gap:6px}
+.pr-pill{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:99px;background:var(--surface2);color:var(--text2);font-size:calc(11.5px*var(--app-text-scale,1));font-weight:700;line-height:1.3}
+.pr-pill.fl{background:color-mix(in srgb,var(--gold) 14%,var(--surface));color:var(--gold)}
+.pr-pill.dt{font-variant-numeric:tabular-nums}
+.pr-pill svg{flex:none}
+.pr-co{font-size:calc(11px*var(--app-text-scale,1));font-weight:600;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media(min-width:720px){.pr-grid{display:grid;grid-template-columns:repeat(2,1fr)}}
+@media(max-width:359px){.pr-logo{width:52px;height:52px}.pr-plot b{font-size:calc(18px*var(--app-text-scale,1))}}
+[data-theme="dark"] .pr-opt.pr-yes.on,[data-theme="dark"] .pr-badge{background:color-mix(in srgb,var(--blue) 24%,var(--surface3,var(--surface)));color:var(--blue-light,var(--blue))}
+[data-theme="dark"] .pr-work{color:var(--blue-light,var(--blue))}
+@media (prefers-reduced-motion:reduce){.pr-card{transition:none}}
+</style>
 </head>
 <body>
 
@@ -36460,6 +36515,7 @@ function renderExpenses(m){
   if(_cxTab==='cv') return renderMyCV();
   if(_cxTab==='profile') return renderJobProfile();
   if(_cxTab==='requests') return renderMyRequests();
+  if(_cxTab==='pour') return renderPours();
   const allRaw=m?.site_expenses||[];
   const all=allRaw.filter(_prjMine);
   const exps=all.filter(e=>!searchQ||(e.description||'').toLowerCase().includes(searchQ.toLowerCase())||(e.notes||'').toLowerCase().includes(searchQ.toLowerCase())||String(e.amount).includes(searchQ)||_smartSearchHit(e,e.description,searchQ));
@@ -37522,7 +37578,7 @@ async function _rqRunTranslate(id,targetLang){
   r.tr=r.tr||{};
   r.tr[targetLang]=out;
   _rqSave(list);
-  if(currentView==='expenses' && _cxTab==='requests') renderView();
+  if(currentView==='expenses' && (_cxTab==='requests'||_cxTab==='pour')) renderView();
   try{ if(document.getElementById('rptPaper') && !document.getElementById('rptTa')) rqReportOpen(_rqRptDate||today()); }catch(e){}
 }
 
@@ -37550,10 +37606,10 @@ function _cxProfileBarHTML(){
 }
 function _cxTabsHTML(){
   const t=(k,lbl,icn)=>`<button type="button" role="tab" class="cx-seg-btn${_cxTab===k?' on':''}" aria-selected="${_cxTab===k?'true':'false'}" onclick="_cxSetTab('${k}')">${ic(icn,18)}<span>${lbl}</span></button>`;
-  return `<div class="cx-seg cx-tabs v2" role="tablist">${t('requests',L('Receipts','استلاماتي'),'clipboard')}${t('custody',L('Custody','العهدة'),'hardhat')}${t('attendance',L('Attendance','الحضور'),'attendance')}${t('cv',L('My CV','سيرتي'),'cv')}</div>`;
+  return `<div class="cx-seg cx-tabs v2" role="tablist">${t('requests',L('Receipts','استلاماتي'),'clipboard')}${t('pour',L('Pours','الصب'),'droplet')}${t('custody',L('Custody','العهدة'),'hardhat')}${t('attendance',L('Attendance','الحضور'),'attendance')}${t('cv',L('My CV','سيرتي'),'cv')}</div>`;
 }
 function _cxSetTab(k){
-  const nk=(k==='requests'||k==='attendance'||k==='cv'||k==='profile')?k:'custody';
+  const nk=(k==='requests'||k==='pour'||k==='attendance'||k==='cv'||k==='profile')?k:'custody';
   if(nk===_cxTab) return;
   _cxTab=nk; searchQ=''; _jpShowId=false; _jpPwShown={};
   try{ sessionStorage.setItem('fnr_cxtab_v1',nk); }catch(e){}
@@ -38905,7 +38961,7 @@ function cvPrint(){
   // print() on an iframe, so a hidden-iframe approach gave blank / wrong output there). Everything is
   // added just for the print job and removed again afterwards.
   const m=_cvModel();
-  const cvSt=_cvStyleGet(), cvMg=_cvMarg(cvSt), cvFoot=cvSt.foot!==false;
+  const cvSt=_cvFit(m), cvMg=_cvMarg(cvSt), cvFoot=cvSt.foot!==false;
   const upd=new Date().toLocaleDateString('en-US',{month:'long',year:'numeric'});
   const ios=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
   const sec=(t,body)=>body?`<h2>${t}</h2>${body}`:'';
@@ -38924,15 +38980,15 @@ function cvPrint(){
 #cvPrintRoot{display:none}
 @page{size:A4;margin:${cvMg[0]}mm ${cvMg[1]}mm ${cvMg[2]}mm ${cvMg[3]}mm;${(ios||!cvFoot)?'':`@bottom-right{content:"Updated ${upd} | Page " counter(page);font:7pt Helvetica,Arial,sans-serif;color:#6a7680}`}}
 @media print{
-  html{color-scheme:light!important}
-  html,body{background:#fff!important;margin:0!important;padding:0!important;height:auto!important;min-height:0!important;overflow:visible!important}
+  html,html:root{color-scheme:light!important;background:#fff!important;background-image:none!important}
+  html:root body:not(#cvX){background:#fff!important;background-image:none!important;color:#222!important;margin:0!important;padding:0!important;height:auto!important;min-height:0!important;overflow:visible!important}
   body>*:not(#cvPrintRoot){display:none!important}
-  html body>#cvPrintRoot{display:block!important;font-family:Helvetica,Arial,'Helvetica Neue',sans-serif;color:#222;font-size:8.1pt;line-height:1.36;direction:ltr}
+  html body>#cvPrintRoot{display:block!important;background:#fff!important;-webkit-text-fill-color:initial;font-family:Helvetica,Arial,'Helvetica Neue',sans-serif;color:#222;font-size:8.1pt;line-height:1.36;direction:ltr}
   ${_cvTplCSS(R)}
   ${R}.ft{position:fixed;right:0;bottom:0;font-size:7pt;color:#6a7680}
 }`;
   const html=`${(ios&&cvFoot)?`<div class="ft">Updated ${upd}</div>`:''}
-${_cvDocHTML(m)}`;
+${_cvDocHTML(m,cvSt)}`;
   const _t0=document.title;
   const cleanup=()=>{ if(document.title!==_t0) document.title=_t0; ['cvPrintRoot','cvPrintStyle'].forEach(id=>{ const e=document.getElementById(id); if(e) e.remove(); }); window.removeEventListener('afterprint',cleanup); };
   try{
@@ -39337,6 +39393,9 @@ ${D} .sk.c1{columns:1}
 ${D} .sk li{break-inside:avoid;padding-inline-start:9pt;position:relative;margin-bottom:calc(1.5pt*var(--g,1))}
 ${D} .sk li::before,${D} .bl li::before{content:'•';position:absolute;inset-inline-start:2pt}
 ${D} .job{margin-bottom:calc(2pt*var(--g,1))}
+${D} .jh{break-inside:avoid;-webkit-column-break-inside:avoid;page-break-inside:avoid}
+${D} h2,${D} .co,${D} .dt,${D} .rl,${D} .sub{-webkit-column-break-after:avoid;page-break-after:avoid;break-after:avoid}
+${D} .sc,${D} .ed,${D} .bl li,${D} .sk li{-webkit-column-break-inside:avoid;page-break-inside:avoid}
 ${D} .co{margin:calc(7pt*var(--g,1)) 0 calc(3pt*var(--g,1));font-size:calc(8.8pt*var(--fs,1));font-weight:700;color:var(--acc);break-after:avoid}
 ${D} .rl{margin-bottom:calc(4pt*var(--g,1));font-size:calc(8pt*var(--fs,1));color:#5e6d79;break-after:avoid}
 ${D} .dt{display:flex;flex-wrap:wrap;align-items:center;gap:4pt 7pt;margin:0 0 calc(3pt*var(--g,1));break-after:avoid}
@@ -39517,11 +39576,13 @@ function _cvDocHTML(m,stIn){
   const li=a=>`<ul class="bl">${a.map(x=>`<li dir="auto">${esc(x)}</li>`).join('')}</ul>`;
   const subLine=t=>{ const q=_cvSubSplit(t); return q[1]?`<b>${esc(q[0])}</b> | ${esc(q[1])}`:`<b>${esc(q[0])}</b>`; };
   const jobs=m.jobs.map(j=>{
-    let body='', run=[];
+    let body='', run=[], first='';
+    const bl=j.bullets.slice();
+    if(bl.length&&!bl[0].sub) first=li([bl.shift().t]);   // first bullet travels with the job heading (no orphaned headings)
     const flush=()=>{ if(run.length){ body+=li(run); run=[]; } };
-    j.bullets.forEach(b=>{ if(b.sub){ flush(); body+=`<div class="sub" dir="auto">${subLine(b.sub)}</div>`; } else run.push(b.t); });
+    bl.forEach(b=>{ if(b.sub){ flush(); body+=`<div class="sub" dir="auto">${subLine(b.sub)}</div>`; } else run.push(b.t); });
     flush();
-    return `<div class="job">${j.company?`<div class="co" dir="auto">${esc(j.company)}</div>`:''}${j.period?`<div class="dt" dir="ltr"><span class="dr">${esc(j.period)}</span>${j.dur?`<span class="dd">${esc(j.dur)}</span>`:''}</div>`:''}${j.roleLine?`<div class="rl" dir="auto">${esc(j.roleLine)}</div>`:''}${body}</div>`;
+    return `<div class="job"><div class="jh">${j.company?`<div class="co" dir="auto">${esc(j.company)}</div>`:''}${j.period?`<div class="dt" dir="ltr"><span class="dr">${esc(j.period)}</span>${j.dur?`<span class="dd">${esc(j.dur)}</span>`:''}</div>`:''}${j.roleLine?`<div class="rl" dir="auto">${esc(j.roleLine)}</div>`:''}${first}</div>${body}</div>`;
   }).join('');
   const edu=m.edu.map(b=>`<div class="ed"><b dir="auto">${esc(b[0])}</b>${b.slice(1).map(x=>`<div dir="auto">${esc(x)}</div>`).join('')}</div>`).join('');
   const skills=m.skills.length?`<ul class="sk${(side||+st.cols===1)?' c1':''}">${m.skills.map(x=>`<li dir="auto">${esc(x)}</li>`).join('')}</ul>`:'';
@@ -39632,17 +39693,48 @@ function cvDzToggle(f){
 }
 // A4 pagination for the preview: the CV is laid out in a fixed-height multi-column box (one column = one page), so
 // breaks follow the same break-inside / break-after rules the print engine uses; each page shows its own column.
+// Measures how many A4 pages a style needs (same multi-column engine the preview uses) + the single-flow height.
+function _cvMeasure(m,st){
+  const mg=_cvMarg(st), K=3.7795, PW=793.7, PH=1122.5, GAP=48;
+  const CW=Math.round((PW-(mg[1]+mg[3])*K)*10)/10, CH=Math.round((PH-(mg[0]+mg[2])*K)*10)/10;
+  const doc=_cvDocHTML(m,st), css=_cvTplCSS('.cvp-pgs ');
+  const meas=document.createElement('div'); meas.className='cvp-pgs';
+  meas.style.cssText='position:fixed;left:-99999px;top:0;visibility:hidden;pointer-events:none;zoom:1;width:'+PW+'px';
+  meas.innerHTML=`<style>${css}</style><div class="cvp-strip" style="width:${CW}px;height:${CH}px;column-width:${CW}px;column-gap:${GAP}px;column-fill:auto;-webkit-column-fill:auto">${doc}</div><div class="cvp-flow" style="width:${CW}px">${doc}</div>`;
+  document.body.appendChild(meas);
+  let n=1, H=CH; try{ n=Math.max(1,Math.ceil((meas.children[1].scrollWidth+GAP-6)/(CW+GAP))); H=meas.children[2].getBoundingClientRect().height; }catch(e){}
+  meas.remove(); return {n,H,CH};
+}
+// Auto-fit: when the CV spills only a little onto an extra page, tighten spacing / text size / margins (only the
+// values still at their defaults) until it fits on fewer pages. Never changes what the user saved; set style.fit=false to disable.
+function _cvFit(m){
+  const base=_cvStyleGet(); if(base.fit===false) return base;
+  try{
+    const r=_cvMeasure(m,base);
+    if(r.n<2 || r.H/r.CH>(r.n-1)+.42) return base;
+    const steps=[{sp:'compact'},{sp:'compact',fs:'s'},{sp:'compact',fs:'s',mg:'narrow'}];
+    for(const c of steps){
+      const st=Object.assign({},base);
+      if(c.sp&&base.sp==='normal') st.sp=c.sp;
+      if(c.fs&&base.fs==='m') st.fs=c.fs;
+      if(c.mg&&base.mg==='normal') st.mg=c.mg;
+      if(st.sp===base.sp&&st.fs===base.fs&&st.mg===base.mg) continue;
+      if(_cvMeasure(m,st).n<r.n) return st;
+    }
+  }catch(e){ _logErr('_cvFit',e); }
+  return base;
+}
 function _cvBuildPages(m){
   const host=document.getElementById('cvpPaper'); if(!host) return 0;
-  const st=_cvStyleGet(), mg=_cvMarg(st), K=3.7795, PW=793.7, PH=1122.5, GAP=48;
+  const st=_cvFit(m), mg=_cvMarg(st), K=3.7795, PW=793.7, PH=1122.5, GAP=48;
   const CW=Math.round((PW-(mg[1]+mg[3])*K)*10)/10, CH=Math.round((PH-(mg[0]+mg[2])*K)*10)/10;
   const doc=_cvDocHTML(m,st);
-  const stripCss=`width:${CW}px;height:${CH}px;column-width:${CW}px;column-gap:${GAP}px`;
+  const stripCss=`width:${CW}px;height:${CH}px;column-width:${CW}px;column-gap:${GAP}px;column-fill:auto;-webkit-column-fill:auto`;
   const meas=document.createElement('div'); meas.className='cvp-pgs';
   meas.style.cssText='position:fixed;left:-99999px;top:0;visibility:hidden;pointer-events:none;zoom:1;width:'+PW+'px';
   meas.innerHTML=`<div class="cvp-strip" style="${stripCss}">${doc}</div>`;
   document.body.appendChild(meas);
-  let n=1; try{ n=Math.max(1,Math.round((meas.firstChild.scrollWidth+GAP)/(CW+GAP))); }catch(e){}
+  let n=1; try{ n=Math.max(1,Math.ceil((meas.firstChild.scrollWidth+GAP-6)/(CW+GAP))); }catch(e){}
   meas.remove();
   const upd=new Date().toLocaleDateString('en-US',{month:'long',year:'numeric'});
   let out='';
@@ -40034,7 +40126,7 @@ function _rqCardHTML(r){
           ${dType?`<div class="rq-type">${esc(dType)}</div>`:''}
           ${_rqRateMiniHTML(r)}
         </div>
-        <span class="cx-chip ${st.cls}">${_rqStatusLabel(r.status)}</span>
+        <span class="pr-chipcol"><span class="cx-chip ${st.cls}">${_rqStatusLabel(r.status)}</span>${_rqPourBadge(r)}</span>
       </div>
       <dl class="rq-grid">
         ${cell(ic('hardhat',12),L('Engineer','المهندس'),dEngineer)}
@@ -40072,14 +40164,14 @@ function _rqRowHTML(r){
   return `<button type="button" class="rq-row rq-t ${st.cls}" style="--rq-tc:${_rqTypeColor(r)}" onclick="rqOpenCard('${r.id}')" aria-label="${esc(L('Plot','قطعة'))} ${esc(plot)}">
     <span class="rq-row-plot"><small>${L('Plot','قطعة')}</small><b dir="auto">${esc(plot||'—')}</b></span>
     <span class="rq-row-main"><b dir="auto">${esc(co)}</b>${sub?`<small dir="auto">${esc(sub)}</small>`:''}</span>
-    <span class="rq-row-side"><em dir="ltr">${esc(_purFmtDate(r.date))}</em><i class="rq-dot ${st.cls}" title="${esc(_rqStatusLabel(r.status))}"></i></span>
+    <span class="rq-row-side"><em dir="ltr">${esc(_purFmtDate(r.date))}</em><span class="pr-rowend">${_rqPourBadge(r,true)}<i class="rq-dot ${st.cls}" title="${esc(_rqStatusLabel(r.status))}"></i></span></span>
   </button>`;
 }
 function _rqTileHTML(r){
   const st=_RQ_STATUS[r.status]||_RQ_STATUS.received;
   const plot=_rqPlotLabel(r);
   return `<button type="button" class="rq-tile rq-t ${st.cls}" style="--rq-tc:${_rqTypeColor(r)}" onclick="rqOpenCard('${r.id}')" aria-label="${esc(L('Plot','قطعة'))} ${esc(plot)}">
-    <i class="rq-dot ${st.cls}" title="${esc(_rqStatusLabel(r.status))}"></i>
+    <i class="rq-dot ${st.cls}" title="${esc(_rqStatusLabel(r.status))}"></i>${_rqPourBadge(r,true)}
     <span class="rq-tile-logo">${_rqCoLogoSrc(r.company)?bankLogoHTML(_rqCoLogoSrc(r.company),40,{alt:esc(_rqDisplayValue(r,'company'))}):ic('building',24)}</span>
     <span class="rq-tile-meta ${/^[\d\s\-–—\/.,]+$/.test(plot||'')?((plot||'').length>4?'rq-tl-s':''):((plot||'').length>12?'rq-tl-xs':(plot||'').length>6?'rq-tl-s':'')}">${/^[\d\s\-–—\/.,]+$/.test(plot||'')?`<small class="rq-tl-pre">${L('Plot','قطعة')}</small>`:''}<b dir="auto">${esc(plot||'—')}</b></span>
   </button>`;
@@ -40233,6 +40325,7 @@ function rqOpenCard(id){
       </div>
       <div class="rq-ds-chips">
         <span class="cx-chip ${st.cls}">${_rqStatusLabel(r.status)}</span>
+        ${_rqPourBadge(r)}
         ${dType?`<span class="rq-ds-tp" dir="auto">${esc(dType)}</span>`:''}
         ${r.date?`<span class="rq-ds-dt" dir="ltr">${ic('calendar',14)}${esc(r.date)}</span>`:''}
       </div>
@@ -40335,8 +40428,96 @@ function rqMoreGo(k){
   closeModal();
   if(k==='import') rqImportPick(); else if(k==='export') rqExportExcel();
 }
+
+// ══════════════════════════════════════════════════════════════════════════════
+// MY JOB → POURS tab (الصب). Every receipt flagged rec.pour===true, from every month,
+// newest first, grouped by day. Each card: company logo · plot no. · inspection type
+// (e.g. column formwork, slab reinforcement) · floor · date. Tap → the normal receipt sheet.
+// Read-only view over the receipts data: nothing is copied, so edits/deletes stay in sync.
+// ══════════════════════════════════════════════════════════════════════════════
+let _prScope='all'; // 'all' | 'month'
+function _prSetScope(k){ _prScope=(k==='month')?'month':'all'; renderView(true); }
+function _prDayLabel(iso){
+  if(!iso) return L('No date','بدون تاريخ');
+  const t=today();
+  const y=new Date(); y.setDate(y.getDate()-1);
+  const yi=y.getFullYear()+'-'+String(y.getMonth()+1).padStart(2,'0')+'-'+String(y.getDate()).padStart(2,'0');
+  let full=iso;
+  try{ full=new Date(iso+'T00:00:00').toLocaleDateString(typeof _dtLocale==='function'?_dtLocale():undefined,{weekday:'long',day:'numeric',month:'short',year:'numeric'}); }catch(e){}
+  if(iso===t) return L('Today','اليوم')+' · '+full;
+  if(iso===yi) return L('Yesterday','أمس')+' · '+full;
+  return full;
+}
+function _prMatch(r,q){
+  const hay=[r.plot,r.company,_rqDisplayValue(r,'company'),_rqIrLabel(r),r.irType,_rqFloorLabel(r.floor),r.floor,r.type,r.zone,r.model,r.date].map(v=>String(v||'')).join(' ').toLowerCase();
+  return q.split(/\s+/).filter(Boolean).every(t=>hay.includes(t));
+}
+function _prCardHTML(r){
+  const st=_RQ_STATUS[r.status]||_RQ_STATUS.received;
+  const plot=_rqPlotLabel(r), co=_rqDisplayValue(r,'company');
+  const work=_rqIrLabel(r), floor=_rqFloorLabel(r.floor), type=_rqDisplayValue(r,'type');
+  const logo=_rqCoLogoSrc(r.company)?bankLogoHTML(_rqCoLogoSrc(r.company),48,{alt:esc(co)}):ic('building',24);
+  const numeric=/^[\d\s\-–—\/.,]+$/.test(plot||'');
+  return `<button type="button" class="pr-card ${st.cls}" onclick="rqOpenCard('${r.id}')" aria-label="${esc(L('Pour','صب'))} ${esc(plot)} ${esc(work)}">
+    <span class="pr-logo">${logo}</span>
+    <span class="pr-main">
+      <span class="pr-top"><span class="pr-plot">${numeric?`<small>${L('Plot','قطعة')}</small>`:''}<b dir="auto">${esc(plot||'—')}</b></span><i class="rq-dot ${st.cls}" title="${esc(_rqStatusLabel(r.status))}"></i></span>
+      ${work?`<span class="pr-work" dir="auto">${esc(work)}</span>`:`<span class="pr-work none">${L('No inspection type','بدون نوع استلامة')}</span>`}
+      <span class="pr-meta">
+        ${floor?`<span class="pr-pill fl">${ic('floor',12)}<span dir="auto">${esc(floor)}</span></span>`:''}
+        ${type?`<span class="pr-pill" dir="auto">${esc(type)}</span>`:''}
+        <span class="pr-pill dt" dir="ltr">${ic('calendar',12)}${esc(_purFmtDate(r.date))}</span>
+      </span>
+      <span class="pr-co" dir="auto">${esc(co)}</span>
+    </span>
+  </button>`;
+}
+function renderPours(){
+  const everything=_rqLoad().filter(r=>r.pour===true);
+  const curMonth=(typeof activeMonth!=='undefined')?activeMonth:'';
+  const inMonth=r=>{ const k=_monthKeyForDate(r.date); return !k || k===curMonth; };
+  const monthN=everything.filter(inMonth).length;
+  const todayN=everything.filter(r=>r.date===today()).length;
+  const scoped=_prScope==='month'?everything.filter(inMonth):everything;
+  const q=(searchQ||'').trim().toLowerCase();
+  const list=(q?scoped.filter(r=>_prMatch(r,q)):scoped.slice())
+    .sort((a,b)=>String(b.date||'').localeCompare(String(a.date||''))||((b.createdAt||0)-(a.createdAt||0)));
+  const groups=[];
+  list.forEach(r=>{ const d=String(r.date||''); if(!groups.length||groups[groups.length-1].d!==d) groups.push({d,items:[]}); groups[groups.length-1].items.push(r); });
+  let mLbl=curMonth; try{ mLbl=_monthDisplayLabel(curMonth); }catch(e){}
+  const scopeBtn=(k,txt,n)=>`<button type="button" class="rq-scope-b${_prScope===k?' on':''}" aria-pressed="${_prScope===k}" onclick="_prSetScope('${k}')">${txt}<em>${n}</em></button>`;
+  const stat=(n,lbl,cls)=>`<div class="pr-stat ${cls||''}"><b>${n}</b><span>${lbl}</span></div>`;
+  const summary=everything.length?`<div class="pr-sum">
+      <div class="pr-sum-ic">${ic('droplet',22)}</div>
+      <div class="pr-sum-st">${stat(everything.length,L('Total pours','إجمالي الصب'))}${stat(monthN,L('This month','الشهر ده'))}${stat(todayN,L('Today','النهاردة'),todayN?'hot':'')}</div>
+    </div>`:'';
+  const empty=everything.length===0
+    ? `<div class="cst-empty-state">
+         <div class="cst-empty-icon">${ic('droplet',26)}</div>
+         <div class="cst-empty-title">${L('No pour requests yet','لا توجد طلبات صب بعد')}</div>
+         <div class="cst-empty-sub">${L('Mark a receipt as Pour and it is listed here with its plot, work type, floor and date.','اختار "صب" في أي استلامة وهتظهر هنا برقم القطعة ونوع الاستلامة والدور والتاريخ.')}</div>
+         <button type="button" class="cst-empty-cta" onclick="window._rqPourPreset=true;openRequestModal(null)">${ic('plus',13)} ${L('New pour request','طلب صب جديد')}</button>
+       </div>`
+    : `<div class="cx-none">${L('No results','لا نتائج')}</div>`;
+  const body=list.length?groups.map(g=>`<div class="pr-day"><b>${esc(_prDayLabel(g.d))}</b><span>${g.items.length}</span></div><div class="pr-grid">${g.items.map(_prCardHTML).join('')}</div>`).join(''):empty;
+  return `<div class="screen-wrap cx-wrap">
+  ${_pgHdr('Site','الموقع','My Job','My Job','Receipts log and custody money','سجل الاستلامات وفلوس العهدة')}
+  ${_prjBarHTML()}
+  ${_cxTabsHTML()}
+  <section class="cx-sec">
+    <div class="cx-sh"><span class="cx-sh-l"><span class="cx-sh-t">${L('Pours','الصب')}</span><span class="cx-sh-s">${everything.length} ${L('pour requests','طلب صب')}</span></span></div>
+    ${summary}
+    ${everything.length?`<div class="pr-scope"><div class="rq-scope" role="group">${scopeBtn('all',L('All pours','كل الصب'),everything.length)}${scopeBtn('month',esc(mLbl),monthN)}</div></div>
+    <div class="sc-search cx-search"><span class="cx-sbox">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
+      <input placeholder="${L('Search plot, company, work…','ابحث برقم القطعة أو الشركة أو نوع الاستلامة…')}" value="${esc(searchQ)}" oninput="doSearch(this.value)"/>
+    </span></div>`:''}
+    <div class="pr-list">${body}</div>
+  </section>
+  </div>`;
+}
 function renderMyRequests(){
-  const _everything=_rqLoad();
+  const _everything=_rqLoad().filter(r=>!r.pour); // pour requests live only on the Pours tab
   const all=_rqAllMonths?_everything:_everything.filter(_rqInActiveMonth);
   const counts={received:0,notes:0,rejected:0};
   all.forEach(r=>{ if(counts[r.status]!==undefined) counts[r.status]++; });
@@ -40441,6 +40622,7 @@ function openRequestModal(id){
   const r=id?list.find(x=>x.id===id):null;
   _rqEditId=r?r.id:null;
   _rqStatusSel=(r&&_RQ_STATUS[r.status])?r.status:'received';
+  _rqPourSel=r?!!r.pour:!!window._rqPourPreset; window._rqPourPreset=false; _rqPourAutoType=false; // opened from the Pours tab → starts as a pour
   _rqRateInit(r&&r.rating);
   _rqPendingCoLogo=undefined;
   const uniq=k=>[...new Set(list.map(x=>String(x[k]||'').trim()).filter(Boolean))];
@@ -40495,6 +40677,8 @@ function openRequestModal(id){
         </div></div>
     </div>
 
+    ${_rqPourSecHTML()}
+
     <div class="rq-sec">
       <div class="rq-sec-hdr">${ic('flag',15)}<span>${L('Status','الحالة')}</span></div>
       <div class="field"><div class="rq-seg">${stBtns}</div></div>
@@ -40517,6 +40701,7 @@ function openRequestModal(id){
   _rqRenderCommentSuggestions();
   _rqModelAuto=(r && _rqPlotPrimary(_rqPlotCandidates(r.plot))?.m===r.model)?r.model:'';
   _rqRenderModelSugg();
+  if(_rqPourSel && !r) _rqPickPour(true);
   _rqLevelAuto=(r && r.level && _RQ_FLOOR_LEVELS[_rqFloorKey(r.floor)]===r.level)?r.level:'';
   if(r && !String(r.level||'').trim()) _rqOnFloorInput();
 }
@@ -40799,6 +40984,33 @@ function _bindBulletNotes(ta){
     ta.dispatchEvent(new Event('input',{bubbles:true}));
   });
 }
+// ── Concrete pour (صب) flag ───────────────────────────────────────────────
+// rec.pour === true  → this receipt is a pour request: it is listed on the My Job → Pours tab.
+let _rqPourSel=false;
+function _rqPourSecHTML(){
+  const b=(v,lbl,icn)=>`<button type="button" class="rq-stbtn pr-opt ${v?'pr-yes':'pr-no'}${_rqPourSel===v?' on':''}" data-p="${v?1:0}" aria-pressed="${_rqPourSel===v}" onclick="_rqPickPour(${v})">${ic(icn,18)}<span>${lbl}</span></button>`;
+  return `<div class="rq-sec rq-pour-sec"><div class="rq-sec-hdr">${ic('droplet',15)}<span>${L('Concrete pour','حالة الصب')}</span></div>
+    <div class="field"><div class="rq-seg pr-seg">${b(true,L('Pour','صب'),'droplet')}${b(false,L('Not a pour','مش صب'),'close')}</div>
+    <div class="pr-hint" id="rqPourHint">${_rqPourSel?L('CPP · listed in the Pours tab only','CPP · هتظهر في تاب الصب بس'):L('Choose Pour to list it in the Pours tab','اختار صب عشان تظهر في تاب الصب')}</div></div>
+  </div>`;
+}
+let _rqPourAutoType=false;
+function _rqPickPour(v){
+  _rqPourSel=!!v;
+  const sel=document.getElementById('rqTypeSel'), ti=document.getElementById('rqType');
+  if(sel&&ti){
+    if(_rqPourSel && !ti.value.trim()){ sel.value='CPP'; _rqTypeSelChange(sel); _rqPourAutoType=true; }
+    else if(!_rqPourSel && _rqPourAutoType && ti.value.trim().toUpperCase()==='CPP'){ sel.value=''; _rqTypeSelChange(sel); _rqPourAutoType=false; }
+  }
+  document.querySelectorAll('.pr-opt').forEach(b=>{ const on=(b.dataset.p==='1')===_rqPourSel; b.classList.toggle('on',on); b.setAttribute('aria-pressed',on); });
+  const h=document.getElementById('rqPourHint');
+  if(h) h.textContent=_rqPourSel?L('CPP · listed in the Pours tab only','CPP · هتظهر في تاب الصب بس'):L('Choose Pour to list it in the Pours tab','اختار صب عشان تظهر في تاب الصب');
+}
+function _rqPourBadge(r,mini){
+  if(!r||!r.pour) return '';
+  return mini?`<span class="pr-badge mini" title="${L('Pour','صب')}">${ic('droplet',11)}</span>`
+             :`<span class="pr-badge">${ic('droplet',12)}${L('Pour','صب')}</span>`;
+}
 function _rqPickStatus(k){
   if(!_RQ_STATUS[k]) return;
   _rqStatusSel=k;
@@ -40823,6 +41035,8 @@ function saveRequest(){
   }
   const rec={company,engineer:g('rqEngineer'),date:g('rqDate')||today(),type:g('rqType'),zone:g('rqZone'),plot:g('rqPlot'),model:g('rqModel'),floor:g('rqFloor'),level:g('rqLevel'),status:_rqStatusSel,notes:g('rqNotes')};
   rec.irType=g('rqIrType'); // inspection type, kept for every receipt type
+  rec.pour=!!_rqPourSel;    // concrete pour request → listed on the Pours tab
+  if(rec.pour && !rec.type) rec.type='CPP'; // a pour request is a CPP
   rec.rating=_rqRateCollect(); // contractor rating (trade + stars) or null
   _atLearnEdits(document.getElementById('rqNotes'));
   _rqLearnCommentSuggestions(rec.type,rec.irType,rec.notes);
@@ -43019,6 +43233,7 @@ function openExpPicker(e){
   e && e.stopPropagation();
   if(_cxTab==='attendance'){ ATT.openDay(today()); return; }
   if(_cxTab==='requests'){ openRequestModal(null); return; }
+  if(_cxTab==='pour'){ window._rqPourPreset=true; openRequestModal(null); return; }
   if(_cxTab==='cv'){ _prjOpen(); return; }
   if(_cxTab==='profile'){ _jpEditCustody(null); return; }
   _fpFabPickerRemoveNow();
@@ -43114,7 +43329,7 @@ function closeFabPicker(){
   setTimeout(()=>{ picker?.remove(); bd?.remove(); },130);
 }
 function openAddTx(){openAdd();}
-function openAdd(){editTarget=null;if(currentView==='transactions') showTxModal(null);else if(currentView==='expenses'){ if(_cxTab==='attendance') ATT.openDay(today()); else if(_cxTab==='requests') openRequestModal(null); else if(_cxTab==='cv') _prjOpen(); else if(_cxTab==='profile') _jpEditCustody(null); else showExpModal(null); }}
+function openAdd(){editTarget=null;if(currentView==='transactions') showTxModal(null);else if(currentView==='expenses'){ if(_cxTab==='attendance') ATT.openDay(today()); else if(_cxTab==='requests') openRequestModal(null); else if(_cxTab==='pour'){ window._rqPourPreset=true; openRequestModal(null); } else if(_cxTab==='cv') _prjOpen(); else if(_cxTab==='profile') _jpEditCustody(null); else showExpModal(null); }}
 function openEdit(type,idx){editTarget={type,idx};if(type==='tx') showTxModal(DATA[activeMonth].transactions[idx]);else showExpModal(DATA[activeMonth].site_expenses[idx]);}
 
 // ── AI Quick Entry (UI only — no AI parsing yet) ────────────────────────────
@@ -50439,7 +50654,7 @@ function _rqAutoTrText(raw){
         _rqAutoTr[k]=t;
         try{ localStorage.setItem(_RQ_AUTOTR_KEY,JSON.stringify(_rqAutoTr)); }catch(e){}
         clearTimeout(_rqAutoTrTimer);
-        _rqAutoTrTimer=setTimeout(()=>{ try{ if(currentView==='expenses' && _cxTab==='requests') renderView(); }catch(e){} },60);
+        _rqAutoTrTimer=setTimeout(()=>{ try{ if(currentView==='expenses' && (_cxTab==='requests'||_cxTab==='pour')) renderView(); }catch(e){} },60);
       }
     }).catch(e=>_logErr('_rqAutoTrText',e)).finally(()=>_rqAutoTrPending.delete(k));
   }
