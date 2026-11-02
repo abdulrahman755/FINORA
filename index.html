@@ -1395,7 +1395,7 @@ button:disabled{opacity:.5;cursor:not-allowed;pointer-events:none}
 .bal-meta-item{flex:1;display:flex;flex-direction:column;gap:var(--sp1)}
 .bal-meta-item+.bal-meta-item{border-inline-start:1px solid rgba(255,255,255,.14);padding-inline-start:var(--sp3);margin-inline-start:var(--sp3)}
 .bal-meta-item:first-child{padding-inline-start:0}
-.bal-meta-label{font-size:calc(8px*var(--app-text-scale,1));color:rgba(255,255,255,.6);text-transform:none;letter-spacing:0.3px;font-weight:700}
+.bal-meta-label{font-size:calc(10px*var(--app-text-scale,1));color:rgba(255,255,255,.6);text-transform:none;letter-spacing:0.3px;font-weight:700}
 .bal-meta-value{font-family:var(--bnk-num-font,inherit);font-size:calc(11px*var(--bnk-num-scale,1));font-weight:var(--bnk-num-weight,800);color:var(--bnk-num-color,#fff);letter-spacing:.3px;text-shadow:0 1px 3px rgba(0,0,0,.5)}
 .bal-meta-value.hidden{letter-spacing:2px;opacity:.5}
 
@@ -1420,9 +1420,9 @@ button:disabled{opacity:.5;cursor:not-allowed;pointer-events:none}
   flex-shrink:0;display:flex;flex-direction:column;gap:1px;padding:6px 10px;border-radius:var(--radius-sm);
   background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.16);min-width:64px;
 }
-.bal-fx-chip-code{font-size:calc(8px*var(--app-text-scale,1));color:rgba(255,255,255,.65);text-transform:uppercase;letter-spacing:.6px;font-weight:700}
+.bal-fx-chip-code{font-size:calc(10px*var(--app-text-scale,1));color:rgba(255,255,255,.65);text-transform:uppercase;letter-spacing:.6px;font-weight:700}
 .bal-fx-chip-val{font-family:var(--bnk-num-font,inherit);font-size:calc(11px*var(--bnk-num-scale,1));color:var(--bnk-num-color,#fff);font-weight:var(--bnk-num-weight,800);letter-spacing:.2px;white-space:nowrap;text-shadow:0 1px 2px rgba(0,0,0,.5)}
-.bal-fx-note{font-size:calc(8px*var(--app-text-scale,1));color:rgba(255,255,255,.5);font-weight:600;margin-top:6px;display:flex;align-items:center;gap:4px}
+.bal-fx-note{font-size:calc(10px*var(--app-text-scale,1));color:rgba(255,255,255,.5);font-weight:600;margin-top:6px;display:flex;align-items:center;gap:4px}
 .bal-fx-note svg{width:12px;height:12px;flex-shrink:0}
 
 /* Transaction rows */
@@ -3927,38 +3927,41 @@ img.atl-img{position:absolute;left:0;top:0;width:100%;height:calc(100% - var(--b
   transition:opacity var(--dur-slow,.3s) var(--ease-standard,ease);
 }
 #tabTourOverlay.visible{pointer-events:all;opacity:1;}
-/* Dimmed+blurred backdrop behind everything (Welcome/Closing steps with no
-   spotlight target — nothing needs to stay sharp, so the blur can safely
-   cover the full screen here). For spotlighted steps this is hidden and the
-   four .tour-blur-strip elements below take over instead, since a full-
-   screen blur would blur the spotlighted target itself. */
+/* Backdrop for the tour. NO backdrop-filter is used on spotlighted steps: a
+   blur layered around a "hole" is unreliable on iOS Safari (it ends up
+   blurring the highlighted element too, so the user can't see what the
+   step is about). Instead the .tour-spotlight element itself paints a huge
+   box-shadow that dims everything OUTSIDE its rectangle — the target stays
+   100% sharp and fully visible through the transparent spotlight. */
+#tabTourOverlay{--tour-dim:rgba(15,23,42,.66);}
+[data-theme="dark"] #tabTourOverlay{--tour-dim:rgba(0,0,0,.78);}
+/* Full-screen dim for Welcome/Closing steps only (no target to keep sharp,
+   so a light blur is safe here). */
 .tour-scrim{
   position:absolute;inset:0;
-  background:var(--overlay-scrim-heavy,rgba(0,0,0,.18));
-  backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px);
-}
-/* Four independently-positioned strips that tile the screen AROUND the
-   spotlight rect (top/bottom/left/right), each carrying the blur+scrim —
-   leaving a precise unblurred "hole" over the spotlighted element itself.
-   Positioned/sized per-step in _tourPosition(); a plain full-screen blur on
-   the whole overlay would blur the very thing being pointed at. */
-.tour-blur-strip{
-  position:absolute;
-  background:var(--overlay-scrim-heavy,rgba(0,0,0,.18));
-  backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px);
+  background:var(--tour-dim);
+  backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);
 }
 .tour-spotlight{
   position:absolute;
+  pointer-events:none;
   border-radius:16px;
   border:2px solid var(--green);
-  transition:all var(--dur-slower,.4s) var(--ease-decel,ease);
+  box-shadow:0 0 0 200vmax var(--tour-dim);
+  transition:left .35s ease,top .35s ease,width .35s ease,height .35s ease,border-radius .35s ease;
+}
+/* Pulse ring lives on a pseudo-element so it can animate freely without
+   touching the box-shadow that does the dimming. */
+.tour-spotlight::after{
+  content:"";position:absolute;inset:-2px;border-radius:inherit;
+  border:2px solid var(--green);opacity:0;pointer-events:none;
 }
 @media (prefers-reduced-motion:no-preference){
-  .tour-spotlight{animation:tourPulse 2s ease-in-out infinite;}
+  .tour-spotlight::after{animation:tourPulse 1.8s ease-out infinite;}
 }
 @keyframes tourPulse{
-  0%,100%{ box-shadow:0 0 0 0 var(--green-glow); }
-  50%{ box-shadow:0 0 0 6px var(--green-glow); }
+  0%{opacity:.75;inset:-2px;}
+  100%{opacity:0;inset:-11px;}
 }
 .tour-card{
   position:absolute;
@@ -7074,8 +7077,8 @@ html.wdash-sheet-lock,html.wdash-sheet-lock body{overflow:hidden}
 /* Labels on the card face were 50–70% opacity at 8px — on light or busy
    photos they disappeared. Stronger, slightly larger, with a soft halo. */
 .banks-v2 .bnk-vc-balance .bal-avail-label{color:rgba(255,255,255,.92);font-weight:800}
-.banks-v2 .bnk-vc-balance .bal-meta-label{color:rgba(255,255,255,.9);font-size:calc(9px*var(--app-text-scale,1));font-weight:700}
-.banks-v2 .bnk-vc-balance .bal-fx-chip-code{color:rgba(255,255,255,.9);font-size:calc(9px*var(--app-text-scale,1));font-weight:700}
+.banks-v2 .bnk-vc-balance .bal-meta-label{color:rgba(255,255,255,.9);font-size:calc(10px*var(--app-text-scale,1));font-weight:700}
+.banks-v2 .bnk-vc-balance .bal-fx-chip-code{color:rgba(255,255,255,.9);font-size:calc(10px*var(--app-text-scale,1));font-weight:700}
 .banks-v2 .bnk-vc-balance .bal-fx-note{color:rgba(255,255,255,.82);font-size:calc(9px*var(--app-text-scale,1));font-weight:700}
 .banks-v2 .bnk-visacard .bnk-vc-holder-lbl{opacity:.92;font-weight:700}
 .banks-v2 .bnk-vc-balance.bnk-vc-light{--vc-int-lbl:rgba(0,0,0,.78);--vc-int-val:#7a5200}
@@ -9568,7 +9571,7 @@ body .screen-wrap .sc-header.sav-plain-header.sav-plain-header::after{display:no
   flex:1 0 auto;min-width:72px;gap:3px;padding:9px 11px;border-radius:12px;
   background:color-mix(in srgb,currentColor 7%,transparent);border:1px solid color-mix(in srgb,currentColor 12%,transparent)
 }
-.banks-v2 .bnk-visacard-expanded .bal-fx-chip-code{font-size:calc(9px*var(--app-text-scale,1));font-weight:600;letter-spacing:.9px;opacity:.7}
+.banks-v2 .bnk-visacard-expanded .bal-fx-chip-code{font-size:calc(10px*var(--app-text-scale,1));font-weight:600;letter-spacing:.9px;opacity:.7}
 .banks-v2 .bnk-visacard-expanded .bal-fx-chip-val{font-size:calc(12px*var(--bnk-num-scale,1));font-weight:600}
 .banks-v2 .bnk-visacard-expanded .bal-fx-note{margin-top:12px;font-weight:500;opacity:.65;letter-spacing:.2px}
 
@@ -53510,12 +53513,8 @@ if(document.readyState === 'loading'){
      the user to the right screen first if needed. The final step
      (index 9) is a short closing card (no spotlight).
 ═══════════════════════════════════════════════════════════════ -->
-<div id="tabTourOverlay" role="dialog" aria-modal="true" aria-labelledby="tourTitle" aria-describedby="tourDesc">
+<div id="tabTourOverlay" role="dialog" aria-modal="true" aria-labelledby="tourTitle" aria-describedby="tourDesc" onclick="event.stopPropagation()">
   <div class="tour-scrim" id="tourScrim"></div>
-  <div class="tour-blur-strip" id="tourBlurT" style="display:none"></div>
-  <div class="tour-blur-strip" id="tourBlurB" style="display:none"></div>
-  <div class="tour-blur-strip" id="tourBlurL" style="display:none"></div>
-  <div class="tour-blur-strip" id="tourBlurR" style="display:none"></div>
   <div class="tour-spotlight" id="tourSpotlight" style="display:none"></div>
   <div class="tour-card" id="tourCard">
     <div class="tour-step-badge" id="tourBadge"></div>
@@ -53578,132 +53577,204 @@ let _tourIdx = 0;
 
 // Each step: { view (null = no navigation needed), target (CSS selector OR an
 // array of selectors tried in order — first one that is actually visible
-// wins; none visible = centered card, so a tour step never points at
-// nothing), icon, titleEn/titleAr, descEn/descAr }.
-// 18 steps: Welcome → Dashboard (3) → the 5 main tabs → Add button →
-// header tools (Search, MIORA, Notifications, More) → Notes → Settings → Done.
+// wins), optional (true = silently skipped when its target isn't on screen,
+// e.g. "account cards" before any account exists), pre (runs before the step
+// is measured, e.g. opens the More menu), icon, titleEn/titleAr,
+// descEn/descAr }. A non-optional step whose target is missing falls back to
+// a centered card, so it never points at nothing.
 const _TI = d => '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round">'+d+'</svg>';
+const _tourOpenMore = ()=>{ const m=document.getElementById('hdrMoreMenu'); if(m){ m.style.display='block'; m.dataset.tourOpen='1'; } };
 const TOUR_STEPS = [
-  { // 1 — Welcome
+  { // Welcome
     view:null, target:null, welcome:true,
     icon:'<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.4 7.2H22l-6 4.6L18.4 21 12 16.4 5.6 21 8 13.8l-6-4.6h7.6z"/></svg>',
     titleEn:'Welcome to FINORA', titleAr:'Welcome to FINORA',
-    descEn:'Your money. Your future.<br>Manage your accounts, expenses, and savings all in one place.',
-    descAr:'أموالك. مستقبلك.<br>إدارة حساباتك، مصروفاتك ومدخراتك في مكان واحد.'
+    descEn:'Your money. Your future.<br>Bank accounts, daily spending, your work custody and your personal finances — all in one place. This short tour points at the real buttons so you know exactly where everything is.',
+    descAr:'أموالك. مستقبلك.<br>حساباتك البنكية، إنفاقك اليومي، عُهدة عملك وأموالك الشخصية — كلها في مكان واحد. هذه الجولة القصيرة تشير إلى الأزرار الحقيقية لتعرف مكان كل شيء.'
   },
-  { // 2 — Dashboard tab
+  { // Dashboard tab
     view:'wsdash', target:'#navBtn-Dashboard',
     icon:_TI('<rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/>'),
     titleEn:'Dashboard — Home', titleAr:'Dashboard — الرئيسية',
     descEn:'Your home base. One screen that shows where your money stands right now — and it updates as you add data.',
     descAr:'شاشتك الرئيسية. تعرض وضعك المالي الآن في شاشة واحدة، وتتحدث تلقائياً كلما أضفت بيانات.'
   },
-  { // 3 — Net balance hero
-    view:'wsdash', target:['.wdash-wrap .dv3-hero','.fr-hero'],
+  { // Net balance hero
+    view:'wsdash', target:['.wdash-wrap .dv3-hero','.fr-hero','.wdash-greet'],
     icon:_TI('<path d="M3 12h4l3 8 4-16 3 8h4"/>'),
     titleEn:'Total Net Balance', titleAr:'صافي الرصيد',
-    descEn:'Your net position across all accounts, plus how it changed this month. Tap the month at the top to look at any other month.',
-    descAr:'صافي رصيدك عبر كل الحسابات، مع التغير خلال الشهر. اختر الشهر من أعلى الشاشة لاستعراض أي شهر آخر.'
+    descEn:'Your net position across all accounts, plus how it changed this month.',
+    descAr:'صافي رصيدك عبر كل الحسابات، مع التغير خلال الشهر.'
   },
-  { // 4 — Dashboard cards
-    view:'wsdash', target:['.wdash-wrap .sc-card','#wdashApps'],
+  { // Month selector
+    view:'wsdash', target:['#monthTabs .month-active-btn','#monthTabs'], optional:true,
+    icon:_TI('<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>'),
+    titleEn:'Month Selector', titleAr:'اختيار الشهر',
+    descEn:'Everything in the app follows the month shown here. Tap it to look back at any previous month or move to a new one.',
+    descAr:'كل شيء في التطبيق يتبع الشهر المعروض هنا. اضغط عليه لاستعراض أي شهر سابق أو الانتقال إلى شهر جديد.'
+  },
+  { // Hide balances
+    view:'wsdash', target:['.dash-hero-eye'], optional:true,
+    icon:_TI('<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>'),
+    titleEn:'Hide Your Balances', titleAr:'إخفاء الأرصدة',
+    descEn:'Tap the eye to hide every amount when someone is looking at your screen. Tap again to show them.',
+    descAr:'اضغط على العين لإخفاء كل المبالغ عندما يكون أحد ينظر إلى شاشتك. اضغط مرة أخرى لإظهارها.'
+  },
+  { // Dashboard cards
+    view:'wsdash', target:['.wdash-apps','#wdashApps'], optional:true,
     icon:_TI('<path d="M12 2 2 7l10 5 10-5z"/><path d="m2 17 10 5 10-5M2 12l10 5 10-5"/>'),
     titleEn:'Your Dashboard Cards', titleAr:'بطاقات الداشبورد',
-    descEn:'Cash flow, top accounts, recent activity and AI insights live here as cards. You can drag to reorder them, hide the ones you don\'t need, and give each its own color.',
-    descAr:'التدفق النقدي، أكبر الحسابات، آخر النشاط والتحليلات الذكية تظهر كبطاقات. يمكنك سحبها لإعادة الترتيب، وإخفاء ما لا تحتاجه، وتلوين كل بطاقة بلون خاص.'
+    descEn:'Cash flow, top accounts, recent activity and AI insights live here as cards. Tap any card to open its full screen.',
+    descAr:'التدفق النقدي، أكبر الحسابات، آخر النشاط والتحليلات الذكية تظهر كبطاقات. اضغط على أي بطاقة لفتح شاشتها الكاملة.'
   },
-  { // 5 — Quick Actions
+  { // Customize dashboard
+    view:'wsdash', target:['.wdash-manage-btn'], optional:true,
+    icon:_TI('<line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/>'),
+    titleEn:'Customize the Dashboard', titleAr:'تخصيص الداشبورد',
+    descEn:'Drag cards to reorder them, hide the ones you don\'t need, and give each its own color — make the dashboard yours.',
+    descAr:'اسحب البطاقات لإعادة ترتيبها، أخفِ ما لا تحتاجه، وامنح كل بطاقة لوناً خاصاً — اجعل الداشبورد على ذوقك.'
+  },
+  { // Quick Actions
     view:'wsdash', target:['.fp-qa-row','.fr-steps'],
     icon:_TI('<path d="M13 2 4 14h7l-1 8 9-12h-7z"/>'),
     titleEn:'Quick Actions', titleAr:'إجراءات سريعة',
-    descEn:'Shortcuts for the things you do most — log an expense, add income, move money — in a single tap from the Dashboard.',
-    descAr:'اختصارات لأكثر ما تفعله — تسجيل مصروف، إضافة دخل، تحويل مبلغ — بضغطة واحدة من الداشبورد.'
+    descEn:'Shortcuts for what you do most — add income, log an expense, move money between accounts, or open your Reports — in a single tap.',
+    descAr:'اختصارات لأكثر ما تفعله — إضافة دخل، تسجيل مصروف، تحويل مبلغ بين الحسابات، أو فتح التقارير — بضغطة واحدة.'
   },
-  { // 6 — Accounts
+  { // Accounts tab
     view:'banks', target:'#navBtn-Banks',
     icon:_TI('<rect x="2" y="5" width="20" height="14" rx="2.5"/><path d="M2 10h20"/><path d="M6 15h4"/>'),
     titleEn:'Accounts — Banks & Wallets', titleAr:'Accounts — البنوك والمحافظ',
     descEn:'Add every bank account and e-wallet. Record deposits, withdrawals and transfers, set interest and transfer fees, and watch each balance and its full history.',
     descAr:'أضف كل حساباتك البنكية ومحافظك الإلكترونية. سجّل الإيداع والسحب والتحويل، وحدد الفائدة ورسوم التحويل، وتابع رصيد كل حساب وسجل حركته.'
   },
-  { // 7 — Daily Spend
+  { // Balances at a glance
+    view:'banks', target:['.banks-v2 .bnk-hero'], optional:true,
+    icon:_TI('<path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/>'),
+    titleEn:'Balances at a Glance', titleAr:'الأرصدة في لمحة',
+    descEn:'The total balance across all your banks and wallets and how many accounts you have. Tap Hide to mask the amounts.',
+    descAr:'إجمالي الرصيد عبر كل بنوكك ومحافظك وعدد الحسابات. اضغط إخفاء لحجب المبالغ.'
+  },
+  { // Add account
+    view:'banks', target:['.banks-v2 .fr-btn','#fabBtn'], optional:true,
+    icon:_TI('<path d="M12 5v14M5 12h14"/>'),
+    titleEn:'Add a Bank or E-Wallet', titleAr:'إضافة بنك أو محفظة',
+    descEn:'Start here. Pick your bank from the list (or upload your own logo) or add a wallet like Vodafone Cash or InstaPay, then enter its opening balance.',
+    descAr:'ابدأ من هنا. اختر بنكك من القائمة (أو ارفع شعارك) أو أضف محفظة مثل فودافون كاش أو إنستاباي، ثم أدخل الرصيد الافتتاحي.'
+  },
+  { // Account cards
+    view:'banks', target:['.banks-v2 .bnk-accounts'], optional:true,
+    icon:_TI('<rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/>'),
+    titleEn:'Your Account Cards', titleAr:'بطاقات حساباتك',
+    descEn:'Each account is a card showing its live balance. Expand it with the arrow to see its activity, or use the ⋮ menu to set its interest, add a low-balance alert, save the account number and IBAN, change its color or logo, or add a quick link to the bank\'s app.',
+    descAr:'كل حساب يظهر كبطاقة بالرصيد الحالي. وسّع البطاقة بالسهم لرؤية نشاطها، أو استخدم قائمة ⋮ لتحديد الفائدة، وإضافة تنبيه رصيد منخفض، وحفظ رقم الحساب وIBAN، وتغيير اللون أو الشعار، أو إضافة رابط سريع لتطبيق البنك.'
+  },
+  { // Movement history
+    view:'banks', target:['.banks-v2 .bnk-timeline'], optional:true,
+    icon:_TI('<path d="M12 8v4l3 2"/><circle cx="12" cy="12" r="9"/>'),
+    titleEn:'Movement History', titleAr:'سجل الحركات',
+    descEn:'Every deposit, withdrawal and transfer across your accounts in one timeline — so you can always trace where a balance came from.',
+    descAr:'كل إيداع وسحب وتحويل عبر حساباتك في خط زمني واحد — لتعرف دائماً من أين جاء أي رصيد.'
+  },
+  { // Daily Spend tab
     view:'transactions', target:'#navBtn-Daily',
     icon:_TI('<path d="M6 2h12a1 1 0 0 1 1 1v18l-2.5-1.5L14 21l-2-1.5L10 21l-2.5-1.5L5 21V3a1 1 0 0 1 1-1z"/><path d="M8 7.5h8"/><path d="M8 11.5h8"/><path d="M8 15.5h5"/>'),
     titleEn:'Daily Spend — Spending Log', titleAr:'Daily Spend — الإنفاق اليومي',
     descEn:'Write what you spent in plain words and FINORA does the math. Set a daily target and see at a glance whether you\'re on track.',
     descAr:'اكتب ما أنفقته بكلمات عادية وFINORA يحسب لك. حدد هدفاً يومياً وتابع هل أنت ملتزم به أم لا.'
   },
-  { // 8 — My Job (tab)
+  { // Daily actions
+    view:'transactions', target:['.dly-actions','.fr-hero'], optional:true,
+    icon:_TI('<path d="M12 5v14M5 12h14"/>'),
+    titleEn:'Add, Scan & Set a Target', titleAr:'إضافة، مسح وتحديد هدف',
+    descEn:'<b>Add expense</b> to log a purchase, <b>Scan receipt</b> to read it from a photo, and <b>Target</b> to set how much you want to spend per day or month.',
+    descAr:'<b>إضافة مصروف</b> لتسجيل عملية شراء، و<b>مسح إيصال</b> لقراءته من صورة، و<b>الهدف</b> لتحديد ما تريد إنفاقه يومياً أو شهرياً.'
+  },
+  { // Daily summary
+    view:'transactions', target:['.dsum-card'], optional:true,
+    icon:_TI('<path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/>'),
+    titleEn:'Today & This Month', titleAr:'اليوم وهذا الشهر',
+    descEn:'See what you spent today and this month against your target, so you know right away if you\'re over budget.',
+    descAr:'اعرف ما أنفقته اليوم وهذا الشهر مقارنةً بهدفك، لتعرف فوراً إن كنت قد تجاوزت الميزانية.'
+  },
+  { // My Job (tab)
     view:'expenses', target:'#navBtn-SiteCustody',
     icon:_TI('<path d="M4 15a8 8 0 0 1 16 0"/><path d="M2 15h20"/><path d="M2 15v1.5a1.5 1.5 0 0 0 1.5 1.5h17a1.5 1.5 0 0 0 1.5-1.5V15"/><path d="M12 15V9"/>'),
     titleEn:'My Job', titleAr:'My Job',
     descEn:'Everything for your work or site in one place: the custody money you received, what you spent from it, and what is left.',
     descAr:'كل ما يخص عملك أو موقعك في مكان واحد: العُهدة التي استلمتها، وما صرفته منها، والمتبقي.'
   },
-  { // 9 — My Job tabs
+  { // My Job tabs
     view:'expenses', target:['.cx-tabs','.cx-wrap .fr-hero'],
     icon:_TI('<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M9 4v5"/>'),
     titleEn:'Receipts, Custody, Attendance & CV', titleAr:'استلاماتي، العُهدة، الحضور وسيرتي',
     descEn:'Four tabs: <b>Receipts</b> for requests, <b>Custody</b> for the money you hold, <b>Attendance</b> for your working days, and <b>My CV</b> for your profile.',
     descAr:'أربع تبويبات: <b>استلاماتي</b> للإيصالات والطلبات، و<b>العُهدة</b> للمبالغ التي بحوزتك، و<b>الحضور</b> لأيام عملك، و<b>سيرتي</b> لملفك المهني.'
   },
-  { // 10 — My Finances
+  { // My Finances
     view:'savings', target:'#navBtn-MySavings',
     icon:_TI('<ellipse cx="12" cy="6" rx="8" ry="3"/><path d="M4 6v6c0 1.66 3.58 3 8 3s8-1.34 8-3V6"/><path d="M4 12v6c0 1.66 3.58 3 8 3s8-1.34 8-3v-6"/>'),
     titleEn:'My Finances', titleAr:'My Finances — أموالي',
     descEn:'Your personal side: income, expenses, assets and debts, and your net worth. Gold assets are valued at today\'s live gold price automatically.',
     descAr:'جانبك الشخصي: الدخل والمصروفات والأصول والديون وصافي ثروتك. أصول الذهب تُقيَّم تلقائياً بسعر الذهب اللحظي اليوم.'
   },
-  { // 11 — Add (+) button
-    view:'transactions', target:['#fabBtn'],
+  { // Add (+) button
+    view:'transactions', target:['#fabBtn'], optional:true,
     icon:_TI('<path d="M12 5v14M5 12h14"/>'),
     titleEn:'The Add Button', titleAr:'زر الإضافة',
     descEn:'On screens that support it, the <b>+</b> button adds a new record for that screen — an expense, a movement, an asset. You can drag it anywhere that suits your thumb.',
     descAr:'في الشاشات التي تدعمه، يضيف الزر <b>+</b> سجلاً جديداً لتلك الشاشة — مصروف، حركة، أو أصل. ويمكنك سحبه إلى المكان الأنسب لإبهامك.'
   },
-  { // 12 — Search
+  { // Search
     view:null, target:'#hdrSearchBtn',
     icon:_TI('<circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/>'),
     titleEn:'Search', titleAr:'البحث',
     descEn:'Find any transaction, account, receipt or record from anywhere in the app.',
     descAr:'ابحث عن أي عملية أو حساب أو إيصال أو سجل من أي مكان في التطبيق.'
   },
-  { // 13 — MIORA
+  { // MIORA
     view:null, target:'#mioraBtn',
     icon:_TI('<path d="M5 5h14a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-7l-4 3v-3H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z"/>'),
     titleEn:'MIORA — Your Assistant', titleAr:'MIORA — مساعدك',
     descEn:'Ask MIORA how any screen or button works, or ask it to do things for you, like changing an account\'s interest rate or transfer fee.',
     descAr:'اسأل MIORA عن طريقة عمل أي شاشة أو زر، أو اطلب منها تنفيذ أمور نيابةً عنك مثل تغيير فائدة الحساب أو نسبة التحويل.'
   },
-  { // 14 — Notifications
+  { // Notifications
     view:null, target:'.header-icon-rail > button:last-child',
     icon:_TI('<path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9zM13.73 21a2 2 0 0 1-3.46 0"/>'),
     titleEn:'Notifications', titleAr:'الإشعارات',
     descEn:'Alerts and reminders gather here — upcoming payments, budget warnings and anything that needs your attention.',
     descAr:'تتجمع هنا التنبيهات والتذكيرات — المدفوعات القادمة، تحذيرات الميزانية وكل ما يحتاج انتباهك.'
   },
-  { // 15 — More menu
-    view:null, target:'#hdrMoreBtn',
+  { // More menu (opened)
+    view:null, target:['#hdrMoreMenu'], pre:_tourOpenMore,
     icon:_TI('<circle cx="12" cy="5" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="12" cy="19" r="1.2"/>'),
-    titleEn:'More Tools', titleAr:'المزيد من الأدوات',
+    titleEn:'The More Menu', titleAr:'قائمة المزيد',
     descEn:'<b>Spending Planner</b>, <b>Recurring Spending</b>, <b>Reminders</b>, <b>Place History</b>, <b>Backup</b> and CSV export, printing, plus quick switches for dark mode and language.',
     descAr:'<b>مخطط المصروفات</b>، <b>المصروفات المتكررة</b>، <b>التذكيرات</b>، <b>سجل الأماكن</b>، <b>النسخ الاحتياطي</b> وتصدير CSV والطباعة، مع مفاتيح سريعة للوضع الداكن واللغة.'
   },
-  { // 16 — Notes
+  { // Spending Planner
+    view:'planner', target:['#mainContent .screen-wrap','#mainContent > *:first-child'], optional:true,
+    icon:_TI('<path d="M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/>'),
+    titleEn:'Spending Planner', titleAr:'مخطط المصروفات',
+    descEn:'Plan your spending day by day on a calendar — tap any day to add what you expect to spend. Open it from the More menu any time.',
+    descAr:'خطّط إنفاقك يوماً بيوم على تقويم — اضغط على أي يوم لإضافة ما تتوقع إنفاقه. افتحه من قائمة المزيد في أي وقت.'
+  },
+  { // Notes
     view:null, target:'#notesEdgeTab',
     icon:_TI('<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h5"/>'),
     titleEn:'Quick Notes', titleAr:'ملاحظات سريعة',
     descEn:'This small tab on the screen edge opens your notes from any screen, so an idea or a number never gets lost.',
     descAr:'هذا التبويب الصغير على حافة الشاشة يفتح ملاحظاتك من أي شاشة، فلا تضيع منك فكرة أو رقم.'
   },
-  { // 17 — Settings
+  { // Settings
     view:null, target:'#navBtn-SettingsHeader',
     icon:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>',
     titleEn:'Settings', titleAr:'Settings — الإعدادات',
     descEn:'Language, appearance, currency, sound and security (PIN). You can also replay this tour from here whenever you like.',
     descAr:'اللغة، المظهر، العملة، الصوت والأمان (رمز PIN). ويمكنك أيضاً إعادة هذه الجولة من هنا في أي وقت.'
   },
-  { // 18 — Closing
+  { // Closing
     view:null, target:null, welcome:true, closing:true,
     icon:'<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>',
     titleEn:"You're all set", titleAr:'كل شيء جاهز',
@@ -53712,12 +53783,9 @@ const TOUR_STEPS = [
   }
 ];
 
-// View names as used by setView() (see bottom-nav onclick handlers) —
-// mapped here only for readability in TOUR_STEPS above; TOUR_STEPS
-// already stores the exact setView() argument in `view`, so this is
-// just documentation, not a lookup table:
-//   wsdash → Dashboard, banks → Banks, transactions → Daily,
-//   expenses → My Job, savings → My Savings
+// View names as used by setView(): wsdash → Dashboard, banks → Accounts,
+// transactions → Daily, expenses → My Job, savings → My Finances,
+// planner → Spending Planner.
 
 function tourHasSeen(){ return obHasSeen(); }
 function tourMarkSeen(){ obMarkSeen(); }
@@ -53725,16 +53793,29 @@ function tourMarkSeen(){ obMarkSeen(); }
 // Focus handling: remembers what was focused before the tour opened so
 // it can be restored on close/skip, and traps Escape → Skip.
 let _tourPrevFocus = null;
+let _tourDir = 1;          // +1 going forward, -1 going back (so skipped steps are skipped in the right direction)
+let _tourRun = 0;          // token: lets a stale async measurement notice a newer step already took over
+let _tourResizeT = null;
 function _tourKeydown(e){
   if(e.key==='Escape'){ e.preventDefault(); tourEnd(); }
+}
+function _tourOnResize(){
+  clearTimeout(_tourResizeT);
+  _tourResizeT = setTimeout(()=>{
+    const ov = document.getElementById('tabTourOverlay');
+    if(!ov || !ov.classList.contains('visible')) return;
+    const step = TOUR_STEPS[_tourIdx], t = _tourFindTarget(step);
+    if(t) _tourPlace(t);
+  }, 120);
 }
 
 function tourShow(){
   if(tourHasSeen()) return;
-  _tourIdx = 0;
+  _tourIdx = 0; _tourDir = 1;
   _tourPrevFocus = document.activeElement;
   document.getElementById('tabTourOverlay').classList.add('visible');
   document.addEventListener('keydown', _tourKeydown, true);
+  window.addEventListener('resize', _tourOnResize);
   _tourRender();
 }
 
@@ -53746,23 +53827,56 @@ function tourReplay(){
   setTimeout(tourShow, 250);
 }
 
+// Anything a step opened for the sake of showing it (the More menu) is
+// closed again as soon as the tour leaves that step.
+function _tourCleanup(){
+  const m = document.getElementById('hdrMoreMenu');
+  if(m && m.dataset.tourOpen){ m.style.display='none'; m.classList.remove('fp-menu-closing'); delete m.dataset.tourOpen; }
+}
+
 function _tourRender(){
   const step   = TOUR_STEPS[_tourIdx];
   const total  = TOUR_STEPS.length;
-  const overlay= document.getElementById('tabTourOverlay');
-  const spot   = document.getElementById('tourSpotlight');
-  const card   = document.getElementById('tourCard');
+  const token  = ++_tourRun;
+
+  _tourCleanup();
 
   // Navigate first (if this step needs a different screen), then
-  // position on the next frame so layout has settled — same routing
-  // the app already uses everywhere else (setView), nothing new.
+  // position once layout has settled — same routing the app already
+  // uses everywhere else (setView), nothing new.
   const _navigated = !!(step.view && currentView!==step.view);
   if(_navigated){ setView(step.view); }
+  if(typeof step.pre==='function'){ try{ step.pre(); }catch(e){ _logErr('tour:pre',e); } }
 
   // A view change renders asynchronously (heavy screens paint a skeleton
-  // first), so wait a beat before measuring in-page targets.
-  const _go = ()=>requestAnimationFrame(()=>_tourPosition(step, total, overlay, spot, card));
-  if(_navigated && step.target && !String(step.target).includes('#navBtn-')) setTimeout(_go, 420); else _go();
+  // first), so in-page targets get a short head start; the retry loop in
+  // _tourAttempt() covers slower renders.
+  const _inPage = step.target && !String(step.target).includes('#navBtn-');
+  const delay = (_navigated && _inPage) ? 420 : (step.pre ? 200 : 0);
+  // Only a step that just navigated / opened something needs to wait for its
+  // target to appear; otherwise it's either on screen already or it isn't.
+  const tries = (_navigated || step.pre) ? 4 : 0;
+  const go = ()=>requestAnimationFrame(()=>_tourAttempt(step, total, token, 0, tries));
+  if(delay) setTimeout(go, delay); else go();
+}
+
+// Looks for the step's target; retries a few times (slow renders), then
+// either skips an optional step or shows it as a centered card.
+function _tourAttempt(step, total, token, attempt, tries){
+  if(token !== _tourRun) return;   // a newer step already took over
+  const target = _tourFindTarget(step);
+  if(!target && step.target && attempt < tries){
+    setTimeout(()=>requestAnimationFrame(()=>_tourAttempt(step, total, token, attempt+1, tries)), 200);
+    return;
+  }
+  if(!target && step.target && step.optional){
+    const next = _tourIdx + _tourDir;
+    if(next >= 0 && next < TOUR_STEPS.length){ _tourIdx = next; _tourRender(); return; }
+  }
+  _tourPosition(step, total, target);
+  // Layout can still shift a moment later (fonts, lazy cards, menu animation):
+  // re-measure once so the spotlight lands exactly on the element.
+  if(target) setTimeout(()=>{ if(token===_tourRun){ const t2=_tourFindTarget(step); if(t2) _tourPlace(t2); } }, 380);
 }
 
 // First selector in the list that exists AND is actually visible wins.
@@ -53779,24 +53893,14 @@ function _tourFindTarget(step){
   return null;
 }
 
-function _tourPosition(step, total, overlay, spot, card){
-  const target = _tourFindTarget(step);
-  // In-page targets may sit below the fold: bring them into view first so
-  // the spotlight rect we measure is the one the user will actually see.
-  if(target && !target.closest('.bottom-nav,.app-header') && getComputedStyle(target).position!=='fixed'){
-    try{ target.scrollIntoView({block:'center', behavior:'auto'}); }catch(e){}
-  }
-  const scrim = document.getElementById('tourScrim');
-  const blurT = document.getElementById('tourBlurT');
-  const blurB = document.getElementById('tourBlurB');
-  const blurL = document.getElementById('tourBlurL');
-  const blurR = document.getElementById('tourBlurR');
+// Fills the card's text/buttons for this step, then places spotlight + card.
+function _tourPosition(step, total, target){
+  const spot = document.getElementById('tourSpotlight');
+  const card = document.getElementById('tourCard');
+  const scrim= document.getElementById('tourScrim');
 
   card.classList.toggle('tour-welcome', !!step.welcome);
-  card.querySelector('.tour-arrow-up')?.remove();
-  card.querySelector('.tour-arrow-down')?.remove();
 
-  // Fill content (language-aware, same L() helper the rest of the app uses)
   const isLast  = _tourIdx === total-1;
   const idxForBadge = _tourIdx+1;
   document.getElementById('tourBadge').textContent  = step.welcome ? '' : `${idxForBadge} / ${total}`;
@@ -53833,81 +53937,90 @@ function _tourPosition(step, total, overlay, spot, card){
   // element behind the overlay.
   nextBtn.focus({preventScroll:true});
 
-
   if(target){
-    spot.style.display='block';
-    const r = target.getBoundingClientRect();
-    const pad = 6;
-    const sLeft = r.left - pad, sTop = r.top - pad, sW = r.width + pad*2, sH = r.height + pad*2;
-    spot.style.left   = sLeft + 'px';
-    spot.style.top    = sTop + 'px';
-    spot.style.width  = sW + 'px';
-    spot.style.height = sH + 'px';
-
-    // Full-screen blur (.tour-scrim) would blur the spotlighted target itself,
-    // so it's hidden here — the four strips below carry the blur+scrim
-    // instead, tiled to leave exactly the spotlight rect untouched.
-    scrim.style.display = 'none';
-    const vw = window.innerWidth, vh = window.innerHeight;
-    blurT.style.display='block'; blurT.style.left='0px'; blurT.style.top='0px'; blurT.style.width=vw+'px'; blurT.style.height=Math.max(0,sTop)+'px';
-    blurB.style.display='block'; blurB.style.left='0px'; blurB.style.top=(sTop+sH)+'px'; blurB.style.width=vw+'px'; blurB.style.height=Math.max(0,vh-(sTop+sH))+'px';
-    blurL.style.display='block'; blurL.style.left='0px'; blurL.style.top=sTop+'px'; blurL.style.width=Math.max(0,sLeft)+'px'; blurL.style.height=sH+'px';
-    blurR.style.display='block'; blurR.style.left=(sLeft+sW)+'px'; blurR.style.top=sTop+'px'; blurR.style.width=Math.max(0,vw-(sLeft+sW))+'px'; blurR.style.height=sH+'px';
-
-    // Card sits on whichever side its target lives on: above the bottom
-    // nav (arrow down) for nav-bar targets, below the header (arrow up)
-    // for header targets, or just below the target itself otherwise.
-    const inBottomNav = !!target.closest('.bottom-nav');
-    const inHeader     = !!target.closest('.app-header');
-    let arrowCls;
-    if(inBottomNav){
-      const navH = document.querySelector('.bottom-nav')?.getBoundingClientRect().height || 60;
-      card.style.bottom = (navH + 14) + 'px';
-      card.style.top    = '';
-      arrowCls = 'tour-arrow-down';
-    } else if(inHeader){
-      const headerEl = document.querySelector('.app-header');
-      const headerBottom = headerEl ? headerEl.getBoundingClientRect().bottom : 0;
-      card.style.top    = (headerBottom + 12) + 'px';
-      card.style.bottom = '';
-      arrowCls = 'tour-arrow-up';
-    } else {
-      // In-page target (e.g. the hero card, quick actions row): prefer
-      // placing below it; flip above if there isn't room under it.
-      const cardH = card.offsetHeight || 180;
-      const below = r.bottom + 14 + cardH < window.innerHeight;
-      if(below){
-        card.style.top = (r.bottom + 14) + 'px';
-        card.style.bottom = '';
-        arrowCls = 'tour-arrow-up';
-      } else {
-        card.style.bottom = (window.innerHeight - r.top + 14) + 'px';
-        card.style.top = '';
-        arrowCls = 'tour-arrow-down';
-      }
+    // In-page targets may sit below the fold: bring them into view first so
+    // the rect we measure is the one the user will actually see.
+    if(!target.closest('.bottom-nav,.app-header') && getComputedStyle(target).position!=='fixed'){
+      try{ target.scrollIntoView({block:'center', behavior:'auto'}); }catch(e){}
     }
-    const arr = document.createElement('div');
-    arr.className = arrowCls;
-    const cw  = card.offsetWidth || Math.min(320, window.innerWidth*0.88);
-    const cx  = window.innerWidth / 2;
-    const tx  = r.left + r.width/2;
-    const off = Math.max(20, Math.min(cw-20, tx - (cx - cw/2)));
-    arr.style.left = off + 'px';
-    arr.style.transform = 'none';
-    card.appendChild(arr);
+    // The dim comes from the spotlight's own box-shadow, so the full-screen
+    // scrim (and its blur) is off whenever there is something to point at.
+    scrim.style.display = 'none';
+    _tourPlace(target);
   } else {
-    // No target this step (Welcome / Closing) → centered card, no spotlight.
-    // The full-screen scrim (blurred) handles this case; the four strips
-    // are only needed when there's a target rect to carve a hole around.
+    // No target this step (Welcome / Closing) → centered card over a dimmed,
+    // lightly blurred full-screen scrim.
     spot.style.display='none';
     scrim.style.display='block';
-    blurT.style.display='none'; blurB.style.display='none'; blurL.style.display='none'; blurR.style.display='none';
+    card.querySelector('.tour-arrow-up')?.remove();
+    card.querySelector('.tour-arrow-down')?.remove();
     card.style.top=''; card.style.bottom='';
   }
+}
 
+// Geometry only: positions the spotlight over `target` and parks the card on
+// the side with room (above the bottom nav, below the header, or beside the
+// element), with an arrow aimed at the element. Safe to call repeatedly.
+function _tourPlace(target){
+  const spot = document.getElementById('tourSpotlight');
+  const card = document.getElementById('tourCard');
+  const vw = window.innerWidth, vh = window.innerHeight;
+  const r  = target.getBoundingClientRect();
+  const pad = 6, edge = 4;
+
+  // Clamp to the viewport so a target that is partly off-screen still gets a
+  // visible, correctly-shaped highlight.
+  const left = Math.max(edge, r.left - pad),  top = Math.max(edge, r.top - pad);
+  const right= Math.min(vw-edge, r.right + pad), bottom = Math.min(vh-edge, r.bottom + pad);
+  const w = Math.max(24, right-left), h = Math.max(24, bottom-top);
+
+  let rad = parseFloat(getComputedStyle(target).borderTopLeftRadius) || 0;
+  rad = Math.min(28, Math.max(12, rad + pad));
+
+  // First appearance: snap into place instead of growing from 0×0.
+  const fresh = spot.style.display==='none' || !spot.style.display;
+  if(fresh) spot.style.transition='none';
+  spot.style.display='block';
+  spot.style.left=left+'px'; spot.style.top=top+'px';
+  spot.style.width=w+'px';   spot.style.height=h+'px';
+  spot.style.borderRadius=rad+'px';
+  if(fresh){ void spot.offsetWidth; spot.style.transition=''; }
+
+  card.querySelector('.tour-arrow-up')?.remove();
+  card.querySelector('.tour-arrow-down')?.remove();
+
+  const cardH = card.offsetHeight || 190, cardW = card.offsetWidth || Math.min(320, vw*0.88);
+  const gap = 14, m = 8;
+  const inBottomNav = !!target.closest('.bottom-nav');
+  const inHeader    = !!target.closest('.app-header');
+  let place;
+  if(inBottomNav) place='above';
+  else if(inHeader) place='below';
+  else {
+    const roomBelow = vh - bottom - gap - m, roomAbove = top - gap - m;
+    place = roomBelow>=cardH ? 'below' : (roomAbove>=cardH ? 'above' : (roomBelow>=roomAbove ? 'below' : 'above'));
+  }
+  let cardTop = place==='below' ? bottom+gap : top-gap-cardH;
+  cardTop = Math.max(m, Math.min(vh-cardH-m, cardTop));
+  card.style.top = cardTop+'px';
+  card.style.bottom = '';
+
+  // Only draw the arrow when the card really sits next to the element (a huge
+  // target can force the card to overlap it; then the arrow would lie).
+  const touching = place==='below' ? cardTop >= bottom+gap-2 : cardTop+cardH <= top-gap+2;
+  if(touching){
+    const arr = document.createElement('div');
+    arr.className = place==='below' ? 'tour-arrow-up' : 'tour-arrow-down';
+    const cardLeft = (vw - cardW)/2;
+    const tx  = r.left + r.width/2;
+    arr.style.left = Math.max(20, Math.min(cardW-20, tx - cardLeft)) + 'px';
+    arr.style.transform = 'none';
+    card.appendChild(arr);
+  }
 }
 
 function tourNext(){
+  _tourDir = 1;
   if(_tourIdx < TOUR_STEPS.length - 1){
     _tourIdx++;
     _tourRender();
@@ -53916,6 +54029,7 @@ function tourNext(){
   }
 }
 function tourPrev(){
+  _tourDir = -1;
   if(_tourIdx > 0){
     _tourIdx--;
     _tourRender();
@@ -53924,12 +54038,16 @@ function tourPrev(){
 
 function tourEnd(){
   tourMarkSeen();
+  _tourRun++;                       // cancel any pending measurement
+  _tourCleanup();
   const ov = document.getElementById('tabTourOverlay');
   ov.style.opacity = '0';
   document.removeEventListener('keydown', _tourKeydown, true);
+  window.removeEventListener('resize', _tourOnResize);
   setTimeout(()=>{
     ov.classList.remove('visible');
     ov.style.opacity='';
+    document.getElementById('tourSpotlight').style.display='none';
     // Land back on the Dashboard regardless of which step the tour left
     // off on, so a Skip mid-tour doesn't strand the user on a screen they
     // never asked to visit.
@@ -53937,6 +54055,7 @@ function tourEnd(){
     if(_tourPrevFocus && typeof _tourPrevFocus.focus==='function') _tourPrevFocus.focus({preventScroll:true});
   }, 320);
 }
+
 // ══════════════════════════════════════════════════════════════════════
 
 
@@ -64068,6 +64187,18 @@ body #mainContent .screen-wrap .cx-seg .cx-seg-btn{gap:3px!important}
 /* Yearly analytics: even rhythm between stacked cards */
 #mainContent > :not(.screen-wrap):not(style) + :not(style){margin-top:12px}
 #mainContent > .yr-source-tab,#mainContent > div > .yr-source-tab{min-height:40px}
+
+/* ── Polish pass: touch targets + minimum legible label size ─────────────────
+   Visual size of these icon buttons is unchanged; an invisible ::after widens
+   the tappable area to ~44px, the same technique already used for .tx-del /
+   .fp-hero-toggle above. Tiny uppercase labels (8–9px) are lifted to 10px so
+   they stay readable on small phones; the app text-scale setting still applies. */
+.mat-ib,.bnk-hero-eye,.bnk-eye{position:relative}
+.mat-ib::after,.bnk-hero-eye::after,.bnk-eye::after{content:"";position:absolute;inset:-8px}
+.bal-cur,.bal-meta-label,.bal-fx-chip-code,.empty-hero-eyebrow,.sc-summary-tile-sub,
+.ctr-kpi-label,.dash-ring-sub-v2,.dash-tile-sub-v2,.br-kpi-lbl,.br-month-chip,.sig-cur{
+  font-size:calc(10px*var(--app-text-scale,1));
+}
 </style>
 </body>
 </html>
