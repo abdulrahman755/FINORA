@@ -13327,7 +13327,7 @@ body #mainContent .bnk-hero,body #mainContent .banks-v2 .bnk-hero{border-inline-
 .pr-grid{display:flex;flex-direction:column;gap:8px}
 .pr-card{--pc:var(--green);display:flex;align-items:stretch;gap:12px;width:100%;padding:10px;border:1px solid color-mix(in srgb,var(--pc) 26%,var(--border));border-inline-start:4px solid var(--pc);border-radius:16px;background:var(--surface);font-family:inherit;text-align:start;color:var(--text);cursor:pointer;-webkit-tap-highlight-color:transparent;box-shadow:var(--shadow-xs);transition:transform .14s,background .2s}
 .pr-card.ok{--pc:var(--green)}.pr-card.low{--pc:var(--gold)}.pr-card.over{--pc:var(--red)}
-.pr-card:active{transform:scale(.985);background:color-mix(in srgb,var(--pc) 8%,var(--surface))}
+.pr-card{cursor:default;text-align:start;font:inherit;color:inherit}
 .pr-logo{flex:none;width:62px;height:62px;align-self:center;border-radius:15px;background:#fff;display:flex;align-items:center;justify-content:center;overflow:hidden;border:1px solid var(--border);color:var(--muted)}
 .pr-logo .bl-img,.pr-logo img{width:100%!important;height:100%!important;object-fit:contain!important;border-radius:0!important;box-shadow:none!important;background:transparent!important}
 .pr-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:5px}
@@ -37492,6 +37492,9 @@ function _rqLoad(){
     return Array.isArray(arr)?arr.filter(r=>r&&typeof r==='object'&&r.id):[];
   }catch(e){ _logErr('_rqLoad',e); return []; }
 }
+// A receipt flagged CPP keeps its IR in Receipts and gets a linked copy (type CPP, pour:true, pourOf:<IR id>) on the CPP tab.
+// Anything that counts / reports / exports receipts uses this so the copy is not counted twice.
+function _rqLoadMain(){ return _rqLoad().filter(r=>!r.pourOf); }
 function _rqSave(list){
   try{ localStorage.setItem(_prjKey(_RQ_KEY),JSON.stringify(list)); }
   catch(e){ _logErr('_rqSave',e); showToast(L('Could not save','تعذّر الحفظ'),'warn'); }
@@ -38762,7 +38765,7 @@ function _cvRq(pid){
   try{
     const raw=localStorage.getItem(pid===_PRJ_DEFAULT?_RQ_KEY:_RQ_KEY+'__'+pid);
     const a=raw?JSON.parse(raw):[];
-    return Array.isArray(a)?a.filter(r=>r&&typeof r==='object'&&r.id):[];
+    return Array.isArray(a)?a.filter(r=>r&&typeof r==='object'&&r.id&&!r.pourOf):[];
   }catch(e){ return []; }
 }
 function _cvStats(pid){
@@ -38904,6 +38907,12 @@ function _cvSubSplit(t){
   return i<0?[t,'']:[t.slice(0,i),t.slice(i+n)];
 }
 function _cvModel(cvIn){ return _cvHumanDeep(_cvModel0(cvIn)); }
+// Egyptian mobile typed as 1063649844 / 01063649844 -> "+20 106 364 9844" (recruiters abroad need the country code); anything else is left as typed
+function _cvPhoneFmt(v){
+  const s=String(v||'').trim(); if(!s||/^(\+|00)/.test(s)) return s;
+  const m=s.replace(/\D/g,'').match(/^0?(1[0125]\d)(\d{3})(\d{4})$/);
+  return m?('+20 '+m[1]+' '+m[2]+' '+m[3]):s;
+}
 function _cvModel0(cvIn){
   const cv=cvIn||_cvLoad(), p=cv.profile;
   const _bul=e=>{
@@ -38938,8 +38947,8 @@ function _cvModel0(cvIn){
     name:(p.name||'').trim(),
     headline:(p.title||'').trim(),
     photo:/^data:image\//.test(p.photo||'')?p.photo:'',
-    ctl:[['Phone',p.phone,p.phone?'tel:'+String(p.phone).replace(/[^\d+]/g,''):''],['Email',p.email,p.email?'mailto:'+String(p.email).trim():''],['LinkedIn',_cvShortLink(p.linkedin),_cvLinkHref(p.linkedin)],['Location',p.loc,'']].filter(x=>x[1]),
-    c1:[p.phone?'Phone: '+p.phone:'',p.email?'Email: '+p.email:''].filter(Boolean).join(' | '),
+    ctl:[['Phone',_cvPhoneFmt(p.phone),p.phone?'tel:'+_cvPhoneFmt(p.phone).replace(/[^\d+]/g,''):''],['Email',p.email,p.email?'mailto:'+String(p.email).trim():''],['LinkedIn',_cvShortLink(p.linkedin),_cvLinkHref(p.linkedin)],['Location',p.loc,'']].filter(x=>x[1]),
+    c1:[p.phone?'Phone: '+_cvPhoneFmt(p.phone):'',p.email?'Email: '+p.email:''].filter(Boolean).join(' | '),
     c2:[p.linkedin?'LinkedIn: '+_cvShortLink(p.linkedin):'',p.loc?'Location: '+p.loc:''].filter(Boolean).join(' | '),
     summary:_cvUrlShort(_cvClean(p.summary).trim()), skills:_cvList(p.skills).map(_cvUrlShort), jobs, edu, certs:_cvList(p.certs).map(_cvUrlShort), langs:_cvList(p.langs).map(_cvUrlShort)
   };
@@ -38968,7 +38977,7 @@ function cvPrint(){
   // print() on an iframe, so a hidden-iframe approach gave blank / wrong output there). Everything is
   // added just for the print job and removed again afterwards.
   const m=_cvModel();
-  const cvSt=_cvFit(m), cvMg=_cvMarg(cvSt), cvFoot=cvSt.foot!==false;
+  const cvSt=_cvFit(m), cvPush=_cvOrphans(m,cvSt), cvMg=_cvMarg(cvSt), cvFoot=cvSt.foot!==false;
   const upd=new Date().toLocaleDateString('en-US',{month:'long',year:'numeric'});
   const ios=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
   const sec=(t,body)=>body?`<h2>${t}</h2>${body}`:'';
@@ -38987,27 +38996,41 @@ function cvPrint(){
 #cvPrintRoot{display:none}
 @page{size:A4;margin:${cvMg[0]}mm ${cvMg[1]}mm ${cvMg[2]}mm ${cvMg[3]}mm;${(ios||!cvFoot)?'':`@bottom-right{content:"Updated ${upd} | Page " counter(page);font:7pt Helvetica,Arial,sans-serif;color:#6a7680}`}}
 @media print{
-  html,html:root{color-scheme:light!important;background:#fff!important;background-image:none!important}
-  html:root body:not(#cvX){background:#fff!important;background-image:none!important;color:#222!important;margin:0!important;padding:0!important;height:auto!important;min-height:0!important;overflow:visible!important}
-  body>*:not(#cvPrintRoot){display:none!important}
-  html body>#cvPrintRoot{display:block!important;background:#fff!important;-webkit-text-fill-color:initial;font-family:Helvetica,Arial,'Helvetica Neue',sans-serif;color:#222;font-size:8.1pt;line-height:1.36;direction:ltr}
+  /* the app can be in dark mode: force a plain white page whatever the theme / background images are */
+  html.cv-printing,html.cv-printing:root{color-scheme:light!important;background:#fff!important;background-image:none!important}
+  html.cv-printing:root body:not(#cvX){background:#fff!important;background-image:none!important;color:#222!important;margin:0!important;padding:0!important;height:auto!important;min-height:0!important;overflow:visible!important;position:static!important;filter:none!important}
+  html.cv-printing body>*:not(#cvPrintRoot){display:none!important}
+  html.cv-printing>*:not(head):not(body){display:none!important}
+  html.cv-printing body>#cvPrintRoot{display:block!important;position:static!important;background:#fff!important;-webkit-text-fill-color:initial;font-family:Helvetica,Arial,'Helvetica Neue',sans-serif;color:#222;font-size:8.1pt;line-height:1.36;direction:ltr;margin:0;padding:0;opacity:1!important;filter:none!important}
   ${_cvTplCSS(R)}
   ${R}.ft{position:fixed;right:0;bottom:0;font-size:7pt;color:#6a7680}
 }`;
   const html=`${(ios&&cvFoot)?`<div class="ft">Updated ${upd}</div>`:''}
-${_cvDocHTML(m,cvSt)}`;
-  const _t0=document.title;
-  const cleanup=()=>{ if(document.title!==_t0) document.title=_t0; ['cvPrintRoot','cvPrintStyle'].forEach(id=>{ const e=document.getElementById(id); if(e) e.remove(); }); window.removeEventListener('afterprint',cleanup); };
+${_cvDocHTML(m,cvSt,cvPush)}`;
+  const _t0=document.title, root0=document.documentElement, theme0=root0.getAttribute('data-theme');
+  const cleanup=()=>{
+    if(document.title!==_t0) document.title=_t0;
+    ['cvPrintRoot','cvPrintStyle'].forEach(id=>{ const e=document.getElementById(id); if(e) e.remove(); });
+    root0.classList.remove('cv-printing');
+    if(theme0!==null&&root0.getAttribute('data-theme')!==theme0) root0.setAttribute('data-theme',theme0);
+    window.removeEventListener('afterprint',cleanup);
+    if(_cvPrintUndo===cleanup) _cvPrintUndo=null;
+  };
   try{
-    cleanup();
+    if(_cvPrintUndo) _cvPrintUndo();
+    _cvPrintUndo=cleanup;
     document.title=(m.name?m.name.replace(/\s+/g,' ')+' - CV':'CV');
     const st=document.createElement('style'); st.id='cvPrintStyle'; st.textContent=css; document.head.appendChild(st);
     const root=document.createElement('div'); root.id='cvPrintRoot'; root.innerHTML=html; document.body.appendChild(root);
+    root0.classList.add('cv-printing'); root0.removeAttribute('data-theme');   // light theme only while the print job is open
     window.addEventListener('afterprint',cleanup);
     setTimeout(cleanup,180000);   // safety net if the browser never reports afterprint
-    setTimeout(()=>{ try{ window.print(); }catch(e){ _logErr('cvPrint',e); cleanup(); showToast(L('Could not open print','تعذّر فتح الطباعة'),'warn'); } },150);
+    // print() must run straight from the tap: Safari on iPhone blocks it ("blocked from automatically printing") when it is deferred with a timer.
+    if(ios) showToast(L('In print options choose Paper Size: A4 and Scale: 100%','في خيارات الطباعة اختار Paper Size: A4 و Scale: 100%'),'info',5000);
+    window.print();
   }catch(e){ _logErr('cvPrint',e); cleanup(); showToast(L('Could not open print','تعذّر فتح الطباعة'),'warn'); }
 }
+let _cvPrintUndo=null;
 
 // ---- screen ----------------------------------------------------------------
 function renderMyCV(){
@@ -39578,9 +39601,23 @@ ${D}.na-left h1,${D}.na-left .hl,${D}.na-left .ct{text-align:left}
 ${D}.na-center h1,${D}.na-center .hl,${D}.na-center .ct{text-align:center}
 ${D}.na-center .ct .cr{justify-content:center}
 ${D}.na-left .ct .cr{justify-content:flex-start}
+${D} .pb{${R.indexOf('cvPrintRoot')>=0?'break-before:page;page-break-before:always':'break-before:column;-webkit-column-break-before:always'}}
 `;
 }
-function _cvDocHTML(m,stIn){
+// Headings that must start the next page (WebKit/iOS ignores break-after:avoid, which left "WORK EXPERIENCE" alone at the bottom of page 1).
+// `push` = indexes (in DOM order) of the h2 / .sub elements that get class .pb (forced page / column break before them).
+const _CV_HEADS='h2,.sub';
+function _cvDocHTML(m,stIn,push){
+  const h=_cvDocHTML0(m,stIn);
+  if(!push||!push.length) return h;
+  try{
+    const t=document.createElement('template'); t.innerHTML=h;
+    const hs=t.content.querySelectorAll(_CV_HEADS);
+    push.forEach(i=>{ if(hs[i]) hs[i].classList.add('pb'); });
+    const d=document.createElement('div'); d.appendChild(t.content); return d.innerHTML;
+  }catch(e){ _logErr('_cvDocHTML',e); return h; }
+}
+function _cvDocHTML0(m,stIn){
   const st=stIn||_cvStyleGet(), key=_CV_TPL[st.tpl]?st.tpl:'classic', T=_CV_TPL[key], side=T.layout==='side';
   const hide=Array.isArray(st.hide)?st.hide:[];
   const sec=(t,body,cls)=>body?`<section class="sc${cls?' '+cls:''}"><h2>${t}</h2>${body}</section>`:'';
@@ -39704,6 +39741,36 @@ function cvDzToggle(f){
 }
 // A4 pagination for the preview: the CV is laid out in a fixed-height multi-column box (one column = one page), so
 // breaks follow the same break-inside / break-after rules the print engine uses; each page shows its own column.
+// Finds headings that would end up alone at the bottom of a page (their content starts on the next page) by laying the CV out
+// in the same fixed-height column strip the preview uses; returns the heading indexes to push (see _cvDocHTML).
+function _cvOrphans(m,st){
+  if((_CV_TPL[st.tpl]||{}).layout==='side') return [];   // sidebar templates lay the main column out in a table cell: left as they were
+  const out=[], mg=_cvMarg(st), K=3.7795, PW=793.7, PH=1122.5, GAP=48;
+  const CW=Math.round((PW-(mg[1]+mg[3])*K)*10)/10, CH=Math.round((PH-(mg[0]+mg[2])*K)*10)/10;
+  const css=_cvTplCSS('.cvp-pgs ');
+  const meas=document.createElement('div'); meas.className='cvp-pgs';
+  meas.style.cssText='position:fixed;left:-99999px;top:0;visibility:hidden;pointer-events:none;zoom:1;width:'+PW+'px';
+  const LEAF='.co,.dt,.rl,.sub,.ed,.cr,li,p';
+  try{
+    document.body.appendChild(meas);
+    for(let pass=0;pass<4;pass++){
+      meas.innerHTML=`<style>${css}</style><div class="cvp-strip" style="width:${CW}px;height:${CH}px;column-width:${CW}px;column-gap:${GAP}px;column-fill:auto;-webkit-column-fill:auto">${_cvDocHTML(m,st,out)}</div>`;
+      const strip=meas.querySelector('.cvp-strip'), x0=strip.getBoundingClientRect().left;
+      const col=el=>{ const r=el&&el.getClientRects()[0]; return r?Math.floor((r.left-x0+6)/(CW+GAP)):-1; };
+      let add=false;
+      strip.querySelectorAll(_CV_HEADS).forEach((h,i)=>{
+        if(out.indexOf(i)>=0) return;
+        const nx=h.nextElementSibling; if(!nx) return;
+        const leaf=nx.matches(LEAF)?nx:nx.querySelector(LEAF);
+        const a=col(h), b=col(leaf);
+        if(a>=0&&b>a){ out.push(i); add=true; }
+      });
+      if(!add) break;
+    }
+  }catch(e){ _logErr('_cvOrphans',e); }
+  meas.remove();
+  return out;
+}
 // Measures how many A4 pages a style needs (same multi-column engine the preview uses) + the single-flow height.
 // Page count of a fixed-height multi-column strip. scrollWidth alone under-reports on iOS Safari (the extra columns are
 // not counted), which showed "1 page" and silently clipped the rest of the CV. So take the max of three signals:
@@ -39724,7 +39791,7 @@ function _cvCols(strip,CW,GAP,flowH,CH){
 function _cvMeasure(m,st){
   const mg=_cvMarg(st), K=3.7795, PW=793.7, PH=1122.5, GAP=48;
   const CW=Math.round((PW-(mg[1]+mg[3])*K)*10)/10, CH=Math.round((PH-(mg[0]+mg[2])*K)*10)/10;
-  const doc=_cvDocHTML(m,st), css=_cvTplCSS('.cvp-pgs ');
+  const doc=_cvDocHTML(m,st,_cvOrphans(m,st)), css=_cvTplCSS('.cvp-pgs ');
   const meas=document.createElement('div'); meas.className='cvp-pgs';
   meas.style.cssText='position:fixed;left:-99999px;top:0;visibility:hidden;pointer-events:none;zoom:1;width:'+PW+'px';
   meas.innerHTML=`<style>${css}</style><div class="cvp-strip" style="width:${CW}px;height:${CH}px;column-width:${CW}px;column-gap:${GAP}px;column-fill:auto;-webkit-column-fill:auto">${doc}</div><div class="cvp-flow" style="width:${CW}px">${doc}</div>`;
@@ -39755,7 +39822,7 @@ function _cvBuildPages(m){
   const host=document.getElementById('cvpPaper'); if(!host) return 0;
   const st=_cvFit(m), mg=_cvMarg(st), K=3.7795, PW=793.7, PH=1122.5, GAP=48;
   const CW=Math.round((PW-(mg[1]+mg[3])*K)*10)/10, CH=Math.round((PH-(mg[0]+mg[2])*K)*10)/10;
-  const doc=_cvDocHTML(m,st);
+  const doc=_cvDocHTML(m,st,_cvOrphans(m,st));
   const stripCss=`width:${CW}px;height:${CH}px;column-width:${CW}px;column-gap:${GAP}px;column-fill:auto;-webkit-column-fill:auto`;
   const meas=document.createElement('div'); meas.className='cvp-pgs';
   meas.style.cssText='position:fixed;left:-99999px;top:0;visibility:hidden;pointer-events:none;zoom:1;width:'+PW+'px';
@@ -39832,11 +39899,11 @@ function cvPreview(fromSheet,openDesign){
   const upd=new Date().toLocaleDateString('en-US',{month:'long',year:'numeric'});
   cvPreviewClose();
   const ov=document.createElement('div'); ov.id='cvPrev'; ov.className='cvp-ov'; ov.setAttribute('role','dialog'); ov.setAttribute('aria-label',L('CV preview','معاينة السيرة'));
-  ov.innerHTML=`<div class="cvp-bar"><b>${L('CV preview','معاينة السيرة')}</b>
+  ov.innerHTML=`<div class="cvp-bar"><div class="cvp-ttl"><b>${L('CV preview','معاينة السيرة')}</b><span class="cvp-count" id="cvpCount"></span></div>
       <span class="cvp-zoom"><button type="button" data-z="fit" onclick="_cvPrevZoom('fit')">${L('Fit','ملائم')}</button><button type="button" data-z="0.8" onclick="_cvPrevZoom(0.8)">80%</button><button type="button" data-z="1.1" onclick="_cvPrevZoom(1.1)">110%</button></span>
       ${fromSheet?'':`<button type="button" class="cvp-pdf" onclick="cvPrint()">${ic('print',15)} PDF</button>`}
       <button type="button" class="cvp-x" onclick="cvPreviewClose()" aria-label="${L('Close','إغلاق')}">${ic('close',18)}</button></div>
-    <div class="cvp-stage"><div class="cvp-count" id="cvpCount"></div><div class="cvp-pgs" id="cvpPaper"></div></div>
+    <div class="cvp-stage"><div class="cvp-pgs" id="cvpPaper"></div></div>
     <button type="button" class="cvp-dzbtn" onclick="cvDzToggle()">${ic('insight',15)} ${L('Design & photo','التصميم والصورة')}</button>
     <div class="cvp-dz" id="cvpDz"></div><style>${_cvTplCSS('.cvp-pgs ')}</style>`;
   document.body.appendChild(ov);
@@ -40486,7 +40553,7 @@ function _prCardHTML(r){
   const work=_rqIrLabel(r), floor=_rqFloorLabel(r.floor), type=_rqDisplayValue(r,'type');
   const logo=_rqCoLogoSrc(r.company)?bankLogoHTML(_rqCoLogoSrc(r.company),48,{alt:esc(co)}):ic('building',24);
   const numeric=/^[\d\s\-–—\/.,]+$/.test(plot||'');
-  return `<button type="button" class="pr-card ${st.cls}" onclick="rqOpenCard('${r.id}')" aria-label="${esc(L('CPP','CPP'))} ${esc(plot)} ${esc(work)}">
+  return `<div class="pr-card ${st.cls}" role="group" aria-label="${esc(L('CPP','CPP'))} ${esc(plot)} ${esc(work)}">
     <span class="pr-logo">${logo}</span>
     <span class="pr-main">
       <span class="pr-top"><span class="pr-plot">${numeric?`<small>${L('Plot','قطعة')}</small>`:''}<b dir="auto">${esc(plot||'—')}</b></span><i class="rq-dot ${st.cls}" title="${esc(_rqStatusLabel(r.status))}"></i></span>
@@ -40498,7 +40565,7 @@ function _prCardHTML(r){
       </span>
       <span class="pr-co" dir="auto">${esc(co)}</span>
     </span>
-  </button>`;
+  </div>`;
 }
 function renderPours(){
   const everything=_rqLoad().filter(r=>r.pour===true);
@@ -40652,7 +40719,7 @@ function openRequestModal(id){
   const r=id?list.find(x=>x.id===id):null;
   _rqEditId=r?r.id:null;
   _rqStatusSel=(r&&_RQ_STATUS[r.status])?r.status:'received';
-  _rqPourSel=r?!!r.pour:!!window._rqPourPreset; window._rqPourPreset=false; _rqPourAutoType=false; // opened from the Pours tab → starts as a pour
+  _rqPourSel=r?(!!r.pour||list.some(x=>x.pourOf===r.id)):!!window._rqPourPreset; window._rqPourPreset=false; _rqPourAutoType=false; // opened from the Pours tab → starts as a pour
   _rqRateInit(r&&r.rating);
   _rqPendingCoLogo=undefined;
   const uniq=k=>[...new Set(list.map(x=>String(x[k]||'').trim()).filter(Boolean))];
@@ -40830,7 +40897,7 @@ function _rqToggleIrTypeField(){ /* inspection type is always visible now */ }
 let _rqCmtOpen={};
 function _rqMostUsedComments(limit){
   const cnt=new Map();
-  _rqLoad().forEach(r=>{
+  _rqLoadMain().forEach(r=>{
     const ts=(+r.createdAt||0)||Date.parse(r.date||'')||0;
     _rqExtractNotesLines(r.notes).forEach(line=>{
       const n=_rqNormCmt(line); if(!n) return;
@@ -41021,7 +41088,7 @@ function _rqPourSecHTML(){
   const b=(v,lbl,icn)=>`<button type="button" class="rq-stbtn pr-opt ${v?'pr-yes':'pr-no'}${_rqPourSel===v?' on':''}" data-p="${v?1:0}" aria-pressed="${_rqPourSel===v}" onclick="_rqPickPour(${v})">${ic(icn,18)}<span>${lbl}</span></button>`;
   return `<div class="rq-sec rq-pour-sec"><div class="rq-sec-hdr">${ic('droplet',15)}<span>${L('CPP status','حالة CPP')}</span></div>
     <div class="field"><div class="rq-seg pr-seg">${b(true,L('CPP','CPP'),'droplet')}${b(false,L('Not CPP','مش CPP'),'close')}</div>
-    <div class="pr-hint" id="rqPourHint">${_rqPourSel?L('CPP · listed under Receipts → CPP only','CPP · هتظهر في الاستلامات ← CPP بس'):L('Choose CPP to list it under Receipts → CPP','اختار CPP عشان تظهر في الاستلامات ← CPP')}</div></div>
+    <div class="pr-hint" id="rqPourHint">${_rqPourSel?L('CPP · the IR stays in Receipts + a CPP copy is added to Receipts → CPP','CPP · الـ IR يفضل في الاستلامات + بتتضاف نسخة CPP في الاستلامات ← CPP'):L('Choose CPP to also add a CPP copy under Receipts → CPP','اختار CPP عشان تتضاف نسخة CPP في الاستلامات ← CPP')}</div></div>
   </div>`;
 }
 let _rqPourAutoType=false;
@@ -41029,12 +41096,12 @@ function _rqPickPour(v){
   _rqPourSel=!!v;
   const sel=document.getElementById('rqTypeSel'), ti=document.getElementById('rqType');
   if(sel&&ti){
-    if(_rqPourSel && !ti.value.trim()){ sel.value='CPP'; _rqTypeSelChange(sel); _rqPourAutoType=true; }
-    else if(!_rqPourSel && _rqPourAutoType && ti.value.trim().toUpperCase()==='CPP'){ sel.value=''; _rqTypeSelChange(sel); _rqPourAutoType=false; }
+    if(_rqPourSel && !ti.value.trim()){ sel.value='IR'; _rqTypeSelChange(sel); _rqPourAutoType=true; }   // the receipt stays an IR; the CPP is a separate copy
+    else if(!_rqPourSel && _rqPourAutoType && ti.value.trim().toUpperCase()==='IR'){ sel.value=''; _rqTypeSelChange(sel); _rqPourAutoType=false; }
   }
   document.querySelectorAll('.pr-opt').forEach(b=>{ const on=(b.dataset.p==='1')===_rqPourSel; b.classList.toggle('on',on); b.setAttribute('aria-pressed',on); });
   const h=document.getElementById('rqPourHint');
-  if(h) h.textContent=_rqPourSel?L('CPP · listed under Receipts → CPP only','CPP · هتظهر في الاستلامات ← CPP بس'):L('Choose CPP to list it under Receipts → CPP','اختار CPP عشان تظهر في الاستلامات ← CPP');
+  if(h) h.textContent=_rqPourSel?L('CPP · the IR stays in Receipts + a CPP copy is added to Receipts → CPP','CPP · الـ IR يفضل في الاستلامات + بتتضاف نسخة CPP في الاستلامات ← CPP'):L('Choose CPP to also add a CPP copy under Receipts → CPP','اختار CPP عشان تتضاف نسخة CPP في الاستلامات ← CPP');
 }
 function _rqPourBadge(r,mini){
   if(!r||!r.pour) return '';
@@ -41065,8 +41132,18 @@ function saveRequest(){
   }
   const rec={company,engineer:g('rqEngineer'),date:g('rqDate')||today(),type:g('rqType'),zone:g('rqZone'),plot:g('rqPlot'),model:g('rqModel'),floor:g('rqFloor'),level:g('rqLevel'),status:_rqStatusSel,notes:g('rqNotes')};
   rec.irType=g('rqIrType'); // inspection type, kept for every receipt type
-  rec.pour=!!_rqPourSel;    // concrete pour request → listed on the Pours tab
-  if(rec.pour && !rec.type) rec.type='CPP'; // a pour request is a CPP
+  const list=_rqLoad();
+  const editing=!!_rqEditId;
+  const cur=editing?list.find(x=>x.id===_rqEditId):null;
+  const wantPour=!!_rqPourSel;
+  const isPourRec=!!(cur&&cur.pour);   // editing a CPP entry itself (the copy, or an older CPP-only receipt)
+  if(isPourRec){
+    rec.pour=wantPour; if(wantPour&&!rec.type) rec.type='CPP';
+    if(!wantPour) rec.pourOf=null;       // switched to "Not CPP": becomes an ordinary receipt
+  } else {
+    rec.pour=false;                      // the receipt itself always stays in Receipts (as an IR)
+    if(wantPour&&(!rec.type||/^cpp$/i.test(rec.type))) rec.type='IR';
+  }
   rec.rating=_rqRateCollect(); // contractor rating (trade + stars) or null
   _atLearnEdits(document.getElementById('rqNotes'));
   _rqLearnCommentSuggestions(rec.type,rec.irType,rec.notes);
@@ -41075,14 +41152,17 @@ function saveRequest(){
   _rqLearnField('model',rec.model);
   _rqLearnField('zone',rec.zone);
   _rqLearnField('irtype',rec.irType);
-  const list=_rqLoad();
-  const editing=!!_rqEditId;
-  if(editing){
-    const i=list.findIndex(x=>x.id===_rqEditId);
-    if(i>=0) list[i]={...list[i],...rec,updatedAt:Date.now()};
-    else list.push({id:_rqNewId(),...rec,createdAt:Date.now(),updatedAt:Date.now()});
-  } else {
-    list.push({id:_rqNewId(),...rec,createdAt:Date.now(),updatedAt:Date.now()});
+  let mainId;
+  const i=editing?list.findIndex(x=>x.id===_rqEditId):-1;
+  if(i>=0){ list[i]={...list[i],...rec,updatedAt:Date.now()}; mainId=list[i].id; }
+  else { mainId=_rqNewId(); list.push({id:mainId,...rec,createdAt:Date.now(),updatedAt:Date.now()}); }
+  if(!isPourRec){
+    // CPP: keep the IR as it is and keep ONE linked copy of it (type CPP) on the CPP tab
+    const ci=list.findIndex(x=>x.pourOf===mainId);
+    if(wantPour){
+      if(ci>=0){ const {status,notes,...sync}=rec; list[ci]={...list[ci],...sync,type:'CPP',pour:true,pourOf:mainId,rating:null,updatedAt:Date.now()}; }   // keeps the copy's own status / notes
+      else list.push({id:_rqNewId(),...rec,type:'CPP',pour:true,pourOf:mainId,rating:null,createdAt:Date.now(),updatedAt:Date.now()});
+    } else if(ci>=0) list.splice(ci,1);
   }
   _rqSave(list);
   _rqEditId=null;
@@ -41092,7 +41172,7 @@ function saveRequest(){
 }
 function deleteRequest(id){
   showConfirm(L('Delete this receipt?','حذف هذه الاستلامة؟'),function(){
-    _rqSave(_rqLoad().filter(x=>x.id!==id));
+    _rqSave(_rqLoad().filter(x=>x.id!==id&&x.pourOf!==id));
     showToast(L('Deleted','تم الحذف'),'info');
     renderView();
   });
@@ -50736,7 +50816,7 @@ function _rqReportBlock(r){
 }
 function _rqReportGroupsRaw(dateISO){
   const ar=(typeof lang!=='undefined'&&lang==='ar');
-  const day=_rqLoad().filter(r=>(r.date||'')===dateISO).sort((a,b)=>(a.createdAt||0)-(b.createdAt||0));
+  const day=_rqLoadMain().filter(r=>(r.date||'')===dateISO).sort((a,b)=>(a.createdAt||0)-(b.createdAt||0));
   // Arabic format: two groups only — "تم استلام" (received, with or without
   // notes) and "تم رفض"; no model and no notes lines.
   const defs=ar
@@ -50834,7 +50914,7 @@ function _rqBuildDailyReport(d){
 // Counts per status for one day (or every day when d==='all').
 function _rqReportCounts(d){
   const c={received:0,notes:0,rejected:0};
-  _rqLoad().forEach(r=>{ if(d!=='all' && (r.date||'')!==d) return; const k=r.status||'received'; if(k in c) c[k]++; });
+  _rqLoadMain().forEach(r=>{ if(d!=='all' && (r.date||'')!==d) return; const k=r.status||'received'; if(k in c) c[k]++; });
   return c;
 }
 function rqReportTranslate(){
@@ -50843,7 +50923,7 @@ function rqReportTranslate(){
 }
 function _rqReportDates(){
   const m={};
-  _rqLoad().forEach(r=>{ if(r.date) m[r.date]=(m[r.date]||0)+1; });
+  _rqLoadMain().forEach(r=>{ if(r.date) m[r.date]=(m[r.date]||0)+1; });
   return Object.keys(m).sort().reverse().map(d=>({d,n:m[d]}));
 }
 
@@ -50958,7 +51038,7 @@ function rqReportCopyItem(id){
 function rqReportEditItem(id){ openRequestModal(id); }
 function rqReportDelItem(id){
   showConfirm(L('Delete this receipt?','حذف هذه الاستلامة؟'),function(){
-    _rqSave(_rqLoad().filter(x=>x.id!==id));
+    _rqSave(_rqLoad().filter(x=>x.id!==id&&x.pourOf!==id));
     showToast(L('Deleted','تم الحذف'),'info');
     if(currentView==='expenses') renderView();
     rqReportOpen(_rqRptDate||today());
@@ -51513,7 +51593,7 @@ function rqImportPick(){
 // ── Export every receipt to Excel (same layout the importer reads) ──
 function rqExportExcel(){
   try{
-    const list=_rqLoad().slice().sort((a,b)=>String(a.date||'').localeCompare(String(b.date||''))||(a.createdAt||0)-(b.createdAt||0));
+    const list=_rqLoadMain().slice().sort((a,b)=>String(a.date||'').localeCompare(String(b.date||''))||(a.createdAt||0)-(b.createdAt||0));
     if(!list.length){ showToast(L('No receipts to export','لا توجد استلامات للتصدير'),'info'); return; }
     const head=['SER','COMPANY','REQ TYPE','PLOT NO','MODEL','TYPE','FLOOR','LEVEL','ZONE','ENG.','DATE','APPROVAL/REMARK','','','','COMMENTS'].map(v=>({v,s:1}));
     const serial=iso=>{ const m=String(iso||'').match(/^(\d{4})-(\d{2})-(\d{2})/); return m?Math.round(Date.UTC(+m[1],+m[2]-1,+m[3])/86400000)+25569:''; };
@@ -60549,8 +60629,12 @@ function mioraDismissGreetToast(){
 .cvp-pgs .cvp-clip .cvp-strip{position:absolute;top:0}
 .cvp-pn{position:absolute;right:60px;bottom:20px;font:7pt Helvetica,Arial,sans-serif;color:#6a7680}
 .cvp-pl{text-align:center;color:#aab3bc;font:800 13px/1 system-ui,-apple-system,sans-serif;margin:10px 0 22px}
-.cvp-count{position:sticky;top:0;z-index:2;width:fit-content;margin:0 auto 12px;display:flex;align-items:center;gap:6px;padding:7px 14px;border-radius:99px;background:rgba(28,32,36,.94);color:#fff;font-size:12px;font-weight:600;box-shadow:0 4px 14px rgba(0,0,0,.35)}
-.cvp-count b{font-weight:700}
+.cvp-ttl{display:flex;flex-direction:column;gap:3px;min-width:0;margin-inline-end:auto}
+.cvp-bar .cvp-ttl b{margin:0;white-space:nowrap}
+.cvp-count{display:flex;align-items:center;gap:5px;color:#aab3bc;font-size:11px;font-weight:600;line-height:1;white-space:nowrap}
+.cvp-count b{font-weight:700;color:#fff;font-size:11px;margin:0}
+.cvp-stage{padding-bottom:calc(env(safe-area-inset-bottom,0px) + 96px)}
+.cvp-ov .cvp-bar{flex:none;flex-wrap:nowrap}
 .cvp-dz{height:46vh;max-height:none}
 .cvp-ov.dz-open .cvp-stage{padding-bottom:calc(46vh + 20px)}
 .dz-b{flex:1;min-height:0}
