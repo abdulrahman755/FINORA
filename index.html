@@ -50438,18 +50438,63 @@ function _rqReportGroupsRaw(dateISO){
         const n=String(_rqDisplayValue(r,'notes')||'').trim().split('\n').map(x=>x.replace(/^[•\s-]+/,'').trim()).filter(Boolean)[0];
         if(n) lines.push((ar?'ملاحظة: ':'Note: ')+n);
       }
-      return {id:r.id,lines,st:(r.status||'received')};
+      const co=String(_rqDisplayValue(r,'company')||r.company||'').trim();
+      const zn=String(r.zone||'').trim().toUpperCase();
+      return {id:r.id,lines,st:(r.status||'received'),co,zn};
     })});
   });
   return out;
 }
+// Copy-only: when every receipt in the set shares the same company (and/or the
+// same zone), drop them from each card and return them once as a footer.
+// Needs 2+ receipts; if any receipt differs, that field stays on every card.
+function _rqHoistCommon(items,force){
+  const res={lines:items.map(it=>it.lines),footer:[]};
+  if(items.length<2 && !force) return res;
+  const pick=key=>{
+    const vals=items.map(it=>it[key]);
+    if(vals.some(v=>!v)) return '';
+    const k0=vals[0].toLowerCase();
+    if(!vals.every(v=>v.toLowerCase()===k0)) return '';
+    const cnt={}; vals.forEach(v=>{ cnt[v]=(cnt[v]||0)+1; });
+    return Object.keys(cnt).sort((a,b)=>cnt[b]-cnt[a])[0];
+  };
+  const co=pick('co'), zn=pick('zn');
+  if(!co && !zn) return res;
+  res.lines=items.map(it=>it.lines.filter((x,i)=>!(i>0 && ((co && x===it.co) || (zn && x===it.zn)))));
+  res.footer=[co,zn].filter(Boolean);
+  return res;
+}
+// Text for a set of status groups of ONE day.
+//  • one company in the set  -> cards without company/zone, company + zone once at the very end
+//  • several companies       -> inside each status group the cards are grouped per company, and each
+//                               company block ends with its own company (+ zone when shared in the block)
+function _rqRenderGroupsText(gs,dateLine){
+  const all=[]; gs.forEach(x=>x.items.forEach(it=>all.push(it)));
+  const cos={}; all.forEach(it=>{ if(it.co) cos[it.co.toLowerCase()]=1; });
+  const multi=Object.keys(cos).length>1;
+  const headOf=(g,gi)=>{ const h=['*'+g.title+'*']; if(gi===0 && dateLine) h.push(dateLine); return h.join('\n'); };
+  if(!multi){
+    const h=_rqHoistCommon(all);
+    const linesOf=new Map(); all.forEach((it,i)=>linesOf.set(it,h.lines[i]));
+    const body=gs.map(({g,items},gi)=>headOf(g,gi)+'\n'+items.map(it=>linesOf.get(it).join('\n')).join('\n\n')).join('\n\n');
+    return h.footer.length ? body+'\n\n'+h.footer.join('\n') : body;
+  }
+  return gs.map(({g,items},gi)=>{
+    const order=[], by={};
+    items.forEach(it=>{ const k=(it.co||'').toLowerCase(); if(!(k in by)){ by[k]=[]; order.push(k); } by[k].push(it); });
+    const blocks=order.map(k=>{
+      const its=by[k], h=_rqHoistCommon(its,true);
+      const txt=its.map((it,i)=>h.lines[i].join('\n')).join('\n\n');
+      return h.footer.length ? txt+'\n\n'+h.footer.join('\n') : txt;
+    });
+    return headOf(g,gi)+'\n'+blocks.join('\n\n');
+  }).join('\n\n');
+}
 function _rqBuildDailyReportRaw(dateISO,withDate){
   const groups=_rqReportGroupsRaw(dateISO);
   if(!groups.length) return '';
-  return groups.map((g,i)=>{
-    const head=['*'+g.title+'*']; if(i===0 && (lang!=='ar' || withDate)) head.push(_rqReportDateLabel(dateISO));
-    return head.join('\n')+'\n'+g.items.map(it=>it.lines.join('\n')).join('\n\n');
-  }).join('\n\n');
+  return _rqRenderGroupsText(groups.map(g=>({g,items:g.items})), (lang!=='ar'||withDate)?_rqReportDateLabel(dateISO):'');
 }
 // Report-language override: the Translate button inside "My Report" flips the
 // whole report between Arabic and English without touching the app language.
@@ -50536,14 +50581,9 @@ function _rqBuildSelectedText(){
   return _rqInRptLang(()=>{
     const out=[];
     _rqReportDates().forEach(h=>{
-      let first=true;
-      _rqReportGroupsRaw(h.d).forEach(g=>{
-        const items=g.items.filter(it=>_rqSel.has(it.id)); if(!items.length) return;
-        const head=['*'+g.title+'*'];
-        if(first && lang!=='ar') head.push(_rqReportDateLabel(h.d));
-        first=false;
-        out.push(head.join('\n')+'\n'+items.map(it=>it.lines.join('\n')).join('\n\n'));
-      });
+      const gs=_rqReportGroupsRaw(h.d).map(g=>({g,items:g.items.filter(it=>_rqSel.has(it.id))})).filter(x=>x.items.length);
+      if(!gs.length) return;
+      out.push(_rqRenderGroupsText(gs, lang!=='ar'?_rqReportDateLabel(h.d):''));
     });
     return out.join('\n\n');
   });
@@ -63184,6 +63224,7 @@ const r2=n=>Math.round((n+Number.EPSILON)*100)/100;
 function parseAmount(t){
   t=normDigits(t).replace(/[^\d.,\-]/g,'');
   if(!/\d/.test(t)) return NaN;
+  const _g=t.match(/^(\d+[.,]\d{2})[.,]\d+$/); if(_g) t=_g[1];   // "89.95.18" -> 89.95
   const lc=t.lastIndexOf(','), ld=t.lastIndexOf('.');
   if(lc>-1 && ld>-1){ t = lc>ld ? t.replace(/\./g,'').replace(',','.') : t.replace(/,/g,''); }
   else if(lc>-1){
@@ -63201,7 +63242,9 @@ function amountsIn(line){
   const s=normDigits(line), out=[];
   const re=/(\d[\d.,]*\d|\d)(?!\s*%)/g; let m;
   while((m=re.exec(s))){
-    const tok=m[1], digits=tok.replace(/\D/g,'');
+    let tok=m[1];
+    const glued=tok.match(/^(\d+[.,]\d{2})[.,]\d+$/); if(glued) tok=glued[1];   // OCR glues "89.95" + ".18" -> keep the price only
+    const digits=tok.replace(/\D/g,'');
     if(digits.length>9) continue;                                   // phone / tax id / barcode
     if(/^\d{1,2}[./-]\d{1,2}[./-]\d{2,4}$/.test(tok)) continue;      // date
     const prev=s[m.index-1]; if(prev==='/'||prev==='-'&&/\d/.test(s[m.index-2]||'')) continue;
@@ -63344,7 +63387,13 @@ function findCashChange(lines){
 }
 /* qty × unit = line value, whatever the column order OCR returns (RTL receipts come out scrambled) */
 function tripleIn(ln){
-  const v=amountsIn(ln).map(a=>a.v).filter(x=>x>0), n=v.length; let best=null;
+  const v=[];
+  amountsIn(ln).forEach(a=>{
+    if(a.v>0) v.push(a.v);
+    const g=a.tok.match(/^(\d{1,2})[,.\s]?(\d{1,3}[.,]\d{2})$/);          // qty column glued to the amount
+    if(g){ const q=parseAmount(g[1]), t=parseAmount(g[2]); if(q>0) v.push(q); if(t>0) v.push(t); }
+  });
+  const n=v.length; let best=null;
   for(let a=0;a<n;a++) for(let b=0;b<n;b++) for(let c=0;c<n;c++){
     if(a===b||b===c||a===c) continue;
     const q=v[a], u=v[b], t=v[c];
@@ -63368,6 +63417,22 @@ function findVendor(rawLines){
     return t.replace(/^[^A-Za-z\u0600-\u06FF]+/,'').replace(/[^A-Za-z\u0600-\u06FF0-9)]+$/,'').slice(0,60);
   }
   return '';
+}
+/* Arabic vendor lines come out of on-device OCR with Latin junk ("sis") and swapped letters.
+   Clean what is safely fixable and report whether the result is still doubtful. */
+function cleanVendor(v){
+  let t=String(v||''), doubt=false;
+  if(!t) return {name:'',doubt:false};
+  if(/[\u0600-\u06FF]/.test(t)){
+    const before=t;
+    t=t.split(' ').filter(w=>!(/^[A-Za-z]{1,5}$/.test(w))).join(' ');          // stray Latin fragments inside an Arabic name
+    t=t.replace(/(^|\s)[فص]اركت(?=\s|$)/g,'$1ماركت').replace(/(^|\s)ماركث(?=\s|$)/g,'$1ماركت');
+    t=t.split(' ').filter(w=>w.length>1).join(' ').trim();                     // 1-letter fragments
+    if(t!==before) doubt=true;
+    const words=t.split(' ').filter(Boolean);
+    if(words.length && words[words.length-1].length<=3 && words.length>=3) doubt=true;   // clipped last word ("احس")
+  }
+  return {name:t,doubt};
 }
 function findPayment(text){
   const k=normAr(text);
@@ -63402,7 +63467,7 @@ function findItems(lines,startIdx,endIdx){
     const tr=tripleIn(ln);
     if(tr){
       const nm=ln.replace(/\d[\d.,]*/g,' ').replace(/(^|\s)[x×*.,:\-–_|~=#]+(?=\s|$)/g,' ').replace(/\s+/g,' ').trim();
-      if(nm.replace(/[^A-Za-z\u0600-\u06FF]/g,'').length>=2){ items.push({name:nm.slice(0,60),qty:tr.q,unit:tr.u,total:r2(tr.t)}); continue; }
+      if(nm.replace(/[^A-Za-z\u0600-\u06FF]/g,'').length>=2){ items.push({name:nm.slice(0,60),qty:tr.q,unit:tr.u,total:r2(tr.t),src:ln}); continue; }
     }
     let name='', cluster='', rev=false;
     let m=ln.match(/^(.*?[A-Za-z\u0600-\u06FF].*?)[\s:.\-–]*((?:[x×*]?\s*\d[\d.,]*\s*[x×*]?\s*){1,4})\s*(?:egp|le|l\.e|ج\.?\s?م|جنيه)?\s*$/i);
@@ -63428,7 +63493,7 @@ function findItems(lines,startIdx,endIdx){
     }
     else total=nums[nums.length-1];
     if(!(total>0) || total>1e6) continue;
-    items.push({name:name.slice(0,60),qty,unit,total:r2(total)});
+    items.push({name:name.slice(0,60),qty,unit,total:r2(total),src:ln});
   }
   return items;
 }
@@ -63440,7 +63505,7 @@ function parseText(text,opts){
   const subtotal=findLabeled(lines,RX.subtotal,T.value*1.01||0);
   const tax=findLabeled(lines,RX.tax,T.value*0.6);
   const discount=findLabeled(lines,RX.discount,T.value*1.5);
-  const vendor=findVendor(rawLines);
+  const _cv=cleanVendor(findVendor(rawLines)), vendor=_cv.name;
   const date=findDate(rawLines);
   let hdr=lines.findIndex((l,i)=>i<22 && /qty|item|description|desc|الصنف|البيان|الكميه|السعر|الوصف/.test(normAr(l)));
   const start=hdr>-1?hdr+1:Math.min(2,lines.length);
@@ -63452,17 +63517,42 @@ function parseText(text,opts){
   if(category==='Other') category=guessCategory(items.map(i=>i.name).join(' '));
   if(category==='Other') category=guessCategory(hay);
   /* total: trust a value only when two independent sources agree (label, cash − change, sum of items) */
-  const cc=findCashChange(lines), itemSum=r2(items.reduce((a,x)=>a+(x.total||0),0));
+  const cc=findCashChange(lines);
   const near=(a,b)=>a>0&&b>0&&Math.abs(a-b)<=0.02;
+  let itemSum=r2(items.reduce((a,x)=>a+(x.total||0),0));
+  /* an item total that disagrees with cash - change is usually the qty column glued to the amount
+     ("2" + "179.90" -> 2,179.90) or another column picked by mistake: try the other numbers on that
+     line (and the same numbers with 1-2 leading digits dropped) and keep the one that makes the items match */
+  if(cc.net>0 && items.length && !near(itemSum,cc.net)){
+    outer: for(let i=0;i<items.length;i++){
+      const it=items[i]; if(!it.src) continue;
+      const alts=[];
+      const nv=amountsIn(it.src).map(a=>a.v).filter(x=>x>0);
+      for(let x=0;x<nv.length;x++) for(let y=x+1;y<nv.length;y++) alts.push(r2(nv[x]*nv[y]));   // qty x unit
+      amountsIn(it.src).forEach(a=>{
+        alts.push(a.v);
+        for(let cut=1;cut<=2;cut++){
+          const rest=a.tok.slice(cut).replace(/^[,.\s]/,'');
+          if(/^\d+([.,]\d{1,2})?$/.test(rest)){ const v=parseAmount(rest); if(isFinite(v)) alts.push(v); }
+        }
+      });
+      for(const c of alts){
+        const alt=r2(itemSum-it.total+c);
+        if(c>0 && near(alt,cc.net)){ it.total=r2(c); itemSum=alt; break outer; }
+      }
+    }
+  }
+  const seenTwice=v=>lines.filter(l=>amountsIn(l).some(a=>a.dec&&near(a.v,v))).length>=2;
   let total=T.value||0, totalBy=T.by, hint=null;
   const kw=T.by==='keyword'?T.value:0;
   if(near(kw,cc.net)||near(kw,itemSum)){ total=kw; totalBy='keyword'; }
   else if(near(cc.net,itemSum)){ total=cc.net; totalBy='keyword'; }
   else if(kw){ total=kw; totalBy='keyword'; }
+  else if(cc.net>0 && seenTwice(cc.net)){ total=cc.net; totalBy='keyword'; }   // cash - change also printed on another line
   else if(cc.net>0){ total=0; totalBy='none'; hint=cc.net; }
   else if(itemSum>0){ total=0; totalBy='none'; hint=itemSum; }
   return {
-    vendor, date, time:findTime(text), total:total, totalBy:totalBy, hint:hint, subtotal:subtotal, tax, discount,
+    vendor, vendorDoubt:_cv.doubt, date, time:findTime(text), total:total, totalBy:totalBy, hint:hint, subtotal:subtotal, tax, discount,
     payment:findPayment(text), currency:findCurrency(text), receiptNo:findReceiptNo(rawLines),
     category:category, items, lineCount:rawLines.length
   };
@@ -63616,6 +63706,7 @@ function validate(r){
   }
   if(!r.date){ r.date=_today(); r.dateGuess=true; w.push(_L("No date on the receipt — today's date was used.",'مفيش تاريخ واضح — اتحط تاريخ النهاردة.')); }
   if(!r.vendor) w.push(_L('Vendor name not found.','اسم المحل مش واضح.'));
+  else if(r.vendorDoubt) w.push(_L('Vendor name looks garbled — please correct it.','اسم المحل مقروء بشكل ناقص — صححه.'));
   if(r.subtotal && r.tax!=null && r.total && Math.abs(r.subtotal+r.tax-(r.discount||0)+(r.service||0)-r.total)>Math.max(0.5,r.total*0.02))
     w.push(_L("Subtotal + tax doesn't match the total.",'المجموع + الضريبة مش مطابق للإجمالي.'));
   const it=r.items.reduce((a,x)=>a+(x.total||0),0);
