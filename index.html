@@ -23451,7 +23451,7 @@ function renderSavings(){
     const _debtDisplay = savResolveIconDisplay('debt', x.person||'', x.iconOverride||null);
     const isOverdue = x.dueDate && x.dueDate < todayStr;
     const dueBadge = x.dueDate
-      ? `<span class="ctr-badge pending">${isOverdue?L('Expected','المتوقع')+' '+esc(x.dueDate)+' · '+L('passed','عدّى'):L('Expected','المتوقع')+' '+esc(x.dueDate)}</span>`
+      ? `<span class="ctr-badge pending${isOverdue?' overdue':''}">${isOverdue?L('Expected','المتوقع')+' '+esc(x.dueDate)+' · '+L('passed','عدّى'):L('Expected','المتوقع')+' '+esc(x.dueDate)}</span>`
       : '';
     const metaBits = [`<span>${esc(x.date||'—')}</span>`];
     if(x.note) metaBits.push(`<span>${esc(x.note)}</span>`);
@@ -23466,7 +23466,7 @@ function renderSavings(){
           <div class="sav-row-meta sav-debt-meta">${metaBits.join('<span class="sav-debt-dot">·</span>')}${dueBadge}</div>
           ${_debtExtraHTML(x,idx,isToMe)}
         </div>
-        <div class="sav-row-amount" style="color:${accent}">${fmt(_debtRemaining(x))}<span class="sav-cur">${curLabel()}</span></div>
+        <div class="sav-row-amount" style="color:${accent}"><small class="sdb-amt-lbl">${L('Remaining','المتبقي')}</small><span class="sdb-amt-v">${fmt(_debtRemaining(x))}<span class="sav-cur">${curLabel()}</span></span></div>
       </div>
       <div class="sav-row-actions">
         <div class="sav-drag-handle" data-savtype="debt" title="${L('Hold to reorder','اسحب لإعادة الترتيب')}">${_SAV_DRAG_DOTS}</div>
@@ -24079,7 +24079,7 @@ function _debtExtraHTML(x,idx,isToMe){
   if(paid>0){
     const pct=Math.max(0,Math.min(100,Math.round(paid/Math.max(total,1)*100)));
     h+='<div class="sdb-prog"><span class="sdb-prog-bar"><i style="width:'+pct+'%"></i></span>'
-      +'<span class="sdb-prog-tx" dir="auto">'+esc(_sdbVerb(isToMe,true))+' '+fmt(paid)+' '+esc(L('of','من'))+' '+fmt(total)+'</span></div>';
+      +'<span class="sdb-prog-tx" dir="auto">'+esc(_sdbVerb(isToMe,true))+' '+fmt(paid)+' '+esc(L('of','من'))+' '+fmt(total)+'</span><span class="sdb-prog-pct">'+pct+'%</span></div>';
   }
   h+='<button type="button" class="sdb-settle" onclick="savSettleDebt('+idx+',\'part\');event.stopPropagation()">'
     +'<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>'+esc(isToMe?L('Add payment received','إضافة دفعة مُستلمة'):L('Add payment','إضافة دفعة'))+'</button>';
@@ -64786,6 +64786,110 @@ html body #lockScreen .wa-badge-check circle{fill:#22C58B!important}
 html body #lockScreen .wa-badge-x circle{fill:#E5534B!important}
 html body #lockScreen .lock-credit-label,html body #lockScreen .lock-credit-name,html body #lockScreen .lock-credit-sub{color:rgba(255,255,255,.62)!important}
 html body #lockScreen .lock-credit-badge{background:rgba(255,255,255,.16)!important;color:#fff!important;border-color:rgba(255,255,255,.2)!important}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   Daily Spend — quick actions + insight strip: aligned, calm, easy to scan.
+   Presentation only (markup, numbers and handlers untouched).
+   ══════════════════════════════════════════════════════════════════════════ */
+body #mainContent .dly-actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:14px 0 12px}
+body #mainContent .dly-actions .dly-act{
+  min-height:88px;gap:9px;padding:13px 6px 11px;border-radius:20px;
+  border:1px solid color-mix(in srgb,var(--border) 62%,transparent);background:var(--surface);color:var(--text);
+  font-size:calc(13px*var(--app-text-scale,1));font-weight:650;letter-spacing:0;line-height:1.2;
+  box-shadow:0 1px 2px rgba(16,24,40,.04);transition:transform .12s ease,box-shadow .15s ease,background-color .15s ease}
+body #mainContent .dly-actions .dly-act>span:not(.dly-ic){display:block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+body #mainContent .dly-actions .dly-ic{width:42px;height:42px;border-radius:14px}
+body #mainContent .dly-actions .dly-act:active{transform:scale(.97)}
+body #mainContent .dly-actions .dly-act:focus-visible{outline:2px solid var(--green);outline-offset:2px}
+body #mainContent .dly-actions .dly-act.primary{
+  background:linear-gradient(160deg,#2f78e8 0%,#1565d8 100%);border-color:transparent;color:#fff;
+  box-shadow:0 10px 20px -10px rgba(21,101,216,.6)}
+body #mainContent .dly-actions .dly-act.primary .dly-ic{background:rgba(255,255,255,.2);color:#fff}
+:root[data-theme="dark"] body #mainContent .dly-actions .dly-act{box-shadow:none}
+:root[data-theme="dark"] body #mainContent .dly-actions .dly-act.primary{background:#2f6fe0;box-shadow:none}
+
+/* insights: one grouped card with hairline dividers instead of three loose boxes */
+body #mainContent .dly-insights{
+  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0;margin:0 0 12px;padding:0;overflow:hidden;
+  background:var(--surface);border:1px solid color-mix(in srgb,var(--border) 62%,transparent);border-radius:20px;
+  box-shadow:0 1px 2px rgba(16,24,40,.04)}
+:root[data-theme="dark"] body #mainContent .dly-insights{box-shadow:none}
+body #mainContent .dly-ins{gap:5px;padding:15px 14px 14px;border:0;border-radius:0;background:transparent}
+body #mainContent .dly-ins + .dly-ins{border-inline-start:1px solid color-mix(in srgb,var(--border) 62%,transparent)}
+body #mainContent .dly-ins span{font-size:calc(12px*var(--app-text-scale,1));font-weight:600;color:var(--muted)}
+body #mainContent .dly-ins b{display:block;font-size:calc(22px*var(--app-text-scale,1));font-weight:750;line-height:1.15;letter-spacing:-.4px;color:var(--text)}
+body #mainContent .dly-ins small{display:block;font-size:calc(12px*var(--app-text-scale,1));font-weight:600;line-height:1.3;color:var(--muted)}
+body #mainContent .dly-ins.ok b,body #mainContent .dly-ins.ok small{color:var(--green)}
+body #mainContent .dly-ins.bad b,body #mainContent .dly-ins.bad small{color:var(--red,#d14343)}
+body #mainContent .dly-ins.ok small::before,body #mainContent .dly-ins.bad small::before{content:"";display:inline-block;width:7px;height:7px;margin-inline-end:6px;border-radius:50%;background:currentColor;vertical-align:middle}
+@media (max-width:360px){
+  body #mainContent .dly-actions .dly-act{min-height:80px;font-size:calc(12px*var(--app-text-scale,1))}
+  body #mainContent .dly-ins{padding:13px 10px 12px}
+  body #mainContent .dly-ins b{font-size:calc(19px*var(--app-text-scale,1))}
+}
+@media (prefers-reduced-motion:reduce){body #mainContent .dly-actions .dly-act{transition:none}}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   My Finances → Debts: each debt reads as one tidy card
+   (who · date/note · due pill · remaining amount · progress · one clear action).
+   Presentation only — drag-reorder, details and settle handlers are untouched.
+   ══════════════════════════════════════════════════════════════════════════ */
+/* summary strip aligned with the 16px content grid */
+body #mainContent .fin-page .sdb-strip{margin:12px 16px 2px;border-radius:16px;border-color:color-mix(in srgb,var(--border) 70%,transparent);background:color-mix(in srgb,var(--surface2) 65%,var(--surface))}
+body #mainContent .fin-page .sdb-strip-c{gap:5px;padding:13px 14px}
+body #mainContent .fin-page .sdb-strip-c small{display:flex;align-items:center;gap:6px;font-size:calc(12px*var(--app-text-scale,1));font-weight:600}
+body #mainContent .fin-page .sdb-strip-c small::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--fin-income);flex:none}
+body #mainContent .fin-page .sdb-strip-c + .sdb-strip-c small::before{background:var(--fin-outcome)}
+body #mainContent .fin-page .sdb-strip-c b{font-size:calc(18px*var(--app-text-scale,1));font-weight:800;letter-spacing:-.3px}
+
+/* one debt = one card */
+body #mainContent .fin-page .sav-row[data-savtype="debt"]{
+  display:flex;align-items:flex-start;gap:6px;margin:12px 0 0;padding:14px 8px 14px 14px;
+  border:1px solid color-mix(in srgb,var(--border) 70%,transparent);border-radius:18px;
+  background:color-mix(in srgb,var(--surface2) 45%,var(--surface))}
+:root[dir="rtl"] body #mainContent .fin-page .sav-row[data-savtype="debt"]{padding:14px 14px 14px 8px}
+body #mainContent .fin-page .tx-rows>.sav-row[data-savtype="debt"]:first-child{border-top:1px solid color-mix(in srgb,var(--border) 70%,transparent)}
+body #mainContent .fin-page .sav-row[data-savtype="debt"] .sav-row-main{
+  flex:1;min-width:0;display:grid;grid-template-columns:44px minmax(0,1fr) auto;
+  grid-template-areas:"icon title amount" "icon meta amount" "cta cta cta";
+  column-gap:12px;row-gap:3px;align-items:start}
+body #mainContent .fin-page .sav-row[data-savtype="debt"] .sav-row-text{display:contents}
+body #mainContent .fin-page .sav-row[data-savtype="debt"] .sav-row-icon{grid-area:icon;width:44px;height:44px;border-radius:14px}
+body #mainContent .fin-page .sav-row[data-savtype="debt"] .sav-row-title{grid-area:title;align-self:end;font-size:calc(15px*var(--app-text-scale,1));font-weight:700}
+body #mainContent .fin-page .sav-row[data-savtype="debt"] .sav-debt-meta{grid-area:meta;gap:4px 6px;font-size:calc(12px*var(--app-text-scale,1));color:var(--muted)}
+body #mainContent .fin-page .sav-row[data-savtype="debt"] .sav-row-amount{grid-area:amount;display:flex;flex-direction:column;align-items:flex-end;gap:2px;text-align:end}
+body #mainContent .fin-page .sav-row[data-savtype="debt"] .sdb-amt-lbl{font-size:calc(11px*var(--app-text-scale,1));font-weight:600;color:var(--muted);letter-spacing:0}
+body #mainContent .fin-page .sav-row[data-savtype="debt"] .sdb-amt-v{display:inline-flex;align-items:baseline;gap:4px;font-size:calc(19px*var(--app-text-scale,1));font-weight:800;letter-spacing:-.3px;font-variant-numeric:tabular-nums}
+body #mainContent .fin-page .sav-row[data-savtype="debt"] .sav-row-actions{align-self:flex-start;margin-top:1px}
+body #mainContent .fin-page .sav-row[data-savtype="debt"] .sav-drag-handle{opacity:.28}
+
+/* due pill */
+body #mainContent .fin-page .sav-debt-meta .ctr-badge{display:inline-flex;align-items:center;padding:3px 10px;border-radius:99px;
+  font-size:calc(11.5px*var(--app-text-scale,1));font-weight:700;line-height:1.3;color:#9a6a12;background:color-mix(in srgb,#d4a017 16%,transparent)}
+body #mainContent .fin-page .sav-debt-meta .ctr-badge.overdue{color:var(--red,#b2534a);background:color-mix(in srgb,var(--red,#b2534a) 12%,transparent)}
+
+/* progress + action span the full card width */
+body #mainContent .fin-page .sav-row[data-savtype="debt"] .sdb-cta{grid-area:cta;align-items:stretch;gap:12px;margin-top:14px;width:100%}
+body #mainContent .fin-page .sdb-prog{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:7px 10px;width:100%;max-width:none}
+body #mainContent .fin-page .sdb-prog-bar{grid-column:1/-1;height:8px;background:color-mix(in srgb,var(--border-strong,var(--border)) 55%,transparent)}
+body #mainContent .fin-page .sdb-prog-bar i{background:linear-gradient(90deg,color-mix(in srgb,var(--fin-income) 65%,#fff),var(--fin-income))}
+body #mainContent .fin-page .sdb-prog-tx{margin:0;white-space:normal;font-size:calc(12px*var(--app-text-scale,1));font-weight:600;color:var(--muted)}
+body #mainContent .fin-page .sdb-prog-pct{font-size:calc(12px*var(--app-text-scale,1));font-weight:800;color:var(--fin-income);font-variant-numeric:tabular-nums}
+body #mainContent .fin-page .sdb-settle{width:100%;height:42px;justify-content:center;border-radius:12px;font-size:calc(13px*var(--app-text-scale,1));font-weight:700;
+  color:var(--fin-income);background:color-mix(in srgb,var(--fin-income) 11%,transparent);border:1px solid color-mix(in srgb,var(--fin-income) 28%,transparent)}
+body #mainContent .fin-page .sdb-settle:active{background:color-mix(in srgb,var(--fin-income) 20%,transparent)}
+body #mainContent .fin-page .sdb-settle:focus-visible{outline:2px solid var(--green);outline-offset:2px}
+
+/* history footer */
+body #mainContent .fin-page .sdb-hist{margin:14px 16px 6px;padding-top:4px}
+body #mainContent .fin-page .sdb-hist-hd{padding:10px 0;min-height:48px}
+body #mainContent .fin-page .sdb-hist-ic{width:34px;height:34px;border-radius:11px}
+body #mainContent .fin-page .sdb-hrow{padding:11px 0}
+body #mainContent .fin-page .sdb-allclear{margin:12px 16px 4px;padding:14px;border-radius:14px;background:color-mix(in srgb,var(--fin-income) 9%,transparent)}
+@media (max-width:360px){
+  body #mainContent .fin-page .sav-row[data-savtype="debt"]{padding:12px 6px 12px 12px}
+  body #mainContent .fin-page .sav-row[data-savtype="debt"] .sdb-amt-v{font-size:calc(17px*var(--app-text-scale,1))}
+}
 </style>
 <script>
 // Shrinks oversized amounts in the Daily "insight" tiles (Daily average / Projected)
