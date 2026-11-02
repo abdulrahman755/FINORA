@@ -63254,12 +63254,12 @@ function findTime(text){
 
 /* ── categories ──────────────────────────────────────────────────────────── */
 const CATS=[
- ['Groceries','بقالة وسوبر ماركت',/supermarket|super market|market|grocery|hyper|carrefour|spinneys|kazyon|seoudi|oscar|metro market|ماركت|سوبر|بقاله|هايبر|كارفور|سعودي|اولاد رجب|خير زمان/],
+ ['Groceries','بقالة وسوبر ماركت',/supermarket|super market|market|grocery|hyper|carrefour|spinneys|kazyon|seoudi|oscar|metro market|aquafina|pepsi|juice|milk|cheese|biscuit|ماركت|سوبر|بقاله|هايبر|كارفور|سعودي|اولاد رجب|خير زمان|اكوافينا|مياه|عصير|لبن|جبن|بسكويت|شيبسي|مكرونه|بيبسي|كوكاكولا/],
  ['Restaurants & Cafes','مطاعم وكافيهات',/restaurant|cafe|coffee|bakery|pizza|burger|kfc|mcdonald|starbucks|cilantro|grill|sweets|مطعم|كافيه|قهوه|مخبز|حلواني|بيتزا|برجر|كشري|شاورما|مشويات/],
  ['Fuel','وقود',/petrol|fuel|gas station|petroleum|total ?energies|wataniya|cooperation|mobil|chillout|بنزين|وقود|محطه|تعاون|وطنيه|مصر للبترول|سولار/],
  ['Pharmacy & Health','صيدلية وصحة',/pharmacy|clinic|hospital|laborator|medical|drug|dental|صيدليه|عياده|مستشفي|معمل|مختبر|دواء|العزبي|رشدي|فارما|طبي/],
  ['Transport','مواصلات',/uber|careem|indrive|taxi|parking|toll|ticket|مواصلات|تاكسي|جراج|انتظار|رسوم طريق|تذكره/],
- ['Bills & Utilities','فواتير وخدمات',/electricity|water bill|gas bill|internet|vodafone|orange|etisalat|telecom|utility|كهرباء|مياه|غاز|انترنت|فودافون|اورنج|اتصالات|للاتصالات/],
+ ['Bills & Utilities','فواتير وخدمات',/electricity|water bill|gas bill|internet|vodafone|orange|etisalat|telecom|utility|كهرباء|فاتوره مياه|شركه مياه|فاتوره غاز|غاز طبيعي|انترنت|فودافون|اورنج|اتصالات|للاتصالات/],
  ['Electronics','إلكترونيات',/electronic|mobile shop|laptop|computer|b\.?tech|raya|samsung|الكترونيات|موبايل|لابتوب|كمبيوتر|سامسونج/],
  ['Building Materials','مواد بناء',/cement|steel|rebar|brick|paint|hardware|tiles|ceramic|sanitary|building|مواد بناء|اسمنت|حديد|طوب|دهانات|بويات|سيراميك|ادوات صحيه|عدد وادوات/],
  ['Shopping','تسوق وملابس',/zara|h&m|defacto|lcw|mall|fashion|clothes|shoes|ikea|store|ملابس|حذاء|احذيه|مول|معرض|ازياء/],
@@ -63282,6 +63282,7 @@ const RX={
   discount:/discount|\boff\b|saving|خصم|تخفيض|توفير/,
   change:/change|remain|tender|received|\bpaid\b|الباقي|المتبقي|المدفوع|المستلم|نقدا مستلم/,
   qtyWord:/items|qty|quantity|pcs|عدد|كميه|صنف|اصناف|قطع/,
+  noise:/عدد\s*(?:الاصناف|القطع)|الاصناف\s*:|القيمه\s*المستحقه|نقدي|نقدا|الباقي|الكاشير|كاشير|\bstore\b|\bpos\b|\buser\b|\btrans\b|سجل|رقم\s*الملف|رقم\s*التسجيل|ماموريه|ضرايب|ضرائب|الاسعار\s*تشمل|الارتجاع|سعدنا|تجاري/,
   header:/\b(tel|phone|mob|fax|www|http|email|invoice|receipt|bill|cashier|order|table|date|time|welcome|thank|branch|reg|tax\s*(?:id|no|reg)|vat\s*(?:no|reg))\b|هاتف|تليفون|موبايل|فاتوره|ايصال|كاشير|طاوله|تاريخ|الوقت|شكرا|فرع|سجل|رقم\s*ضريبي|بطاقه ضريبيه/,
 };
 function findTotal(lines){
@@ -63293,9 +63294,12 @@ function findTotal(lines){
     if(RX.change.test(k)) score-=3;
     if(RX.discount.test(k) && !/total|اجمالي/.test(k)) score-=2;
     let am=amountsIn(ln);
-    if(!am.length && lines[i+1]) am=amountsIn(lines[i+1]);
+    const numOnly=x=>x!=null && x.replace(/[\d.,:\s\-_=]/g,'').length<3;
+    if(!am.some(x=>x.dec) && lines[i+1]){ const nx=amountsIn(lines[i+1]); if(nx.some(x=>x.dec)) am=nx; }
+    if(!am.some(x=>x.dec) && numOnly(lines[i-1])){ const pv=amountsIn(lines[i-1]); if(pv.some(x=>x.dec)) am=pv; }
     if(!am.length) return;
-    const a=am[am.length-1];
+    const dm=am.filter(x=>x.dec);
+    const a=dm.length?dm[dm.length-1]:am[am.length-1];
     if(RX.qtyWord.test(k) && !a.dec) score-=2;
     if(a.v<=0) return;
     cands.push({v:a.v,score,i,dec:a.dec});
@@ -63321,6 +63325,34 @@ function findLabeled(lines,rx,maxV){
   });
   return found;
 }
+function findCashChange(lines){
+  let cash=null, chg=null;
+  const numOnly=x=>x!=null && x.replace(/[\d.,:\s\-_=]/g,'').length<3;
+  lines.forEach((ln,i)=>{
+    const k=normAr(normDigits(ln));
+    const isChg=/الباقي|المتبقي|\bchange\b|\bremain/.test(k);
+    const isCash=!isChg && /نقدي|نقدا|\bcash\b/.test(k);
+    if(!isChg && !isCash) return;
+    let am=amountsIn(ln).filter(a=>a.dec);
+    if(!am.length && numOnly(lines[i+1])) am=amountsIn(lines[i+1]).filter(a=>a.dec);
+    if(!am.length && numOnly(lines[i-1])) am=amountsIn(lines[i-1]).filter(a=>a.dec);
+    if(!am.length) return;
+    const v=am[am.length-1].v;
+    if(isChg) chg=v; else cash=v;
+  });
+  return {cash,chg,net:(cash!=null&&chg!=null&&cash>=chg)?r2(cash-chg):null};
+}
+/* qty × unit = line value, whatever the column order OCR returns (RTL receipts come out scrambled) */
+function tripleIn(ln){
+  const v=amountsIn(ln).map(a=>a.v).filter(x=>x>0), n=v.length; let best=null;
+  for(let a=0;a<n;a++) for(let b=0;b<n;b++) for(let c=0;c<n;c++){
+    if(a===b||b===c||a===c) continue;
+    const q=v[a], u=v[b], t=v[c];
+    if(Math.abs(q*u-t)>0.02 || t<u || t<q) continue;
+    if(!best || t>best.t || (t===best.t && Number.isInteger(q) && !Number.isInteger(best.q))) best={q,u,t};
+  }
+  return best;
+}
 function findVendor(rawLines){
   let n=0;
   for(const ln of rawLines){
@@ -63329,8 +63361,10 @@ function findVendor(rawLines){
     if(t.length<3) continue;
     const letters=(t.match(/[A-Za-z\u0600-\u06FF]/g)||[]).length;
     if(letters<3 || letters/t.length<0.45) continue;
+    if(/الصنف|السعر|الكميه|القيمه|\bqty\b|\bprice\b|description/.test(normAr(t))) break;
     if(RX.header.test(normAr(t))) continue;
     if(/^\d/.test(t) && letters<6) continue;
+    if(t.split(' ').some(w=>/[\u0600-\u06FF][A-Za-z]|[A-Za-z][\u0600-\u06FF]/.test(w))) continue;   // garbled OCR word (Arabic+Latin glued)
     return t.replace(/^[^A-Za-z\u0600-\u06FF]+/,'').replace(/[^A-Za-z\u0600-\u06FF0-9)]+$/,'').slice(0,60);
   }
   return '';
@@ -63360,10 +63394,16 @@ function findReceiptNo(lines){
 }
 function findItems(lines,startIdx,endIdx){
   const items=[];
-  const bad=l=>RX.totalStrong.test(l)||RX.totalWeak.test(l)||RX.subtotal.test(l)||RX.tax.test(l)||RX.discount.test(l)||RX.change.test(l)||RX.header.test(l);
+  const bad=l=>RX.totalStrong.test(l)||RX.totalWeak.test(l)||RX.subtotal.test(l)||RX.tax.test(l)||RX.discount.test(l)||RX.change.test(l)||RX.header.test(l)||RX.noise.test(l);
   for(let i=startIdx;i<endIdx && items.length<60;i++){
     const ln=normDigits(lines[i]).replace(/\s+/g,' ').trim(); if(ln.length<4) continue;
     const k=normAr(ln); if(bad(k)) continue;
+    if(/\d+\/\d+\/\d+/.test(ln) || /\d{9,}/.test(ln)) continue;      // tax-file / registry numbers
+    const tr=tripleIn(ln);
+    if(tr){
+      const nm=ln.replace(/\d[\d.,]*/g,' ').replace(/(^|\s)[x×*.,:\-–_|~=#]+(?=\s|$)/g,' ').replace(/\s+/g,' ').trim();
+      if(nm.replace(/[^A-Za-z\u0600-\u06FF]/g,'').length>=2){ items.push({name:nm.slice(0,60),qty:tr.q,unit:tr.u,total:r2(tr.t)}); continue; }
+    }
     let name='', cluster='', rev=false;
     let m=ln.match(/^(.*?[A-Za-z\u0600-\u06FF].*?)[\s:.\-–]*((?:[x×*]?\s*\d[\d.,]*\s*[x×*]?\s*){1,4})\s*(?:egp|le|l\.e|ج\.?\s?م|جنيه)?\s*$/i);
     if(m){ name=m[1]; cluster=m[2]; }
@@ -63404,14 +63444,27 @@ function parseText(text,opts){
   const date=findDate(rawLines);
   let hdr=lines.findIndex((l,i)=>i<22 && /qty|item|description|desc|الصنف|البيان|الكميه|السعر|الوصف/.test(normAr(l)));
   const start=hdr>-1?hdr+1:Math.min(2,lines.length);
-  let end=lines.findIndex((l,i)=>i>=start && (RX.subtotal.test(normAr(l))||RX.totalStrong.test(normAr(l))||RX.totalWeak.test(normAr(l))));
+  let end=lines.findIndex((l,i)=>i>=start && (RX.subtotal.test(normAr(l))||RX.totalStrong.test(normAr(l))||RX.totalWeak.test(normAr(l))||/عدد\s*الاصناف|الاصناف\s*:|نقدي|الباقي/.test(normAr(l))));
   if(end<0) end=lines.length;
   const items=findItems(rawLines,start,end);
   const hay=vendor+' '+rawLines.slice(0,12).join(' ')+' '+items.map(i=>i.name).join(' ');
+  let category=guessCategory(vendor+' '+rawLines.slice(0,3).join(' '));
+  if(category==='Other') category=guessCategory(items.map(i=>i.name).join(' '));
+  if(category==='Other') category=guessCategory(hay);
+  /* total: trust a value only when two independent sources agree (label, cash − change, sum of items) */
+  const cc=findCashChange(lines), itemSum=r2(items.reduce((a,x)=>a+(x.total||0),0));
+  const near=(a,b)=>a>0&&b>0&&Math.abs(a-b)<=0.02;
+  let total=T.value||0, totalBy=T.by, hint=null;
+  const kw=T.by==='keyword'?T.value:0;
+  if(near(kw,cc.net)||near(kw,itemSum)){ total=kw; totalBy='keyword'; }
+  else if(near(cc.net,itemSum)){ total=cc.net; totalBy='keyword'; }
+  else if(kw){ total=kw; totalBy='keyword'; }
+  else if(cc.net>0){ total=0; totalBy='none'; hint=cc.net; }
+  else if(itemSum>0){ total=0; totalBy='none'; hint=itemSum; }
   return {
-    vendor, date, time:findTime(text), total:T.value||0, totalBy:T.by, subtotal:subtotal, tax, discount,
+    vendor, date, time:findTime(text), total:total, totalBy:totalBy, hint:hint, subtotal:subtotal, tax, discount,
     payment:findPayment(text), currency:findCurrency(text), receiptNo:findReceiptNo(rawLines),
-    category:guessCategory(hay), items, lineCount:rawLines.length
+    category:category, items, lineCount:rawLines.length
   };
 }
 
@@ -63551,7 +63604,9 @@ function finishOCR(parsed,conf){
 /* ── post-processing shared by both engines ──────────────────────────────── */
 function validate(r){
   const w=[];
-  if(!r.total && r.noAutoTotal){ w.push(_L('Could not read the total reliably — please type it from the receipt.','مقدرتش أقرأ الإجمالي بدقة — اكتبه من الإيصال.')); }
+  if(!r.total && r.noAutoTotal){
+    w.push(r.hint?_L('Could not confirm the total. Best guess: '+_fmt(r.hint)+' — check it against the receipt and type it.','مقدرتش أتأكد من الإجمالي. أقرب قراءة: '+_fmt(r.hint)+' — قارنها بالإيصال واكتبها.')
+                 :_L('Could not read the total reliably — please type it from the receipt.','مقدرتش أقرأ الإجمالي بدقة — اكتبه من الإيصال.')); }
   else if(!r.total){
     const s=(r.subtotal||0)+(r.tax||0)-(r.discount||0)+(r.service||0);
     const it=r.items.reduce((a,x)=>a+(x.total||0),0);
@@ -63675,6 +63730,7 @@ async function run(){
       }catch(e){ _log('ocr',e); if(!live()) return; return showError(e&&e.message==='ocr-lib'?'offline':'unreadable'); }
       if(!live()) return;
       if(!o.text || o.text.replace(/\s/g,'').length<12) return showError('unreadable');
+      S.rawText=o.text;
       setStep(_L('Organizing details…','بنظّم التفاصيل…'),96);
       result=finishOCR(parseText(o.text),o.conf);
     }
@@ -63702,6 +63758,7 @@ function showError(kind){
   '</div>');
 }
 FR.retryOnly=function(){ run(); };
+FR.copyRaw=function(){ try{ navigator.clipboard.writeText(S.rawText||''); showToast(_L('Scanned text copied','اتنسخ النص المقروء'),'success'); }catch(e){ showToast(_L('Copy failed','النسخ فشل'),'warn'); } };
 
 function defaultNote(r){
   const p=[catLabel(r.category)];
@@ -63742,7 +63799,7 @@ function showReview(){
   '<div class="modal-btns"><button class="mbtn save" onclick="FinoraReceipt.save()">'+icn('check',15)+' '+(S.dest==='daily'?_L('Add to Daily Spend','أضف للمصروفات اليومية'):_L('Save expense','حفظ المصروف'))+'</button>'+
   '<button class="mbtn cancel" onclick="closeModal()">'+_L('Cancel','إلغاء')+'</button></div>'+
   '<div class="frc-links"><button type="button" onclick="FinoraReceipt.rotate()">'+_L('Wrong? Rotate & rescan','مش مظبوط؟ لف وأعد المسح')+'</button><span>·</span>'+
-  '<button type="button" onclick="FinoraReceipt.retake()">'+_L('Retake','صوّر تاني')+'</button>'+(S.dest==='daily'?'':'<span>·</span><button type="button" onclick="FinoraReceipt.fullForm()">'+_L('Open full form','الفورم الكامل')+'</button>')+'</div>');
+  '<button type="button" onclick="FinoraReceipt.retake()">'+_L('Retake','صوّر تاني')+'</button>'+(r.engine==='ocr'&&S.rawText?'<span>·</span><button type="button" onclick="FinoraReceipt.copyRaw()">'+_L('Copy scanned text','انسخ النص المقروء')+'</button>':'')+(S.dest==='daily'?'':'<span>·</span><button type="button" onclick="FinoraReceipt.fullForm()">'+_L('Open full form','الفورم الكامل')+'</button>')+'</div>');
 }
 function readForm(){
   const g=id=>(document.getElementById(id)||{}).value||'';
@@ -63791,7 +63848,7 @@ FR.toDaily=function(){
 };
 
 /* public API */
-FR.parseText=parseText; FR.parseAmount=parseAmount; FR.validate=validate; FR.normalizeAI=normalizeAI; FR.state=S;
+FR.parseText=parseText; FR.copyRaw=FR.copyRaw; FR.parseAmount=parseAmount; FR.validate=validate; FR.normalizeAI=normalizeAI; FR.state=S;
 window.FinoraReceipt=FR;
 window.savScanReceipt=function(){ FR.start({dest:'savings'}); };
 
