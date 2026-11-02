@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<meta name="theme-color" content="#FFFFFF">
+<meta name="theme-color" content="#1565D8">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -46,6 +46,7 @@
    no leftover encrypted data) here, before first paint, and hide it via CSS.
    The class is removed again as soon as the app boots (see _wsProceedToApp). */
 (function(){
+  try{ if(sessionStorage.getItem('fnr_splash_seen')!=='1') document.documentElement.classList.add('fnr-booting'); }catch(e){}
   try{
     if(localStorage.getItem('wdp_lock_enabled_v1')==='false'
        && !localStorage.getItem('wdp_enc_data_v2')
@@ -66,7 +67,7 @@ html.ls-skip #lockScreen{display:none!important}
 #finoraSplash{position:fixed;inset:0;z-index:100000;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;cursor:pointer;
   padding:env(safe-area-inset-top) 24px env(safe-area-inset-bottom);
   background:radial-gradient(90% 60% at 50% 38%,#2D88FF 0%,#1565D8 52%,#0B3F8F 100%);
-  transition:opacity .35s ease;animation:fspAutoHide .35s 1.6s forwards}
+  transition:opacity .35s ease;animation:fspAutoHide .35s 6s forwards}
 #finoraSplash.fsp-out{opacity:0;pointer-events:none}
 @keyframes fspAutoHide{to{opacity:0;visibility:hidden;pointer-events:none}}
 .fsp-mark{position:relative;width:112px;height:112px;opacity:0;transform:scale(.9);animation:fspIn .7s .05s cubic-bezier(.16,1,.3,1) forwards}
@@ -9306,6 +9307,15 @@ body .screen-wrap .sc-header.sav-plain-header.sav-plain-header::after{display:no
 .rq-scope-b em{font-style:normal;font-variant-numeric:tabular-nums;color:var(--muted);font-weight:700}
 .rq-scope-b.on{background:var(--surface);color:var(--text);box-shadow:var(--shadow-xs)}
 .rq-scope-b.on em{color:var(--green)}
+/* My Receipts: month stepper (browse other months without changing the app's month) */
+.rq-mn{display:flex;align-items:center;gap:8px;margin:2px 0 12px}
+.rq-mn-b{flex:none;appearance:none;width:42px;height:42px;border:1px solid var(--border);border-radius:13px;background:var(--surface);color:var(--text);display:flex;align-items:center;justify-content:center;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.rq-mn-b:disabled{opacity:.35;cursor:default}
+.rq-mn-b:active:not(:disabled){background:var(--surface2)}
+html[dir="rtl"] .rq-mn-b svg{transform:scaleX(-1)}
+.rq-mn-c{flex:1;min-width:0;height:42px;border-radius:13px;background:var(--surface2);display:flex;align-items:center;justify-content:center;gap:8px;font-weight:800;font-size:calc(14px*var(--app-text-scale,1));color:var(--text);white-space:nowrap}
+.rq-mn-c em{font-style:normal;font-weight:700;font-size:calc(12px*var(--app-text-scale,1));color:var(--muted);font-variant-numeric:tabular-nums}
+.rq-mn-now{flex:none;appearance:none;font:inherit;border:0;height:42px;padding:0 14px;border-radius:13px;background:color-mix(in srgb,var(--green) 14%,var(--surface));color:var(--green);font-weight:800;font-size:calc(12.5px*var(--app-text-scale,1));cursor:pointer}
 
 .bs-save-btn,.bs-cancel-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px}
 /* ── Small-screen text: wrap instead of "Today's T…" ── */
@@ -13293,8 +13303,25 @@ body #mainContent .bnk-hero,body #mainContent .banks-v2 .bnk-hero{border-inline-
 <g transform="translate(-3 -1)"><path d="M36 22 H88 L82 37 H52 V49 H76 V62 H52 V98 H36 Z" fill="url(#fspGold)" stroke="url(#fspGold)" stroke-linejoin="round" stroke-width="4"/><path d="M66 70 H92 Q102 70 102 80 V90 Q102 100 92 100 H76 Q66 100 66 90 Z" fill="url(#fspEm)" stroke="url(#fspEm)" stroke-linejoin="round" stroke-width="4"/><circle cx="91" cy="85" r="4.2" fill="#1565D8"/></g></svg><div class="fsp-shine"></div></div>
   <div class="fsp-word">FINORA</div>
   <div class="fsp-tag" id="fspTag"></div>
+  <div class="fsp-bar" aria-hidden="true"><i></i></div>
 </div>
 <script>
+window._fnrBar=function(theme){
+  try{
+    var m=document.querySelector('meta[name="theme-color"]'); if(!m) return;
+    var ls=document.getElementById('lockScreen');
+    var up=!!document.getElementById('finoraSplash') || !!(ls && ls.style.display!=='none' && !document.documentElement.classList.contains('ls-skip'));
+    if(!theme) theme=document.documentElement.getAttribute('data-theme')==='dark'?'dark':'light';
+    m.setAttribute('content',up?'#1565D8':(theme==='dark'?'#242526':'#FFFFFF'));
+  }catch(e){}
+};
+document.addEventListener('DOMContentLoaded',function(){
+  try{
+    var ls=document.getElementById('lockScreen');
+    if(ls&&window.MutationObserver) new MutationObserver(function(){ window._fnrBar(); }).observe(ls,{attributes:true,attributeFilter:['style']});
+  }catch(e){}
+  window._fnrBar();
+});
 (function(){
   var el=document.getElementById('finoraSplash'); if(!el) return;
   // A refresh inside the same session shouldn't replay the intro — show it once per launch (sessionStorage is cleared when the app/tab is closed).
@@ -13304,10 +13331,14 @@ body #mainContent .bnk-hero,body #mainContent .banks-v2 .bnk-hero{border-inline-
   document.getElementById('fspTag').textContent=ar?'فلوسك · مصاريفك · شغلك':'Money · Expenses · Work';
   document.getElementById('fspMark').style.setProperty('--fsp-logo','url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMjAgMTIwIj48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImZHb2xkIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+PHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjM0Q4RUZGIi8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjMTU2NUQ4Ii8+PC9saW5lYXJHcmFkaWVudD48bGluZWFyR3JhZGllbnQgaWQ9ImZFbWVyYWxkIiB4MT0iMCIgeTE9IjAiIHgyPSIwIiB5Mj0iMSI+PHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjOEVDMUZGIi8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjNEM5QUZGIi8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+CjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKC0zIC0xKSI+PHBhdGggZD0iTTM2IDIyIEg4OCBMODIgMzcgSDUyIFY0OSBINzYgVjYyIEg1MiBWOTggSDM2IFoiIGZpbGw9InVybCgjZkdvbGQpIiBzdHJva2U9InVybCgjZkdvbGQpIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBzdHJva2Utd2lkdGg9IjQiLz48cGF0aCBkPSJNNjYgNzAgSDkyIFExMDIgNzAgMTAyIDgwIFY5MCBRMTAyIDEwMCA5MiAxMDAgSDc2IFE2NiAxMDAgNjYgOTAgWiIgZmlsbD0idXJsKCNmRW1lcmFsZCkiIHN0cm9rZT0idXJsKCNmRW1lcmFsZCkiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS13aWR0aD0iNCIvPjxjaXJjbGUgY3g9IjkxIiBjeT0iODUiIHI9IjQuMiIgZmlsbD0iI0ZGRkZGRiIvPjwvZz48L3N2Zz4=")');
   var done=false;
-  function close(){ if(done) return; done=true; el.classList.add('fsp-out'); setTimeout(function(){ if(el.parentNode) el.parentNode.removeChild(el); },400); }
+  function close(){ if(done) return; done=true; el.classList.add('fsp-out'); setTimeout(function(){ if(el.parentNode) el.parentNode.removeChild(el); document.documentElement.classList.remove('fnr-booting'); if(window._fnrBar) window._fnrBar(); },450); }
   el.addEventListener('click',close);
   var reduce=false; try{ reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches; }catch(e){}
-  setTimeout(close,reduce?500:900);
+  // Stay up until the app has decided what to show (lock pad or home) — min 0.9s so it never flickers, max 4s as a safety net.
+  var t0=Date.now(), minMs=reduce?300:900, armed=false;
+  function arm(){ if(armed) return; armed=true; setTimeout(close,Math.max(0,minMs-(Date.now()-t0))); }
+  document.addEventListener('finora:ready',arm);
+  setTimeout(arm,4000);
 })();
 </script>
 
@@ -13326,7 +13357,7 @@ body #mainContent .bnk-hero,body #mainContent .banks-v2 .bnk-hero{border-inline-
     <!-- logo + brand -->
     <div class="lock-top-section">
       <div class="lock-logo-wrap">
-        <img id="wLogoImg" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMjAgMTIwIj48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImZHb2xkIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+PHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjM0Q4RUZGIi8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjMTU2NUQ4Ii8+PC9saW5lYXJHcmFkaWVudD48bGluZWFyR3JhZGllbnQgaWQ9ImZFbWVyYWxkIiB4MT0iMCIgeTE9IjAiIHgyPSIwIiB5Mj0iMSI+PHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjOEVDMUZGIi8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjNEM5QUZGIi8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+CjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKC0zIC0xKSI+PHBhdGggZD0iTTM2IDIyIEg4OCBMODIgMzcgSDUyIFY0OSBINzYgVjYyIEg1MiBWOTggSDM2IFoiIGZpbGw9InVybCgjZkdvbGQpIiBzdHJva2U9InVybCgjZkdvbGQpIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBzdHJva2Utd2lkdGg9IjQiLz48cGF0aCBkPSJNNjYgNzAgSDkyIFExMDIgNzAgMTAyIDgwIFY5MCBRMTAyIDEwMCA5MiAxMDAgSDc2IFE2NiAxMDAgNjYgOTAgWiIgZmlsbD0idXJsKCNmRW1lcmFsZCkiIHN0cm9rZT0idXJsKCNmRW1lcmFsZCkiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS13aWR0aD0iNCIvPjxjaXJjbGUgY3g9IjkxIiBjeT0iODUiIHI9IjQuMiIgZmlsbD0iI0ZGRkZGRiIvPjwvZz48L3N2Zz4=" alt="FINORA">
+        <img id="wLogoImg" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMjAgMTIwIj48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImxrR29sZCIgeDE9IjAiIHkxPSIwIiB4Mj0iMSIgeTI9IjEiPjxzdG9wIG9mZnNldD0iMCIgc3RvcC1jb2xvcj0iI0ZGRkZGRiIvPjxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iI0VBRjNGRiIvPjwvbGluZWFyR3JhZGllbnQ+PGxpbmVhckdyYWRpZW50IGlkPSJsa0VtIiB4MT0iMCIgeTE9IjAiIHgyPSIwIiB5Mj0iMSI+PHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjQkJEN0ZGIi8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjOEVDMUZGIi8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+CjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKC0zIC0xKSI+PHBhdGggZD0iTTM2IDIyIEg4OCBMODIgMzcgSDUyIFY0OSBINzYgVjYyIEg1MiBWOTggSDM2IFoiIGZpbGw9InVybCgjbGtHb2xkKSIgc3Ryb2tlPSJ1cmwoI2xrR29sZCkiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS13aWR0aD0iNCIvPjxwYXRoIGQ9Ik02NiA3MCBIOTIgUTEwMiA3MCAxMDIgODAgVjkwIFExMDIgMTAwIDkyIDEwMCBINzYgUTY2IDEwMCA2NiA5MCBaIiBmaWxsPSJ1cmwoI2xrRW0pIiBzdHJva2U9InVybCgjbGtFbSkiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS13aWR0aD0iNCIvPjxjaXJjbGUgY3g9IjkxIiBjeT0iODUiIHI9IjQuMiIgZmlsbD0iIzE1NjVEOCIvPjwvZz48L3N2Zz4=" alt="FINORA">
       </div>
       <div class="lock-brand-name">FINORA</div>
       <!-- single subtitle line: doubles as the brand tagline and the
@@ -13334,7 +13365,7 @@ body #mainContent .bnk-hero,body #mainContent .banks-v2 .bnk-hero{border-inline-
            of logo + title + tagline + separate security badge stacked -->
       <div class="lock-security-badge">
         <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-        <span data-i18n-en="Track every expense, manage every pound" data-i18n-ar="تابع كل مصروف، واتحكم في كل جنيه">Track every expense, manage every pound</span>
+        <span data-i18n-en="Money · Expenses · Work" data-i18n-ar="فلوسك · مصاريفك · شغلك">Money · Expenses · Work</span>
       </div>
     </div>
 
@@ -30552,7 +30583,7 @@ function applyTheme(theme, animate){
     document.documentElement.removeAttribute('data-theme');
   }
   const metaTheme=document.querySelector('meta[name="theme-color"]');
-  if(metaTheme) metaTheme.setAttribute('content', theme==='dark' ? '#242526' : '#FFFFFF');
+  if(window._fnrBar) window._fnrBar(theme); else if(metaTheme) metaTheme.setAttribute('content', theme==='dark' ? '#242526' : '#FFFFFF');
   const btn=document.getElementById('themeToggleBtn');
   if(btn) btn.innerHTML = theme==='dark' ? `${ic('sun',15)}` : `${ic('moon',15)}`;
   const hdrBtn=document.getElementById('themeToggleBtnHdr');
@@ -40235,9 +40266,45 @@ function _rqViewBarHTML(){
 }
 
 let _rqAllMonths=false; // STRICT: always false — receipts live only in their own month. false = only receipts dated in the active month
+// Month being browsed in My Receipts. Follows the app's month until the user steps to another one,
+// and snaps back whenever the app's month changes.
+let _rqVM='', _rqVMBase='';
+function _rqViewMonth(){
+  if(_rqVM && _rqVMBase===activeMonth) return _rqVM;
+  _rqVM=''; return activeMonth;
+}
 function _rqInActiveMonth(r){
   const k=_monthKeyForDate(r&&r.date);
-  return !k || k===activeMonth; // undated / odd dates stay visible
+  return !k || k===_rqViewMonth(); // undated / odd dates stay visible
+}
+// Calendar-contiguous range the stepper can walk: first receipt month .. last receipt month / app month
+function _rqMonthRange(){
+  const ords=[]; _rqLoad().forEach(r=>{ const o=_monthKeyToOrdinal(_monthKeyForDate(r.date)); if(o!=null) ords.push(o); });
+  const a=_monthKeyToOrdinal(activeMonth);
+  if(a!=null) ords.push(a);
+  if(!ords.length) return null;
+  return {min:Math.min(...ords),max:Math.max(...ords)};
+}
+function rqMonthStep(d){
+  const rg=_rqMonthRange(), cur=_monthKeyToOrdinal(_rqViewMonth()); if(!rg||cur==null) return;
+  const n=Math.max(rg.min,Math.min(rg.max,cur+d));
+  _rqVM=(n===_monthKeyToOrdinal(activeMonth))?'':_ordinalToMonthKey(n); _rqVMBase=activeMonth;
+  _rqFilter='all'; _rqTypeFilter=''; searchQ='';
+  renderView(true);
+}
+function rqMonthNow(){ _rqVM=''; _rqFilter='all'; _rqTypeFilter=''; searchQ=''; renderView(true); }
+function _rqMonthNavHTML(inMonth){
+  const rg=_rqMonthRange(); if(!rg) return '';
+  const key=_rqViewMonth(), cur=_monthKeyToOrdinal(key); if(cur==null) return '';
+  let lbl=key; try{ lbl=_monthDisplayLabel(key); }catch(e){}
+  const chev=(d)=>`<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="${d}"/></svg>`;
+  const away=key!==activeMonth;
+  return `<div class="rq-mn" role="group" aria-label="${L('Month','الشهر')}">
+    <button type="button" class="rq-mn-b" onclick="rqMonthStep(-1)" ${cur<=rg.min?'disabled':''} aria-label="${L('Previous month','الشهر السابق')}">${chev('M15 6l-6 6 6 6')}</button>
+    <div class="rq-mn-c"><span>${esc(lbl)}</span><em>${inMonth}</em></div>
+    <button type="button" class="rq-mn-b" onclick="rqMonthStep(1)" ${cur>=rg.max?'disabled':''} aria-label="${L('Next month','الشهر التالي')}">${chev('M9 6l6 6-6 6')}</button>
+    ${away?`<button type="button" class="rq-mn-now" onclick="rqMonthNow()">${L('Current','الحالي')}</button>`:''}
+  </div>`;
 }
 function _rqSetScope(allMonths){ _rqAllMonths=false; _rqFilter='all'; _rqTypeFilter=''; renderView(true); }
 function _rqScopeBarHTML(total,inMonth){
@@ -40245,7 +40312,7 @@ function _rqScopeBarHTML(total,inMonth){
   const b=(on,txt,n,fn)=>`<button type="button" class="rq-scope-b${on?' on':''}" aria-pressed="${on}" onclick="${fn}">${txt}<em>${n}</em></button>`;
   return `<div class="rq-scope" role="group">${b(true,esc(lbl),inMonth,'_rqSetScope(false)')}</div>`;
 }
-function _rqMonthLbl(){ try{ return _monthDisplayLabel(activeMonth); }catch(e){ return String(activeMonth||''); } }
+function _rqMonthLbl(){ const k=_rqViewMonth(); try{ return _monthDisplayLabel(k); }catch(e){ return String(k||''); } }
 // ⋯ sheet: the occasional tools (import / export / data entry) live here so the page itself stays calm
 function rqMoreOpen(){
   const row=(k,icn,t,d)=>`<button type="button" class="rq-more-row" onclick="rqMoreGo('${k}')"><span class="rq-more-ic">${ic(icn,19)}</span><span class="rq-more-tx"><b>${t}</b><small>${d}</small></span><span class="rq-more-chev"></span></button>`;
@@ -40340,7 +40407,7 @@ function renderMyRequests(){
 
   // Running IR total: every IR receipt from the first month up to and including the month being viewed
   const _rqOrd=k=>{ const m=/^([A-Za-z]{3})-(\d{4})$/.exec(String(k||'')); if(!m) return null; const i=_ROLLOVER_ABBR.findIndex(x=>String(x).toLowerCase()===m[1].toLowerCase()); return i<0?null:(+m[2])*12+i; };
-  const _rqActOrd=_rqOrd(activeMonth);
+  const _rqActOrd=_rqOrd(_rqViewMonth());
   const _irCum=_everything.filter(r=>{
     if(_rqTypeKey(r)!=='ir') return false;
     const o=_rqOrd(_monthKeyForDate(r.date));
@@ -40356,6 +40423,7 @@ function renderMyRequests(){
       <span class="cx-sh-l"><span class="cx-sh-t">${L('My Receipts','استلاماتي')}</span><span class="cx-sh-s">${esc(_rqMonthLbl())} · ${shown} ${L('receipts','استلامة')}<span class="rq-grand"> · ${L('Total IR','إجمالي IR')} <b>${_irCum}</b></span></span></span>
       <button type="button" class="rq-more" onclick="rqMoreOpen()" aria-label="${L('More','المزيد')}"><svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg></button>
     </div>
+    ${_rqMonthNavHTML(all.length)}
     ${statsHTML}
     ${rqReportBarHTML()}
     ${all.length?`<div class="sc-search cx-search"><span class="cx-sbox">
@@ -40368,6 +40436,7 @@ function renderMyRequests(){
 }
 
 function openRequestModal(id){
+  if(!id) _rqVM='';   // new receipts are dated today: follow the app's month again
   const list=_rqLoad();
   const r=id?list.find(x=>x.id===id):null;
   _rqEditId=r?r.id:null;
@@ -52449,6 +52518,24 @@ const ATT=(function(){
   }
   const secH=(icn,en,ar,right,id)=>`<div class="att-sec"${id?` id="${id}"`:''}><span class="att-sec-t">${ic(icn,15)}<span>${L(en,ar)}</span></span>${right||''}</div>`;
   function jump(id){ const e=document.getElementById(id); if(e) e.scrollIntoView({behavior:'smooth',block:'start'}); }
+  // highlights the quick-jump pill of the section currently on screen
+  let _spy=null;
+  function spy(){
+    try{
+      if(_spy){ _spy.disconnect(); _spy=null; }
+      const nav=document.querySelector('.att-jump'); if(!nav||!('IntersectionObserver' in window)) return;
+      const btns=[].slice.call(nav.querySelectorAll('button'));
+      const ids=btns.map(b=>{ const m=/jump\('([^']+)'/.exec(b.getAttribute('onclick')||''); return m?m[1]:''; });
+      const vis={};
+      const mark=()=>{
+        let cur=-1; ids.forEach((id,i)=>{ if(vis[id]) cur=i; });
+        btns.forEach((b,i)=>{ b.classList.toggle('on',i===cur); if(i===cur) b.setAttribute('aria-current','true'); else b.removeAttribute('aria-current'); });
+        const on=btns[cur]; if(on&&nav.scrollWidth>nav.clientWidth){ try{ nav.scrollTo({left:on.offsetLeft-nav.clientWidth/2+on.offsetWidth/2,behavior:'smooth'}); }catch(e){} }
+      };
+      _spy=new IntersectionObserver(es=>{ es.forEach(e=>{ vis[e.target.id]=e.isIntersecting; }); mark(); },{rootMargin:'-70px 0px -62% 0px'});
+      ids.forEach(id=>{ const e=id&&document.getElementById(id); if(e) _spy.observe(e); });
+    }catch(e){}
+  }
   function togglePayDays(){ payDays=!payDays; try{ renderView(true); }catch(e){} }
   function payHTML(){
     const cfg=payCfg(true), pr=calcPay();
@@ -52610,6 +52697,7 @@ const ATT=(function(){
     const _caMon=[dk(vy,vm,1),dk(vy,vm,days)];
     const _caRng=scope==='month'?_caMon:scope==='year'?[vy+'-01-01',vy+'-12-31']:(()=>{ const ks=Object.keys(db.days).sort(); return ks.length?[ks[0],ks[ks.length-1]]:['','']; })();
     const tiles = stats + `<div class="att-stat att-st-rec"><span class="att-stat-ic">${ic('calendar',14)}</span><span class="att-stat-n">${total}</span><span class="att-stat-l">${L('Recorded','المسجّل')}</span></div>`;
+    setTimeout(spy,150);
     return `<div class="screen-wrap cx-wrap att atp">
       ${_pgHdr('Site','الموقع','My Job','My Job','Receipts log and custody money','سجل الاستلامات وفلوس العهدة')}
       ${typeof _prjBarHTML==='function'?_prjBarHTML():''}
@@ -52653,6 +52741,7 @@ const ATT=(function(){
         ${multi?`<div class="att-hint">${rangeMode?(rangeStart?L('Now tap the last day of the range','دوس على آخر يوم في الفترة'):L('Tap the first day of the range','دوس على أول يوم في الفترة')):L('Tap the days you want, then set their status','دوس على الأيام اللي عايزها وبعدين حدد حالتها')}</div>
         <div class="att-act"><span><b>${msel.size}</b> ${L('selected','يوم محدد')}</span><button type="button" class="att-mini" onclick="ATT.clearSel()" ${msel.size?'':'disabled'}>${L('Clear','مسح التحديد')}</button><button type="button" class="att-mini att-mini-main" onclick="ATT.openMulti()" ${msel.size?'':'disabled'}>${L('Set status','تحديد الحالة')}</button></div>`
         :`<div class="att-hint">${L('Tap a day to set its status','اضغط على أي يوم لتحديد حالته')}</div>`}
+        <div class="att-legend" aria-label="${L('Legend','دليل الألوان')}">${legend}</div>
       </div>
 
       ${notes?`<div class="sc-card att-notes"><div class="att-lbl">${L('Notes this month','ملاحظات الشهر')}</div>${notes}</div>`:''}
@@ -53480,6 +53569,10 @@ function _pinSetupOpen(mode){
   render();
 }
 function _wsProceedToApp(){
+  try{ _wsProceedToApp0(); }
+  finally{ setTimeout(function(){ try{ document.dispatchEvent(new Event('finora:ready')); }catch(e){} },0); }
+}
+function _wsProceedToApp0(){
   // Brand-new install: let the person choose whether to use a PIN before anything else.
   if(_isFirstRunNoPinChoice()){ _pinSetupOpen('first'); return; }
   const ls  = document.getElementById('lockScreen');
@@ -53489,6 +53582,7 @@ function _wsProceedToApp(){
   if(lockEnabled && _encDataExists() && _sessHasValid()){
     _sessResume().then(ok=>{
       document.documentElement.classList.remove('ls-skip'); // on failure the PIN screen is shown as usual
+      try{ document.dispatchEvent(new Event('finora:ready')); }catch(e){}
     });
     return;
   }
@@ -64514,6 +64608,184 @@ body #mainContent .dly-actions .dly-act.primary{box-shadow:0 10px 22px -10px rgb
 body #mainContent .dly-actions .dly-act.primary .dly-ic{background:rgba(255,255,255,.2);color:#fff}
 :root[data-theme="dark"] body #mainContent .dly-actions .dly-act[data-tone="scan"]{--ic:#e8a53a}
 :root[data-theme="dark"] body #mainContent .dly-actions .dly-act[data-tone="target"]{--ic:#6ea2ff}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   Attendance page — calm, consistent polish layer (My Job → Attendance)
+   Presentation only: markup, numbers and logic are untouched.
+   One rhythm (12px between blocks), one card style, one section-header style,
+   44px touch targets, softer greys with better contrast, theme-aware colours.
+   ══════════════════════════════════════════════════════════════════════════ */
+body #mainContent .cx-wrap.att.atp{
+  --ap-r:22px;
+  --ap-line:color-mix(in srgb,var(--border) 85%,transparent);
+  --sub:color-mix(in srgb,var(--text) 58%,var(--surface));
+  gap:12px;font-variant-numeric:tabular-nums}
+
+/* cards: one calm surface */
+body #mainContent .att.atp .sc-card:not(.att-pay){
+  border:1px solid var(--ap-line);border-radius:var(--ap-r);background:var(--surface);
+  box-shadow:0 1px 2px rgba(15,23,42,.04),0 12px 28px -22px rgba(15,23,42,.30)}
+:root[data-theme="dark"] body #mainContent .att.atp .sc-card:not(.att-pay){box-shadow:none}
+
+/* quick-jump bar: sticky, thumb-sized pills */
+body #mainContent .att.atp .att-jump{
+  position:sticky;top:0;z-index:20;gap:8px;margin:0 -12px;padding:8px 12px;
+  background:color-mix(in srgb,var(--bg) 90%,transparent);
+  -webkit-backdrop-filter:saturate(1.4) blur(12px);backdrop-filter:saturate(1.4) blur(12px)}
+body #mainContent .att.atp .att-jump button{
+  min-height:40px;padding:0 16px;border-radius:99px;border:1px solid var(--ap-line);background:var(--surface);
+  color:var(--text2);font-size:calc(13px*var(--app-text-scale,1));font-weight:700;box-shadow:none}
+body #mainContent .att.atp .att-jump button.on{background:var(--green);border-color:var(--green);color:#fff}
+body #mainContent .att.atp .att-jump button.on svg{color:#fff}
+body #mainContent .att.atp .att-jump button:active{background:color-mix(in srgb,var(--green) 12%,var(--surface));color:var(--green)}
+
+/* section headers: icon chip + clear title */
+body #mainContent .att.atp .att-sec{margin:14px 2px 0;min-height:38px;scroll-margin-top:64px}
+body #mainContent .att.atp .att-jump + .att-sec{margin-top:4px}
+body #mainContent .att.atp .att-sec-t{gap:10px;font-size:calc(16px*var(--app-text-scale,1));font-weight:800;letter-spacing:-.01em;color:var(--text)}
+[dir="rtl"] body #mainContent .att.atp .att-sec-t{letter-spacing:0}
+body #mainContent .att.atp .att-sec-t svg{box-sizing:border-box;width:30px;height:30px;padding:7px;border-radius:10px;background:color-mix(in srgb,var(--green) 12%,var(--surface));color:var(--green)}
+body #mainContent .att.atp .att-sec-btn{min-height:38px;padding:0 15px;border-color:var(--ap-line);background:var(--surface);color:var(--green);box-shadow:none}
+
+/* today */
+body #mainContent .att.atp .atp-today{gap:14px;padding:18px 16px 12px!important}
+body #mainContent .att.atp .atp-d{font-size:calc(20px*var(--app-text-scale,1));font-weight:800}
+body #mainContent .att.atp .atp-sb{min-height:64px;gap:6px;color:var(--text2);font-weight:700;transition:background .18s,color .18s,box-shadow .18s,transform .1s}
+body #mainContent .att.atp .atp-sb.on{box-shadow:0 8px 16px -10px var(--c)}
+body #mainContent .att.atp .atp-more{width:calc(100% + 32px);margin:2px -16px -12px;min-height:48px;border-top:1px solid var(--ap-line);border-radius:0 0 var(--ap-r) var(--ap-r);font-size:calc(13px*var(--app-text-scale,1))}
+
+/* summary */
+body #mainContent .att.atp .atp-sum{gap:16px;padding:16px!important}
+body #mainContent .att.atp .att-seg{height:40px;font-size:calc(13px*var(--app-text-scale,1))}
+body #mainContent .att.atp .atp-hero.v2{display:flex;align-items:center;gap:16px;padding:14px 16px;border-radius:18px;background:color-mix(in srgb,var(--green) 6%,var(--surface))}
+body #mainContent .att.atp .att-ring{width:88px;height:88px;flex:none}
+body #mainContent .att.atp .att-ring-tx{display:flex;flex-direction:column;align-items:flex-start;gap:5px;min-width:0}
+body #mainContent .att.atp .att-ring-tx b{font-size:calc(17px*var(--app-text-scale,1));font-weight:800;color:var(--text)}
+body #mainContent .att.atp .att-ring-tx span{font-size:calc(13px*var(--app-text-scale,1));font-weight:600;color:var(--sub)}
+body #mainContent .att.atp .atp-rows{gap:0 24px}
+body #mainContent .att.atp .atp-row{min-height:46px;font-size:calc(14px*var(--app-text-scale,1))}
+body #mainContent .att.atp .atp-row i{width:10px;height:10px}
+body #mainContent .att.atp .atp-row b{font-size:calc(16px*var(--app-text-scale,1))}
+body #mainContent .att.atp .atp-row.zero{opacity:.5}
+body #mainContent .att.atp .atp-note{margin:0;font-size:calc(12px*var(--app-text-scale,1));color:var(--sub)}
+
+/* calendar */
+body #mainContent .att.atp .att-cal-card{padding:14px 14px 16px!important}
+body #mainContent .att.atp .att-nav{margin-bottom:10px}
+body #mainContent .att.atp .att-nav .icon-btn{width:44px;height:44px;border-radius:14px;border:1px solid var(--ap-line);background:var(--surface);box-shadow:none}
+body #mainContent .att.atp .att-month{height:44px;font-size:calc(17px*var(--app-text-scale,1));font-weight:800}
+body #mainContent .att.atp .att-multi-bar{display:flex;justify-content:flex-end;align-items:center;gap:8px;margin:0 0 10px}
+body #mainContent .att.atp .att-mini{height:38px;padding:0 14px;border-radius:12px}
+body #mainContent .att.atp .att-cal{gap:6px 5px}
+body #mainContent .att.atp .att-dn{padding-bottom:6px;font-size:calc(12px*var(--app-text-scale,1));font-weight:700;color:var(--sub)}
+body #mainContent .att.atp .att-day{aspect-ratio:1/.9;gap:4px;border-radius:14px;background:color-mix(in srgb,var(--surface2) 55%,transparent);font-size:calc(15px*var(--app-text-scale,1))}
+body #mainContent .att.atp .att-day b{font-size:calc(15px*var(--app-text-scale,1));font-weight:700}
+body #mainContent .att.atp .att-day.wk:not(.has){opacity:1;background:color-mix(in srgb,var(--surface2) 30%,transparent);color:var(--sub)}
+body #mainContent .att.atp .att-day.wk:not(.has) b{color:var(--sub)}
+body #mainContent .att.atp .att-day.fut:not(.has){opacity:.9}
+body #mainContent .att.atp .att-day.has{background:color-mix(in srgb,var(--c) 16%,var(--surface));box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--c) 30%,transparent)}
+body #mainContent .att.atp .att-day.has::after{content:"";width:5px;height:5px;border-radius:50%;background:var(--c)}
+body #mainContent .att.atp .att-day.today{box-shadow:inset 0 0 0 2px var(--green)}
+body #mainContent .att.atp .att-day.today:not(.has) b{color:var(--green)}
+body #mainContent .att.atp .att-day.has.today{box-shadow:inset 0 0 0 2px var(--c)}
+body #mainContent .att.atp .att-day.sel{box-shadow:inset 0 0 0 2px var(--green);background:color-mix(in srgb,var(--green) 20%,var(--surface))}
+body #mainContent .att.atp .att-hint{margin-top:12px;font-size:calc(12px*var(--app-text-scale,1));color:var(--sub)}
+body #mainContent .att.atp .att-cal-card .att-legend{display:flex;flex-wrap:wrap;justify-content:center;gap:8px 14px;margin-top:14px;padding-top:12px;border-top:1px solid var(--ap-line)}
+body #mainContent .att.atp .att-lg{font-size:calc(12px*var(--app-text-scale,1));font-weight:600;color:var(--text2)}
+body #mainContent .att.atp .att-lg i{width:9px;height:9px}
+
+/* notes */
+body #mainContent .att.atp .att-notes{gap:10px;padding:14px!important}
+body #mainContent .att.atp .att-notes .att-lbl{font-size:calc(12px*var(--app-text-scale,1));font-weight:800;letter-spacing:.04em;color:var(--sub)}
+body #mainContent .att.atp .att-note{min-height:58px;padding:10px 12px;border-radius:14px;border-color:var(--ap-line)}
+body #mainContent .att.atp .att-note-d{width:38px;height:38px;border-radius:12px;font-size:calc(15px*var(--app-text-scale,1))}
+body #mainContent .att.atp .att-note-b{font-size:calc(13px*var(--app-text-scale,1))}
+body #mainContent .att.atp .att-note-b b{font-size:calc(12px*var(--app-text-scale,1))}
+
+/* leave balance */
+body #mainContent .att.atp .att-lv{padding:4px 16px 16px!important}
+body #mainContent .att.atp .att-lv-row{padding:14px 0;border-bottom:1px solid var(--ap-line)}
+body #mainContent .att.atp .att-lv-n b{font-size:calc(28px*var(--app-text-scale,1))}
+body #mainContent .att.atp .att-lv-bar{height:8px;border-radius:99px}
+body #mainContent .att.atp .att-lv-bar i{border-radius:99px}
+body #mainContent .att.atp .att-lv-hint{min-height:48px;border-radius:14px}
+
+/* salary: keep the dark hero, align its shape and quiet the glow */
+body #mainContent .att.atp .att-pay .att-pay-hero{border-radius:var(--ap-r);padding:20px 18px 18px}
+body #mainContent .att.atp .att-pay .att-pay-amt{font-size:calc(36px*var(--app-text-scale,1));text-shadow:none}
+body #mainContent .att.atp .att-pay .att-pay-rows{border-radius:var(--ap-r)}
+body #mainContent .att.atp .att-pay .att-pay-more{min-height:50px;border-radius:16px}
+
+/* workplace + footer */
+body #mainContent .att.atp .att-co-head{min-height:64px;padding:14px 16px}
+body #mainContent .att.atp .att-foot{padding:6px 0 0}
+body #mainContent .att.atp .att-link.danger{min-height:44px;padding:0 14px}
+
+/* accessibility + small screens */
+body #mainContent .att.atp :is(button,a,input,select):focus-visible{outline:2px solid var(--green);outline-offset:2px}
+@media (max-width:360px){body #mainContent .att.atp .atp-rows{grid-template-columns:1fr}body #mainContent .att.atp .att-day{aspect-ratio:1/1}}
+@media (prefers-reduced-motion:reduce){body #mainContent .att.atp *{transition:none!important;animation:none!important}}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   FINORA entry screen — one screen, one look.
+   The launch splash and the PIN pad now share the same brand-blue canvas, mark and wordmark,
+   so opening the app is a single continuous screen instead of splash → different lock page.
+   ══════════════════════════════════════════════════════════════════════════ */
+html.fnr-booting{background:#0B3F8F}
+html:not(.ls-skip):has(#lockScreen:not([style*="display: none"])){background:#0B3F8F}
+
+/* splash: full-bleed (also under the home-indicator area), no ghost fade-in, thin progress line */
+html body #finoraSplash{inset:0 0 -140px 0;padding:env(safe-area-inset-top) 24px calc(140px + env(safe-area-inset-bottom));transition:opacity .4s ease,transform .4s ease}
+html body #finoraSplash.fsp-out{opacity:0;transform:scale(1.03)}
+html body #finoraSplash .fsp-mark{opacity:1;transform:none;animation:fspPop .7s cubic-bezier(.16,1,.3,1) both}
+html body #finoraSplash .fsp-word{opacity:1;animation:fspSettle .9s cubic-bezier(.16,1,.3,1) both}
+html body #finoraSplash .fsp-tag{opacity:1;animation:none;color:rgba(255,255,255,.7)}
+html body #finoraSplash .fsp-word,html body #finoraSplash .fsp-tag,html body #lockScreen .lock-brand-name,html body #lockScreen .lock-security-badge{font-family:system-ui,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif!important}
+@keyframes fspPop{from{transform:scale(.9)}to{transform:none}}
+@keyframes fspSettle{from{letter-spacing:18px}to{letter-spacing:9px}}
+#finoraSplash .fsp-bar{position:absolute;left:50%;bottom:calc(196px + env(safe-area-inset-bottom));width:96px;height:3px;margin-left:-48px;border-radius:99px;background:rgba(255,255,255,.18);overflow:hidden}
+#finoraSplash .fsp-bar i{display:block;width:40%;height:100%;border-radius:99px;background:rgba(255,255,255,.85);animation:fspLoad 1.2s ease-in-out infinite}
+@keyframes fspLoad{0%{transform:translateX(-110%)}100%{transform:translateX(260%)}}
+@media (prefers-reduced-motion:reduce){#finoraSplash .fsp-bar i{animation:none;width:100%;opacity:.5}}
+
+/* lock screen = the same canvas */
+html body #lockScreen{
+  background:radial-gradient(90% 60% at 50% 30%,#2D88FF 0%,#1565D8 52%,#0B3F8F 100%)!important;
+  min-height:100vh;min-height:100lvh;color:#fff}
+html body #lockScreen .lock-action-btn{background:rgba(255,255,255,.14)!important;border:1px solid rgba(255,255,255,.24)!important;color:#fff!important;box-shadow:none!important}
+html body #lockScreen .lock-action-btn:active{background:rgba(255,255,255,.28)!important;color:#fff!important}
+html body #lockScreen .lock-top-section{margin-bottom:26px}
+html body #lockScreen .lock-logo-wrap{width:96px;height:96px;margin-bottom:16px;background:none!important;border:0!important;box-shadow:none!important;border-radius:0}
+html body #lockScreen .lock-logo-wrap::before{content:"";position:absolute;inset:-40px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.22),rgba(255,255,255,0) 65%);pointer-events:none}
+html body #lockScreen #wLogoImg{position:relative;width:92px;height:92px;filter:drop-shadow(0 10px 22px rgba(0,0,0,.4))}
+html body #lockScreen .lock-brand-name{display:block!important;direction:ltr;font-family:var(--font)!important;font-weight:800;font-size:28px;letter-spacing:9px;padding-inline-start:9px;
+  background:none!important;-webkit-text-fill-color:#fff!important;color:#fff!important;text-shadow:0 2px 14px rgba(0,0,0,.25)}
+html body #lockScreen .lock-security-badge{margin-top:10px;color:rgba(255,255,255,.7)!important;font-size:11px!important;font-weight:600;letter-spacing:2.6px;text-transform:uppercase}
+html body #lockScreen .lock-security-badge svg{display:none}
+html[dir="rtl"] body #lockScreen .lock-security-badge{letter-spacing:0;text-transform:none;font-size:13px!important}
+html body #lockScreen .pin-label{color:#fff!important}
+html body #lockScreen .lock-status{color:rgba(255,255,255,.85)!important}
+html body #lockScreen .lock-status.ls-color-unlocking,html body #lockScreen .lock-status.ls-color-success{color:#fff!important}
+html body #lockScreen .lock-spinner{border-color:rgba(255,255,255,.3)!important;border-top-color:#fff!important}
+html body #lockScreen .pin-error,html body #lockScreen .lock-status.ls-color-error{color:#FFD0CC!important}
+html body #lockScreen .pin-dot{border-color:rgba(255,255,255,.6)!important;background:transparent!important}
+html body #lockScreen .pin-dot.filled{border-color:#fff!important;box-shadow:0 0 0 4px rgba(255,255,255,.18)!important}
+html body #lockScreen .pin-dot.filled::after{background:#fff!important}
+html body #lockScreen .pin-dot.ls-error{border-color:#FFB4AE!important;box-shadow:0 0 0 4px rgba(255,180,174,.22)!important}
+html body #lockScreen .pin-dot.ls-error::after{background:#FFB4AE!important}
+html body #lockScreen .num-btn{background:rgba(255,255,255,.14)!important;border:1px solid rgba(255,255,255,.22)!important;color:#fff!important;box-shadow:none!important;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+html body #lockScreen .num-btn:active{background:rgba(255,255,255,.3)!important;border-color:rgba(255,255,255,.5)!important}
+html body #lockScreen .num-btn.empty{background:none!important;border:0!important;-webkit-backdrop-filter:none;backdrop-filter:none}
+html body #lockScreen .num-btn svg{stroke:#fff}
+html body #lockScreen .wa-body{fill:#fff!important}
+html body #lockScreen .wa-flap{fill:rgba(21,101,216,.18)!important}
+html body #lockScreen .wa-clasp{fill:#1565D8!important}
+html body #lockScreen .wa-coin circle{fill:#F3D580!important;stroke:#A97C1F!important}
+html body #lockScreen .wa-coin text{fill:#A97C1F!important}
+html body #lockScreen .wa-badge-check circle{fill:#22C58B!important}
+html body #lockScreen .wa-badge-x circle{fill:#E5534B!important}
+html body #lockScreen .lock-credit-label,html body #lockScreen .lock-credit-name,html body #lockScreen .lock-credit-sub{color:rgba(255,255,255,.62)!important}
+html body #lockScreen .lock-credit-badge{background:rgba(255,255,255,.16)!important;color:#fff!important;border-color:rgba(255,255,255,.2)!important}
 </style>
 <script>
 // Shrinks oversized amounts in the Daily "insight" tiles (Daily average / Projected)
