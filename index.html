@@ -17292,7 +17292,7 @@ function renderFinanceSummaryHeroV3(m){
   const _fsPrevKey   = _calendarPrevMonthKey(activeMonth);
   const _fsPrevMonth = _fsPrevKey && DATA[_fsPrevKey] ? DATA[_fsPrevKey] : null;
   const prevAllTotal = _fsPrevMonth ? banks.reduce((s,b)=>s+getBankBalance(_fsPrevMonth,b.key),0) : null;
-  const netProfit    = prevAllTotal!=null ? allTotal - prevAllTotal + (_cycleCarry?_cycleCarry.net:0) : null;
+  const netProfit    = dashMonthlyChange(m);
   // Last month's Total Net Balance — same formula as this month's netBalance
   // above (banks total minus whatever custody cash was still on-site at the
   // end of that month), just evaluated for _fsPrevMonth instead of m.
@@ -23535,12 +23535,12 @@ function renderSavings(){
 
     <!-- Quick Actions -->
     <div class="fin-qa-row sav-qa-scroll">
-      <button type="button" class="fin-qa-chip fin-qa-chip-primary" style="--qc:var(--fin-income);--qc-tint:var(--fin-income-tint)" onclick="savAddIncome()">${ic('plus',12)} ${L('Income','دخل')}</button>
-      <button type="button" class="fin-qa-chip fin-qa-chip-primary" style="--qc:var(--fin-outcome);--qc-tint:var(--fin-outcome-tint)" onclick="savAddOutcome()">${ic('plus',12)} ${L('Expense','مصروف')}</button>
-      <button type="button" class="fin-qa-chip fin-qa-chip-primary" style="--qc:var(--fin-networth);--qc-tint:var(--fin-networth-tint)" onclick="savTransfer()">${ic('refresh',12)} ${L('Transfer','تحويل')}</button>
-      <button type="button" class="fin-qa-chip" style="--qc:var(--fin-assets);--qc-tint:var(--fin-assets-tint)" onclick="savAddAsset()">${ic('plus',12)} ${L('Asset','أصل')}</button>
-      <button type="button" class="fin-qa-chip" style="--qc:#c17d0a;--qc-tint:#c17d0a1a" onclick="savScanReceipt()">${ic('photo',12)} ${L('Scan Receipt','مسح إيصال')}</button>
-      <button type="button" class="fin-qa-chip" style="--qc:#b45309;--qc-tint:#b453091a" onclick="savAddDebt()">${ic('scale',12)} ${L('Debt','مديونية')}</button>
+      <button type="button" class="fin-qa-chip fin-qa-chip-primary" data-tone="income" style="--qc:var(--fin-income);--qc-tint:var(--fin-income-tint)" onclick="savAddIncome()"><span class="fqa-ic"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="m7 11 5 5 5-5"/><path d="M5 21h14"/></svg></span><span class="fqa-t">${L('Income','دخل')}</span></button>
+      <button type="button" class="fin-qa-chip fin-qa-chip-primary" data-tone="expense" style="--qc:var(--fin-outcome);--qc-tint:var(--fin-outcome-tint)" onclick="savAddOutcome()"><span class="fqa-ic"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21V9"/><path d="m7 13 5-5 5 5"/><path d="M5 3h14"/></svg></span><span class="fqa-t">${L('Expense','مصروف')}</span></button>
+      <button type="button" class="fin-qa-chip fin-qa-chip-primary" data-tone="transfer" style="--qc:var(--fin-networth);--qc-tint:var(--fin-networth-tint)" onclick="savTransfer()"><span class="fqa-ic"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m17 3 4 4-4 4"/><path d="M3 7h18"/><path d="m7 21-4-4 4-4"/><path d="M21 17H3"/></svg></span><span class="fqa-t">${L('Transfer','تحويل')}</span></button>
+      <button type="button" class="fin-qa-chip" data-tone="asset" style="--qc:var(--fin-assets);--qc-tint:var(--fin-assets-tint)" onclick="savAddAsset()"><span class="fqa-ic"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h12l4 6-10 12L2 9z"/><path d="M2 9h20"/><path d="m8 9 4-6 4 6-4 12z"/></svg></span><span class="fqa-t">${L('Asset','أصل')}</span></button>
+      <button type="button" class="fin-qa-chip" data-tone="scan" style="--qc:#c17d0a;--qc-tint:#c17d0a1a" onclick="savScanReceipt()"><span class="fqa-ic"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M7 12h10"/></svg></span><span class="fqa-t">${L('Scan Receipt','مسح إيصال')}</span></button>
+      <button type="button" class="fin-qa-chip" data-tone="debt" style="--qc:#b45309;--qc-tint:#b453091a" onclick="savAddDebt()"><span class="fqa-ic"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v18"/><path d="M6 21h12"/><path d="M5 7h14"/><path d="m5 7-3 7a3.2 3.2 0 0 0 6 0z"/><path d="m19 7-3 7a3.2 3.2 0 0 0 6 0z"/></svg></span><span class="fqa-t">${L('Debt','مديونية')}</span></button>
     </div>
 
     <div class="sc-search cx-search sav-search${(_savSearchOpen||searchQ)?' open':''}" id="savSearchBar"><span class="cx-sbox">
@@ -28900,6 +28900,17 @@ function bnkCarryIn(banks){
   (pm.transactions||[]).forEach(t=>{ if(!inCycle(t.date)) return; keys.forEach(k=>{ dep+=(t[k+'Dep']||0); wd+=(t[k+'With']||0); }); });
   return { dep, wd, mvDep, mvWd, net:dep-wd, day:D, month:pk };
 }
+// Dashboard "Monthly Change" (same formula as renderFinanceSummaryHeroV3's netProfit):
+// all banks+wallets this month − last month (+ optional bank-cycle carry-in). null = no previous month.
+function dashMonthlyChange(m){
+  const banks = getBanksOrdered();
+  const pk = _calendarPrevMonthKey(activeMonth), pm = pk && DATA[pk] ? DATA[pk] : null;
+  if(!pm) return null;
+  const now  = banks.reduce((s,b)=>s+getBankBalance(m,b.key),0);
+  const prev = banks.reduce((s,b)=>s+getBankBalance(pm,b.key),0);
+  const carry = bnkCarryIn(banks);
+  return now - prev + (carry ? carry.net : 0);
+}
 function bnkMonthlyChangeInfo(banks, total){
   const idx = MONTHS_ORDER.indexOf(activeMonth);
   if(idx<=0) return null;
@@ -30043,6 +30054,8 @@ function renderBanks(m){
   // the helpers near the top of this section (see comments there).
   const changeInfo = bnkMonthlyChangeInfo(bankOnly, totalBanks);
   const spark = bnkSparklineSVG(bnkDailyTrendSeries(m, bankOnly));
+  // Total Deposits (Analytics) is linked to the dashboard's Monthly Change — same figure, same formula.
+  { const _mc = dashMonthlyChange(m); if(_mc!=null) _aggDep = Math.max(_mc, 0); }
   const _flowTotal = _aggDep + _aggWith;
   const _depPct = _flowTotal>0 ? Math.round((_aggDep/_flowTotal)*100) : 0;
   const _withPct = _flowTotal>0 ? 100-_depPct : 0;
@@ -64202,6 +64215,150 @@ body #mainContent .screen-wrap .cx-seg .cx-seg-btn{gap:3px!important}
 
 /* Daily insight tiles: very large amounts shrink to fit (see fit script at end of body); ellipsis is the last-resort fallback. */
 .dly-ins b{overflow:hidden;text-overflow:ellipsis;max-width:100%}
+
+/* ══ Salary card (My Job → Attendance) — premium layout ═════════════════════
+   One flat hero panel (no card-inside-card) + one clean breakdown card.
+   Presentation only: markup, numbers and the pay calculation are untouched. */
+body #mainContent .sc-card.att-pay{background:transparent!important;border:0!important;box-shadow:none!important;padding:0!important;overflow:visible;border-radius:0!important}
+#mainContent .sc-card.att-pay::before,#mainContent .sc-card.att-pay::after{display:none}
+#mainContent .att-pay .att-pay-hero{
+  position:relative;overflow:hidden;margin:0;padding:20px 20px 18px;gap:0;border:0;border-radius:24px;color:#fff;
+  background:
+    radial-gradient(120% 80% at 100% 0%,rgba(255,255,255,.22),rgba(255,255,255,0) 58%),
+    linear-gradient(158deg,var(--green-light) -40%,var(--green) 38%,var(--green-dark) 105%);
+  box-shadow:0 20px 38px -20px color-mix(in srgb,var(--green-dark) 75%,transparent),inset 0 1px 0 rgba(255,255,255,.24);
+}
+#mainContent .att-pay .aph-lbl{font-size:calc(12px*var(--app-text-scale,1));font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:rgba(255,255,255,.78)}
+#mainContent .att-pay .aph-per{color:#fff;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.22);padding:5px 11px;font-weight:600}
+#mainContent .att-pay .att-pay-amt{margin:10px 0 16px;color:#fff;font-size:calc(40px*var(--app-text-scale,1));font-weight:700;letter-spacing:-.8px;line-height:1.1;text-shadow:0 2px 14px rgba(0,0,0,.18)}
+#mainContent .att-pay .att-pay-cyc-bar{height:8px;margin:0 0 9px;border-radius:99px;background:rgba(255,255,255,.22);box-shadow:inset 0 1px 2px rgba(0,0,0,.12)}
+#mainContent .att-pay .att-pay-cyc-bar i{border-radius:99px;background:linear-gradient(90deg,rgba(255,255,255,.75),#fff);box-shadow:0 0 12px rgba(255,255,255,.55)}
+#mainContent .att-pay .att-pay-meta{margin:0 0 16px;color:rgba(255,255,255,.8);font-weight:500}
+#mainContent .att-pay .att-pay-meta b,#mainContent .att-pay .aph-pct{color:#fff;font-weight:700}
+#mainContent .att-pay .aph-exp{margin:0 0 10px;padding:13px 15px;border-radius:16px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.88);font-size:calc(13px*var(--app-text-scale,1));font-weight:600}
+#mainContent .att-pay .aph-exp span{min-width:0}
+#mainContent .att-pay .aph-exp b{color:#fff;font-size:calc(15px*var(--app-text-scale,1));font-weight:700;flex:none}
+#mainContent .att-pay .aph-facts{gap:10px}
+#mainContent .att-pay .aph-f{gap:4px;padding:11px 14px;border-radius:16px;background:rgba(0,0,0,.16);border:1px solid rgba(255,255,255,.12)}
+#mainContent .att-pay .aph-f small{font-size:calc(10.5px*var(--app-text-scale,1));font-weight:600;letter-spacing:.07em;color:rgba(255,255,255,.7)}
+#mainContent .att-pay .aph-f b{color:#fff;font-size:calc(15px*var(--app-text-scale,1))}
+
+#mainContent .att-pay .att-pay-rows{margin:12px 0 0;padding:4px 18px 6px;background:var(--surface);border:1px solid var(--border);border-radius:22px;box-shadow:0 1px 2px rgba(15,23,42,.04),0 10px 24px -18px rgba(15,23,42,.25)}
+#mainContent .att-pay .att-pay-sub{margin:16px 0 2px;font-size:calc(11px*var(--app-text-scale,1));font-weight:700;letter-spacing:.09em;color:var(--muted)}
+#mainContent .att-pay .att-pay-sub:first-child{margin-top:14px}
+#mainContent .att-pay .att-pay-sub::before{width:8px;height:8px;box-shadow:0 0 0 3px color-mix(in srgb,currentColor 0%,transparent),0 0 0 4px color-mix(in srgb,var(--red) 18%,transparent)}
+#mainContent .att-pay .att-pay-sub.ok::before{box-shadow:0 0 0 4px color-mix(in srgb,var(--green) 18%,transparent)}
+#mainContent .att-pay .att-pay-r{align-items:center;gap:14px;padding:13px 0;font-size:calc(13.5px*var(--app-text-scale,1));line-height:1.4;color:var(--text2);border-bottom:1px solid color-mix(in srgb,var(--border) 65%,transparent)}
+#mainContent .att-pay .att-pay-r span{text-wrap:balance}
+#mainContent .att-pay .att-pay-r b{flex:none;font-size:calc(14.5px*var(--app-text-scale,1))}
+#mainContent .att-pay .att-pay-r:last-child,#mainContent .att-pay .att-pay-r:has(+ .att-pay-sub){border-bottom:0}
+
+#mainContent .att-pay .att-pay-more{width:100%;margin:12px 0 0;min-height:54px;padding:0 18px;border-radius:18px;background:var(--surface);border:1px solid var(--border);box-shadow:0 1px 2px rgba(15,23,42,.04);font-size:calc(13.5px*var(--app-text-scale,1))}
+#mainContent .att-pay .att-pay-days{margin:10px 0 0}
+
+/* Salary card — always-dark premium palette (independent of light/dark theme) */
+#mainContent .att-pay{--sp-bg:#121826;--sp-line:rgba(255,255,255,.08);--sp-text:#eef2fb;--sp-sub:#aab4c8;--sp-mute:#7f8aa3;--sp-pos:#3ddc97;--sp-neg:#ff7b7b}
+#mainContent .att-pay .att-pay-hero{
+  background:
+    radial-gradient(110% 75% at 100% 0%,rgba(70,125,235,.34),rgba(70,125,235,0) 60%),
+    linear-gradient(160deg,#16418f 0%,#0f2d6b 48%,#0a1d47 100%);
+  box-shadow:0 22px 40px -22px rgba(6,16,45,.9),inset 0 1px 0 rgba(255,255,255,.14);
+}
+#mainContent .att-pay .aph-f{background:rgba(5,12,32,.38);border-color:rgba(255,255,255,.09)}
+#mainContent .att-pay .aph-exp{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.13)}
+#mainContent .att-pay .att-pay-cyc-bar{background:rgba(255,255,255,.16)}
+#mainContent .att-pay .att-pay-rows{background:var(--sp-bg);border:1px solid var(--sp-line);box-shadow:0 18px 34px -22px rgba(0,0,0,.7)}
+#mainContent .att-pay .att-pay-sub{color:var(--sp-mute)}
+#mainContent .att-pay .att-pay-sub::before{background:var(--sp-neg);box-shadow:0 0 0 4px rgba(255,123,123,.16)}
+#mainContent .att-pay .att-pay-sub.ok::before{background:var(--sp-pos);box-shadow:0 0 0 4px rgba(61,220,151,.16)}
+#mainContent .att-pay .att-pay-r{color:var(--sp-sub);border-bottom-color:var(--sp-line)}
+#mainContent .att-pay .att-pay-r b{color:var(--sp-text)}
+#mainContent .att-pay .att-pay-r.pos b{color:var(--sp-pos)}
+#mainContent .att-pay .att-pay-r.neg b{color:var(--sp-neg)}
+#mainContent .att-pay .att-pay-more{background:var(--sp-bg);border-color:var(--sp-line);color:var(--sp-text);box-shadow:0 14px 28px -22px rgba(0,0,0,.7)}
+#mainContent .att-pay .att-pay-day{background:var(--sp-bg);border-color:var(--sp-line)}
+#mainContent .att-pay .att-pay-day .d{color:var(--sp-mute)}
+#mainContent .att-pay .att-pay-day .t{color:var(--sp-text)}
+#mainContent .att-pay .att-pay-day.pos b{color:var(--sp-pos)}
+#mainContent .att-pay .att-pay-day.neg b{color:var(--sp-neg)}
+#mainContent .att-pay .att-pay-more .att-chev{color:var(--sp-sub);border-color:var(--sp-sub)}
+#mainContent .att-pay .att-pay-more .att-chev::before,#mainContent .att-pay .att-pay-more .att-chev::after{border-color:var(--sp-sub);background-color:var(--sp-sub)}
+
+/* ══ My Finances quick-action tiles — premium, consistent set ═══════════════
+   One icon language (22px, 1.9 stroke, rounded caps), one badge shape, one
+   tint formula per tone; icons now say what they do (in / out / swap / gem /
+   scan / scales) instead of three identical "+" glyphs. */
+body #mainContent .screen-wrap .fin-qa-row.sav-qa-scroll{gap:10px!important}
+body #mainContent .screen-wrap .fin-qa-chip[data-tone]{
+  --tn:var(--green);
+  position:relative;gap:10px;min-height:96px;padding:14px 4px 12px!important;border-radius:20px!important;
+  background:linear-gradient(180deg,var(--surface) 0%,color-mix(in srgb,var(--surface) 94%,var(--tn)) 100%)!important;
+  border:1px solid color-mix(in srgb,var(--tn) 16%,var(--border))!important;
+  box-shadow:0 1px 2px rgba(15,23,42,.05),0 12px 22px -16px color-mix(in srgb,var(--tn) 55%,transparent)!important;
+  color:var(--text)!important;font-size:calc(12.5px*var(--app-text-scale,1))!important;font-weight:650!important;letter-spacing:.01em;
+}
+body #mainContent .screen-wrap .fin-qa-chip[data-tone="income"]{--tn:#16a36a}
+body #mainContent .screen-wrap .fin-qa-chip[data-tone="expense"]{--tn:#e0525a}
+body #mainContent .screen-wrap .fin-qa-chip[data-tone="transfer"]{--tn:#2f6fe4}
+body #mainContent .screen-wrap .fin-qa-chip[data-tone="asset"]{--tn:#7c5cd6}
+body #mainContent .screen-wrap .fin-qa-chip[data-tone="scan"]{--tn:#d4901a}
+body #mainContent .screen-wrap .fin-qa-chip[data-tone="debt"]{--tn:#e0702b}
+body #mainContent .screen-wrap .fin-qa-chip[data-tone] .fqa-ic{
+  display:grid;place-items:center;width:44px;height:44px;border-radius:15px;flex:none;
+  color:var(--tn);
+  background:radial-gradient(120% 120% at 20% 10%,color-mix(in srgb,var(--tn) 8%,#fff),color-mix(in srgb,var(--tn) 16%,var(--surface)));
+  border:1px solid color-mix(in srgb,var(--tn) 22%,transparent);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.7);
+}
+body #mainContent .screen-wrap .fin-qa-chip[data-tone] .fqa-ic svg{width:22px!important;height:22px!important;color:inherit!important}
+body #mainContent .screen-wrap .fin-qa-chip[data-tone] .fqa-t{line-height:1.2;max-width:100%;padding:0 4px;text-wrap:balance}
+body #mainContent .screen-wrap .fin-qa-chip[data-tone]:active{transform:scale(.96)}
+[data-theme="dark"] body #mainContent .screen-wrap .fin-qa-chip[data-tone],
+[data-theme="dark"] #mainContent .screen-wrap .fin-qa-chip[data-tone]{
+  background:linear-gradient(180deg,var(--surface) 0%,color-mix(in srgb,var(--surface) 90%,var(--tn)) 100%)!important;
+  border-color:color-mix(in srgb,var(--tn) 26%,var(--border))!important;
+  box-shadow:0 1px 0 rgba(255,255,255,.04) inset,0 14px 24px -18px rgba(0,0,0,.8)!important}
+[data-theme="dark"] #mainContent .screen-wrap .fin-qa-chip[data-tone] .fqa-ic{
+  color:color-mix(in srgb,var(--tn) 72%,#fff);
+  background:color-mix(in srgb,var(--tn) 20%,var(--surface2));
+  border-color:color-mix(in srgb,var(--tn) 34%,transparent);box-shadow:none}
+
+/* ═════ Dashboard premium polish (presentation-only; appended last so it wins the cascade) ═════ */
+.wdash-wrap.dv3-dark-v2{--pp-r:22px;--pp-sh:0 1px 2px rgba(16,24,20,.04),0 8px 24px -12px rgba(16,24,20,.14)}
+/* Greeting card: quieter, name leads, thicker progress track */
+.wdash-wrap .wdash-greet{border-radius:var(--pp-r,22px);box-shadow:var(--pp-sh);border:1px solid var(--border);padding:18px 20px;transition:transform .18s ease}
+.wdash-wrap .wdash-greet:active{transform:scale(.99)}
+.wdash-wrap .wdash-greet b{font-variant-numeric:tabular-nums;letter-spacing:-.4px;font-weight:700}
+.wdash-wrap .wdash-greet small{color:var(--muted);font-weight:500}
+.wdash-wrap .wdash-greet [class*="bar"],.wdash-wrap .wdash-greet [class*="track"]{height:6px!important;border-radius:99px!important}
+/* Hero: calm surface, larger figure, evenly divided stat strip */
+.wdash-wrap.dv3-dark-v2 .dv3-hero,.wdash-wrap.dv3-dark-v2 .dfp-hero-v2{border-radius:var(--pp-r,22px)!important;border:1px solid var(--border)!important;box-shadow:var(--pp-sh)!important}
+.wdash-wrap.dv3-dark-v2 .dv3-hero .dv3-hero-inner{padding:20px 20px 18px}
+.wdash-wrap.dv3-dark-v2 .dash-hero-eyebrow{font-size:calc(11px*var(--app-text-scale,1));font-weight:600;color:var(--muted);opacity:1;letter-spacing:.2px}
+.wdash-wrap.dv3-dark-v2 .dash-hero-main-lbl{font-size:calc(13px*var(--app-text-scale,1));font-weight:500;color:var(--muted);margin-top:14px}
+.wdash-wrap.dv3-dark-v2 .dash-hero-main-val{font-size:calc(40px*var(--app-text-scale,1))!important;font-weight:700;letter-spacing:-1.6px;line-height:1.1;font-variant-numeric:tabular-nums;margin-top:6px}
+.wdash-wrap.dv3-dark-v2 .dv3h-stat-row{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr));gap:0!important;margin-top:18px;padding:0!important;border:1px solid var(--border);border-radius:16px;background:var(--surface2);overflow:hidden}
+.wdash-wrap.dv3-dark-v2 .dv3h-stat{min-width:0;padding:12px 12px 11px;display:flex;flex-direction:column;gap:5px}
+.wdash-wrap.dv3-dark-v2 .dv3h-stat+.dv3h-stat-sep+.dv3h-stat,.wdash-wrap.dv3-dark-v2 .dv3h-stat-sep+.dv3h-stat{border-inline-start:1px solid var(--border)}
+.wdash-wrap.dv3-dark-v2 .dv3h-stat-lbl{font-size:calc(11px*var(--app-text-scale,1))!important;font-weight:500!important;letter-spacing:0!important;color:var(--muted)}
+.wdash-wrap.dv3-dark-v2 .dv3h-stat-val{font-size:calc(14px*var(--app-text-scale,1))!important;font-weight:650!important;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.wdash-wrap.dv3-dark-v2 .dv3h-stat-val.up{color:var(--success,#15803d)}
+.wdash-wrap.dv3-dark-v2 .dv3h-stat-val.down{color:var(--danger,#b4443a)}
+@media(max-width:380px){.wdash-wrap.dv3-dark-v2 .dv3h-stat{padding:10px 9px}.wdash-wrap.dv3-dark-v2 .dv3h-stat-val{font-size:calc(12.5px*var(--app-text-scale,1))!important}.wdash-wrap.dv3-dark-v2 .dash-hero-main-val{font-size:calc(34px*var(--app-text-scale,1))!important}}
+/* Income / Expense / Banks / Custody: one soft card, even rows, tinted icon tiles */
+.wdash-wrap.dv3-dark-v2 > .dv3-kpi-row{border-radius:var(--pp-r,22px);border:1px solid var(--border);background:var(--surface);box-shadow:var(--pp-sh);overflow:hidden}
+.wdash-wrap.dv3-dark-v2 > .dv3-kpi-row .dfp-kpi3-card{min-height:76px;padding:14px 16px!important;gap:12px;align-items:center}
+.wdash-wrap.dv3-dark-v2 .dfp-kpi3-icon{width:40px;height:40px;border-radius:13px;flex:none}
+.wdash-wrap.dv3-dark-v2 .dfp-kpi3-lbl{font-size:calc(12px*var(--app-text-scale,1));font-weight:500;color:var(--muted);letter-spacing:0;text-transform:none}
+.wdash-wrap.dv3-dark-v2 .dfp-kpi3-val{font-size:calc(18px*var(--app-text-scale,1));font-weight:700;letter-spacing:-.4px;font-variant-numeric:tabular-nums;margin-top:2px}
+.wdash-wrap.dv3-dark-v2 .dfp-kpi3-cur{font-size:.62em;font-weight:600;opacity:.6;margin-inline-start:4px}
+/* Quick actions: larger touch targets, consistent radius */
+.fp-qa-row{gap:10px}
+.fp-qa-btn{flex-direction:column;gap:8px;min-height:84px;padding:14px 6px 12px;border-radius:18px;box-shadow:var(--pp-sh,var(--shadow-xs))}
+.fp-qa-label{font-size:calc(12px*var(--app-text-scale,1));font-weight:600;letter-spacing:0}
+/* Attendance strip: same radius + shadow language as the cards above */
+.att-quick{border-radius:var(--pp-r,22px)!important;border:1px solid var(--border);box-shadow:var(--pp-sh)}
+@media(prefers-reduced-motion:reduce){.wdash-wrap .wdash-greet{transition:none}}
 </style>
 <script>
 // Shrinks oversized amounts in the Daily "insight" tiles (Daily average / Projected)
