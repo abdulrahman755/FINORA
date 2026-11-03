@@ -7445,18 +7445,6 @@ html.wdash-sheet-lock,html.wdash-sheet-lock body{overflow:hidden}
 .txlg-clear-all{background:none;border:none;color:var(--red);font-size:calc(10px*var(--app-text-scale,1));font-weight:700;cursor:pointer;padding:4px 4px}
 
 .txlg-timeline{padding:0 var(--sp3) var(--sp2)}
-.txlg-buy-list{padding:0 var(--sp3) var(--sp2);display:flex;flex-direction:column}
-.txlg-buy-row-wrap{position:relative;overflow:hidden;touch-action:pan-y;border-bottom:1px solid var(--border)}
-.txlg-buy-row-wrap:last-child{border-bottom:0}
-.txlg-buy-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 2px;background:var(--surface);position:relative;transition:transform var(--dur-fast,.15s) var(--ease-standard,ease)}
-.txlg-buy-row-wrap.txlg-buy-swiped .txlg-buy-row{transform:translateX(-44px)}
-[dir="rtl"] .txlg-buy-row-wrap.txlg-buy-swiped .txlg-buy-row{transform:translateX(44px)}
-.txlg-buy-name{min-width:0;flex:1;font-size:calc(13px*var(--app-text-scale,1));font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.txlg-buy-price{flex:none;font-size:calc(13px*var(--app-text-scale,1));font-weight:700;color:var(--orange);font-variant-numeric:tabular-nums}
-.txlg-buy-del{position:absolute;top:0;bottom:0;inset-inline-end:0;width:44px;background:none;border:none;color:var(--sub);cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity var(--dur-fast,.15s) var(--ease-standard,ease)}
-@media(hover:hover){ .txlg-buy-row-wrap:hover .txlg-buy-del{opacity:1;pointer-events:auto} }
-.txlg-buy-row-wrap.txlg-buy-swiped .txlg-buy-del{opacity:1;pointer-events:auto}
-.txlg-buy-del:active{color:var(--red)}
 .txlg-group-label{
   font-size:calc(11px*var(--app-text-scale,1));font-weight:700;color:var(--muted);text-transform:none;letter-spacing:0.3px;
   padding:var(--s-2) var(--sp1) var(--s-half);
@@ -11768,7 +11756,7 @@ function fpInitSwipeNav(){
   }
   function blockedTarget(t){
     if(!t || !t.closest) return true;
-    if(t.closest('input,textarea,select,canvas,[contenteditable="true"],#fabBtn,#fabPicker,#notesEdgeTab,.bottom-nav,[data-no-swipe],[ontouchstart],[class*="drag"],[class*="slider"],input[type="range"]')) return true;
+    if(t.closest('input,textarea,select,canvas,[contenteditable="true"],#fabBtn,#fabPicker,#notesEdgeTab,.bottom-nav,[data-no-swipe],[ontouchstart],[class*="drag"],[class*="slider"],input[type="range"],.pr-swipe,.qn-swipe,.prj-sw')) return true;   // row-swipe cards own their horizontal gesture
     for(let el=t; el && el!==document.body; el=el.parentElement){
       if(el.scrollWidth > el.clientWidth + 2){
         const ox = getComputedStyle(el).overflowX;
@@ -11801,6 +11789,7 @@ function fpInitSwipeNav(){
   // capture phase + stopImmediatePropagation once locked: keeps pull-to-refresh from also reacting
   document.addEventListener('touchmove', function(e){
     if(!st || busy) return;
+    if(typeof _prSw!=='undefined' && _prSw && _prSw.lock==='h'){ st = null; return; }   // a card swipe is active: never also move the page
     const t = e.touches[0];
     const dx = t.clientX - st.x, dy = t.clientY - st.y;
     if(st.locked === null){
@@ -14834,7 +14823,7 @@ function uiCloseMonth(){
   );
 }
 function showMonthClosingErrors(monthKey, validation){
-  const mName = MONTH_NAMES[monthKey] || monthKey;
+  const mName = _monthDisplayLabel(monthKey);
   const hardList = (validation.hardErrors||[]).map(e=>`
     <div style="display:flex;gap:8px;align-items:flex-start;padding:8px 10px;background:var(--red-tint);border-radius:var(--radius-sm);margin-bottom:6px">
       <span style="flex-shrink:0;color:var(--red);margin-top:1px">${ic('close',14)}</span>
@@ -18977,7 +18966,7 @@ function renderPurchasesDashCard(){
       const nm=_txlgItemName(t.notes)||String(t.notes||'').trim()||L('Untitled item','عنصر بدون اسم');
       return `<div class="pur-row"><div class="pur-main"><span class="pur-nm">${esc(nm)}</span><span class="pur-dt">${esc(_purFmtDate(t.date))}</span></div><div class="pur-amt"><span dir="ltr">${fmt(t.payment||0)}</span><small>${cur}</small></div></div>`;
     }).join('');
-    const mName=(typeof MONTH_NAMES!=='undefined' && MONTH_NAMES[g.mk]) || g.mk;
+    const mName=_monthDisplayLabel(g.mk);
     return `<section class="pur-grp"><div class="pur-gh"><span class="pur-gm">${esc(mName)}</span><span class="pur-gs">${_cnt(g.items.length,'item','items','عنصر','عنصران','عناصر','عنصراً')} <b dir="ltr">${fmt(g.sum)} ${cur}</b></span></div><div class="pur-list">${rows}</div></section>`;
   }).join('');
   const more=count>CAP?`<div class="pur-more">${L('Showing latest','يعرض الأحدث')} ${CAP} ${L('of','من')} ${count}</div>`:'';
@@ -19057,13 +19046,6 @@ const MAT_FEED_URL='https://YOUR-WORKER-NAME.YOUR-SUBDOMAIN.workers.dev/material
 const MAT_FEED_IDS={rebar:1,cement:1};
 let _matFeedBusy=false, _matFeedTried=0;
 function matFeedConfigured(){ return /^https:\/\//.test(MAT_FEED_URL) && !/YOUR-WORKER/i.test(MAT_FEED_URL); }
-function matParseMubasherText(txt){
-  const t=String(txt||'').replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/[٬,،]/g,'');
-  const pick=re=>{ const m=t.match(re); return m?parseFloat(m[1]):null; };
-  return { rebar:pick(/سعر\s+طن\s+الحديد\s+الاستثماري\s*:?\s*(\d{4,6})/),
-           ezz:pick(/سعر\s+طن\s+حديد\s+عز\s*:?\s*(\d{4,6})/),
-           cement:pick(/سعر\s+طن\s+ال[أا]سمنت\s+الرمادي\s*:?\s*(\d{3,6})/) };
-}
 // Resolves true only if at least one price was really fetched, validated and stored.
 function matFetchFeed(force){
   if(!matFeedConfigured() || _matFeedBusy || navigator.onLine===false) return Promise.resolve(false);
@@ -20135,34 +20117,6 @@ function _buyToggleFold(headerEl){
   chev.classList.toggle('open', open);
   try{ localStorage.setItem(BUY_FOLD_KEY, open?'0':'1'); }catch(e){}
 }
-// Swipe-left-to-reveal-delete on a My Purchases row — same gesture/feel as
-// the Timeline's own swipe-to-delete, kept as a separate, simpler handler
-// (no long-press menu) since each row here can belong to a different month
-// than the one currently open, and carries its own {monthKey, idx} instead
-// of an index into DATA[activeMonth].
-let _buySwipe={active:false,startX:0,startY:0,wrap:null,moved:false};
-function _buyTouchStart(ev){
-  if(ev.touches && ev.touches.length>1) return;
-  const t=ev.touches[0];
-  const wrap=ev.currentTarget.closest('.txlg-buy-row-wrap');
-  _buySwipe={active:true, startX:t.clientX, startY:t.clientY, wrap, moved:false};
-}
-function _buyTouchMove(ev){
-  if(!_buySwipe.active) return;
-  const t=ev.touches[0];
-  const dx=t.clientX-_buySwipe.startX;
-  const dy=t.clientY-_buySwipe.startY;
-  if(Math.abs(dx)>8||Math.abs(dy)>8) _buySwipe.moved=true;
-  if(Math.abs(dx)>Math.abs(dy) && _buySwipe.wrap){
-    _buySwipe.wrap.classList.toggle('txlg-buy-swiped', dx<-30);
-  }
-}
-function _buyTouchEnd(){ _buySwipe.active=false; }
-function _buyTouchCancel(){ _buySwipe.active=false; }
-function _buyRowClick(ev){
-  const wrap=ev.currentTarget.closest('.txlg-buy-row-wrap');
-  if(wrap && wrap.classList.contains('txlg-buy-swiped')){ wrap.classList.remove('txlg-buy-swiped'); }
-}
 // Splits an fmtEGP()-style string ("1,234 EGP" / "1,234 ج.م") into an
 // amount span + a smaller currency-suffix span, for the kpi3 KPI cards.
 // Falls back to a single span for placeholder text like '—'.
@@ -20219,9 +20173,6 @@ function _purFilter(btn,kind){
 function _purToggleAll(btn){
   const root=btn.closest('.pur2'); if(!root) return;
   root.dataset.exp = root.dataset.exp==='1' ? '0' : '1'; _purSync(root);
-}
-function _purAskRemove(monthKey,idx){
-  showConfirm(L('Remove this item from My Purchases? The expense itself stays.','تشيل العنصر ده من مشترياتي؟ المصروف نفسه هيفضل زي ما هو.'), ()=>_buyRemoveItem(monthKey,idx));
 }
 
 // ══════════════════════════════════════════════════════════════════════════
@@ -24806,7 +24757,7 @@ function renderOverview(m){
   const deps   = m?.custody_deposits|| [];
   const summ   = m?.summary         || {};
   const banks  = getAllBanks();
-  const mName  = MONTH_NAMES[activeMonth] || activeMonth;
+  const mName  = _monthDisplayLabel(activeMonth);
 
   // ── Core totals ────────────────────────────────────────────────────────────
   const totalPay   = txns.reduce((s,t)=>s+(t.payment||0),0);
@@ -32246,49 +32197,6 @@ function _doRestore() {
   }
 }
 
-// ── Restore ONLY banks data (does not touch transactions, savings, settings, etc.) ──
-function _doRestoreBanksOnly() {
-  const result = window._pendingRestore;
-  window._pendingRestore = null;
-  if (!result || result.version !== '2.0') {
-    showToast(L('Banks-only restore needs a v2.x backup file','استعادة البنوك فقط تحتاج ملف نسخة احتياطية حديث'), 'warn');
-    return;
-  }
-  try {
-    const d = result.payload.data;
-    const clone = o => JSON.parse(JSON.stringify(o));
-    // 1) Bank definitions, appearance and settings
-    CUSTOM_BANKS         = clone(d.customBanks || []);
-    hiddenDefaultBanks   = clone(d.hiddenBanks || []);
-    bankCustomColors     = clone(d.bankColors || {});
-    bankCustomLogos      = clone(d.bankLogos || {});
-    banksOrder           = d.banksOrder ? clone(d.banksOrder) : null;
-    bankInterestSettings = clone(d.bankInterestSettings || {});
-    bankAccountNumbers   = clone(d.bankAccountNumbers || {});
-    bankIbans            = clone(d.bankIbans || {});
-    bankFeeOverrides     = clone(d.bankFeeOverrides || {});
-    // 2) Per-month bank movements + opening balances (only for months that already exist)
-    let months = 0, moves = 0;
-    Object.keys(d.finance || {}).forEach(mk => {
-      const src = d.finance[mk], dst = DATA[mk];
-      if (!src || !dst) return;
-      dst.bank_movements   = clone(src.bank_movements || []);
-      dst.initial_balances = clone(src.initial_balances || {});
-      months++; moves += dst.bank_movements.length;
-    });
-    persistData(); persistBanks(); persistHiddenBanks(); persistBankColors();
-    persistBanksOrder(); persistBankInterest(); persistBankFeeOverrides();
-    persistBankAcctNums(); persistBankIbans();
-    const okLogos = persistBankLogos();
-    if(typeof SoundManager!=='undefined') SoundManager.play(SoundManager.SOUND.DATA.RESTORE);
-    showToast(L('✓ Banks restored ('+CUSTOM_BANKS.length+' banks, '+moves+' movements)','✓ تمت استعادة البنوك ('+CUSTOM_BANKS.length+' بنوك، '+moves+' حركة)'), 'success');
-    if(!okLogos) setTimeout(()=>showToast(L('⚠️ Some logos could not be stored (storage full)','⚠️ بعض الشعارات لم تُخزَّن (التخزين ممتلئ)'),'warn'),900);
-    closeModal(); closeSettings();
-    setTimeout(() => location.reload(), 800);
-  } catch(e) {
-    showToast(L('Banks restore failed: ','فشلت استعادة البنوك: ') + e.message, 'warn');
-  }
-}
 // ══ Premium restore sheet: choose exactly what to bring back ═══════════════════════════════════════
 // Categories partition every stored item (state variables + raw localStorage keys), so selecting all of
 // them is identical to a full restore, and any key added to the app later lands in "Settings" by default.
@@ -34951,7 +34859,7 @@ function renderInsightsCard(monthKey){
 }
 
 function insightsOpenModal(monthKey){
-  const mName = MONTH_NAMES[monthKey] || monthKey;
+  const mName = _monthDisplayLabel(monthKey);
   const curTxns = DATA[monthKey]?.transactions || [];
   const items = curTxns.length >= 3 ? generateInsights(monthKey) : [];
 
@@ -34984,7 +34892,7 @@ function insightsOpenModal(monthKey){
 }
 
 function aiOpenModal(monthKey){
-  const mName = MONTH_NAMES[monthKey] || monthKey;
+  const mName = _monthDisplayLabel(monthKey);
   document.getElementById('modalContent').innerHTML = `
     <div class="bs-chrome">
       <div class="ds-row-12">
@@ -35238,24 +35146,6 @@ function _dailyPaymentsSum(monthKey, dateStr, excludeIdx){
   return list.reduce((s,t,i)=> (t.date===dateStr && i!==excludeIdx) ? s+(parseFloat(t.payment)||0) : s, 0);
 }
 
-// A different friendly title each day (rotates by day of the year).
-const _DTP_TITLES=[
-  ["Don't forget your today's target",'لا تنسَ مستهدف اليوم'],
-  ['Good morning! Set today\'s target','صباح الخير! حدّد مستهدف اليوم'],
-  ['How much are we spending today?','كم سننفق اليوم؟'],
-  ['A fresh day — pick your target','يوم جديد — اختر مستهدفك'],
-  ['Quick one: what\'s today\'s budget?','سؤال سريع: كم ميزانية اليوم؟'],
-  ['Start the day with a plan','ابدأ يومك بخطة'],
-  ['Keep it under control — set your target','خلّي مصروفك تحت السيطرة — حدّد المستهدف'],
-  ['Your daily target is waiting','تارجت اليوم مستنيك'],
-  ['Small target, big savings','تارجت صغير، توفير كبير'],
-  ['Today\'s target — takes 5 seconds','مستهدف اليوم — يستغرق ٥ ثوانٍ']
-];
-function _dtpTitle(){
-  const d=new Date(), n=Math.floor((Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())-Date.UTC(d.getFullYear(),0,0))/86400000);
-  const t=_DTP_TITLES[n%_DTP_TITLES.length];
-  return L(t[0],t[1]).replace(/^[^\p{L}\p{N}]+/u,'');
-}
 // ── Today's Target sheet (also the daily auto-prompt) ───────────────────────
 // Premium layout: a hero with a big amount + −/+ steppers, a live "what this
 // means for the rest of the month" line, and one-tap quick picks built from the
@@ -35445,7 +35335,7 @@ function setMonthBudget(monthKey, amount){
 
 function openBudgetModal(monthKey, isFirst=false){
   const existing = getMonthBudget(monthKey);
-  const mName = MONTH_NAMES[monthKey] || monthKey;
+  const mName = _monthDisplayLabel(monthKey);
   document.getElementById('modalContent').innerHTML = `
     <div class="modal-handle"></div>
     <div class="modal-hdr">
@@ -35486,7 +35376,7 @@ function saveBudgetModal(monthKey){
 
 function renderMonthlyBudgetCard(m, monthKey){
   const budget = getMonthBudget(monthKey);
-  const mName = MONTH_NAMES[monthKey] || monthKey;
+  const mName = _monthDisplayLabel(monthKey);
 
   // Days calculation
   const now = new Date();
@@ -37582,14 +37472,6 @@ function _cxProfileChipHTML(){
   const slide2=(short&&(t2||c2))?`<span class="pf-sl s2" aria-hidden="true"><b dir="auto">${esc(t2||c2)}</b><span class="pf-sub" dir="auto"><span>${esc(t2&&c2?c2:short)}</span></span></span>`:'';
   return `<button type="button" class="pf-chip${slide2?' rot':''}" onclick="_cxSetTab('profile')" aria-label="${L('My profile','ملفي الشخصي')}${full?': '+esc(full):''}" title="${esc(full)}"><span class="pf-av">${p.photo?`<img src="${p.photo}" alt="">`:(ini?`<span class="pf-ini">${esc(ini)}</span>`:ic('id',18))}</span><span class="pf-id"><span class="pf-sl s1"><b dir="auto">${short?esc(short):L('My profile','ملفي الشخصي')}</b><span class="pf-sub" dir="auto"><span>${sub?esc(sub):L('View profile','عرض الملف')}</span></span></span>${slide2}</span></button>`;
 }
-function _cxProfileBarHTML(){
-  if(_cxTab==='profile') return '';
-  let p={name:'',photo:''};
-  try{ p=_jpLoad(); }catch(e){}
-  const ini=(p.name||'').trim().charAt(0).toUpperCase();
-  const sub=[p.title,p.company].filter(Boolean).join(' · ');
-  return `<button type="button" class="pf-bar" onclick="_cxSetTab('profile')" aria-label="${L('My profile','ملفي الشخصي')}"><span class="pf-av">${p.photo?`<img src="${p.photo}" alt="">`:(ini?`<span class="pf-ini">${esc(ini)}</span>`:ic('id',20))}</span><span class="pf-id"><b dir="auto">${p.name?esc(p.name):L('My profile','ملفي الشخصي')}</b><span class="pf-sub" dir="auto"><span>${sub?esc(sub):L('View my profile','عرض ملفي الشخصي')}</span></span></span><span class="pf-go">${ic('chevron',16)}</span></button>`;
-}
 function _cxTabsHTML(){
   const t=(k,lbl,icn)=>{ const _on=(_cxTab===k)||(k==='requests'&&_cxTab==='pour'); return `<button type="button" role="tab" class="cx-seg-btn${_on?' on':''}" aria-selected="${_on?'true':'false'}" onclick="_cxSetTab('${k}')">${ic(icn,18)}<span>${lbl}</span></button>`; };
   return `<div class="cx-seg cx-tabs v2" role="tablist">${t('requests',L('Receipts','استلاماتي'),'clipboard')}${t('custody',L('Custody','العهدة'),'hardhat')}${t('attendance',L('Attendance','الحضور'),'attendance')}${t('cv',L('My CV','سيرتي'),'cv')}</div>`;
@@ -37696,30 +37578,6 @@ function _jpAttStats(){
   return {c,rate:base?Math.round((c.present+c.late)/base*100):null,days:a.days,label:_jpScope==='month'?now.toLocaleDateString(_jpLoc(),{month:'long',year:'numeric'}):String(now.getFullYear())};
 }
 function _jpSetScope(k){ _jpScope=(k==='year')?'year':'month'; try{ renderView(); }catch(e){ _logErr('_jpSetScope',e); } }
-function _jpAttHTML(){
-  const s=_jpAttStats(), c=s.c, R=38, C=2*Math.PI*R, off=C*(1-(s.rate==null?0:s.rate/100));
-  const tile=(n,lbl,col,tint)=>`<div class="jp-st" style="--st-c:var(${col});--st-t:var(${tint})"><b>${n}</b><small>${lbl}</small></div>`;
-  const colors={present:['--green'],late:['--orange'],absent:['--red'],sick:['--blue'],leave:['--blue'],holiday:['--purple'],off:['--sub']};
-  const icons={present:'check',late:'clock',absent:'close',sick:'sick',leave:'leave',holiday:'holiday',off:'minus'};
-  const pad=n=>(n<10?'0':'')+n; let wk='';
-  for(let i=6;i>=0;i--){
-    const d=new Date(); d.setDate(d.getDate()-i);
-    const key=d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()), st=(s.days[key]||{}).s, cl=colors[st];
-    wk+=`<div class="jp-d${i===0?' today':''}"><i class="${cl?'on':''}"${cl?` style="background:var(${cl[0]})"`:''}>${cl?ic(icons[st],13):''}</i><span>${esc(d.toLocaleDateString(_jpLoc(),{weekday:'short'}))}</span></div>`;
-  }
-  return `<section class="jp-card pad">
-    <div class="jp-sec" style="padding-top:0">${ic('attendance',17)}<span>${L('Attendance','الحضور والغياب')}</span><span class="sp"></span>
-      <span class="jp-scope" role="tablist"><button type="button" class="${_jpScope==='month'?'on':''}" onclick="_jpSetScope('month')">${L('Month','الشهر')}</button><button type="button" class="${_jpScope==='year'?'on':''}" onclick="_jpSetScope('year')">${L('Year','السنة')}</button></span></div>
-    <div style="font-size:calc(11.5px*var(--app-text-scale,1));color:var(--muted);font-weight:700" dir="auto">${esc(s.label)}</div>${(()=>{ const t=_jpScope==='month'?_caCurMonthText():''; return t?`<div style="margin-top:3px;font-size:calc(11.5px*var(--app-text-scale,1));color:var(--green);font-weight:700" dir="auto">${esc(t)}</div>`:''; })()}
-    <div class="jp-att-top">
-      <div class="jp-ring"><svg viewBox="0 0 92 92"><circle class="tr" cx="46" cy="46" r="${R}" fill="none" stroke-width="9"/><circle class="pg" cx="46" cy="46" r="${R}" fill="none" stroke-width="9" stroke-linecap="round" stroke-dasharray="${C.toFixed(1)}" stroke-dashoffset="${off.toFixed(1)}"/></svg>
-        <div class="jp-ring-c"><b>${s.rate==null?'—':s.rate+'%'}</b><small>${L('Attendance','الالتزام')}</small></div></div>
-      <div class="jp-stats">${tile(c.present,L('Present','حضور'),'--green','--green-tint')}${tile(c.late,L('Late','تأخير'),'--orange','--orange-tint')}${tile(c.absent,L('Absent','غياب'),'--red','--red-tint')}${tile(c.leave,L('Leaves','إجازات'),'--blue','--blue-tint')}</div>
-    </div>
-    <div class="jp-wk">${wk}</div>
-    <button type="button" class="jp-link" onclick="_cxSetTab('attendance')">${ic('calendar',15)} ${L('Open full attendance log','فتح سجل الحضور الكامل')}</button>
-  </section>`;
-}
 function _jpAttBrief(){
   const s=_jpAttStats(), c=s.c, r=s.rate==null?0:Math.max(0,Math.min(100,s.rate));
   const t=(n,l,k)=>`<div class="jp-ast ${k}"><b>${n||0}</b><small>${l}</small></div>`;
@@ -38783,13 +38641,6 @@ function _cvLong(d,withDay){   // always English, for the CV itself
   const q=_cvDateParts(d); if(!q) return '';
   try{ return new Date(q.y,q.mo-1,q.d||1).toLocaleDateString('en-US',withDay&&q.d?{month:'long',day:'numeric',year:'numeric'}:{month:'long',year:'numeric'}); }catch(e){ return d; }
 }
-function _cvPeriodEN(e){
-  const f=e.from; if(!f) return '';
-  const now=_wdpLocalISO(new Date());
-  const fut=f.length>7?f>now:f>now.slice(0,7);
-  if(fut&&!e.to) return 'Starting '+_cvLong(f,true);
-  return _cvLong(f)+' to '+(e.to?_cvLong(e.to):'Present');
-}
 // Period shown right under the company name: "Jan 2024 – Sep 2026" + duration "2 yrs 8 mos"
 function _cvShortEN(d){
   const q=_cvDateParts(d); if(!q) return '';
@@ -39192,7 +39043,6 @@ function _cvEditSec(k){
   _cvSheet(d.icon,L(d.en,d.ar),L('Appears in your CV exactly like this section','بيظهر في سيرتك زي القسم ده بالظبط'),body,`_cvSaveSec('${k}')`);
   if(k!=='hdr'&&k!=='sum'){ const c=document.querySelector('.cv-rows'); if(c&&!c.children.length) _cvRowAdd(c.id); }
 }
-function _cvEditProfile(){ _cvEditSec('hdr'); }
 function _cvSecRead(k){
   const g=id=>(document.getElementById(id)?.value||'').trim();
   if(k==='hdr') return {name:g('cvName'),title:g('cvTitle'),phone:g('cvPhone'),email:g('cvEmail'),linkedin:g('cvLinkedin'),loc:g('cvLoc')};
@@ -40508,11 +40358,6 @@ function _rqMonthNavHTML(inMonth){
   </div>`;
 }
 function _rqSetScope(allMonths){ _rqAllMonths=false; _rqFilter='all'; _rqTypeFilter=''; renderView(true); }
-function _rqScopeBarHTML(total,inMonth){
-  let lbl=activeMonth; try{ lbl=_monthDisplayLabel(activeMonth); }catch(e){}
-  const b=(on,txt,n,fn)=>`<button type="button" class="rq-scope-b${on?' on':''}" aria-pressed="${on}" onclick="${fn}">${txt}<em>${n}</em></button>`;
-  return `<div class="rq-scope" role="group">${b(true,esc(lbl),inMonth,'_rqSetScope(false)')}</div>`;
-}
 function _rqMonthLbl(){ const k=_rqViewMonth(); try{ return _monthDisplayLabel(k); }catch(e){ return String(k||''); } }
 // ⋯ sheet: the occasional tools (import / export / data entry) live here so the page itself stays calm
 function rqMoreOpen(){
@@ -50432,12 +50277,6 @@ function _remLocale(){ return lang==='ar' ? 'ar-EG-u-nu-latn' : 'en-GB'; }
 function remFmt(dateISO,opts){ try{ return new Intl.DateTimeFormat(_remLocale(),opts).format(new Date(dateISO+'T00:00:00')); }catch(e){ return dateISO; } }
 function remDateLong(dateISO){ return remFmt(dateISO,{weekday:'long',day:'numeric',month:'long',year:'numeric'}); }
 function remDateMid(dateISO){ return remFmt(dateISO,{weekday:'short',day:'numeric',month:'short'}); }
-function remDueLabel(diffDays){                 // short chip text
-  if(diffDays<0) return L('Passed',"\u0627\u0646\u0642\u0636\u0649 \u0645\u0648\u0639\u062f\u0647");
-  if(diffDays===0) return L('Today',"\u0627\u0644\u064a\u0648\u0645");
-  if(diffDays===1) return L('Tomorrow',"\u063a\u062f\u0627\u064b");
-  return L(`In ${diffDays} days`,`\u0628\u0639\u062f ${diffDays} \u064a\u0648\u0645`);
-}
 function _remArDays(n){ return n===1?'\u064a\u0648\u0645':n===2?'\u064a\u0648\u0645\u064a\u0646':n<=10?n+' \u0623\u064a\u0627\u0645':n+' \u064a\u0648\u0645\u0627\u064b'; }
 function remDueText(d){                         // full sentence
   if(d<0){ const n=-d; return L(`Overdue by ${n} day${n>1?'s':''}`, n===1?'\u0641\u0627\u062a \u0645\u0648\u0639\u062f\u0647 \u0628\u064a\u0648\u0645':n===2?'\u0641\u0627\u062a \u0645\u0648\u0639\u062f\u0647 \u0628\u064a\u0648\u0645\u064a\u0646':'\u0641\u0627\u062a \u0645\u0648\u0639\u062f\u0647 \u0628\u0640 '+_remArDays(n)); }
@@ -54706,7 +54545,7 @@ function mrCompute(mKey,source){
 // ── Main Render ───────────────────────────────────────────────────────────────
 function renderMonthlyReport(){
   _mrDestroyCharts();
-  const mKey=activeMonth, mName=MONTH_NAMES[mKey]||mKey;
+  const mKey=activeMonth, mName=_monthDisplayLabel(mKey);
   const stat=mrCompute(mKey,_mrSource);
   const hasData=stat.allEntries.length>0||stat.totalIncome>0;
   const savingsOk=stat.totalSavings>=0;
@@ -55122,11 +54961,11 @@ function mrExportExcel(){
 }
 
 function mrSaveReport(){
-  const stat=mrCompute(activeMonth,_mrSource), mName=MONTH_NAMES[activeMonth]||activeMonth;
+  const stat=mrCompute(activeMonth,_mrSource), mName=_monthDisplayLabel(activeMonth);
   try{
     const raw=localStorage.getItem(MR_REPORTS_KEY); let saved=raw?JSON.parse(raw):[];
     saved=saved.filter(r=>!(r.monthKey===activeMonth && (r.source||'daily')===_mrSource));
-    saved.unshift({id:Date.now().toString(),monthKey:activeMonth,source:_mrSource,monthName:mName,savedAt:new Date().toISOString(),currency:CURRENT_CURRENCY,
+    saved.unshift({id:Date.now().toString(),monthKey:activeMonth,source:_mrSource,monthName:(MONTH_NAMES[activeMonth]||activeMonth),savedAt:new Date().toISOString(),currency:CURRENT_CURRENCY,
       data:{totalIncome:stat.totalIncome,totalExpenses:stat.totalExpenses,totalSavings:stat.totalSavings,cashFlow:stat.cashFlow,budget:stat.budget,budgetAccuracy:stat.budgetAccuracy,avgDaily:stat.avgDaily,categories:stat.categories,top10:stat.top10}});
     localStorage.setItem(MR_REPORTS_KEY,JSON.stringify(saved));
     showToast(L(`✓ Report for ${mName} saved permanently`,`✓ تم حفظ تقرير ${mName} بشكل دائم`), 'success');
@@ -55785,11 +55624,11 @@ function brExportExcel(){
 }
 
 function brSaveReport(){
-  const stat=brComputeAll(activeMonth), mName=MONTH_NAMES[activeMonth]||activeMonth;
+  const stat=brComputeAll(activeMonth), mName=_monthDisplayLabel(activeMonth);
   try{
     let saved=JSON.parse(localStorage.getItem(BR_REPORTS_KEY)||'[]');
     saved=saved.filter(r=>r.monthKey!==activeMonth);
-    saved.unshift({id:Date.now().toString(),monthKey:activeMonth,monthName:mName,savedAt:new Date().toISOString(),currency:CURRENT_CURRENCY,banks:stat.bankData.length,netWorth:brFmt(stat.netWorth),
+    saved.unshift({id:Date.now().toString(),monthKey:activeMonth,monthName:(MONTH_NAMES[activeMonth]||activeMonth),savedAt:new Date().toISOString(),currency:CURRENT_CURRENCY,banks:stat.bankData.length,netWorth:brFmt(stat.netWorth),
       data:{netWorth:stat.netWorth,totalBankBalance:stat.totalBankBalance,totalWalletBalance:stat.totalWalletBalance,totalCash:stat.totalCash,totalInterest:stat.totalInterest}});
     localStorage.setItem(BR_REPORTS_KEY,JSON.stringify(saved));
     showToast(L(`✓ Bank report for ${mName} saved`,`✓ تم حفظ تقرير ${mName}`), 'success');
@@ -56021,7 +55860,7 @@ function yrComputeYear(year,source){
 
   // Monthly series for charts
   const monthlySeries = yearSnaps.map(s=>({
-    label: (s.monthName||s.monthKey).split(' ')[0] || MONTHS[s.monthIndex] || s.monthKey,
+    label: _mddShort(s.monthKey) || MONTHS[s.monthIndex] || s.monthKey,
     income: s.totalIncome, expenses: s.totalExpenses, savings: s.totalSavings,
     netWorth: s.netWorth, bank: s.totalBankAndWallet, budget: s.budget,
     key: s.monthKey,
@@ -56129,25 +55968,25 @@ function renderYearlyAnalytics(){
     <div class="yr-award-card" style="background:linear-gradient(135deg,var(--primary),var(--green-light));color:#fff">
       <div class="yr-award-icon">${ic('trophy',20)}</div>
       <div class="yr-award-label">${L('Best Month','أفضل شهر')}</div>
-      <div class="yr-award-month">${yrEsc(stat.bestMonth.monthName)}</div>
+      <div class="yr-award-month">${yrEsc(_monthDisplayLabel(stat.bestMonth.monthKey))}</div>
       <div class="yr-award-val">+${yrShort(stat.bestMonth.totalSavings)} ${L('saved','تم توفيره')}</div>
     </div>
     <div class="yr-award-card" style="background:linear-gradient(135deg,var(--danger-hover),var(--danger));color:#fff">
       <div class="yr-award-icon">${ic('trend_down',20)}</div>
       <div class="yr-award-label">${L('Worst Month','أسوأ شهر')}</div>
-      <div class="yr-award-month">${yrEsc(stat.worstMonth.monthName)}</div>
+      <div class="yr-award-month">${yrEsc(_monthDisplayLabel(stat.worstMonth.monthKey))}</div>
       <div class="yr-award-val">${stat.worstMonth.totalSavings>=0?'+':''}${yrShort(stat.worstMonth.totalSavings)}</div>
     </div>
     <div class="yr-award-card" style="background:linear-gradient(135deg,color-mix(in srgb,var(--orange) 60%,black),var(--orange));color:#fff">
       <div class="yr-award-icon">${ic('money',20)}</div>
       <div class="yr-award-label">${L('Highest Spending','أعلى إنفاق')}</div>
-      <div class="yr-award-month">${yrEsc(stat.highestSpendMonth.monthName)}</div>
+      <div class="yr-award-month">${yrEsc(_monthDisplayLabel(stat.highestSpendMonth.monthKey))}</div>
       <div class="yr-award-val">${yrShort(stat.highestSpendMonth.totalExpenses)} ${L('spent','تم إنفاقه')}</div>
     </div>
     <div class="yr-award-card" style="background:linear-gradient(135deg,color-mix(in srgb,var(--info) 55%,black),var(--info));color:#fff">
       <div class="yr-award-icon">${ic('money',20)}</div>
       <div class="yr-award-label">${L('Highest Saving','أعلى توفير')}</div>
-      <div class="yr-award-month">${yrEsc(stat.highestSavingMonth.monthName)}</div>
+      <div class="yr-award-month">${yrEsc(_monthDisplayLabel(stat.highestSavingMonth.monthKey))}</div>
       <div class="yr-award-val">+${yrShort(stat.highestSavingMonth.totalSavings)}</div>
     </div>
   </div>`;
@@ -56156,7 +55995,7 @@ function renderYearlyAnalytics(){
   const gIcon = v => v>0?ic('arrow_up',12):v<0?ic('arrow_down',12):ic('minus',12);
   const gColor= v => v>0?'var(--pos)':v<0?'var(--red)':'var(--muted)';
   h+=`<div class="sc-card">
-    <div class="sc-card-label">${ic('trend_up',15)} ${L('Growth Metrics','مقاييس النمو')} <span style="font-weight:600;text-transform:none;letter-spacing:0">(${yrEsc(stat.first.monthName)} → ${yrEsc(stat.last.monthName)})</span></div>
+    <div class="sc-card-label">${ic('trend_up',15)} ${L('Growth Metrics','مقاييس النمو')} <span style="font-weight:600;text-transform:none;letter-spacing:0">(${yrEsc(_monthDisplayLabel(stat.first.monthKey))} → ${yrEsc(_monthDisplayLabel(stat.last.monthKey))})</span></div>
     <div class="br-row" style="display:flex;align-items:center;justify-content:space-between;padding:11px 16px;border-bottom:1px solid var(--border)">
       <span style="font-size:calc(12px*var(--app-text-scale,1));color:var(--muted);font-weight:700">${ic('gem',12)} ${L('Net Worth Growth','نمو صافي الثروة')}</span>
       <span style="font-size:calc(14px*var(--app-text-scale,1));font-weight:800;color:${gColor(stat.netWorthGrowth)}">${gIcon(stat.netWorthGrowth)} ${yrShort(Math.abs(stat.netWorthGrowth))} (${stat.netWorthGrowthPct>=0?'+':''}${stat.netWorthGrowthPct}%)</span>
@@ -56209,7 +56048,7 @@ function renderYearlyAnalytics(){
       </tr></thead>
       <tbody>
       ${stat.yearSnaps.map((s,i)=>`<tr class="clickable-row" style="border-bottom:1px solid var(--border);cursor:pointer;${i%2?'background:var(--surface2)':''}" onclick="selectMonth('${s.monthKey}')">
-        <td style="padding:8px 10px;font-weight:800;color:var(--text)">${yrEsc((s.monthName||'').split(' ')[0]||s.monthKey)}</td>
+        <td style="padding:8px 10px;font-weight:800;color:var(--text)">${yrEsc(_mddShort(s.monthKey)||s.monthKey)}</td>
         <td style="padding:8px 10px;text-align:right;color:var(--pos);font-weight:700">${yrShort(s.totalIncome)}</td>
         <td style="padding:8px 10px;text-align:right;color:var(--orange);font-weight:700">${yrShort(s.totalExpenses)}</td>
         <td style="padding:8px 10px;text-align:right;color:${s.totalSavings>=0?'var(--pos)':'var(--red)'};font-weight:800">${s.totalSavings>=0?'+':''}${yrShort(s.totalSavings)}</td>
@@ -58012,7 +57851,7 @@ function aiaModalSetDate(monthKey, v){
 function _aiaRenderModalHTML(monthKey, dateStr){
   const analysis = AIFinancialAssistant.getFullAnalysis(monthKey, dateStr);
   const fE = n => fmtEGP(n||0);
-  const mName = MONTH_NAMES[monthKey] || monthKey;
+  const mName = _monthDisplayLabel(monthKey);
   const p = analysis.prediction;
 
   const d = analysis.daily;
@@ -58356,7 +58195,7 @@ function _msrHTML(monthKey){
   const stat = msrCompute(monthKey);
   const pk   = _calendarPrevMonthKey(monthKey);
   const prev = (pk && DATA[pk]) ? msrCompute(pk) : null;
-  const mName = MONTH_NAMES[monthKey] || monthKey;
+  const mName = _monthDisplayLabel(monthKey);
   const f = n => fmtEGP(Math.round(n||0));
   const fs = (px) => `calc(${px}px*var(--app-text-scale,1))`;
 
@@ -58507,7 +58346,7 @@ function msrSetMonth(v){
 // Headline numbers for the month-end notification card.
 function _msrNoticeBody(monthKey, stat, isFinal){
   const f = n => fmtEGP(Math.round(n||0));
-  const mName = MONTH_NAMES[monthKey] || monthKey;
+  const mName = _monthDisplayLabel(monthKey);
   const top = stat.list[0];
   const pct = top ? top.pct : 0, nm = top ? _msrName(top.key) : '';
   return isFinal
