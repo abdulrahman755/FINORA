@@ -1930,6 +1930,9 @@ tbody tr:hover{background:var(--surface2)}
   flex-shrink:0;width:18px;height:18px;margin-top:1px;border-radius:50%;
   border:1.5px solid var(--border-strong);cursor:pointer;
   display:inline-block;position:relative;
+  /* tapping the circle must never select text / move the caret / raise the keyboard */
+  -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;
+  -webkit-tap-highlight-color:transparent;touch-action:manipulation;
 }
 .qn-chk.checked .qn-chk-box{background:var(--green);border-color:var(--green)}
 .qn-chk.checked .qn-chk-box::after{
@@ -16044,6 +16047,7 @@ function initApp(){loadTheme();loadSavedData();runStartupMigration();loadBanks()
   dailyTargetPromptInit();
   mioraInit();
   try{ debtCheckDue(); }catch(e){}
+  try{ gmyCheckDue(); }catch(e){}
 }
 // Header month display, localized (Sprint: header full-translation fix).
 // MONTH_NAMES[key] itself stays untouched — it's the canonical English
@@ -21444,6 +21448,22 @@ function gmyStatus(g, todayISO){
     assetValue: completed ? 0 : paidAmount,          // what counts in Assets / net worth
   };
 }
+// ── Assets integration (Commit 6) ──────────────────────────────────────────────
+// Month-aware like every other My Savings entry (_savDateInView): each payment counts from
+// the month it was made, and a circle that is fully paid AND collected is closed out by one
+// negative entry at the collection date (so it leaves Assets). Returned in the same shape
+// the Assets maths already uses ({purchaseDate, value}) so totals and month-trends agree.
+function gmyAssetItems(){
+  const out=[];
+  _gmyList().forEach(g=>{
+    let inView=0;
+    (g.payments||[]).forEach(p=>{ if(_savDateInView(p.date)){ const v=+p.amount||0; inView+=v; out.push({purchaseDate:p.date,value:v,gmy:g.id}); } });
+    if(g.collected && gmyStatus(g).completed && _savDateInView(g.collected.date) && inView>0)
+      out.push({purchaseDate:g.collected.date,value:-inView,gmy:g.id});
+  });
+  return out;
+}
+function gmyAssetsViewTotal(){ return Math.round(gmyAssetItems().reduce((t,x)=>t+x.value,0)*100)/100; }
 function gmyActive(){ return _gmyList().filter(g=>!gmyStatus(g).completed); }
 function gmyAssetsTotal(){ return Math.round(_gmyList().reduce((s,g)=>s+gmyStatus(g).assetValue,0)*100)/100; }
 
@@ -21464,9 +21484,10 @@ function gmySave(o, editId){
   const fields={ name:o.name.trim(), organizer:(o.organizer||'').trim(), startDate:o.startDate, frequency:o.frequency,
     members:+o.members, installment:+o.installment, myTurn:+o.myTurn,
     payout:(+o.payout>0 && +o.payout!==(+o.members)*(+o.installment)) ? +o.payout : 0,   // 0 = auto (members × installment)
-    note:(o.note||'').trim() };
+    note:(o.note||'').trim(),
+    remindDays:([0,1,2,3,-1].includes(+o.remindDays)?+o.remindDays:2) };
   let g = editId ? list.find(x=>x.id===editId) : null;
-  if(g) Object.assign(g,fields);
+  if(g){ Object.assign(g,fields); g.rem={}; }   // schedule/reminder may have changed → reminders start fresh
   else { g=Object.assign({id:'gmy'+Date.now().toString(36)+Math.random().toString(36).slice(2,5), payments:[], collected:null, createdAt:Date.now()},fields); list.push(g); }
   saveSavings(); return {ok:true,g};
 }
@@ -21526,6 +21547,9 @@ function gmyOpenModal(editId){
         <input id="gmyTurn" type="text" inputmode="numeric" value="${x.myTurn||''}" placeholder="1" oninput="gmyModalUpdate()"></div>
     </div>
     <div class="gmy-prev" id="gmyPrev"></div>
+    <div class="field"><label>${L('Remind me','ذكّرني')}</label>
+      <select id="gmyRemind">${[[3,L('3 days before','قبلها بـ3 أيام')],[2,L('2 days before','قبلها بيومين')],[1,L('1 day before','قبلها بيوم')],[0,L('On the day','في نفس اليوم')],[-1,L('Off','بدون تذكير')]].map(o=>`<option value="${o[0]}"${(x.remindDays==null?2:x.remindDays)===o[0]?' selected':''}>${o[1]}</option>`).join('')}</select>
+      <div class="gmy-hint">${L('For each installment and for your payout day','لكل قسط ولميعاد قبضك')}</div></div>
     <details class="gmy-more"${hasExtra?' open':''}><summary>${L('More options','خيارات إضافية')}</summary>
       <div class="field"><label>${L('Organizer','اسم المنظّم')}</label><input id="gmyOrg" value="${esc(x.organizer||'')}" placeholder="${L('optional…','اختياري…')}" dir="auto" maxlength="60"></div>
       <div class="field"><label>${L('Payout amount','مبلغ القبض')}</label>
@@ -21548,7 +21572,8 @@ function gmyPickFreq(k){
 function _gmyReadDraft(){
   return { name:_gmyVal('gmyName'), organizer:_gmyVal('gmyOrg'), startDate:_gmyVal('gmyStart'), frequency:_gmyDraftFreq,
            members:Math.round(_gmyNum('gmyMembers')), installment:_gmyNum('gmyInst'), myTurn:Math.round(_gmyNum('gmyTurn')),
-           payout:_gmyNum('gmyPayout'), note:_gmyVal('gmyNote') };
+           payout:_gmyNum('gmyPayout'), note:_gmyVal('gmyNote'),
+           remindDays:(function(){ const v=parseInt(_gmyVal('gmyRemind'),10); return Number.isInteger(v)?v:2; })() };
 }
 // Live summary under the form: when I collect, how much, last installment, total I will pay.
 function gmyModalUpdate(){
@@ -21580,12 +21605,12 @@ function gmyModalSave(editId){
     showToast('⚠️ '+msg,'warn'); return;
   }
   const r=gmySave(d,editId); if(!r.ok) return;
-  closeModal(); renderView();
+  gmyCheckDue(); closeModal(); renderView();
   showToast(L('Circle saved ✓','تم حفظ الجمعية ✓'),'success');
 }
 function gmyModalDelete(id){
   showConfirm(L('Delete this circle and all its payments? This cannot be undone.','حذف الجمعية وكل دفعاتها؟ لا يمكن التراجع.'),()=>{
-    gmyDelete(id); closeModal(); renderView(); showToast(L('Deleted ✓','تم الحذف ✓'),'info');
+    gmyDelete(id); gmyCheckDue(); closeModal(); renderView(); showToast(L('Deleted ✓','تم الحذف ✓'),'info');
   });
 }
 // ══ end GAMIYAT modal ══
@@ -21629,25 +21654,31 @@ function _gmyCardHTML(g){
     ${side}
   </div>`;
 }
-// Section rendered at the bottom of the Assets card. q = active search text (already lower-cased).
-function _gmySectionHTML(q){
+// Standalone "My circles" card (sits right after the Assets card, same card/header system).
+// q = active search text (already lower-cased); total = paid-so-far shown under the title.
+function _gmySectionHTML(q,total){
   let list=_gmyList();
   if(q) list=list.filter(g=>[g.name,g.organizer,g.note].some(v=>String(v||'').toLowerCase().includes(q)));
   const active=list.filter(g=>!gmyStatus(g).completed), done=list.filter(g=>gmyStatus(g).completed);
   const rows=active.concat(done).map(_gmyCardHTML).join('');
+  if(!rows && q) return '';
   const body = rows ? `<div class="gmy-list">${rows}</div>`
-    : (q ? '' : `<button type="button" class="gmy-empty" onclick="gmyOpenModal()">${ic('users',18)}<span><b>${L('Track a savings circle','تابع جمعيتك')}</b><small>${L('Installments, payout date and every payment in one place','الأقساط وموعد القبض وكل دفعة في مكان واحد')}</small></span>${ic('plus',16)}</button>`);
-  if(!body) return '';
-  return `<div class="gmy-sec">
-    <div class="gmy-sec-hd"><span class="gmy-sec-t">${ic('users',14)} ${L('My circles','جمعياتي')}</span>${list.length?`<span class="gmy-sec-n">${list.length}</span>`:''}
-      ${list.length?`<button type="button" class="gmy-add" onclick="gmyOpenModal()" aria-label="${L('Add circle','إضافة جمعية')}">${ic('plus',14)}</button>`:''}</div>
-    ${body}</div>`;
+    : `<button type="button" class="gmy-empty" onclick="gmyOpenModal()">${ic('users',18)}<span><b>${L('Track a savings circle','تابع جمعيتك')}</b><small>${L('Installments, payout date and every payment in one place','الأقساط وموعد القبض وكل دفعة في مكان واحد')}</small></span>${ic('plus',16)}</button>`;
+  return `<div class="sc-card">
+      <div class="fin-sec-hd" style="--sc:var(--fin-assets)">
+        <span class="fin-sec-ic">${ic('users',16)}</span>
+        <span class="fin-sec-t">${L('My circles','جمعياتي')}<small>${list.length&&total>0?fmtEGP(total):L('Savings circles','جمعيات الادخار')}</small></span>
+        <span class="fin-sec-n">${list.length}</span>
+        <button type="button" onclick="gmyOpenModal()" class="fin-sec-add" aria-label="${L('Add circle','إضافة جمعية')}">${ic('plus',15)}</button>
+      </div>
+      ${body}
+    </div>`;
 }
 function gmyOpenDetail(id){
   const g=_gmyList().find(x=>x.id===id); if(!g) return;
   const s=gmyStatus(g), tone=_gmyTone(s), cur=curLabel(), todayISO=today();
   const stateTxt = s.completed?L('Completed','مكتملة') : s.overdueCount>0?_gmyOverdueTxt(s.overdueCount) : s.canCollect?L('Your turn to collect','جه دورك تقبض') : s.allPaid?L('All paid','اتدفعت كلها') : L('On track','ماشية تمام');
-  let rows='';
+  const rows={paid:[],rest:[]};
   for(let r=1;r<=s.members;r++){
     const date=gmyRoundDate(g,r), dd=gmyDaysBetween(todayISO,date);
     let st, label;
@@ -21657,8 +21688,8 @@ function gmyOpenDetail(id){
     else { st='soon'; label=_gmyDaysTxt(dd); }
     const mine = r===(g.myTurn||1);
     const mineTag = mine ? `<span class="gmy-tl-mine">${ic('gem',11)} ${g.collected?L('Collected','تم القبض')+' · '+_gmyShort(g.collected.date):L('Your payout','قبضك')+' · '+fmt(s.payout)}</span>` : '';
-    rows+=`<div class="gmy-tl-row ${st}${mine?' mine':''}"><span class="gmy-tl-dot">${st==='paid'?ic('check',12):r}</span>
-      <span class="gmy-tl-main"><b>${_gmyDateLong(date)}</b><small>${esc(label)}</small></span>${mineTag}</div>`;
+    (st==='paid'?rows.paid:rows.rest).push(`<div class="gmy-tl-row ${st}${mine?' mine':''}"><span class="gmy-tl-dot">${st==='paid'?ic('check',12):r}</span>
+      <span class="gmy-tl-main"><b>${_gmyDateLong(date)}</b><small>${esc(label)}</small></span>${mineTag}</div>`);
   }
   const _hItems=(g.payments||[]).map(p=>({k:'p',date:p.date||'',ts:p.ts||0,id:p.id,amount:p.amount,note:p.note}));
   if(g.collected) _hItems.push({k:'c',date:g.collected.date||'',ts:g.collected.ts||0,amount:g.collected.amount,note:g.collected.note});
@@ -21666,30 +21697,41 @@ function gmyOpenDetail(id){
   const histRows=_hItems.map(it=>`<div class="gmy-h-row"><span class="gmy-h-ic ${it.k==='c'?'in':'out'}">${ic(it.k==='c'?'trend_up':'trend_down',14)}</span>
       <span class="gmy-h-main"><b dir="ltr">${it.k==='c'?'+':'−'}${fmt(it.amount)} ${cur}</b><small>${it.k==='c'?L('Payout','قبض')+' · ':''}${_gmyDateLong(it.date)}${it.note?' · '+esc(it.note):''}</small></span>
       <button type="button" class="gmy-h-del" aria-label="${L('Delete','حذف')}" onclick="${it.k==='c'?`gmyAskUndoCollect('${g.id}')`:`gmyAskUndoPayment('${g.id}','${it.id}')`}">${ic('trash',14)}</button></div>`).join('');
-  const fact=(k,v,sub)=>`<div class="gmy-fact"><small>${k}</small><b>${v}</b>${sub?`<em>${sub}</em>`:''}</div>`;
+  // one calm info card (label · value · small hint) instead of four separate boxes
+  const fact=(k,v,sub)=>`<div class="gmy-fact"><span class="gmy-fact-k">${k}</span><span class="gmy-fact-v"><b>${v}</b>${sub?`<em>${sub}</em>`:''}</span></div>`;
+  // progress: one segment per installment (reads at a glance), continuous bar only for very long circles
+  const segs = s.members<=24
+    ? `<div class="gmy-steps" role="img" aria-label="${s.paidRounds}/${s.members}">${Array.from({length:s.members},(_,i)=>`<i class="${i<s.paidRounds?'on':(i===s.paidRounds&&!s.allPaid?'cur':'')}"></i>`).join('')}</div>`
+    : `<div class="gmy-bar"><i style="width:${Math.round(s.progress*100)}%"></i></div>`;
+  // finished installments fold away once there are 3+, so the next ones are what you see first
+  const paidRows = rows.paid.join(''), restRows = rows.rest.join('');
+  const sched = rows.paid.length>=3
+    ? `<details class="gmy-fold"><summary>${ic('check',13)} ${L(`${rows.paid.length} installments paid`,`${rows.paid.length} أقساط مدفوعة`)}</summary><div class="gmy-tl gmy-tl-paid">${paidRows}</div></details><div class="gmy-tl">${restRows}</div>`
+    : `<div class="gmy-tl">${paidRows+restRows}</div>`;
+  const notes = (g.organizer||g.note) ? `<div class="gmy-notes">${g.organizer?`<div class="gmy-note"><small>${L('Organizer','المنظّم')}</small><span dir="auto">${esc(g.organizer)}</span></div>`:''}${g.note?`<div class="gmy-note"><small>${L('Notes','ملاحظات')}</small><span dir="auto">${esc(g.note)}</span></div>`:''}</div>` : '';
   document.getElementById('modalContent').innerHTML = `
     <div class="modal-handle"></div>
     <div class="modal-title">${ic('users',15)} ${esc(g.name)}</div>
-    <div class="gmy-sum" data-tone="${tone}">
+    <div class="gmy-sum gmy-dt" data-tone="${tone}">
       <div class="gmy-sum-top"><span class="gmy-badge">${esc(stateTxt)}</span><span class="gmy-sum-f">${L(GMY_FREQ[g.frequency].en,GMY_FREQ[g.frequency].ar)}</span></div>
       <div class="gmy-sum-amt"><small>${L('Paid so far','المدفوع لحد دلوقتي')}</small><b dir="ltr">${fmt(s.paidAmount)} <em>${cur}</em></b></div>
-      <div class="gmy-bar"><i style="width:${Math.round(s.progress*100)}%"></i></div>
+      ${segs}
       <div class="gmy-sum-meta"><span>${L(`${s.paidRounds} of ${s.members} installments`,`${s.paidRounds} من ${s.members} قسط`)}</span><span dir="ltr">${L('Remaining','المتبقي')} ${fmt(s.remainingAmount)}</span></div>
     </div>
     <div class="gmy-acts${(s.completed||(s.allPaid?0:1)+(g.collected?0:1)<2)?' one':''}">
       ${s.completed?`<div class="gmy-done-note">${ic('check',14)} ${L('Circle completed','الجمعية اتممت')}</div>`:`
-      ${s.allPaid?'':`<button type="button" class="gmy-act pri" onclick="gmyPaySheet('${g.id}')">${ic('trend_down',15)} ${L('I paid','دفعت القسط')}</button>`}
-      ${g.collected?'':`<button type="button" class="gmy-act${s.canCollect?' ready':''}" onclick="gmyCollectSheet('${g.id}')">${ic('trend_up',15)} ${L('I collected','قبضت')}</button>`}`}
+      ${s.allPaid?'':`<button type="button" class="gmy-act pri" onclick="gmyPaySheet('${g.id}')">${ic('trend_down',15)} <span>${L('I paid','دفعت القسط')}</span><em dir="ltr">${fmt(s.installment)}</em></button>`}
+      ${g.collected?'':`<button type="button" class="gmy-act${s.canCollect?' ready':''}" onclick="gmyCollectSheet('${g.id}')">${ic('trend_up',15)} <span>${L('I collected','قبضت')}</span></button>`}`}
     </div>
     <div class="gmy-facts">
       ${fact(L('Next installment','القسط الجاي'), s.nextRound?_gmyShort(s.nextDueDate):'—', s.nextRound?_gmyDaysTxt(s.daysToNext):'')}
       ${fact(L('Payout date','يوم القبض'), _gmyShort(s.collectDate), s.collected?L('Collected','تم القبض'):_gmyDaysTxt(s.daysToCollect))}
-      ${fact(L('Installment','القسط'), `<span dir="ltr">${fmt(s.installment)}</span>`, cur)}
-      ${fact(L('Payout','مبلغ القبض'), `<span dir="ltr">${fmt(s.payout)}</span>`, L(`Turn ${g.myTurn} of ${s.members}`,`الدور ${g.myTurn} من ${s.members}`))}
+      ${fact(L('Installment','القسط'), `<span dir="ltr">${fmt(s.installment)} ${cur}</span>`, '')}
+      ${fact(L('Payout','مبلغ القبض'), `<span dir="ltr">${fmt(s.payout)} ${cur}</span>`, L(`Turn ${g.myTurn} of ${s.members}`,`الدور ${g.myTurn} من ${s.members}`))}
     </div>
-    ${(g.organizer||g.note)?`<div class="gmy-notes">${g.organizer?`<div><small>${L('Organizer','المنظّم')}</small><span dir="auto">${esc(g.organizer)}</span></div>`:''}${g.note?`<div><small>${L('Notes','ملاحظات')}</small><span dir="auto">${esc(g.note)}</span></div>`:''}</div>`:''}
+    ${notes}
     <div class="gmy-tl-title">${L('Schedule','الجدول')}</div>
-    <div class="gmy-tl">${rows}</div>
+    ${sched}
     ${_hItems.length?`<div class="gmy-tl-title">${L('Transactions','المعاملات')} · ${_hItems.length}</div><div class="gmy-h">${histRows}</div>`:''}
     <div class="modal-btns">
       <button class="mbtn save" onclick="gmyOpenModal('${g.id}')">${ic('edit',15)} ${L('Edit','تعديل')}</button>
@@ -21704,7 +21746,7 @@ function gmyOpenDetail(id){
 // All sheets reuse the shared modal shell; after every action the detail sheet is
 // re-opened and the Assets list behind it is re-rendered.
 // ══════════════════════════════════════════════════════════════════════════════
-function _gmyAfter(id,msg,type){ renderView(); gmyOpenDetail(id); showToast(msg,type||'success'); }
+function _gmyAfter(id,msg,type){ gmyCheckDue(); renderView(); gmyOpenDetail(id); showToast(msg,type||'success'); }
 function gmyPaySheet(id){
   const g=_gmyList().find(x=>x.id===id); if(!g) return;
   const s=gmyStatus(g);
@@ -21794,6 +21836,96 @@ function gmyAskUndoCollect(id){
   showConfirm(L('Remove the payout record? The circle will show as not collected again.','حذف تسجيل القبض؟ هترجع الجمعية "لم تُقبض".'),()=>{ gmyUndoCollect(id); _gmyAfter(id,L('Payout record removed ✓','تم حذف تسجيل القبض ✓'),'info'); });
 }
 // ══ end GAMIYAT actions ══
+
+// ══════════════════════════════════════════════════════════════════════════════
+// § GAMIYAT — Commit 5: reminders. Mirrors the Debts pattern: cards in the shared
+// Notification Center (bell) + one optional OS notification per event.
+// Events per circle:  'i<round>' = the next unpaid installment is due/overdue,
+//                     'c'        = my payout turn is near / has arrived.
+// State lives on the circle:  g.remindDays (3|2|1|0|-1=off, default 2) and
+// g.rem = { off:{key:true}  (cleared for good), snooze:'YYYY-MM-DD', os:{key:true} }.
+// A new round gets a new key, so each installment reminds again on its own.
+// ══════════════════════════════════════════════════════════════════════════════
+const _gmyNotifSeen=new Set();   // per-session: don't re-push a card already handled today
+function _gmyRemDays(g){ const v=g.remindDays; return v===-1?-1:([0,1,2,3].includes(v)?v:2); }
+function _gmyNotifOff(nid){      // nid = gmy_<circleId>_<eventKey>
+  try{
+    const m=/^gmy_([^_]+)_(.+)$/.exec(String(nid)); if(!m) return;
+    const g=_gmyList().find(x=>x.id===m[1]); if(!g) return;
+    g.rem=g.rem||{}; g.rem.off=g.rem.off||{};
+    if(!g.rem.off[m[2]]){ g.rem.off[m[2]]=true; saveSavings(); }
+  }catch(_){}
+}
+function gmySnooze(id,days){
+  const g=_gmyList().find(x=>x.id===id); if(!g) return;
+  const d=new Date(); d.setDate(d.getDate()+(days||1));
+  g.rem=g.rem||{}; g.rem.snooze=_gmyFmt(d.getFullYear(),d.getMonth()+1,d.getDate());
+  saveSavings();
+  NOTIF_ITEMS=NOTIF_ITEMS.filter(n=>!String(n.id).startsWith('gmy_'+id+'_')); notifUpdateBadge(); notifRenderList();
+  showToast(L('Okay — I will remind you later','تمام — هفكّرك بعدين'),'info');
+}
+function gmyOpenFromNotif(id){ setView('savings'); setTimeout(()=>{ try{ gmyOpenDetail(id); }catch(_){} },60); }
+function gmyCheckDue(){
+  try{
+    if(typeof SAVINGS==='undefined'||!SAVINGS) return;
+    const todayISO=today(), live=new Set(); let dirty=false;
+    _gmyList().forEach(g=>{
+      const s=gmyStatus(g,todayISO); if(s.completed) return;
+      const rd=_gmyRemDays(g); if(rd===-1) return;
+      g.rem=g.rem||{};
+      if(g.rem.snooze && g.rem.snooze>todayISO) return;
+      const evs=[];
+      if(s.nextRound && s.daysToNext!=null && s.daysToNext<=rd) evs.push({key:'i'+s.nextRound,kind:'inst',d:s.daysToNext});
+      if(!s.collected && s.daysToCollect!=null && s.daysToCollect<=rd) evs.push({key:'c',kind:'col',d:s.daysToCollect});
+      evs.forEach(e=>{
+        if(g.rem.off && g.rem.off[e.key]) return;
+        const nid='gmy_'+g.id+'_'+e.key; live.add(nid);
+        const seen=nid+'|'+todayISO+'|'+s.paidAmount; if(_gmyNotifSeen.has(seen)) return; _gmyNotifSeen.add(seen);
+        const d=e.d, isInst=e.kind==='inst', cid=g.id;
+        let title, sub, iso, tone, bg;
+        if(isInst){
+          const part=Math.round((s.paidAmount-s.paidRounds*s.installment)*100)/100, need=Math.round((s.installment-part)*100)/100;
+          title=esc(g.name)+' · '+esc(fmtEGP(need)); iso=s.nextDueDate;
+          sub = d<0 ? (s.overdueCount>1?_gmyOverdueTxt(s.overdueCount):L(`Installment overdue by ${-d} day${-d>1?'s':''}`,`القسط متأخر ${_remArDays(-d)}`))
+              : d===0 ? L('Installment due today','القسط مستحق النهاردة')
+              : d===1 ? L('Installment due tomorrow','القسط مستحق بكرة')
+              : L(`Installment due in ${d} days`,`القسط مستحق بعد ${_remArDays(d)}`);
+          tone=d<=1?'warn':'info'; bg=d<0?_REM_TONE_BG.danger:d<=1?_REM_TONE_BG.warn:_REM_TONE_BG.info;
+        } else {
+          title=esc(g.name)+' · '+esc(fmtEGP(s.payout)); iso=s.collectDate;
+          sub = d<0 ? L('Your payout turn has passed — did you collect?','عدّى ميعاد قبضك — استلمت؟')
+              : d===0 ? L('Your turn to collect is today','دورك تقبض النهاردة')
+              : d===1 ? L('You collect tomorrow','هتقبض بكرة')
+              : L(`You collect in ${d} days`,`هتقبض بعد ${_remArDays(d)}`);
+          tone='info'; bg='linear-gradient(135deg,var(--green-dark),var(--green))';
+        }
+        notifPush({
+          id:nid, tone, icon:ic('users',20), iconBg:bg,
+          eyebrow:isInst?L('Savings circle','جمعية'):L('Your payout','قبضك'),
+          title, sub,
+          body:esc(L(`${s.paidRounds} of ${s.members} installments paid`,`مدفوع ${s.paidRounds} من ${s.members} قسط`)),
+          primaryLabel:isInst?`${ic('check',13)} ${L('I paid','دفعت القسط')}`:`${ic('check',13)} ${L('I collected','قبضت')}`,
+          primaryFn:`notifDismiss('${nid}');closeModal();${isInst?'gmyPaySheet':'gmyCollectSheet'}('${cid}')`,
+          extraLabel:L('Open','فتح'),
+          extraFn:`notifDismiss('${nid}');closeModal();gmyOpenFromNotif('${cid}')`,
+          secondaryLabel:L('Later','لاحقاً'),
+          secondaryFn:`gmySnooze('${cid}',1)`
+        });
+        if(d>=0 && !(g.rem.os && g.rem.os[e.key])){
+          (g.rem.os=g.rem.os||{})[e.key]=true; dirty=true;
+          remTryOsNotify({id:nid,title:g.name+' · '+fmtEGP(isInst?s.installment:s.payout),date:iso},d);
+        }
+      });
+    });
+    const before=NOTIF_ITEMS.length;
+    NOTIF_ITEMS=NOTIF_ITEMS.filter(n=>!String(n.id).startsWith('gmy_')||live.has(n.id));
+    if(NOTIF_ITEMS.length!==before){ notifUpdateBadge(); notifRenderList(); }
+    if(dirty) saveSavings();
+  }catch(e){ try{ _logErr('gmyCheckDue',e); }catch(_){} }
+}
+document.addEventListener('visibilitychange',()=>{ if(!document.hidden) gmyCheckDue(); });
+setInterval(gmyCheckDue,30*60*1000);
+// ══ end GAMIYAT reminders ══
 
 // General visibility rule for My Savings, used everywhere in the module
 // (the main lists/totals in renderSavings, the sell-asset picker in the
@@ -22306,11 +22438,13 @@ function _astProbe(img){
   }
 }
 
-function _astSummaryHTML(list){
-  if(!list || !list.length) return '';
-  const total=list.reduce((s,p)=>s+(p.x.value||0),0);
+function _astSummaryHTML(list, extraGmy){
+  list = list || []; extraGmy = +extraGmy>0 ? +extraGmy : 0;
+  if(!list.length && !extraGmy) return '';
+  const total=list.reduce((s,p)=>s+(p.x.value||0),0)+extraGmy;
   if(!(total>0)) return '';
   const by={};
+  if(extraGmy) by.gamiyat={label:L('Savings circles','جمعيات'), color:'var(--fin-assets)', v:extraGmy};
   list.forEach(p=>{
     const m=savAssetCardMeta(p.x), c=_ASSET_CATEGORY_META[m.catKey]||_ASSET_CATEGORY_META.other;
     const o = by[m.catKey] || (by[m.catKey]={label:L(c.en,c.ar), color:c.color, v:0});
@@ -23789,13 +23923,15 @@ function renderSavings(){
   const visDebts    = debts.map((x,idx)=>({x,idx})).filter(p=>_savDateInView(p.x.date));
 
   const totalIncome  = visIncomes.reduce((s,p)=>s+(p.x.amount||0),0);
-  const totalAssets  = visAssets.reduce((s,p)=>s+(p.x.value||0),0);
+  const _gmyItems    = gmyAssetItems();                 // savings circles: paid-so-far, month-aware
+  const totalGmy     = Math.max(0,Math.round(_gmyItems.reduce((t,x)=>t+x.value,0)*100)/100);
+  const totalAssets  = visAssets.reduce((s,p)=>s+(p.x.value||0),0) + totalGmy;
   const totalOutcome = visOutcomes.reduce((s,p)=>s+(p.x.amount||0),0);
   const netTotal     = totalIncome + totalAssets - totalOutcome;
 
   const incomeDelta  = _savMonthDelta(visIncomes.map(p=>p.x),'date','amount');
   const outcomeDelta = _savMonthDelta(visOutcomes.map(p=>p.x),'date','amount');
-  const assetDelta   = _savMonthDelta(visAssets.map(p=>p.x),'purchaseDate','value');
+  const assetDelta   = _savMonthDelta(visAssets.map(p=>p.x).concat(_gmyItems),'purchaseDate','value');
 
   // Rows keep the user's saved (drag-reorderable) order — no auto-sort,
   // so dragging a row actually sticks after saveSavings().
@@ -23944,7 +24080,7 @@ function renderSavings(){
         </div>
         <div class="fin-hero-amount">${sigNumHTML(netTotal)}</div>
         <div class="fin-hero-formula">${L('Income + Assets − Expenses','الدخل + الأصول − المصروفات')}</div>
-        ${_savHeroTrend(_savNetWorthDelta(visIncomes.map(p=>p.x), visOutcomes.map(p=>p.x), visAssets.map(p=>p.x)))}
+        ${_savHeroTrend(_savNetWorthDelta(visIncomes.map(p=>p.x), visOutcomes.map(p=>p.x), visAssets.map(p=>p.x).concat(_gmyItems)))}
       </div>
 
       <div class="fin-secondary-grid">
@@ -24022,10 +24158,11 @@ function renderSavings(){
         <span class="fin-sec-n">${visAssets.length}</span>
         <button type="button" onclick="savAddAsset()" class="fin-sec-add" aria-label="${L('Add','إضافة')}">${ic('plus',15)}</button>
       </div>
-      ${_astSummaryHTML(visAssets)}
+      ${_astSummaryHTML(visAssets, totalGmy)}
       <div class="tx-rows asset-card-grid">${assetRows}</div>
-      ${_gmySectionHTML(_savQ)}
     </div>
+
+    ${_gmySectionHTML(_savQ,totalGmy)}
 
     <div class="sc-card">
       <div class="fin-sec-hd" style="--sc:#b45309">
@@ -39970,7 +40107,7 @@ function _cvDzHTML(){
   if(_cvDzCur==='pdf'){
     const fz=Math.round(+st.fz||100);
     body=lb('Number of pages','عدد الصفحات')+seg('pages',[[0,L('Auto','تلقائي')],[1,'1'],[2,'2'],[3,'3']])
-      +`<div class="pr-hint" style="margin:4px 2px 0">${L('Text and spacing shrink automatically (down to 70%) to fit the pages you choose.','الخط والمسافات بيصغّروا تلقائيًا (لحد 70%) عشان السيرة تدخل في عدد الصفحات اللي تختاره.')}</div>`
+      +`<div class="pr-hint" style="margin:4px 2px 0">${L('Text and spacing adjust automatically (70% – 130%) so the CV fills exactly the pages you choose.','الخط والمسافات بيتظبطوا تلقائيًا (من 70% لـ 130%) عشان السيرة تملا عدد الصفحات اللي تختاره بالظبط.')}</div>`
       +lb('Paper size','حجم الورقة')+seg('paper',[['a4','A4'],['letter','US Letter']])
       +lb('Text size','حجم الخط')+`<div class="dz-seg dz-step"><button type="button" onclick="cvFz(-5)" aria-label="-">A−</button><b>${fz}%</b><button type="button" onclick="cvFz(5)" aria-label="+">A+</button></div>`
       +lb('Line spacing','المسافات بين الأسطر')+seg('sp',[['compact',L('Tight','مضغوط')],['normal',L('Normal','عادي')],['relaxed',L('Spacious','واسع')]])
@@ -40081,11 +40218,21 @@ function _cvMeasure(m,st,noPush){
 }
 // Auto-fit: when the CV spills only a little onto an extra page, tighten spacing / text size / margins (only the
 // values still at their defaults) until it fits on fewer pages. Never changes what the user saved; set style.fit=false to disable.
-// "Pages" option: shrink text + spacing (never below 70%) until the CV fits the chosen number of pages
+// "Pages" option: shrink text + spacing (never below 70%) until the CV fits the chosen number of pages, or grow it (up to 130%) to fill them
 function _cvFitPages(m,base,N){
   try{
     const n=k=>_cvMeasure(m,Object.assign({},base,{k}),true).n;
-    if(n(1)<=N) return base;
+    const nb=n(1);
+    if(nb<N){
+      // Content is SHORTER than the chosen page count: grow text + spacing (up to 130%) so it fills N pages
+      // instead of leaving a single half-empty page. Largest scale that still stays within N pages.
+      const CAP=1.3;
+      if(n(CAP)<=N) return Object.assign({},base,{k:CAP});
+      let g0=1, g1=CAP;
+      for(let i=0;i<6;i++){ const mid=(g0+g1)/2; if(n(mid)<=N) g0=mid; else g1=mid; }
+      return Object.assign({},base,{k:Math.max(1,Math.floor(g0*.985*1000)/1000)});
+    }
+    if(nb<=N) return base;
     let lo=.7, hi=1;
     if(n(lo)>N) return Object.assign({},base,{k:lo});
     for(let i=0;i<6;i++){ const mid=(lo+hi)/2; if(n(mid)<=N) lo=mid; else hi=mid; }
@@ -40137,7 +40284,7 @@ function _cvRerender(){
   try{
     const m=_cvModel(_cvPrevDraft?_cvDraft():null), n=_cvBuildPages(m);
     const c=document.getElementById('cvpCount');
-    if(c) c.innerHTML=`${ic('cv',13)} <b>${n===1?L('1 page','صفحة واحدة'):(n===2?L('2 pages','صفحتين'):n+' '+L('pages','صفحات'))}</b> · ${_cvPaper(_cvLastFit).name}${(_cvLastFit&&+_cvLastFit.pages>0&&n>+_cvLastFit.pages)?` · <span style="color:#f0b429">${L('does not fit in '+_cvLastFit.pages+' — shorten the text','مش داخلة في '+_cvLastFit.pages+' صفحات — قلّل النص')}</span>`:''}`;
+    if(c) c.innerHTML=`${ic('cv',13)} <b>${n===1?L('1 page','صفحة واحدة'):(n===2?L('2 pages','صفحتين'):n+' '+L('pages','صفحات'))}</b> · ${_cvPaper(_cvLastFit).name}${(_cvLastFit&&+_cvLastFit.pages>0&&n<+_cvLastFit.pages)?` · <span style="color:#f0b429">${L('content is shorter than '+_cvLastFit.pages+' pages','المحتوى أقصر من '+_cvLastFit.pages+' صفحات')}</span>`:''}${(_cvLastFit&&+_cvLastFit.pages>0&&n>+_cvLastFit.pages)?` · <span style="color:#f0b429">${L('does not fit in '+_cvLastFit.pages+' — shorten the text','مش داخلة في '+_cvLastFit.pages+' صفحات — قلّل النص')}</span>`:''}`;
   }catch(e){ _logErr('_cvRerender',e); }
 }
 function cvSecToggle(k){
@@ -48914,11 +49061,10 @@ function _renderNoteEditorUnlocked(n){
     </div>
     <input type="file" id="qnPhotoInput" accept="image/*" multiple style="display:none" onchange="_notesHandlePhotoFile(this.files)">
     <input type="file" id="qnFileInput" style="display:none" onchange="_notesHandleGenericFile(this.files)">`;
-  document.getElementById('qnBody').addEventListener('click', _notesChecklistClick);
-  document.getElementById('qnBody').addEventListener('keydown', _notesChecklistKeydown);
+  _notesChecklistBind(document.getElementById('qnBody'));
   document.getElementById('qnBody').addEventListener('paste', _notesPaste);
   _notesAttachKeyboardTracking();
-  _notesUpdateChkProgress();
+  _notesUpdateChkProgressNow();
 }
 
 // ── Notes format FAB: one button that opens a grouped vertical list of the editing tools ──
@@ -49151,31 +49297,164 @@ function _notesFormat(cmd){
   try{ document.execCommand(cmd, false, null); }catch(e){ _logErr('_notesFormat', e); }
   _notesAutosave();
 }
-function _notesInsertChecklist(){
-  const body = document.getElementById('qnBody');
-  body.focus();
+// ── Checklist rows ─────────────────────────────────────────────────────────
+// A row is  <div class="qn-chk"><span class="qn-chk-box" contenteditable="false"></span><span class="qn-chk-text">…</span></div>
+// An empty text span holds a zero-width space so the caret has somewhere to live.
+const _QN_ZW = '​';
+const _qnIsBlockEl = n => n && n.nodeType === 1 && /^(DIV|P|UL|OL|LI|H[1-6]|TABLE|BLOCKQUOTE|PRE|HR)$/.test(n.tagName);
+function _qnStripZw(root){
+  const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT), dead = [];
+  for(let t = w.nextNode(); t; t = w.nextNode()){
+    if(t.nodeValue.indexOf(_QN_ZW) < 0) continue;
+    t.nodeValue = t.nodeValue.replace(/​/g, '');
+    if(!t.nodeValue) dead.push(t);
+  }
+  dead.forEach(t => t.remove());
+}
+function _qnTextIsEmpty(el){
+  return el.textContent.replace(/​/g, '').trim() === '' && !el.querySelector('img,svg,canvas,video,audio,table,.qn-file-chip');
+}
+function _qnNewChkRow(){
   const line = document.createElement('div');
   line.className = 'qn-chk';
-  line.innerHTML = `<span class="qn-chk-box" contenteditable="false"></span><span class="qn-chk-text">${'\u200B'}</span>`;
+  const box = document.createElement('span');
+  box.className = 'qn-chk-box';
+  box.contentEditable = 'false';
+  const text = document.createElement('span');
+  text.className = 'qn-chk-text';
+  line.appendChild(box); line.appendChild(text);
+  return {line, text};
+}
+function _qnSetCaret(node, offset){
+  const sel = window.getSelection(); if(!sel) return;
+  const r = document.createRange();
+  try{ r.setStart(node, offset); }catch(_){ r.selectNodeContents(node); r.collapse(false); }
+  r.collapse(true);
+  sel.removeAllRanges(); sel.addRange(r);
+}
+function _qnCaretToEnd(el){
+  const r = document.createRange(); r.selectNodeContents(el); r.collapse(false);
+  const sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(r);
+}
+// the top-level child of the editor that holds the caret (or null)
+function _qnCaretBlock(body){
   const sel = window.getSelection();
-  if(sel && sel.rangeCount){
+  if(!sel || !sel.rangeCount) return null;
+  let n = sel.getRangeAt(0).startContainer;
+  if(!body.contains(n) || n === body) return null;
+  while(n && n.parentNode !== body) n = n.parentNode;
+  return n || null;
+}
+
+function _notesInsertChecklist(){
+  const body = document.getElementById('qnBody');
+  body.focus({preventScroll:true});
+  try{
+    const sel = window.getSelection();
+    const block = _qnCaretBlock(body);
+    // 1) caret already in a checklist row → turn the row back into a plain line (toggle, like Notes does)
+    if(block && block.classList && block.classList.contains('qn-chk')){
+      const text = block.querySelector('.qn-chk-text');
+      const plain = document.createElement('div');
+      while(text.firstChild) plain.appendChild(text.firstChild);
+      _qnStripZw(plain);
+      if(_qnTextIsEmpty(plain) && !plain.firstChild) plain.innerHTML = '<br>';
+      block.replaceWith(plain);
+      _qnCaretToEnd(plain);
+      _notesAutosave();
+      return;
+    }
+    // 2) caret in a plain line → that line BECOMES the checklist row (its text is kept)
+    if(block){
+      let first = null, last = null, plainDiv = false;
+      if(block.nodeType === 1 && /^(DIV|P)$/.test(block.tagName) && !block.querySelector('div,p,ul,ol,table,h1,h2,h3,h4,h5,h6,blockquote,pre')){
+        first = last = block; plainDiv = true;
+      } else if(block.nodeType === 3 || (block.nodeType === 1 && !_qnIsBlockEl(block) && block.nodeName !== 'BR')){
+        // loose text / inline nodes sitting directly in the editor: take the whole visual line (up to <br> / block)
+        first = last = block;
+        while(first.previousSibling && !_qnIsBlockEl(first.previousSibling) && first.previousSibling.nodeName !== 'BR') first = first.previousSibling;
+        while(last.nextSibling && !_qnIsBlockEl(last.nextSibling) && last.nextSibling.nodeName !== 'BR') last = last.nextSibling;
+      }
+      if(first){
+        const r0 = sel && sel.rangeCount ? sel.getRangeAt(0) : null;
+        const sc = r0 ? r0.startContainer : null, so = r0 ? r0.startOffset : 0;
+        const {line, text} = _qnNewChkRow();
+        first.parentNode.insertBefore(line, first);
+        if(plainDiv){ while(block.firstChild) text.appendChild(block.firstChild); block.remove(); }
+        else {
+          let n = first;
+          for(;;){ const nx = n.nextSibling; text.appendChild(n); if(n === last) break; n = nx; }
+          if(line.nextSibling && line.nextSibling.nodeName === 'BR') line.nextSibling.remove();
+        }
+        if(_qnTextIsEmpty(text)){ text.innerHTML = _QN_ZW; _qnSetCaret(text.firstChild, 1); }
+        else if(sc && sc !== block && sc !== body && text.contains(sc)) _qnSetCaret(sc, so);
+        else _qnCaretToEnd(text);
+        _notesAutosave();
+        return;
+      }
+    }
+  }catch(e){ try{ _logErr('_notesInsertChecklist', e); }catch(_){} }
+  // 3) fallback (caret outside the editor, inside a table/heading/list…): add a fresh row at the caret / end
+  const {line, text} = _qnNewChkRow();
+  text.textContent = _QN_ZW;
+  const sel = window.getSelection();
+  if(sel && sel.rangeCount && body.contains(sel.getRangeAt(0).startContainer)){
     const range = sel.getRangeAt(0);
     range.collapse(false);
     range.insertNode(line);
-    range.setStartAfter(line);
-    range.collapse(true);
-    sel.removeAllRanges();
-    sel.addRange(range);
   } else {
     body.appendChild(line);
   }
+  _qnSetCaret(text.firstChild, 1);
   _notesAutosave();
 }
-function _notesChecklistClick(e){
-  const box = e.target.closest('.qn-chk-box');
+
+// ── Tapping the circle ──────────────────────────────────────────────────────
+// On a phone a tap on a contenteditable="false" island still moves the caret into the editor, which raises the
+// keyboard just to tick a box. So the tap is handled on touchend/mousedown (with preventDefault, which also stops
+// the follow-up focus + click) — no focus change, no keyboard, no caret jump. Scroll gestures that start on a
+// circle are left alone (moved > 10px = not a tap). If the keyboard is ALREADY open it simply stays as it is.
+function _notesChecklistBind(body){
+  if(!body || body._qnChkBound) return;
+  body._qnChkBound = true;
+  const boxOf = t => { const el = t && (t.nodeType === 1 ? t : t.parentElement); return el && el.closest ? el.closest('.qn-chk-box') : null; };
+  let tap = null, lastTouchToggle = 0, lastTouchBox = null;
+  body.addEventListener('touchstart', e => {
+    const box = e.touches.length === 1 ? boxOf(e.target) : null;
+    tap = box ? {box, x:e.touches[0].clientX, y:e.touches[0].clientY, t:Date.now()} : null;
+  }, {passive:true});
+  body.addEventListener('touchmove', e => {
+    if(!tap) return;
+    const t = e.touches[0];
+    if(Math.abs(t.clientX - tap.x) > 10 || Math.abs(t.clientY - tap.y) > 10) tap = null;
+  }, {passive:true});
+  body.addEventListener('touchcancel', () => { tap = null; }, {passive:true});
+  body.addEventListener('touchend', e => {
+    const s = tap; tap = null;
+    if(!s || Date.now() - s.t > 700) return;
+    if(e.cancelable) e.preventDefault();      // swallow the synthetic mousedown / focus / click
+    lastTouchToggle = Date.now(); lastTouchBox = s.box;
+    _notesToggleChkBox(s.box);
+  });
+  // mouse / pen / desktop: keep focus exactly where it is, toggle on click
+  body.addEventListener('mousedown', e => { if(boxOf(e.target)) e.preventDefault(); });
+  body.addEventListener('click', e => {
+    const box = boxOf(e.target); if(!box) return;
+    e.preventDefault();
+    if(box === lastTouchBox && Date.now() - lastTouchToggle < 600) return;   // already handled by touchend
+    _notesToggleChkBox(box);
+  });
+  body.addEventListener('keydown', _notesChecklistKeydown);
+  body.addEventListener('beforeinput', _notesChecklistBeforeInput);
+}
+function _notesChecklistClick(e){            // kept for any external caller
+  const box = e && e.target && e.target.closest && e.target.closest('.qn-chk-box');
   if(!box) return;
   e.preventDefault();
-  const line = box.closest('.qn-chk');
+  _notesToggleChkBox(box);
+}
+function _notesToggleChkBox(box){
+  const line = box.closest('.qn-chk'); if(!line) return;
   line.classList.toggle('checked');
   if(_notesChkAutoSort()) _notesChkReposition(line);
   try{ if(navigator.vibrate) navigator.vibrate(8); }catch(_){}
@@ -49191,16 +49470,29 @@ function _notesChkRun(line){
   const run = []; for(let x = first; ; x = x.nextElementSibling){ run.push(x); if(x === last) break; }
   return run;
 }
-// checked rows drop to the bottom of their own list; unchecking sends a row back up above the done ones
+// checked rows drop to the bottom of their own list; unchecking sends a row back up above the done ones.
+// The move is animated (FLIP) so rows glide to their new place instead of jumping.
 function _notesChkReposition(line){
-  const others = _notesChkRun(line).filter(x => x !== line);
+  const run = _notesChkRun(line);
+  const others = run.filter(x => x !== line);
+  let anchor = null, after = false;
   if(line.classList.contains('checked')){
     const lastOpen = others.filter(x => !x.classList.contains('checked')).pop();
-    if(lastOpen) lastOpen.after(line);
+    if(lastOpen && lastOpen.nextElementSibling !== line){ anchor = lastOpen; after = true; }
   } else {
     const firstDone = others.find(x => x.classList.contains('checked'));
-    if(firstDone) firstDone.before(line);
+    if(firstDone && firstDone.previousElementSibling !== line){ anchor = firstDone; }
   }
+  if(!anchor) return;
+  const animate = !!line.animate && !(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+  const before = animate ? new Map(run.map(r => [r, r.getBoundingClientRect().top])) : null;
+  if(after) anchor.after(line); else anchor.before(line);
+  if(!before) return;
+  run.forEach(r => {
+    const dy = before.get(r) - r.getBoundingClientRect().top;
+    if(Math.abs(dy) < 1) return;
+    try{ r.animate([{transform:`translateY(${dy}px)`},{transform:'none'}], {duration:220, easing:'cubic-bezier(.2,.8,.2,1)'}); }catch(_){}
+  });
 }
 function _notesChecklistAction(kind){
   const body = document.getElementById('qnBody'); if(!body) return;
@@ -49227,75 +49519,118 @@ function _notesChecklistAction(kind){
   }
   _notesAutosave(); closeModal();
 }
-// slim progress bar above the editor: done / total of every checklist row in the note
+// slim progress bar above the editor: done / total of every checklist row in the note.
+// Updated in place (no innerHTML rebuild) and coalesced to one update per frame, so ticking boxes in a long list stays instant.
+let _qnChkProgRaf = 0;
 function _notesUpdateChkProgress(){
+  if(_qnChkProgRaf) return;
+  _qnChkProgRaf = requestAnimationFrame(() => { _qnChkProgRaf = 0; _notesUpdateChkProgressNow(); });
+}
+function _notesUpdateChkProgressNow(){
   const body = document.getElementById('qnBody'); if(!body) return;
   let el = document.getElementById('qnChkProgress');
-  const t = body.querySelectorAll('.qn-chk').length, d = body.querySelectorAll('.qn-chk.checked').length;
+  const t = body.getElementsByClassName('qn-chk').length;
   if(!t){ if(el) el.style.display = 'none'; return; }
+  const d = body.querySelectorAll('.qn-chk.checked').length;
   if(!el){ el = document.createElement('div'); el.id = 'qnChkProgress'; el.className = 'qn-chk-progress'; body.parentNode.insertBefore(el, body); }
   const pct = Math.round(d/t*100);
+  if(!el.firstChild){
+    el.innerHTML = '<span class="qn-cp-bar"><i></i></span><span class="qn-cp-txt"><b></b><em></em></span>';
+  }
   el.style.display = 'flex';
   el.classList.toggle('done', d === t);
-  el.innerHTML = `<span class="qn-cp-bar"><i style="width:${pct}%"></i></span><span class="qn-cp-txt"><b>${d}/${t}</b><em>${d===t?'✓ ':''}${pct}%</em></span>`;
+  const bar = el.querySelector('.qn-cp-bar i'), b = el.querySelector('.qn-cp-txt b'), em = el.querySelector('.qn-cp-txt em');
+  if(bar) bar.style.width = pct + '%';
+  if(b) b.textContent = d + '/' + t;
+  if(em) em.textContent = (d === t ? '✓ ' : '') + pct + '%';
 }
-// The native contenteditable Enter-split doesn't know how to divide a
-// display:flex row that has a contenteditable="false" checkbox span in it —
-// on mobile it tends to drop the new line inside the SAME .qn-chk (so it
-// renders beside the text instead of below it) and leaves the caret stuck
-// there, unable to advance on the next Enter. We intercept Enter ourselves
-// and build the next line by hand, as a proper sibling .qn-chk row.
-function _notesChecklistKeydown(e){
-  if(e.key !== 'Enter' || e.shiftKey) return;
+// The native contenteditable Enter-split / Backspace-join don't know how to handle a display:flex row that has a
+// contenteditable="false" checkbox span in it (on mobile they drop the new line inside the SAME row, leave the caret
+// stuck, or delete the circle and leave a broken row). So Enter and Backspace inside a checklist row are done by hand.
+function _qnChkCtx(){
   const sel = window.getSelection();
-  if(!sel || !sel.rangeCount) return;
+  if(!sel || !sel.rangeCount) return null;
   const range = sel.getRangeAt(0);
-  const anchorEl = range.startContainer.nodeType === 3 ? range.startContainer.parentElement : range.startContainer;
-  const chkText = anchorEl && anchorEl.closest && anchorEl.closest('.qn-chk-text');
-  if(!chkText) return; // not inside a checklist item — leave normal Enter handling alone
-  const chkLine = chkText.closest('.qn-chk');
-  if(!chkLine) return;
+  const a = range.startContainer.nodeType === 3 ? range.startContainer.parentElement : range.startContainer;
+  const text = a && a.closest && a.closest('.qn-chk-text');
+  if(!text) return null;
+  const line = text.closest('.qn-chk');
+  return line ? {sel, range, text, line} : null;
+}
+function _notesChecklistKeydown(e){
+  if(e.key !== 'Enter' || e.shiftKey || e.isComposing) return;
+  _notesChkEnter(e);
+}
+function _notesChecklistBeforeInput(e){
+  // virtual keyboards (Android / iOS) report Enter & Backspace here even when keydown is "Unidentified"
+  if(e.inputType === 'insertParagraph') _notesChkEnter(e);
+  else if(e.inputType === 'deleteContentBackward') _notesChkBackspace(e);
+}
+function _notesChkEnter(e){
+  const ctx = _qnChkCtx(); if(!ctx) return;      // not inside a checklist item — normal Enter handling
+  const {sel, text:chkText, line:chkLine} = ctx;
+  let range = ctx.range;
   e.preventDefault();
+  if(!range.collapsed){ range.deleteContents(); range = sel.getRangeAt(0); }
 
   const afterRange = range.cloneRange();
   afterRange.selectNodeContents(chkText);
   afterRange.setStart(range.endContainer, range.endOffset);
   const afterFrag = afterRange.extractContents();
-  const afterText = (afterFrag.textContent || '').replace(/\u200B/g, '');
+  const afterText = (afterFrag.textContent || '').replace(/​/g, '');
+  const beforeEmpty = _qnTextIsEmpty(chkText);
 
-  const beforeEmpty = chkText.textContent.replace(/\u200B/g, '').trim() === '';
   if(beforeEmpty && !afterText.trim()){
-    // Enter on an empty checklist item exits the list, like Notes/Keep do,
-    // instead of stacking up empty checkboxes forever.
+    // Enter on an empty checklist item exits the list, like Notes/Keep do
     const p = document.createElement('div');
     p.innerHTML = '<br>';
     chkLine.replaceWith(p);
-    const r = document.createRange();
-    r.setStart(p, 0);
-    r.collapse(true);
-    sel.removeAllRanges();
-    sel.addRange(r);
+    _qnSetCaret(p, 0);
     _notesAutosave();
     return;
   }
-
-  const newLine = document.createElement('div');
-  newLine.className = 'qn-chk';
-  const newBox = document.createElement('span');
-  newBox.className = 'qn-chk-box';
-  newBox.contentEditable = 'false';
-  const newText = document.createElement('span');
-  newText.className = 'qn-chk-text';
-  if(afterText) newText.appendChild(afterFrag); else newText.innerHTML = '\u200B';
-  newLine.appendChild(newBox);
-  newLine.appendChild(newText);
+  if(!chkText.firstChild) chkText.textContent = _QN_ZW;   // the part left behind keeps a caret anchor
+  const {line:newLine, text:newText} = _qnNewChkRow();
+  if(afterText) newText.appendChild(afterFrag); else newText.textContent = _QN_ZW;
   chkLine.after(newLine);
+  newLine.classList.remove('checked');
+  _qnSetCaret(newText, 0);
+  _notesAutosave();
+}
+function _notesChkBackspace(e){
+  const ctx = _qnChkCtx(); if(!ctx) return;
+  const {sel, range, text, line} = ctx;
+  if(!range.collapsed) return;                      // deleting a selection: native
+  const pre = document.createRange();
+  pre.selectNodeContents(text);
+  pre.setEnd(range.startContainer, range.startOffset);
+  if(pre.toString().replace(/​/g, '') !== '' || pre.cloneContents().querySelector('img,svg,canvas')) return;  // caret not at the start: native
+  e.preventDefault();
+  const prev = line.previousElementSibling;
+  const prevChk = prev && prev.classList.contains('qn-chk') ? prev : null;
+  const empty = _qnTextIsEmpty(text);
 
-  const r = document.createRange();
-  r.selectNodeContents(newText);
-  r.collapse(true);
-  sel.removeAllRanges();
-  sel.addRange(r);
+  if(prevChk){
+    const pt = prevChk.querySelector('.qn-chk-text');
+    if(empty){                                      // empty row: just drop it, caret to the end of the row above
+      line.remove(); _qnStripZw(pt);
+      if(!pt.firstChild) pt.textContent = _QN_ZW;
+      _qnCaretToEnd(pt);
+    } else {                                        // join this row's text onto the row above
+      _qnStripZw(pt); _qnStripZw(text);
+      const at = pt.childNodes.length;
+      while(text.firstChild) pt.appendChild(text.firstChild);
+      line.remove();
+      _qnSetCaret(pt, at);
+    }
+  } else {                                          // first row of a list: it stops being a checklist item
+    const plain = document.createElement('div');
+    _qnStripZw(text);
+    while(text.firstChild) plain.appendChild(text.firstChild);
+    if(!plain.firstChild) plain.innerHTML = '<br>';
+    line.replaceWith(plain);
+    _qnSetCaret(plain, 0);
+  }
   _notesAutosave();
 }
 
@@ -50619,6 +50954,7 @@ function notifPush(item){
   notifRenderList(); // no-op if the panel isn't currently open
 }
 function notifDismiss(id){
+  if(String(id).startsWith('gmy_')){ try{ _gmyNotifOff(id); }catch(_){} }
   if(String(id).startsWith('debt_')){ try{ _debtNotifOff(String(id).slice(5)); }catch(_){} }
   NOTIF_ITEMS = NOTIF_ITEMS.filter(x=>x.id!==id);
   notifUpdateBadge();
@@ -50650,6 +50986,7 @@ function notifCardHTML(item){
   </div>`;
 }
 function notifClearAll(){
+  NOTIF_ITEMS.forEach(n=>{ if(String(n.id).startsWith('gmy_')){ try{ _gmyNotifOff(n.id); }catch(_){} } });
   NOTIF_ITEMS.forEach(n=>{ if(String(n.id).startsWith('debt_')){ try{ _debtNotifOff(String(n.id).slice(5)); }catch(_){} } });
   NOTIF_ITEMS = [];
   notifUpdateBadge();
@@ -57357,8 +57694,8 @@ function _wdpRefreshDone(res){
 }
 // ── Native pull-to-refresh (all pages) ────────────────────────────────────────
 (function(){
-  let startY=0, lastY=0, pulling=false, triggered=false, busy=false;
-  const THRESHOLD=70, MAX_PULL=120;
+  let startX=0, startY=0, lastY=0, pulling=false, triggered=false, busy=false, dirLock=null;
+  const THRESHOLD=70, MAX_PULL=120, LOCK_PX=8;
 
   function indicatorEl(){
     let el=document.getElementById('wdpPtrIndicator');
@@ -57395,14 +57732,24 @@ function _wdpRefreshDone(res){
     if(document.getElementById('sttOverlay')) return;
     const _gs=document.getElementById('gSearchOverlay');
     if(_gs && _gs.style.display && _gs.style.display!=='none') return;
+    startX=e.touches[0].clientX;
     startY=e.touches[0].clientY;
     lastY=startY;
-    pulling=true; triggered=false;
+    pulling=true; triggered=false; dirLock=null;
   }
   function onMove(e){
     if(!pulling) return;
     if(document.getElementById('sttOverlay')){ pulling=false; const el=document.getElementById('wdpPtrIndicator'); if(el) reset(el); return; }
     lastY=e.touches[0].clientY;
+    // Decide the gesture's direction ONCE, before touching anything. A horizontal swipe (Quick Links rail,
+    // chip rows, carousels) must never start a pull: previously any downward finger drift at the top of the
+    // page translated the whole screen on every touchmove and, past ~20px, preventDefault() froze the scroller.
+    if(dirLock===null){
+      const ddx=e.touches[0].clientX-startX, ddy=lastY-startY;
+      if(Math.hypot(ddx,ddy)<LOCK_PX) return;
+      dirLock=(ddy>0 && ddy>Math.abs(ddx)*1.2) ? 'v' : 'h';
+    }
+    if(dirLock==='h'){ pulling=false; return; }
     const diff=lastY-startY;
     if(diff<=0 || window.scrollY>0){ return; }
     const dist=Math.min(MAX_PULL, diff*0.5);
@@ -62914,15 +63261,8 @@ input[type="number"]{font-variant-numeric:tabular-nums}
 .gmy-more>summary::after{content:'＋';margin-inline-start:8px;font-weight:700}
 .gmy-more[open]>summary::after{content:'－'}
 /* ── Commit 3: Assets-section list + detail sheet ── */
-.gmy-sec{margin-top:16px;padding-top:14px;border-top:1px solid var(--border)}
-.gmy-sec-hd{display:flex;align-items:center;gap:8px;margin-bottom:10px}
-.gmy-sec-t{display:inline-flex;align-items:center;gap:6px;font-size:calc(13px*var(--app-text-scale,1));font-weight:700;color:var(--text)}
-.gmy-sec-t svg{color:var(--fin-assets)}
-.gmy-sec-n{font-size:calc(11px*var(--app-text-scale,1));font-weight:700;color:var(--muted);background:var(--surface2);border-radius:999px;padding:2px 8px}
-.gmy-add{all:unset;box-sizing:border-box;margin-inline-start:auto;width:30px;height:30px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;color:var(--fin-assets);background:color-mix(in srgb,var(--fin-assets) 12%,transparent)}
-.gmy-add:active{transform:scale(.94)}
-.gmy-add:focus-visible,.gmy-card:focus-visible,.gmy-empty:focus-visible{outline:2px solid var(--fin-assets);outline-offset:2px}
-.gmy-list{display:flex;flex-direction:column;gap:8px}
+.gmy-card:focus-visible,.gmy-empty:focus-visible{outline:2px solid var(--fin-assets);outline-offset:2px}
+.gmy-list{display:flex;flex-direction:column;gap:8px;padding:12px}
 .gmy-card{--gmy-c:var(--fin-assets);display:flex;align-items:center;gap:12px;padding:12px;border-radius:16px;background:var(--surface2);border:1px solid var(--border);cursor:pointer;transition:border-color .15s ease,transform .1s ease}
 .gmy-card[data-tone="late"]{--gmy-c:var(--fin-outcome)}
 .gmy-card[data-tone="ready"]{--gmy-c:var(--fin-income)}
@@ -62943,7 +63283,7 @@ input[type="number"]{font-variant-numeric:tabular-nums}
 .gmy-side b{font-size:calc(13px*var(--app-text-scale,1));font-weight:800;color:var(--text)}
 .gmy-side em{font-style:normal;font-size:calc(10.5px*var(--app-text-scale,1));color:var(--muted);font-weight:600}
 .gmy-chip-s{display:inline-flex;align-items:center;gap:4px;flex-shrink:0;padding:5px 10px;border-radius:999px;font-size:calc(11.5px*var(--app-text-scale,1));font-weight:700;color:var(--gmy-c);background:color-mix(in srgb,var(--gmy-c) 14%,transparent)}
-.gmy-empty{all:unset;box-sizing:border-box;width:100%;display:flex;align-items:center;gap:12px;padding:14px;border-radius:16px;border:1px dashed color-mix(in srgb,var(--fin-assets) 45%,var(--border));background:color-mix(in srgb,var(--fin-assets) 5%,transparent);cursor:pointer;color:var(--fin-assets)}
+.gmy-empty{all:unset;box-sizing:border-box;width:calc(100% - 24px);margin:12px;display:flex;align-items:center;gap:12px;padding:14px;border-radius:16px;border:1px dashed color-mix(in srgb,var(--fin-assets) 45%,var(--border));background:color-mix(in srgb,var(--fin-assets) 5%,transparent);cursor:pointer;color:var(--fin-assets)}
 .gmy-empty span{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
 .gmy-empty b{font-size:calc(13.5px*var(--app-text-scale,1));font-weight:700;color:var(--text)}
 .gmy-empty small{font-size:calc(11.5px*var(--app-text-scale,1));color:var(--muted);font-weight:600;line-height:1.4}
@@ -63007,6 +63347,60 @@ input[type="number"]{font-variant-numeric:tabular-nums}
 .gmy-h-main small{font-size:calc(11.5px*var(--app-text-scale,1));font-weight:600;color:var(--muted);overflow:hidden;text-overflow:ellipsis}
 .gmy-h-del{all:unset;box-sizing:border-box;flex:0 0 32px;width:32px;height:32px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;color:var(--muted)}
 .gmy-h-del:hover,.gmy-h-del:focus-visible{color:var(--fin-outcome);background:color-mix(in srgb,var(--fin-outcome) 10%,transparent)}
+
+/* ══ Savings-circle detail sheet · calmer, easier to scan (presentation only) ══ */
+.gmy-sum{padding:18px 16px 16px;margin-bottom:14px;border-radius:22px;border:1px solid color-mix(in srgb,var(--gmy-c) 16%,var(--border));background:color-mix(in srgb,var(--gmy-c) 5%,var(--surface))}
+.gmy-sum-amt{margin:14px 0 14px}
+.gmy-sum-amt b{font-size:calc(34px*var(--app-text-scale,1))}
+.gmy-sum-meta{margin-top:10px;font-size:calc(12.5px*var(--app-text-scale,1))}
+.gmy-steps{display:flex;gap:4px;height:8px}
+.gmy-steps i{flex:1;min-width:0;border-radius:99px;background:color-mix(in srgb,var(--gmy-c) 14%,var(--border))}
+.gmy-steps i.on{background:var(--gmy-c)}
+.gmy-steps i.cur{background:color-mix(in srgb,var(--gmy-c) 45%,transparent);box-shadow:inset 0 0 0 1.5px var(--gmy-c)}
+.gmy-acts{gap:10px;margin-bottom:14px}
+.gmy-act{min-height:52px;padding:0 14px;border-radius:16px;font-size:calc(15px*var(--app-text-scale,1));-webkit-tap-highlight-color:transparent}
+.gmy-act.pri{box-shadow:0 6px 16px -6px color-mix(in srgb,var(--fin-assets) 60%,transparent)}
+.gmy-act em{font-style:normal;font-weight:700;font-size:.82em;padding:3px 9px;border-radius:99px;background:rgba(255,255,255,.2);font-variant-numeric:tabular-nums}
+.gmy-facts{display:flex;flex-direction:column;gap:0;margin-bottom:14px;padding:2px 14px;border-radius:18px;background:var(--surface2);border:0}
+.gmy-fact{flex-direction:row;align-items:center;justify-content:space-between;gap:12px;padding:13px 0;border:0;border-radius:0;background:none}
+.gmy-fact+.gmy-fact{border-top:1px solid color-mix(in srgb,var(--border) 70%,transparent)}
+.gmy-fact-k{font-size:calc(13px*var(--app-text-scale,1));font-weight:600;color:var(--muted)}
+.gmy-fact-v{display:flex;flex-direction:column;align-items:flex-end;text-align:end;gap:1px;min-width:0}
+.gmy-fact b{font-size:calc(16px*var(--app-text-scale,1))}
+.gmy-fact em{font-size:calc(11.5px*var(--app-text-scale,1))}
+.gmy-notes{gap:8px;margin-bottom:14px;padding:0}
+.gmy-note{display:flex;flex-direction:column;align-items:stretch;gap:4px;padding:12px 14px;border-radius:16px;background:var(--surface2)}
+.gmy-note small{font-size:calc(11.5px*var(--app-text-scale,1));font-weight:700;color:var(--muted)}
+.gmy-note span{font-size:calc(14px*var(--app-text-scale,1));line-height:1.55;font-weight:600;color:var(--text);text-align:start;overflow-wrap:anywhere}
+.gmy-tl-title{margin:8px 4px 10px;font-size:calc(12.5px*var(--app-text-scale,1))}
+.gmy-fold{margin:0 0 6px}
+.gmy-fold>summary{display:flex;align-items:center;gap:8px;list-style:none;cursor:pointer;padding:10px 12px;border-radius:14px;background:color-mix(in srgb,var(--fin-income) 9%,var(--surface));color:var(--fin-income);font-size:calc(13px*var(--app-text-scale,1));font-weight:700}
+.gmy-fold>summary::-webkit-details-marker{display:none}
+.gmy-fold>summary::after{content:'';margin-inline-start:auto;width:7px;height:7px;border:solid currentColor;border-width:0 2px 2px 0;transform:rotate(45deg);transition:transform .2s}
+.gmy-fold[open]>summary::after{transform:rotate(-135deg)}
+.gmy-fold[open]>summary{margin-bottom:6px}
+.gmy-tl{gap:0;margin-bottom:10px}
+.gmy-tl-row{position:relative;padding:10px 8px;border-radius:14px}
+.gmy-tl-row::before{content:'';position:absolute;inset-block:0;inset-inline-start:20px;width:2px;background:var(--border);opacity:.8}
+.gmy-tl-row:first-child::before{top:50%}
+.gmy-tl-row:last-child::before{bottom:50%}
+.gmy-tl-row:only-child::before{display:none}
+.gmy-tl-dot{position:relative;z-index:1;background:var(--surface)}
+.gmy-tl-row.paid .gmy-tl-dot{background:color-mix(in srgb,var(--fin-income) 16%,var(--surface))}
+.gmy-tl-row.late .gmy-tl-dot{background:color-mix(in srgb,var(--fin-outcome) 16%,var(--surface))}
+.gmy-tl-row.next{background:color-mix(in srgb,var(--fin-assets) 9%,transparent)}
+.gmy-tl-row.next .gmy-tl-dot{background:var(--fin-assets);color:#fff;border-color:var(--fin-assets)}
+.gmy-tl-row.next .gmy-tl-main small{color:var(--fin-assets);font-weight:700}
+.gmy-tl-row.soon .gmy-tl-main b{font-weight:600}
+.gmy-tl-mine{white-space:nowrap}
+.gmy-h-row{padding:10px 8px}
+/* footer: Edit (main) + Close (quiet) on one row instead of two tall stacked buttons */
+#modalContent:has(.gmy-dt) .bs-footer,#modalContent:has(.gmy-dt) .modal-btns{flex-direction:row;align-items:stretch;gap:8px}
+#modalContent:has(.gmy-dt) .bs-footer .bs-save-btn,#modalContent:has(.gmy-dt) .modal-btns .mbtn.save{flex:1 1 auto;width:auto;min-height:50px;margin:0;order:2}
+#modalContent:has(.gmy-dt) .bs-footer .bs-cancel-btn,#modalContent:has(.gmy-dt) .modal-btns .mbtn.cancel{flex:0 0 auto;width:auto;min-height:50px;margin:0;padding-inline:20px;border:0;background:transparent;box-shadow:none;color:var(--muted);order:1}
+[dir="rtl"] #modalContent:has(.gmy-dt) .bs-footer .bs-save-btn,[dir="rtl"] #modalContent:has(.gmy-dt) .modal-btns .mbtn.save{order:1}
+[dir="rtl"] #modalContent:has(.gmy-dt) .bs-footer .bs-cancel-btn,[dir="rtl"] #modalContent:has(.gmy-dt) .modal-btns .mbtn.cancel{order:2}
+@media (prefers-reduced-motion:reduce){.gmy-fold>summary::after{transition:none}}
 </style>
 <style id="finora-assets-v6">
 /* ══ FINORA · Assets v6 — one consistent card system (presentation-only; no logic/data changes) ══
@@ -63376,6 +63770,11 @@ body #mainContent .sc-card .tx-rows.asset-card-grid>.sav-row.asset-card.asset-ti
 .blp-ico{width:42px;height:42px;border-radius:13px;color:var(--text);background:var(--surface);box-shadow:none;border:1px solid var(--border)}
 .blp-row{border-radius:16px}
 .blp-row .bl-logo{box-shadow:none}
+</style>
+
+<style id="finora-quicklinks-scroll">
+/* Quick Links rail — scroll hardening (iOS): no implicit vertical scroller, no chaining into the page. */
+.bl-rail{overflow-y:hidden;overscroll-behavior-x:contain;touch-action:pan-x pan-y}
 </style>
 
 <style id="finora-reminders-v3">
