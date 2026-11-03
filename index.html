@@ -11306,6 +11306,7 @@ const _ICONS = {
   save:       'M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2zM17 21v-8H7v8M7 3v5h8',
   search:     'M21 21l-6-6m2-5a7 7 0 1 1-14 0 7 7 0 0 1 14 0z',
   wallet:     'M21 12V7H6a2 2 0 0 1 0-4h13v4M3 5v14a2 2 0 0 0 2 2h16v-5M18 12a2 2 0 0 0 0 4h4v-4z',
+  users:      'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75',  // Gamiyat (جمعياتي)
   chart:      'M18 20V10M12 20V4M6 20v-6',
   briefcase:  'M20 7H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2zM16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2',
   rating:     'M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z',
@@ -11552,7 +11553,7 @@ function _frHasAnyData(){
   try{
     if(Object.keys(DATA).some(k=>{ const m=DATA[k]||{}; return (m.transactions||[]).length||(m.site_expenses||[]).length||(m.custody_deposits||[]).length||(m.bank_movements||[]).length; })) return true;
     if(getBanksOrdered().length) return true;
-    if(['incomes','outcomes','assets','debts'].some(k=>((typeof SAVINGS!=='undefined'&&SAVINGS&&SAVINGS[k])||[]).length)) return true;
+    if(['incomes','outcomes','assets','debts','gamiyat'].some(k=>((typeof SAVINGS!=='undefined'&&SAVINGS&&SAVINGS[k])||[]).length)) return true;
     if(typeof _rqLoad==='function' && _rqLoad().length) return true;
     const att=localStorage.getItem('wdp_attendance_v1'); if(att && att.length>4) return true;
     return false;
@@ -21358,11 +21359,441 @@ function loadSavings(){
   if(!Array.isArray(SAVINGS.outcomes)) SAVINGS.outcomes=[]; // Sprint: Finance Summary premium redesign — new metric
   if(!Array.isArray(SAVINGS.goals))    SAVINGS.goals=[];
   if(!Array.isArray(SAVINGS.debts))    SAVINGS.debts=[];    // Sprint: Debts tracker (money owed to/by the user)
+  if(!Array.isArray(SAVINGS.gamiyat))  SAVINGS.gamiyat=[];  // Gamiyat (جمعياتي) — rotating savings circles
 }
 function saveSavings(){
   try{ localStorage.setItem(SAV_KEY, JSON.stringify(SAVINGS)); }catch(e){_logErr('saveSavings:setItem',e);}
 }
 loadSavings();
+
+// ══════════════════════════════════════════════════════════════════════════════
+// § GAMIYAT (جمعياتي) — rotating savings circles. Commit 1: data model + schedule
+// engine ONLY (no UI). Lives inside SAVINGS.gamiyat so the existing backup /
+// restore path (SAVINGS) covers it with no extra wiring.
+//
+// Circle shape (all fields additive; nothing else in SAVINGS is touched):
+//   { id, name, organizer, startDate:'YYYY-MM-DD', frequency, members, installment,
+//     myTurn (1..members), payout, note, createdAt,
+//     payments:[{id,date,amount,note,ts}],           // every installment I paid
+//     collected:null | {date,amount,note,ts} }       // the round I received my payout
+//
+// Rules:
+//   • members = number of rounds. Round r falls on startDate + (r-1) periods.
+//   • My collection date = round `myTurn`. Payout defaults to members × installment.
+//   • Installments are tracked by AMOUNT: paidRounds = floor(totalPaid / installment),
+//     so a partial or doubled payment never breaks the schedule.
+//   • Counts toward Assets as the amount paid so far (decision: "paid so far");
+//     a circle that is fully paid AND collected is "completed" and counts 0.
+// ══════════════════════════════════════════════════════════════════════════════
+const GMY_FREQ = {
+  weekly:     { days:7,  months:0,  en:'Weekly',      ar:'أسبوعي' },
+  biweekly:   { days:14, months:0,  en:'Every 2 weeks', ar:'كل أسبوعين' },
+  monthly:    { days:0,  months:1,  en:'Monthly',     ar:'شهري' },
+  quarterly:  { days:0,  months:3,  en:'Quarterly',   ar:'ربع سنوي' },
+  halfyearly: { days:0,  months:6,  en:'Half-yearly', ar:'نصف سنوي' },
+  yearly:     { days:0,  months:12, en:'Yearly',      ar:'سنوي' },
+};
+function _gmyList(){ if(!SAVINGS) return []; if(!Array.isArray(SAVINGS.gamiyat)) SAVINGS.gamiyat=[]; return SAVINGS.gamiyat; }
+function _gmyPad(n){ return String(n).padStart(2,'0'); }
+function _gmyParse(iso){ const m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(iso||''); return m?{y:+m[1],m:+m[2],d:+m[3]}:null; }
+function _gmyFmt(y,m,d){ return y+'-'+_gmyPad(m)+'-'+_gmyPad(d); }
+function _gmyDim(y,m){ return new Date(y,m,0).getDate(); }   // m is 1-based → days in that month
+// startISO + n periods. Months are always computed from the ORIGINAL start (not chained),
+// so a 31st-start circle goes Jan 31 → Feb 28 → Mar 31 (no drift).
+function gmyAddPeriods(startISO, freq, n){
+  const p=_gmyParse(startISO), f=GMY_FREQ[freq]||GMY_FREQ.monthly;
+  if(!p) return '';
+  if(f.days){ const dt=new Date(p.y,p.m-1,p.d+f.days*n); return _gmyFmt(dt.getFullYear(),dt.getMonth()+1,dt.getDate()); }
+  const tot=(p.y*12+(p.m-1))+f.months*n, y=Math.floor(tot/12), m=(tot%12)+1;
+  return _gmyFmt(y,m,Math.min(p.d,_gmyDim(y,m)));
+}
+function gmyDaysBetween(fromISO,toISO){   // whole days, DST-safe
+  const a=_gmyParse(fromISO), b=_gmyParse(toISO); if(!a||!b) return null;
+  return Math.round((Date.UTC(b.y,b.m-1,b.d)-Date.UTC(a.y,a.m-1,a.d))/86400000);
+}
+function gmyRoundDate(g,round){ return gmyAddPeriods(g.startDate,g.frequency,Math.max(0,round-1)); }
+function gmyCollectDate(g){ return gmyRoundDate(g,g.myTurn||1); }
+function gmyPayoutAmount(g){ return (+g.payout>0) ? +g.payout : (+g.members||0)*(+g.installment||0); }
+function gmyPaidTotal(g){ return Math.round((g.payments||[]).reduce((s,p)=>s+(+p.amount||0),0)*100)/100; }
+
+// Everything the UI needs about one circle, derived fresh each call (nothing cached/stored).
+function gmyStatus(g, todayISO){
+  todayISO = todayISO || today();
+  const members=Math.max(1,+g.members||1), inst=+g.installment||0;
+  const paidAmount=gmyPaidTotal(g), totalAmount=Math.round(members*inst*100)/100;
+  const paidRounds = inst>0 ? Math.min(members, Math.floor((paidAmount+0.005)/inst)) : 0;
+  const allPaid = paidRounds>=members;
+  const nextRound = allPaid ? null : paidRounds+1;
+  const nextDueDate = nextRound ? gmyRoundDate(g,nextRound) : '';
+  let dueRounds=0;                                  // rounds whose date is today or earlier
+  for(let r=1;r<=members;r++){ const dd=gmyDaysBetween(gmyRoundDate(g,r),todayISO); if(dd!=null && dd>=0) dueRounds=r; else break; }
+  const overdueCount = Math.max(0, dueRounds-paidRounds);
+  const daysToNext = nextDueDate ? gmyDaysBetween(todayISO,nextDueDate) : null;
+  const collectDate=gmyCollectDate(g), daysToCollect=gmyDaysBetween(todayISO,collectDate);
+  const collected=!!g.collected, completed=allPaid && collected;
+  const turnReached = daysToCollect!=null && daysToCollect<=0;
+  return {
+    members, installment:inst, paidAmount, totalAmount,
+    remainingAmount: Math.max(0,Math.round((totalAmount-paidAmount)*100)/100),
+    paidRounds, allPaid, nextRound, nextDueDate, daysToNext, overdueCount,
+    collectDate, daysToCollect, collected, completed,
+    canCollect: turnReached && !collected,           // my turn has arrived and I haven't received it
+    payout: gmyPayoutAmount(g),
+    progress: members ? paidRounds/members : 0,
+    endDate: gmyRoundDate(g,members),
+    assetValue: completed ? 0 : paidAmount,          // what counts in Assets / net worth
+  };
+}
+function gmyActive(){ return _gmyList().filter(g=>!gmyStatus(g).completed); }
+function gmyAssetsTotal(){ return Math.round(_gmyList().reduce((s,g)=>s+gmyStatus(g).assetValue,0)*100)/100; }
+
+// ── Mutations (pure data; UI calls these in later commits). All persist via saveSavings(). ──
+function gmyValidate(o){
+  const err=[];
+  if(!(o.name||'').trim()) err.push('name');
+  if(!_gmyParse(o.startDate)) err.push('startDate');
+  if(!GMY_FREQ[o.frequency]) err.push('frequency');
+  if(!(Number.isInteger(+o.members) && +o.members>=2)) err.push('members');
+  if(!(+o.installment>0)) err.push('installment');
+  if(!(Number.isInteger(+o.myTurn) && +o.myTurn>=1 && +o.myTurn<=+o.members)) err.push('myTurn');
+  return err;                                       // [] = valid; otherwise names of bad fields
+}
+function gmySave(o, editId){
+  const bad=gmyValidate(o); if(bad.length) return {ok:false,bad};
+  const list=_gmyList();
+  const fields={ name:o.name.trim(), organizer:(o.organizer||'').trim(), startDate:o.startDate, frequency:o.frequency,
+    members:+o.members, installment:+o.installment, myTurn:+o.myTurn,
+    payout:(+o.payout>0 && +o.payout!==(+o.members)*(+o.installment)) ? +o.payout : 0,   // 0 = auto (members × installment)
+    note:(o.note||'').trim() };
+  let g = editId ? list.find(x=>x.id===editId) : null;
+  if(g) Object.assign(g,fields);
+  else { g=Object.assign({id:'gmy'+Date.now().toString(36)+Math.random().toString(36).slice(2,5), payments:[], collected:null, createdAt:Date.now()},fields); list.push(g); }
+  saveSavings(); return {ok:true,g};
+}
+function gmyDelete(id){ const list=_gmyList(), i=list.findIndex(x=>x.id===id); if(i<0) return false; list.splice(i,1); saveSavings(); return true; }
+function gmyAddPayment(id,{date,amount,note}={}){
+  const g=_gmyList().find(x=>x.id===id); if(!g) return null;
+  const amt=Math.round((+amount>0?+amount:+g.installment)*100)/100;
+  const p={id:'p'+Date.now().toString(36)+Math.random().toString(36).slice(2,4), date:_gmyParse(date)?date:today(), amount:amt, note:(note||'').trim(), ts:Date.now()};
+  (g.payments=g.payments||[]).push(p); saveSavings(); return p;
+}
+function gmyUndoPayment(id,payId){            // payId omitted = remove the most recent one
+  const g=_gmyList().find(x=>x.id===id); if(!g||!(g.payments||[]).length) return false;
+  const i = payId ? g.payments.findIndex(p=>p.id===payId) : g.payments.length-1;
+  if(i<0) return false; g.payments.splice(i,1); saveSavings(); return true;
+}
+function gmyCollect(id,{date,amount,note}={}){
+  const g=_gmyList().find(x=>x.id===id); if(!g||g.collected) return null;
+  g.collected={date:_gmyParse(date)?date:today(), amount:+amount>0?+amount:gmyPayoutAmount(g), note:(note||'').trim(), ts:Date.now()};
+  saveSavings(); return g.collected;
+}
+function gmyUndoCollect(id){ const g=_gmyList().find(x=>x.id===id); if(!g||!g.collected) return false; g.collected=null; saveSavings(); return true; }
+// ══ end GAMIYAT engine ══
+
+// ══════════════════════════════════════════════════════════════════════════════
+// § GAMIYAT — Commit 2: add / edit modal (UI). Opened via gmyOpenModal(editId?).
+// Entry point button + Assets card arrive in Commit 3. Uses only the shared modal
+// shell (#modalOverlay/#modalContent), .field, .modal-btns, showConfirm, showToast.
+// ══════════════════════════════════════════════════════════════════════════════
+let _gmyDraftFreq = 'monthly';
+function _gmyNum(id){ const el=document.getElementById(id); return el ? (parseFloat(String(el.value||'').replace(/,/g,''))||0) : 0; }
+function _gmyVal(id){ const el=document.getElementById(id); return el ? String(el.value||'').trim() : ''; }
+function _gmyDateLong(iso){ return iso ? remFmt(iso,{day:'numeric',month:'long',year:'numeric'}) : '—'; }
+function gmyOpenModal(editId){
+  const g = editId ? _gmyList().find(x=>x.id===editId) : null;
+  if(editId && !g) return;
+  const x = g || { startDate:today(), frequency:'monthly', members:10, installment:'', myTurn:1, payout:0, organizer:'', note:'' };
+  _gmyDraftFreq = GMY_FREQ[x.frequency] ? x.frequency : 'monthly';
+  const chips = Object.keys(GMY_FREQ).map(k=>`<button type="button" class="gmy-chip${k===_gmyDraftFreq?' on':''}" data-f="${k}" onclick="gmyPickFreq('${k}')">${L(GMY_FREQ[k].en,GMY_FREQ[k].ar)}</button>`).join('');
+  const hasExtra = !!(x.organizer || x.note || x.payout>0);
+  document.getElementById('modalContent').innerHTML = `
+    <div class="modal-handle"></div>
+    <div class="modal-title">${ic('users',15)} ${g?L('Edit circle','تعديل الجمعية'):L('New savings circle','جمعية جديدة')}</div>
+    <div class="field"><label>${L('Circle name','اسم الجمعية')} *</label>
+      <input id="gmyName" value="${esc(x.name||'')}" placeholder="${L('e.g. Family circle','مثال: جمعية العيلة')}" dir="auto" maxlength="60" oninput="gmyModalUpdate()"></div>
+    <div class="field"><label>${L('How often do you pay?','الدفع كل قد إيه؟')} *</label>
+      <div class="gmy-chips" id="gmyChips">${chips}</div></div>
+    <div class="ds-grid-2-tight">
+      <div class="field"><label>${L('Installment','القسط')} *</label>
+        <input id="gmyInst" class="sdb-amt-in" type="text" inputmode="decimal" value="${x.installment||''}" placeholder="0" oninput="gmyModalUpdate()"></div>
+      <div class="field"><label>${L('Start date','تاريخ أول قسط')} *</label>
+        <input id="gmyStart" type="date" value="${esc(x.startDate||today())}" oninput="gmyModalUpdate()" onchange="gmyModalUpdate()"></div>
+    </div>
+    <div class="ds-grid-2-tight">
+      <div class="field"><label>${L('Number of members','عدد الناس')} *</label>
+        <input id="gmyMembers" type="text" inputmode="numeric" value="${x.members||''}" placeholder="10" oninput="gmyModalUpdate()"></div>
+      <div class="field"><label>${L('My turn (order)','دوري (الترتيب)')} *</label>
+        <input id="gmyTurn" type="text" inputmode="numeric" value="${x.myTurn||''}" placeholder="1" oninput="gmyModalUpdate()"></div>
+    </div>
+    <div class="gmy-prev" id="gmyPrev"></div>
+    <details class="gmy-more"${hasExtra?' open':''}><summary>${L('More options','خيارات إضافية')}</summary>
+      <div class="field"><label>${L('Organizer','اسم المنظّم')}</label><input id="gmyOrg" value="${esc(x.organizer||'')}" placeholder="${L('optional…','اختياري…')}" dir="auto" maxlength="60"></div>
+      <div class="field"><label>${L('Payout amount','مبلغ القبض')}</label>
+        <input id="gmyPayout" type="text" inputmode="decimal" value="${x.payout>0?x.payout:''}" placeholder="${L('Auto = members × installment','تلقائي = العدد × القسط')}" oninput="gmyModalUpdate()"></div>
+      <div class="field"><label>${L('Notes','ملاحظات')}</label><input id="gmyNote" value="${esc(x.note||'')}" placeholder="${L('optional…','اختياري…')}" dir="auto" maxlength="160"></div>
+    </details>
+    <div class="modal-btns">
+      <button class="mbtn save" onclick="gmyModalSave(${g?`'${g.id}'`:'null'})">${ic('check',15)} ${L('Save','حفظ')}</button>
+      ${g?`<button class="mbtn danger" onclick="gmyModalDelete('${g.id}')">${ic('trash',15)} ${L('Delete','حذف')}</button>`:''}
+      <button class="mbtn cancel" onclick="closeModal()">${L('Cancel','إلغاء')}</button>
+    </div>`;
+  document.getElementById('modalOverlay').style.display='flex';
+  gmyModalUpdate();
+}
+function gmyPickFreq(k){
+  _gmyDraftFreq=k;
+  document.querySelectorAll('#gmyChips .gmy-chip').forEach(b=>b.classList.toggle('on',b.dataset.f===k));
+  gmyModalUpdate();
+}
+function _gmyReadDraft(){
+  return { name:_gmyVal('gmyName'), organizer:_gmyVal('gmyOrg'), startDate:_gmyVal('gmyStart'), frequency:_gmyDraftFreq,
+           members:Math.round(_gmyNum('gmyMembers')), installment:_gmyNum('gmyInst'), myTurn:Math.round(_gmyNum('gmyTurn')),
+           payout:_gmyNum('gmyPayout'), note:_gmyVal('gmyNote') };
+}
+// Live summary under the form: when I collect, how much, last installment, total I will pay.
+function gmyModalUpdate(){
+  const box=document.getElementById('gmyPrev'); if(!box) return;
+  const d=_gmyReadDraft();
+  const ok = _gmyParse(d.startDate) && d.members>=2 && d.installment>0 && d.myTurn>=1 && d.myTurn<=d.members;
+  if(!ok){
+    const turnBad = d.members>=2 && d.myTurn>d.members;
+    box.className='gmy-prev empty';
+    box.innerHTML = turnBad ? `<span>${L('Your turn must be between 1 and the number of members','دورك لازم يكون بين 1 وعدد الناس')}</span>`
+                            : `<span>${L('Fill in the details to see your payout date','املا البيانات عشان يظهر لك تاريخ قبضك')}</span>`;
+    return;
+  }
+  const g={ startDate:d.startDate, frequency:d.frequency, members:d.members, installment:d.installment, myTurn:d.myTurn, payout:d.payout };
+  const cur=curLabel();
+  box.className='gmy-prev';
+  box.innerHTML = `
+    <div class="gmy-prev-main"><small>${L('You collect on','تقبض يوم')}</small><b>${_gmyDateLong(gmyCollectDate(g))}</b></div>
+    <div class="gmy-prev-row"><span>${L('Payout','مبلغ القبض')}</span><b dir="ltr">${fmt(gmyPayoutAmount(g))} <em>${cur}</em></b></div>
+    <div class="gmy-prev-row"><span>${L('Total you pay','إجمالي اللي هتدفعه')}</span><b dir="ltr">${fmt(d.members*d.installment)} <em>${cur}</em></b></div>
+    <div class="gmy-prev-row"><span>${L('Circle ends','آخر قسط')}</span><b>${_gmyDateLong(gmyRoundDate(g,d.members))}</b></div>`;
+}
+function gmyModalSave(editId){
+  const d=_gmyReadDraft(), bad=gmyValidate(d);
+  if(bad.length){
+    const msg={ name:L('Enter the circle name','اكتب اسم الجمعية'), installment:L('Enter a valid installment','أدخل قيمة القسط'),
+      startDate:L('Pick the start date','اختر تاريخ أول قسط'), members:L('Members must be 2 or more','عدد الناس لازم 2 أو أكتر'),
+      myTurn:L('Your turn must be between 1 and the number of members','دورك لازم يكون بين 1 وعدد الناس'), frequency:L('Pick how often you pay','اختر دورية الدفع') }[bad[0]];
+    showToast('⚠️ '+msg,'warn'); return;
+  }
+  const r=gmySave(d,editId); if(!r.ok) return;
+  closeModal(); renderView();
+  showToast(L('Circle saved ✓','تم حفظ الجمعية ✓'),'success');
+}
+function gmyModalDelete(id){
+  showConfirm(L('Delete this circle and all its payments? This cannot be undone.','حذف الجمعية وكل دفعاتها؟ لا يمكن التراجع.'),()=>{
+    gmyDelete(id); closeModal(); renderView(); showToast(L('Deleted ✓','تم الحذف ✓'),'info');
+  });
+}
+// ══ end GAMIYAT modal ══
+
+// ══════════════════════════════════════════════════════════════════════════════
+// § GAMIYAT — Commit 3: Assets-section list + detail sheet with round timeline.
+// Read-only apart from Edit (payments / collect actions arrive in Commit 4).
+// ══════════════════════════════════════════════════════════════════════════════
+function _gmyDaysTxt(d){
+  if(d==null) return '';
+  if(d===0) return L('today','النهارده');
+  if(d===1) return L('tomorrow','بكرة');
+  if(d===-1) return L('yesterday','امبارح');
+  if(d>0) return L(`in ${d} days`,'بعد '+_remArDays(d));
+  return L(`${-d} days ago`,'من '+_remArDays(-d));
+}
+function _gmyShort(iso){ return iso ? remFmt(iso,{day:'numeric',month:'short'}) : '—'; }
+function _gmyOverdueTxt(n){ return L(`${n} overdue installment${n>1?'s':''}`, n===1?'قسط متأخر':n===2?'قسطين متأخرين':n+' أقساط متأخرة'); }
+function _gmyTone(s){ return s.completed?'done' : s.overdueCount>0?'late' : s.canCollect?'ready' : ''; }
+function _gmyRing(s,size){
+  const r=18, c=2*Math.PI*r, off=c*(1-Math.min(1,s.progress));
+  return `<svg class="gmy-ring" width="${size}" height="${size}" viewBox="0 0 44 44" aria-hidden="true"><circle cx="22" cy="22" r="${r}" fill="none" stroke="var(--border)" stroke-width="4"/><circle cx="22" cy="22" r="${r}" fill="none" stroke="var(--gmy-c)" stroke-width="4" stroke-linecap="round" stroke-dasharray="${c.toFixed(2)}" stroke-dashoffset="${off.toFixed(2)}" transform="rotate(-90 22 22)"/></svg>`;
+}
+function _gmyCardHTML(g){
+  const s=gmyStatus(g), tone=_gmyTone(s), cur=curLabel();
+  let line;
+  if(s.completed) line=L('Completed','مكتملة');
+  else if(s.overdueCount>0) line=_gmyOverdueTxt(s.overdueCount);
+  else if(s.allPaid) line=L('All paid — waiting for your payout','اتدفعت كلها — مستني القبض');
+  else line=L('Next','القسط الجاي')+' '+_gmyShort(s.nextDueDate)+' · '+_gmyDaysTxt(s.daysToNext);
+  const side = s.collected ? `<span class="gmy-chip-s ok">${ic('check',11)} ${L('Collected','تم القبض')}</span>`
+    : s.canCollect ? `<span class="gmy-chip-s ready">${L('Your turn','جه دورك')}</span>`
+    : `<span class="gmy-side"><small>${L('Payout','القبض')}</small><b>${_gmyShort(s.collectDate)}</b><em>${_gmyDaysTxt(s.daysToCollect)}</em></span>`;
+  return `<div class="gmy-card" data-tone="${tone}" role="button" tabindex="0" onclick="gmyOpenDetail('${g.id}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();gmyOpenDetail('${g.id}');}">
+    <span class="gmy-ring-w">${_gmyRing(s,46)}<b>${s.paidRounds}<i>/${s.members}</i></b></span>
+    <span class="gmy-body">
+      <b class="gmy-name">${esc(g.name)}</b>
+      <span class="gmy-sub">${L(GMY_FREQ[g.frequency].en,GMY_FREQ[g.frequency].ar)} · <span dir="ltr">${fmt(s.installment)} ${cur}</span></span>
+      <span class="gmy-line">${line}</span>
+    </span>
+    ${side}
+  </div>`;
+}
+// Section rendered at the bottom of the Assets card. q = active search text (already lower-cased).
+function _gmySectionHTML(q){
+  let list=_gmyList();
+  if(q) list=list.filter(g=>[g.name,g.organizer,g.note].some(v=>String(v||'').toLowerCase().includes(q)));
+  const active=list.filter(g=>!gmyStatus(g).completed), done=list.filter(g=>gmyStatus(g).completed);
+  const rows=active.concat(done).map(_gmyCardHTML).join('');
+  const body = rows ? `<div class="gmy-list">${rows}</div>`
+    : (q ? '' : `<button type="button" class="gmy-empty" onclick="gmyOpenModal()">${ic('users',18)}<span><b>${L('Track a savings circle','تابع جمعيتك')}</b><small>${L('Installments, payout date and every payment in one place','الأقساط وموعد القبض وكل دفعة في مكان واحد')}</small></span>${ic('plus',16)}</button>`);
+  if(!body) return '';
+  return `<div class="gmy-sec">
+    <div class="gmy-sec-hd"><span class="gmy-sec-t">${ic('users',14)} ${L('My circles','جمعياتي')}</span>${list.length?`<span class="gmy-sec-n">${list.length}</span>`:''}
+      ${list.length?`<button type="button" class="gmy-add" onclick="gmyOpenModal()" aria-label="${L('Add circle','إضافة جمعية')}">${ic('plus',14)}</button>`:''}</div>
+    ${body}</div>`;
+}
+function gmyOpenDetail(id){
+  const g=_gmyList().find(x=>x.id===id); if(!g) return;
+  const s=gmyStatus(g), tone=_gmyTone(s), cur=curLabel(), todayISO=today();
+  const stateTxt = s.completed?L('Completed','مكتملة') : s.overdueCount>0?_gmyOverdueTxt(s.overdueCount) : s.canCollect?L('Your turn to collect','جه دورك تقبض') : s.allPaid?L('All paid','اتدفعت كلها') : L('On track','ماشية تمام');
+  let rows='';
+  for(let r=1;r<=s.members;r++){
+    const date=gmyRoundDate(g,r), dd=gmyDaysBetween(todayISO,date);
+    let st, label;
+    if(r<=s.paidRounds){ st='paid'; label=L('Paid','مدفوع'); }
+    else if(dd<0){ st='late'; label=L('Overdue','متأخر')+' · '+_gmyDaysTxt(dd); }
+    else if(r===s.nextRound){ st='next'; label=L('Next','الجاي')+' · '+_gmyDaysTxt(dd); }
+    else { st='soon'; label=_gmyDaysTxt(dd); }
+    const mine = r===(g.myTurn||1);
+    const mineTag = mine ? `<span class="gmy-tl-mine">${ic('gem',11)} ${g.collected?L('Collected','تم القبض')+' · '+_gmyShort(g.collected.date):L('Your payout','قبضك')+' · '+fmt(s.payout)}</span>` : '';
+    rows+=`<div class="gmy-tl-row ${st}${mine?' mine':''}"><span class="gmy-tl-dot">${st==='paid'?ic('check',12):r}</span>
+      <span class="gmy-tl-main"><b>${_gmyDateLong(date)}</b><small>${esc(label)}</small></span>${mineTag}</div>`;
+  }
+  const _hItems=(g.payments||[]).map(p=>({k:'p',date:p.date||'',ts:p.ts||0,id:p.id,amount:p.amount,note:p.note}));
+  if(g.collected) _hItems.push({k:'c',date:g.collected.date||'',ts:g.collected.ts||0,amount:g.collected.amount,note:g.collected.note});
+  _hItems.sort((a,b)=>b.date.localeCompare(a.date)||b.ts-a.ts);
+  const histRows=_hItems.map(it=>`<div class="gmy-h-row"><span class="gmy-h-ic ${it.k==='c'?'in':'out'}">${ic(it.k==='c'?'trend_up':'trend_down',14)}</span>
+      <span class="gmy-h-main"><b dir="ltr">${it.k==='c'?'+':'−'}${fmt(it.amount)} ${cur}</b><small>${it.k==='c'?L('Payout','قبض')+' · ':''}${_gmyDateLong(it.date)}${it.note?' · '+esc(it.note):''}</small></span>
+      <button type="button" class="gmy-h-del" aria-label="${L('Delete','حذف')}" onclick="${it.k==='c'?`gmyAskUndoCollect('${g.id}')`:`gmyAskUndoPayment('${g.id}','${it.id}')`}">${ic('trash',14)}</button></div>`).join('');
+  const fact=(k,v,sub)=>`<div class="gmy-fact"><small>${k}</small><b>${v}</b>${sub?`<em>${sub}</em>`:''}</div>`;
+  document.getElementById('modalContent').innerHTML = `
+    <div class="modal-handle"></div>
+    <div class="modal-title">${ic('users',15)} ${esc(g.name)}</div>
+    <div class="gmy-sum" data-tone="${tone}">
+      <div class="gmy-sum-top"><span class="gmy-badge">${esc(stateTxt)}</span><span class="gmy-sum-f">${L(GMY_FREQ[g.frequency].en,GMY_FREQ[g.frequency].ar)}</span></div>
+      <div class="gmy-sum-amt"><small>${L('Paid so far','المدفوع لحد دلوقتي')}</small><b dir="ltr">${fmt(s.paidAmount)} <em>${cur}</em></b></div>
+      <div class="gmy-bar"><i style="width:${Math.round(s.progress*100)}%"></i></div>
+      <div class="gmy-sum-meta"><span>${L(`${s.paidRounds} of ${s.members} installments`,`${s.paidRounds} من ${s.members} قسط`)}</span><span dir="ltr">${L('Remaining','المتبقي')} ${fmt(s.remainingAmount)}</span></div>
+    </div>
+    <div class="gmy-acts${(s.completed||(s.allPaid?0:1)+(g.collected?0:1)<2)?' one':''}">
+      ${s.completed?`<div class="gmy-done-note">${ic('check',14)} ${L('Circle completed','الجمعية اتممت')}</div>`:`
+      ${s.allPaid?'':`<button type="button" class="gmy-act pri" onclick="gmyPaySheet('${g.id}')">${ic('trend_down',15)} ${L('I paid','دفعت القسط')}</button>`}
+      ${g.collected?'':`<button type="button" class="gmy-act${s.canCollect?' ready':''}" onclick="gmyCollectSheet('${g.id}')">${ic('trend_up',15)} ${L('I collected','قبضت')}</button>`}`}
+    </div>
+    <div class="gmy-facts">
+      ${fact(L('Next installment','القسط الجاي'), s.nextRound?_gmyShort(s.nextDueDate):'—', s.nextRound?_gmyDaysTxt(s.daysToNext):'')}
+      ${fact(L('Payout date','يوم القبض'), _gmyShort(s.collectDate), s.collected?L('Collected','تم القبض'):_gmyDaysTxt(s.daysToCollect))}
+      ${fact(L('Installment','القسط'), `<span dir="ltr">${fmt(s.installment)}</span>`, cur)}
+      ${fact(L('Payout','مبلغ القبض'), `<span dir="ltr">${fmt(s.payout)}</span>`, L(`Turn ${g.myTurn} of ${s.members}`,`الدور ${g.myTurn} من ${s.members}`))}
+    </div>
+    ${(g.organizer||g.note)?`<div class="gmy-notes">${g.organizer?`<div><small>${L('Organizer','المنظّم')}</small><span dir="auto">${esc(g.organizer)}</span></div>`:''}${g.note?`<div><small>${L('Notes','ملاحظات')}</small><span dir="auto">${esc(g.note)}</span></div>`:''}</div>`:''}
+    <div class="gmy-tl-title">${L('Schedule','الجدول')}</div>
+    <div class="gmy-tl">${rows}</div>
+    ${_hItems.length?`<div class="gmy-tl-title">${L('Transactions','المعاملات')} · ${_hItems.length}</div><div class="gmy-h">${histRows}</div>`:''}
+    <div class="modal-btns">
+      <button class="mbtn save" onclick="gmyOpenModal('${g.id}')">${ic('edit',15)} ${L('Edit','تعديل')}</button>
+      <button class="mbtn cancel" onclick="closeModal()">${L('Close','إغلاق')}</button>
+    </div>`;
+  document.getElementById('modalOverlay').style.display='flex';
+}
+// ══ end GAMIYAT ui ══
+
+// ══════════════════════════════════════════════════════════════════════════════
+// § GAMIYAT — Commit 4: record installments / payout, transaction history, undo.
+// All sheets reuse the shared modal shell; after every action the detail sheet is
+// re-opened and the Assets list behind it is re-rendered.
+// ══════════════════════════════════════════════════════════════════════════════
+function _gmyAfter(id,msg,type){ renderView(); gmyOpenDetail(id); showToast(msg,type||'success'); }
+function gmyPaySheet(id){
+  const g=_gmyList().find(x=>x.id===id); if(!g) return;
+  const s=gmyStatus(g);
+  if(s.allPaid){ showToast(L('All installments are already paid','كل الأقساط متدفوعة بالفعل'),'info'); return; }
+  const part=Math.round((s.paidAmount-s.paidRounds*s.installment)*100)/100;       // already paid toward the current round
+  const need=Math.round((s.installment-part)*100)/100;
+  const cur=curLabel();
+  document.getElementById('modalContent').innerHTML = `
+    <div class="modal-handle"></div>
+    <div class="modal-title">${ic('trend_down',15)} ${L('Record an installment','تسجيل قسط')}</div>
+    <div class="gmy-sum" data-tone="${_gmyTone(s)}">
+      <div class="gmy-sum-top"><span class="gmy-sum-who" dir="auto">${esc(g.name)}</span><span class="gmy-badge">${L(`Installment ${s.nextRound} of ${s.members}`,`القسط ${s.nextRound} من ${s.members}`)}</span></div>
+      <div class="gmy-sum-meta" style="margin-top:10px"><span>${L('Due','موعده')} ${_gmyDateLong(s.nextDueDate)}</span><span>${_gmyDaysTxt(s.daysToNext)}</span></div>
+    </div>
+    <div class="field"><label>${L('Amount paid','المبلغ اللي دفعته')} *</label>
+      <input id="gmyPayAmt" class="sdb-amt-in" type="text" inputmode="decimal" value="${need}" oninput="gmyPayHint('${id}')">
+      <div class="gmy-hint" id="gmyPayHint"></div></div>
+    <div class="ds-grid-2-tight">
+      <div class="field"><label>${L('Date','التاريخ')}</label><input id="gmyPayDate" type="date" value="${today()}"></div>
+      <div class="field"><label>${L('Note','ملاحظة')}</label><input id="gmyPayNote" maxlength="120" placeholder="${L('optional…','اختياري…')}" dir="auto"></div>
+    </div>
+    <div class="modal-btns">
+      <button class="mbtn save" onclick="gmyPaySave('${id}')">${ic('check',15)} ${L('Save payment','تسجيل الدفع')}</button>
+      <button class="mbtn cancel" onclick="gmyOpenDetail('${id}')">${L('Back','رجوع')}</button>
+    </div>`;
+  document.getElementById('modalOverlay').style.display='flex';
+  gmyPayHint(id);
+}
+function gmyPayHint(id){
+  const g=_gmyList().find(x=>x.id===id), el=document.getElementById('gmyPayHint'); if(!g||!el) return;
+  const s=gmyStatus(g), amt=_gmyNum('gmyPayAmt'), inst=s.installment;
+  const part=Math.round((s.paidAmount-s.paidRounds*inst)*100)/100;
+  let txt='', cls='';
+  if(!(amt>0)){ txt=''; }
+  else if(amt>s.remainingAmount+0.005){ txt=L(`More than the remaining ${fmt(s.remainingAmount)}`,`أكبر من المتبقي ${fmt(s.remainingAmount)}`); cls='bad'; }
+  else {
+    const covered=Math.min(s.members,Math.floor((s.paidAmount+amt+0.005)/inst)), newRounds=covered-s.paidRounds;
+    if(newRounds<=0){ txt=L(`Partial payment — ${fmt(Math.round((inst-part-amt)*100)/100)} left of this installment`,`دفعة جزئية — فاضل ${fmt(Math.round((inst-part-amt)*100)/100)} من القسط`); cls='warn'; }
+    else if(newRounds===1){ txt=L(`Completes installment ${covered} ✓`,`هيكمّل القسط ${covered} ✓`); cls='ok'; }
+    else { txt=L(`Covers installments ${s.paidRounds+1}–${covered} ✓`,`هيغطّي الأقساط ${s.paidRounds+1}–${covered} ✓`); cls='ok'; }
+  }
+  el.className='gmy-hint'+(cls?' '+cls:''); el.textContent=txt;
+}
+function gmyPaySave(id){
+  const g=_gmyList().find(x=>x.id===id); if(!g) return;
+  const s=gmyStatus(g), amt=Math.round(_gmyNum('gmyPayAmt')*100)/100, date=_gmyVal('gmyPayDate');
+  if(!(amt>0)){ showToast(L('⚠️ Enter a valid amount','⚠️ أدخل مبلغاً صحيحاً'),'warn'); return; }
+  if(amt>s.remainingAmount+0.005){ showToast(L('⚠️ Amount is more than the remaining','⚠️ المبلغ أكبر من المتبقي'),'warn'); return; }
+  if(!_gmyParse(date)){ showToast(L('⚠️ Pick a valid date','⚠️ اختر تاريخاً صحيحاً'),'warn'); return; }
+  gmyAddPayment(id,{date,amount:amt,note:_gmyVal('gmyPayNote')});
+  _gmyAfter(id,L('Payment recorded ✓','تم تسجيل الدفع ✓'));
+}
+function gmyCollectSheet(id){
+  const g=_gmyList().find(x=>x.id===id); if(!g||g.collected) return;
+  const s=gmyStatus(g), cur=curLabel();
+  document.getElementById('modalContent').innerHTML = `
+    <div class="modal-handle"></div>
+    <div class="modal-title">${ic('trend_up',15)} ${L('Record your payout','تسجيل القبض')}</div>
+    <div class="gmy-sum" data-tone="${s.canCollect?'ready':''}">
+      <div class="gmy-sum-top"><span class="gmy-sum-who" dir="auto">${esc(g.name)}</span><span class="gmy-badge">${L(`Turn ${g.myTurn} of ${s.members}`,`الدور ${g.myTurn} من ${s.members}`)}</span></div>
+      <div class="gmy-sum-meta" style="margin-top:10px"><span>${L('Scheduled','موعده')} ${_gmyDateLong(s.collectDate)}</span><span>${s.canCollect?L('Your turn has come','جه دورك'):_gmyDaysTxt(s.daysToCollect)}</span></div>
+    </div>
+    <div class="field"><label>${L('Amount received','المبلغ اللي استلمته')} *</label>
+      <input id="gmyColAmt" class="sdb-amt-in" type="text" inputmode="decimal" value="${s.payout}">
+      ${s.canCollect?'':`<div class="gmy-hint warn">${L('Your turn has not come yet — record it only if you actually received it','دورك لسه ماجاش — سجّله بس لو استلمت فعلاً')}</div>`}</div>
+    <div class="ds-grid-2-tight">
+      <div class="field"><label>${L('Date','التاريخ')}</label><input id="gmyColDate" type="date" value="${today()}"></div>
+      <div class="field"><label>${L('Note','ملاحظة')}</label><input id="gmyColNote" maxlength="120" placeholder="${L('optional…','اختياري…')}" dir="auto"></div>
+    </div>
+    <div class="modal-btns">
+      <button class="mbtn save" onclick="gmyCollectSave('${id}')">${ic('check',15)} ${L('Save payout','تسجيل القبض')}</button>
+      <button class="mbtn cancel" onclick="gmyOpenDetail('${id}')">${L('Back','رجوع')}</button>
+    </div>`;
+  document.getElementById('modalOverlay').style.display='flex';
+}
+function gmyCollectSave(id){
+  const amt=Math.round(_gmyNum('gmyColAmt')*100)/100, date=_gmyVal('gmyColDate');
+  if(!(amt>0)){ showToast(L('⚠️ Enter a valid amount','⚠️ أدخل مبلغاً صحيحاً'),'warn'); return; }
+  if(!_gmyParse(date)){ showToast(L('⚠️ Pick a valid date','⚠️ اختر تاريخاً صحيحاً'),'warn'); return; }
+  if(!gmyCollect(id,{date,amount:amt,note:_gmyVal('gmyColNote')})) return;
+  _gmyAfter(id,L('Payout recorded ✓','تم تسجيل القبض ✓'));
+}
+function gmyAskUndoPayment(id,payId){
+  showConfirm(L('Delete this payment? The installment will go back to unpaid.','حذف هذه الدفعة؟ هيرجع القسط غير مدفوع.'),()=>{ gmyUndoPayment(id,payId); _gmyAfter(id,L('Payment removed ✓','تم حذف الدفعة ✓'),'info'); });
+}
+function gmyAskUndoCollect(id){
+  showConfirm(L('Remove the payout record? The circle will show as not collected again.','حذف تسجيل القبض؟ هترجع الجمعية "لم تُقبض".'),()=>{ gmyUndoCollect(id); _gmyAfter(id,L('Payout record removed ✓','تم حذف تسجيل القبض ✓'),'info'); });
+}
+// ══ end GAMIYAT actions ══
 
 // General visibility rule for My Savings, used everywhere in the module
 // (the main lists/totals in renderSavings, the sell-asset picker in the
@@ -23486,7 +23917,7 @@ function renderSavings(){
     <div class="sdb-strip-c"><small>${L('Owed by me','عليّا')}</small><b style="color:var(--fin-outcome)">${fmtEGP(totalOwedByMe)}</b></div>
   </div>` : '';
 
-  if(!searchQ && !['incomes','outcomes','assets','debts'].some(k=>((SAVINGS&&SAVINGS[k])||[]).length)){
+  if(!searchQ && !['incomes','outcomes','assets','debts','gamiyat'].some(k=>((SAVINGS&&SAVINGS[k])||[]).length)){
     return `<div class="screen-wrap" data-fr-empty>
     <div class="sc-header sav-plain-header">
       <div class="sc-header-eyebrow">${L('Finance','المالية')}</div>
@@ -23593,6 +24024,7 @@ function renderSavings(){
       </div>
       ${_astSummaryHTML(visAssets)}
       <div class="tx-rows asset-card-grid">${assetRows}</div>
+      ${_gmySectionHTML(_savQ)}
     </div>
 
     <div class="sc-card">
@@ -62462,6 +62894,120 @@ input[type="number"]{font-variant-numeric:tabular-nums}
 [dir="rtl"] .jp-attc-f svg{transform:scaleX(-1)}
 </style>
 
+<style id="gmy-v1">
+/* ══ Gamiyat (جمعياتي) — Commit 2: modal styles. New classes only (gmy-*), tokens only, no existing rule touched. ══ */
+.gmy-chips{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.gmy-chip{all:unset;box-sizing:border-box;text-align:center;cursor:pointer;padding:10px 6px;border-radius:12px;background:var(--surface2);border:1px solid var(--border);color:var(--muted);font-size:calc(13px*var(--app-text-scale,1));font-weight:600;line-height:1.2;transition:background .15s ease,color .15s ease,border-color .15s ease}
+.gmy-chip.on{background:color-mix(in srgb,var(--fin-assets) 14%,var(--surface));border-color:color-mix(in srgb,var(--fin-assets) 55%,var(--border));color:var(--text);font-weight:700}
+.gmy-chip:focus-visible{outline:2px solid var(--fin-assets);outline-offset:2px}
+.gmy-prev{margin:2px 0 12px;padding:14px;border-radius:16px;border:1px solid color-mix(in srgb,var(--fin-assets) 28%,var(--border));background:color-mix(in srgb,var(--fin-assets) 7%,var(--surface2));display:flex;flex-direction:column;gap:8px}
+.gmy-prev.empty{background:var(--surface2);border:1px dashed var(--border);color:var(--muted);font-size:calc(12.5px*var(--app-text-scale,1));font-weight:600;text-align:center}
+.gmy-prev-main{display:flex;flex-direction:column;gap:2px}
+.gmy-prev-main small{font-size:calc(11px*var(--app-text-scale,1));font-weight:600;color:var(--muted)}
+.gmy-prev-main b{font-size:calc(19px*var(--app-text-scale,1));font-weight:800;letter-spacing:-.01em;color:var(--text)}
+.gmy-prev-row{display:flex;align-items:baseline;justify-content:space-between;gap:10px;font-size:calc(12.5px*var(--app-text-scale,1));color:var(--muted);font-weight:600}
+.gmy-prev-row b{color:var(--text);font-weight:700;font-variant-numeric:tabular-nums}
+.gmy-prev-row b em{font-style:normal;font-size:.8em;color:var(--muted);margin-inline-start:.3em}
+.gmy-more{margin:0 0 12px}
+.gmy-more>summary{cursor:pointer;list-style:none;padding:8px 2px;font-size:calc(13px*var(--app-text-scale,1));font-weight:700;color:var(--muted)}
+.gmy-more>summary::-webkit-details-marker{display:none}
+.gmy-more>summary::after{content:'＋';margin-inline-start:8px;font-weight:700}
+.gmy-more[open]>summary::after{content:'－'}
+/* ── Commit 3: Assets-section list + detail sheet ── */
+.gmy-sec{margin-top:16px;padding-top:14px;border-top:1px solid var(--border)}
+.gmy-sec-hd{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.gmy-sec-t{display:inline-flex;align-items:center;gap:6px;font-size:calc(13px*var(--app-text-scale,1));font-weight:700;color:var(--text)}
+.gmy-sec-t svg{color:var(--fin-assets)}
+.gmy-sec-n{font-size:calc(11px*var(--app-text-scale,1));font-weight:700;color:var(--muted);background:var(--surface2);border-radius:999px;padding:2px 8px}
+.gmy-add{all:unset;box-sizing:border-box;margin-inline-start:auto;width:30px;height:30px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;color:var(--fin-assets);background:color-mix(in srgb,var(--fin-assets) 12%,transparent)}
+.gmy-add:active{transform:scale(.94)}
+.gmy-add:focus-visible,.gmy-card:focus-visible,.gmy-empty:focus-visible{outline:2px solid var(--fin-assets);outline-offset:2px}
+.gmy-list{display:flex;flex-direction:column;gap:8px}
+.gmy-card{--gmy-c:var(--fin-assets);display:flex;align-items:center;gap:12px;padding:12px;border-radius:16px;background:var(--surface2);border:1px solid var(--border);cursor:pointer;transition:border-color .15s ease,transform .1s ease}
+.gmy-card[data-tone="late"]{--gmy-c:var(--fin-outcome)}
+.gmy-card[data-tone="ready"]{--gmy-c:var(--fin-income)}
+.gmy-card[data-tone="done"]{--gmy-c:var(--muted);opacity:.72}
+.gmy-card[data-tone="late"],.gmy-card[data-tone="ready"]{border-color:color-mix(in srgb,var(--gmy-c) 38%,var(--border))}
+.gmy-card:active{transform:scale(.99)}
+.gmy-ring-w{position:relative;flex:0 0 46px;width:46px;height:46px;display:inline-flex;align-items:center;justify-content:center}
+.gmy-ring-w svg{position:absolute;inset:0}
+.gmy-ring-w b{position:relative;font-size:calc(12px*var(--app-text-scale,1));font-weight:800;color:var(--text);font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.gmy-ring-w b i{font-style:normal;font-weight:600;color:var(--muted);font-size:.8em}
+.gmy-body{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.gmy-name{font-size:calc(14.5px*var(--app-text-scale,1));font-weight:700;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gmy-sub{font-size:calc(12px*var(--app-text-scale,1));color:var(--muted);font-weight:600}
+.gmy-line{font-size:calc(12px*var(--app-text-scale,1));font-weight:700;color:var(--gmy-c)}
+.gmy-card:not([data-tone="late"]):not([data-tone="ready"]) .gmy-line{color:var(--muted)}
+.gmy-side{display:flex;flex-direction:column;align-items:flex-end;gap:1px;text-align:end;flex-shrink:0}
+.gmy-side small{font-size:calc(10.5px*var(--app-text-scale,1));color:var(--muted);font-weight:600}
+.gmy-side b{font-size:calc(13px*var(--app-text-scale,1));font-weight:800;color:var(--text)}
+.gmy-side em{font-style:normal;font-size:calc(10.5px*var(--app-text-scale,1));color:var(--muted);font-weight:600}
+.gmy-chip-s{display:inline-flex;align-items:center;gap:4px;flex-shrink:0;padding:5px 10px;border-radius:999px;font-size:calc(11.5px*var(--app-text-scale,1));font-weight:700;color:var(--gmy-c);background:color-mix(in srgb,var(--gmy-c) 14%,transparent)}
+.gmy-empty{all:unset;box-sizing:border-box;width:100%;display:flex;align-items:center;gap:12px;padding:14px;border-radius:16px;border:1px dashed color-mix(in srgb,var(--fin-assets) 45%,var(--border));background:color-mix(in srgb,var(--fin-assets) 5%,transparent);cursor:pointer;color:var(--fin-assets)}
+.gmy-empty span{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.gmy-empty b{font-size:calc(13.5px*var(--app-text-scale,1));font-weight:700;color:var(--text)}
+.gmy-empty small{font-size:calc(11.5px*var(--app-text-scale,1));color:var(--muted);font-weight:600;line-height:1.4}
+.gmy-sum{--gmy-c:var(--fin-assets);padding:14px;margin-bottom:12px;border-radius:18px;border:1px solid color-mix(in srgb,var(--gmy-c) 30%,var(--border));background:color-mix(in srgb,var(--gmy-c) 7%,var(--surface2))}
+.gmy-sum[data-tone="late"]{--gmy-c:var(--fin-outcome)}
+.gmy-sum[data-tone="ready"]{--gmy-c:var(--fin-income)}
+.gmy-sum[data-tone="done"]{--gmy-c:var(--muted)}
+.gmy-sum-top{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.gmy-badge{font-size:calc(11px*var(--app-text-scale,1));font-weight:700;padding:4px 10px;border-radius:999px;color:var(--gmy-c);background:color-mix(in srgb,var(--gmy-c) 14%,transparent)}
+.gmy-sum-f{font-size:calc(12px*var(--app-text-scale,1));font-weight:600;color:var(--muted)}
+.gmy-sum-amt{margin:12px 0 10px;display:flex;flex-direction:column;gap:2px}
+.gmy-sum-amt small{font-size:calc(11px*var(--app-text-scale,1));font-weight:600;color:var(--muted)}
+.gmy-sum-amt b{font-size:calc(30px*var(--app-text-scale,1));font-weight:800;letter-spacing:-.03em;line-height:1.1;color:var(--text);font-variant-numeric:tabular-nums}
+.gmy-sum-amt b em{font-style:normal;font-size:.4em;font-weight:700;letter-spacing:.08em;color:var(--muted);margin-inline-start:.4em}
+.gmy-bar{height:6px;border-radius:999px;background:var(--border);overflow:hidden}
+.gmy-bar i{display:block;height:100%;border-radius:999px;background:var(--gmy-c)}
+.gmy-sum-meta{display:flex;justify-content:space-between;gap:10px;margin-top:8px;font-size:calc(12px*var(--app-text-scale,1));font-weight:600;color:var(--muted)}
+.gmy-facts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.gmy-fact{padding:11px 12px;border-radius:14px;background:var(--surface2);border:1px solid var(--border);display:flex;flex-direction:column;gap:1px}
+.gmy-fact small{font-size:calc(11px*var(--app-text-scale,1));font-weight:600;color:var(--muted)}
+.gmy-fact b{font-size:calc(16px*var(--app-text-scale,1));font-weight:800;color:var(--text);font-variant-numeric:tabular-nums}
+.gmy-fact em{font-style:normal;font-size:calc(11px*var(--app-text-scale,1));font-weight:600;color:var(--muted)}
+.gmy-notes{display:flex;flex-direction:column;gap:6px;margin-bottom:12px;padding:0 2px}
+.gmy-notes div{display:flex;gap:8px;align-items:baseline;font-size:calc(12.5px*var(--app-text-scale,1))}
+.gmy-notes small{color:var(--muted);font-weight:600;flex-shrink:0}
+.gmy-notes span{color:var(--text);font-weight:600}
+.gmy-tl-title{font-size:calc(12px*var(--app-text-scale,1));font-weight:700;color:var(--muted);margin:4px 2px 8px;letter-spacing:.02em}
+.gmy-tl{display:flex;flex-direction:column;gap:2px;margin-bottom:8px}
+.gmy-tl-row{display:flex;align-items:center;gap:12px;padding:9px 6px;border-radius:12px}
+.gmy-tl-row.mine{background:color-mix(in srgb,var(--fin-assets) 8%,transparent)}
+.gmy-tl-row.next{background:color-mix(in srgb,var(--fin-assets) 10%,transparent)}
+.gmy-tl-dot{flex:0 0 26px;width:26px;height:26px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:calc(11px*var(--app-text-scale,1));font-weight:700;color:var(--muted);background:var(--surface2);border:1px solid var(--border);font-variant-numeric:tabular-nums}
+.gmy-tl-row.paid .gmy-tl-dot{color:var(--fin-income);background:color-mix(in srgb,var(--fin-income) 14%,transparent);border-color:transparent}
+.gmy-tl-row.late .gmy-tl-dot{color:var(--fin-outcome);background:color-mix(in srgb,var(--fin-outcome) 14%,transparent);border-color:transparent}
+.gmy-tl-row.next .gmy-tl-dot{color:var(--fin-assets);border-color:var(--fin-assets)}
+.gmy-tl-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
+.gmy-tl-main b{font-size:calc(13.5px*var(--app-text-scale,1));font-weight:700;color:var(--text)}
+.gmy-tl-main small{font-size:calc(11.5px*var(--app-text-scale,1));font-weight:600;color:var(--muted)}
+.gmy-tl-row.paid .gmy-tl-main b{color:var(--muted);font-weight:600}
+.gmy-tl-row.late .gmy-tl-main small{color:var(--fin-outcome)}
+.gmy-tl-mine{display:inline-flex;align-items:center;gap:4px;flex-shrink:0;padding:4px 9px;border-radius:999px;font-size:calc(11px*var(--app-text-scale,1));font-weight:700;color:var(--fin-assets);background:color-mix(in srgb,var(--fin-assets) 14%,transparent)}
+/* ── Commit 4: actions, hints, history ── */
+.gmy-acts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.gmy-acts.one{grid-template-columns:1fr}
+.gmy-act{all:unset;box-sizing:border-box;display:flex;align-items:center;justify-content:center;gap:7px;padding:13px 10px;border-radius:14px;cursor:pointer;font-size:calc(14px*var(--app-text-scale,1));font-weight:700;text-align:center;color:var(--text);background:var(--surface2);border:1px solid var(--border);transition:transform .1s ease}
+.gmy-act:active{transform:scale(.97)}
+.gmy-act:focus-visible{outline:2px solid var(--fin-assets);outline-offset:2px}
+.gmy-act.pri{color:#fff;background:var(--fin-assets);border-color:transparent}
+.gmy-act.ready{color:var(--fin-income);background:color-mix(in srgb,var(--fin-income) 13%,var(--surface));border-color:color-mix(in srgb,var(--fin-income) 40%,var(--border))}
+.gmy-done-note{display:flex;align-items:center;justify-content:center;gap:6px;padding:12px;border-radius:14px;font-size:calc(13px*var(--app-text-scale,1));font-weight:700;color:var(--fin-income);background:color-mix(in srgb,var(--fin-income) 10%,transparent)}
+.gmy-hint{min-height:1.2em;margin-top:8px;padding:0 2px;font-size:calc(12.5px*var(--app-text-scale,1));font-weight:600;color:var(--muted)}
+.gmy-hint.ok{color:var(--fin-income)}.gmy-hint.warn{color:var(--warning,#b7791f)}.gmy-hint.bad{color:var(--fin-outcome)}
+.gmy-sum-who{font-weight:700;font-size:calc(15px*var(--app-text-scale,1));min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text)}
+.gmy-h{display:flex;flex-direction:column;gap:2px;margin-bottom:8px}
+.gmy-h-row{display:flex;align-items:center;gap:12px;padding:9px 6px;border-radius:12px}
+.gmy-h-ic{flex:0 0 30px;width:30px;height:30px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center}
+.gmy-h-ic.out{color:var(--fin-outcome);background:color-mix(in srgb,var(--fin-outcome) 12%,transparent)}
+.gmy-h-ic.in{color:var(--fin-income);background:color-mix(in srgb,var(--fin-income) 12%,transparent)}
+.gmy-h-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
+.gmy-h-main b{font-size:calc(14px*var(--app-text-scale,1));font-weight:800;color:var(--text);font-variant-numeric:tabular-nums;align-self:flex-start}
+.gmy-h-main small{font-size:calc(11.5px*var(--app-text-scale,1));font-weight:600;color:var(--muted);overflow:hidden;text-overflow:ellipsis}
+.gmy-h-del{all:unset;box-sizing:border-box;flex:0 0 32px;width:32px;height:32px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;color:var(--muted)}
+.gmy-h-del:hover,.gmy-h-del:focus-visible{color:var(--fin-outcome);background:color-mix(in srgb,var(--fin-outcome) 10%,transparent)}
+</style>
 <style id="finora-assets-v6">
 /* ══ FINORA · Assets v6 — one consistent card system (presentation-only; no logic/data changes) ══
    [framed art, 1:1] + [category chip · name (2 lines) · price]. Accent colour is used only for the chip
