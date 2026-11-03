@@ -29042,50 +29042,31 @@ function _bnkSmoothPath(xy){
 }
 function bnkSparklineSVG(series){
   if(series.length<2) return '';
-  const w=100,h=34,pad=2;
+  const w=100,h=40,padX=1.5,padT=6,padB=3;
   const vals=series.map(d=>d.value);
   const min=Math.min(...vals), max=Math.max(...vals);
   const range=(max-min)||1;
   const n=series.length;
-  // Bar geometry — Apple-Wallet-style columns: each day gets a rounded-top
-  // bar, ~62% of its slot width, remainder as gap. minH keeps even
-  // near-zero days visible as a small stub instead of disappearing.
-  const slot=(w-pad*2)/n;
-  const barW=Math.max(1, slot*0.62);
-  const gap=slot-barW;
-  const usableH=h-pad*2;
-  const minH=2.2;
-  const trendUp = vals[vals.length-1] >= vals[0];
-  const uid = Math.random().toString(36).slice(2,8); // unique ids so multiple cards on one page don't clash
-  const bars=series.map((d,i)=>{
-    const x=+(pad+gap/2+i*slot).toFixed(1);
-    const barH=Math.max(minH, ((d.value-min)/range)*usableH);
-    const y=+(h-pad-barH).toFixed(1);
-    const isLast=i===n-1;
-    const r=Math.min(barW/2, 2.2); // rounded top only, via matching bottom radius clipped by baseline
-    const fill=isLast ? `url(#bnkBarLast${uid})` : `url(#bnkBarRest${uid})`;
-    const cx=+(x+barW/2).toFixed(1);
-    return `<rect x="${x}" y="${y}" width="${barW.toFixed(1)}" height="${barH.toFixed(1)}" rx="${r}" ry="${r}" fill="${fill}"
-      cx="${cx}" cy="${y}" data-date="${d.date}" data-val="${d.value}" style="cursor:pointer" onclick="bnkSparkShowTip(event)"><title>${d.date}</title></rect>`;
-  }).join('');
-  return `<svg viewBox="0 0 ${w} ${h}" width="100%" height="38" preserveAspectRatio="none">
-    <defs>
-      <!-- Card System unification: was hardcoded white-based gradients built
-           for the old permanent dark-glass hero; now the hero is a
-           theme-aware calm surface (see .banks-v2 .bnk-hero), so these read
-           off the same --green/--red tokens the rest of the app uses,
-           adapting automatically to light/dark instead of going invisible
-           on a light surface. Same bar geometry/positions, colors only. -->
-      <linearGradient id="bnkBarRest${uid}" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stop-color="var(--green)" stop-opacity=".55"/>
-        <stop offset="100%" stop-color="var(--green)" stop-opacity=".18"/>
-      </linearGradient>
-      <linearGradient id="bnkBarLast${uid}" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stop-color="${trendUp?'var(--green)':'var(--red)'}" stop-opacity="1"/>
-        <stop offset="100%" stop-color="${trendUp?'var(--green)':'var(--red)'}" stop-opacity=".5"/>
-      </linearGradient>
-    </defs>
-    ${bars}
+  const stepX=(w-padX*2)/(n-1);
+  const pts=series.map((d,i)=>({x:+(padX+i*stepX).toFixed(2), y:+(h-padB-((d.value-min)/range)*(h-padT-padB)).toFixed(2), d}));
+  // smooth curve (Catmull-Rom → cubic Bézier)
+  let path='M'+pts[0].x+' '+pts[0].y;
+  for(let i=0;i<n-1;i++){
+    const p0=pts[i-1]||pts[i], p1=pts[i], p2=pts[i+1], p3=pts[i+2]||p2;
+    const c1x=p1.x+(p2.x-p0.x)/6, c1y=p1.y+(p2.y-p0.y)/6, c2x=p2.x-(p3.x-p1.x)/6, c2y=p2.y-(p3.y-p1.y)/6;
+    path+=' C'+c1x.toFixed(2)+' '+c1y.toFixed(2)+' '+c2x.toFixed(2)+' '+c2y.toFixed(2)+' '+p2.x+' '+p2.y;
+  }
+  const area=path+' L'+pts[n-1].x+' '+h+' L'+pts[0].x+' '+h+' Z';
+  const trendUp=vals[n-1]>=vals[0];
+  const uid=Math.random().toString(36).slice(2,8);
+  // invisible full-height hit columns keep the tap-for-tooltip behaviour (data-date / data-val / cx / cy)
+  const hits=pts.map(pt=>`<rect x="${(pt.x-stepX/2).toFixed(2)}" y="0" width="${stepX.toFixed(2)}" height="${h}" fill="transparent" cx="${pt.x}" cy="${pt.y}" data-date="${pt.d.date}" data-val="${pt.d.value}" style="cursor:pointer" onclick="bnkSparkShowTip(event)"><title>${pt.d.date}</title></rect>`).join('');
+  const last=pts[n-1];
+  return `<svg class="bnk-spark-svg ${trendUp?'up':'down'}" viewBox="0 0 ${w} ${h}" width="100%" height="56" preserveAspectRatio="none">
+    <defs><linearGradient id="bnkArea${uid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="currentColor" stop-opacity=".28"/><stop offset="100%" stop-color="currentColor" stop-opacity="0"/></linearGradient></defs>
+    <path d="${area}" fill="url(#bnkArea${uid})"/>
+    <path d="${path}" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>
+    ${hits}
   </svg>`;
 }
 // Shows a small "date · amount" tooltip above the tapped sparkline point.
@@ -40585,6 +40566,8 @@ function _prCardHTML(r){
   const work=_rqIrLabel(r), floor=_rqFloorLabel(r.floor);
   const logo=_rqCoLogoSrc(r.company)?bankLogoHTML(_rqCoLogoSrc(r.company),44,{alt:esc(co)}):ic('building',22);
   const numeric=/^[\d\s\-–—\/.,]+$/.test(plot||'');
+  const stTxt={ok:L('Received','تم الاستلام'),low:L('With notes','بملاحظات'),over:L('Not received','لم يتم')}[st.cls]||'';
+  const chips=(co?`<span class="pr-chip" dir="auto">${esc(co)}</span>`:'')+(floor?`<span class="pr-chip fl" dir="auto">${esc(floor)}</span>`:'');
   const grip=`<svg width="14" height="18" viewBox="0 0 16 20" fill="none"><circle cx="5" cy="4" r="1.6" fill="currentColor"/><circle cx="11" cy="4" r="1.6" fill="currentColor"/><circle cx="5" cy="10" r="1.6" fill="currentColor"/><circle cx="11" cy="10" r="1.6" fill="currentColor"/><circle cx="5" cy="16" r="1.6" fill="currentColor"/><circle cx="11" cy="16" r="1.6" fill="currentColor"/></svg>`;
   // swipe the card to the right to reveal "Delete"; the grip (press & hold) reorders the cards of the same day
   return `<div class="pr-swipe" data-id="${r.id}">
@@ -40593,9 +40576,9 @@ function _prCardHTML(r){
     <div class="pr-drag drag-handle" data-id="${r.id}" title="${esc(L('Hold & drag to reorder','اضغط واسحب لإعادة الترتيب'))}" style="touch-action:pan-y">${grip}</div>
     <span class="pr-logo">${logo}</span>
     <span class="pr-main">
-      <span class="pr-top"><span class="pr-plot">${numeric?`<small>${L('Plot','قطعة')}</small>`:''}<b dir="auto">${esc(plot||'—')}</b></span><i class="rq-dot ${st.cls}" title="${esc(_rqStatusLabel(r.status))}"></i></span>
+      <span class="pr-top"><span class="pr-plot">${numeric?`<small>${L('Plot','قطعة')}</small>`:''}<b dir="auto">${esc(plot||'—')}</b></span><span class="pr-st" title="${esc(_rqStatusLabel(r.status))}"><i></i>${stTxt}</span></span>
       ${work?`<span class="pr-work" dir="auto">${esc(work)}</span>`:`<span class="pr-work none">${L('No inspection type','بدون نوع استلامة')}</span>`}
-      <span class="pr-co" dir="auto">${esc(co)}${floor?` · ${esc(floor)}`:''}</span>
+      ${chips?`<span class="pr-chips">${chips}</span>`:''}
     </span>
   </div></div>`;
 }
@@ -40682,6 +40665,8 @@ function _prSwEnd(e){
 }
 document.addEventListener('pointerup',_prSwEnd,true);
 document.addEventListener('pointercancel',_prSwEnd,true);
+// while a horizontal card-swipe is locked, the page itself must not pan / rubber-band with the finger
+document.addEventListener('touchmove',function(e){ if(_prSw&&_prSw.lock==='h'&&e.cancelable) e.preventDefault(); },{passive:false,capture:true});
 function renderPours(){
   const everything=_rqLoad().filter(r=>r.pour===true);
   const curMonth=(typeof activeMonth!=='undefined')?activeMonth:'';
@@ -40694,13 +40679,11 @@ function renderPours(){
     .sort(_prCmp(_prOrder()));
   const groups=[];
   list.forEach(r=>{ const d=String(r.date||''); if(!groups.length||groups[groups.length-1].d!==d) groups.push({d,items:[]}); groups[groups.length-1].items.push(r); });
-  let mLbl=curMonth; try{ mLbl=_monthDisplayLabel(curMonth); }catch(e){}
   const scopeBtn=(k,txt,n)=>`<button type="button" class="rq-scope-b${_prScope===k?' on':''}" aria-pressed="${_prScope===k}" onclick="_prSetScope('${k}')">${txt}<em>${n}</em></button>`;
   const stat=(n,lbl,cls)=>`<div class="pr-stat ${cls||''}"><b>${n}</b><span>${lbl}</span></div>`;
-  const summary=everything.length?`<div class="pr-sum">
-      <div class="pr-sum-ic">${ic('droplet',22)}</div>
-      <div class="pr-sum-st">${stat(everything.length,L('Total CPP','إجمالي CPP'))}${stat(monthN,L('This month','الشهر ده'))}${stat(todayN,L('Today','النهاردة'),todayN?'hot':'')}</div>
-    </div>`:'';
+  let mLbl=curMonth; try{ mLbl=_monthDisplayLabel(curMonth); }catch(e){}
+  const kpi=(n,lbl,cls)=>`<div class="pr-kpi ${cls||''}"><b>${n}</b><span>${lbl}</span></div>`;
+  const summary=everything.length?`<div class="pr-kpis">${kpi(everything.length,L('Total CPP','إجمالي CPP'),'')}${kpi(monthN,esc(mLbl),'blue')}${kpi(todayN,L('Today','النهاردة'),todayN?'ok':'zero')}</div>`:'';
   const empty=everything.length===0
     ? `<div class="cst-empty-state">
          <div class="cst-empty-icon">${ic('droplet',26)}</div>
@@ -40716,6 +40699,8 @@ function renderPours(){
   ${_cxTabsHTML()}
   ${_cxRqSubHTML()}
   <section class="cx-sec">
+    <div class="cx-sh"><span class="cx-sh-l"><span class="cx-sh-t">CPP</span><span class="cx-sh-s">${everything.length} ${L('requests','طلب')}</span></span></div>
+    ${summary}
     ${everything.length?`<div class="pr-scope"><div class="rq-scope" role="group">${scopeBtn('all',L('All CPP','كل CPP'),everything.length)}${scopeBtn('month',esc(mLbl),monthN)}</div></div>
     <div class="sc-search cx-search"><span class="cx-sbox">
       <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
@@ -65383,7 +65368,6 @@ body #mainContent .fin-page .sdb-allclear{margin:12px 16px 4px;padding:14px;bord
 /* My Job · Receipts + CPP — quiet, premium: neutral surfaces, hairline borders, muted tones instead of saturated colours */
 .cx-wrap{--pm-ok:#7c9c8c;--pm-low:#b3a074;--pm-over:#b08783;--pm-ok-t:#4f7260;--pm-low-t:#7f6d42;--pm-over-t:#8c5853;--pm-line:color-mix(in srgb,var(--text) 10%,transparent)}
 [data-theme="dark"] .cx-wrap{--pm-ok:#7fa593;--pm-low:#bda877;--pm-over:#b88c88;--pm-ok-t:#9cc0af;--pm-low-t:#d0bc8c;--pm-over-t:#d4a29d;--pm-line:rgba(255,255,255,.09)}
-.cx-wrap .rq-t,.cx-wrap .rq-tchip{--rq-tc:var(--sub)!important}
 /* headings */
 .cx-wrap .cx-sh-t{border-inline-start:0!important;padding-inline-start:0!important;font-size:calc(21px*var(--app-text-scale,1))!important;font-weight:650!important;letter-spacing:-.02em}
 .cx-wrap .cx-sh-s{padding-inline-start:0!important;color:var(--muted)}
@@ -65446,6 +65430,132 @@ body #mainContent .fin-page .sdb-allclear{margin:12px 16px 4px;padding:14px;bord
 .cx-wrap .prj-bar{border-color:var(--pm-line)!important;box-shadow:none!important}
 .cx-wrap .prj-ic:not(.has-logo){background:var(--surface2)!important;color:var(--sub)!important}
 .cx-wrap .cx-hdr-pf [class*="pf"],.cx-wrap .cx-hdr-pf button{box-shadow:none!important}
+</style>
+
+<style id="cx-pro-css">
+/* My Job · Receipts + CPP — professional pass: clean white surfaces, soft depth, meaningful colour (status / receipt type) */
+html,body{overscroll-behavior-x:none}
+.cx-wrap{overflow-x:clip;--pm-ok:#1f9d6b;--pm-low:#d99a1a;--pm-over:#d64b4b;--pm-ok-t:#157a52;--pm-low-t:#8a6209;--pm-over-t:#b23a3a;--pm-acc:var(--blue,#2563eb);--pm-line:color-mix(in srgb,var(--text) 9%,transparent);--pm-sh:0 1px 2px rgba(16,24,40,.05),0 8px 18px -10px rgba(16,24,40,.14)}
+[data-theme="dark"] .cx-wrap{--pm-ok:#34c38f;--pm-low:#e8b64a;--pm-over:#ef6b6b;--pm-ok-t:#6fdcb2;--pm-low-t:#f0cb7a;--pm-over-t:#f59a9a;--pm-line:rgba(255,255,255,.09);--pm-sh:0 1px 0 rgba(255,255,255,.03),0 10px 22px -12px rgba(0,0,0,.65)}
+/* headings + tabs */
+.cx-wrap .cx-sh-t{font-size:calc(22px*var(--app-text-scale,1))!important;font-weight:750!important;letter-spacing:-.025em;color:var(--text)}
+.cx-wrap .cx-sh-s{font-size:calc(13px*var(--app-text-scale,1));color:var(--sub);font-weight:500}
+.cx-wrap .rq-grand b{color:var(--pm-acc)!important}
+.cx-wrap .cx-seg-btn.on,.cx-wrap .cx-seg-btn.on svg{color:var(--pm-acc)!important}
+/* Receipts | CPP switch */
+.cx-wrap .rq-scope{background:color-mix(in srgb,var(--text) 6%,var(--surface2));padding:3px;border-radius:14px;border:0}
+.cx-wrap .rq-scope-b{border-radius:11px;font-weight:650;color:var(--sub)!important}
+.cx-wrap .rq-scope-b.on{background:var(--surface)!important;color:var(--text)!important;box-shadow:var(--pm-sh)!important}
+.cx-wrap .rq-scope-b em{font-style:normal;margin-inline-start:6px;padding:1px 8px;border-radius:99px;background:color-mix(in srgb,var(--text) 8%,transparent);color:var(--sub)!important;font-size:.85em;font-weight:700}
+.cx-wrap .rq-scope-b.on em{background:color-mix(in srgb,var(--pm-acc) 14%,transparent)!important;color:var(--pm-acc)!important}
+/* month stepper */
+.cx-wrap .rq-mn-b{background:var(--surface);border:1px solid var(--pm-line);box-shadow:var(--pm-sh);color:var(--text2)}
+.cx-wrap .rq-mn-b:disabled{opacity:.4;box-shadow:none}
+.cx-wrap .rq-mn-c{background:var(--surface)!important;border:1px solid var(--pm-line);box-shadow:var(--pm-sh);font-weight:750;color:var(--text)}
+.cx-wrap .rq-mn-c em{font-style:normal;margin-inline-start:8px;padding:1px 9px;border-radius:99px;background:color-mix(in srgb,var(--pm-acc) 14%,transparent);color:var(--pm-acc);font-size:.85em;font-weight:700}
+.cx-wrap .rq-mn-now{background:color-mix(in srgb,var(--pm-acc) 12%,transparent)!important;color:var(--pm-acc)!important;border:0!important;font-weight:700}
+/* summary card */
+.cx-wrap .rq-sum{background:var(--surface)!important;border:1px solid var(--pm-line)!important;box-shadow:var(--pm-sh)!important;border-radius:20px;padding:16px;gap:14px}
+.cx-wrap .rq-sum-bar{height:8px;gap:3px;border-radius:99px;overflow:hidden;background:color-mix(in srgb,var(--text) 6%,transparent)}
+.cx-wrap .rq-sum-bar i{border-radius:99px}
+.cx-wrap .rq-sf{--rq-s:var(--pm-ok);align-items:flex-start;gap:2px;padding:11px 12px;border-radius:14px;background:color-mix(in srgb,var(--rq-s) 11%,var(--surface))!important;border:1px solid color-mix(in srgb,var(--rq-s) 22%,transparent)!important}
+.cx-wrap .rq-sf.ok{--rq-s:var(--pm-ok)}.cx-wrap .rq-sf.low{--rq-s:var(--pm-low)}.cx-wrap .rq-sf.over{--rq-s:var(--pm-over)}
+.cx-wrap .rq-sf b{font-size:calc(24px*var(--app-text-scale,1));font-weight:750;line-height:1.1;color:var(--rq-s)!important}
+.cx-wrap .rq-sf span{color:var(--text2)!important;font-weight:600}
+.cx-wrap .rq-sf.zero{opacity:.55}
+.cx-wrap .rq-sf.on{border-color:var(--rq-s)!important;box-shadow:0 0 0 1px var(--rq-s)}
+/* type chips */
+.cx-wrap .rq-tchip{background:color-mix(in srgb,var(--rq-tc) 10%,var(--surface))!important;border:1px solid color-mix(in srgb,var(--rq-tc) 30%,transparent)!important}
+.cx-wrap .rq-tchip i{background:var(--rq-tc)!important}
+.cx-wrap .rq-tchip .rq-tc-l{color:color-mix(in srgb,var(--rq-tc) 80%,var(--text))!important}
+.cx-wrap .rq-tchip b{color:var(--sub)!important}
+.cx-wrap .rq-tchip.on{background:var(--rq-tc)!important;border-color:var(--rq-tc)!important}
+.cx-wrap .rq-tchip.on .rq-tc-l,.cx-wrap .rq-tchip.on b{color:#fff!important}
+.cx-wrap .rq-tchip.on i{background:#fff!important}
+/* My Report row */
+.cx-wrap .rq-hub{background:var(--surface);border:1px solid var(--pm-line)!important;box-shadow:var(--pm-sh)!important;border-radius:18px}
+.cx-wrap .rq-hub-ic{background:color-mix(in srgb,var(--pm-acc) 12%,var(--surface))!important;color:var(--pm-acc)!important}
+.cx-wrap .rq-hub-go{background:var(--pm-acc)!important;color:#fff!important;border:0!important;font-weight:700;padding:7px 16px}
+.cx-wrap .rq-hub-dot,.cx-wrap .rq-hub-dot.on{background:var(--pm-ok)!important}
+/* search + view switch */
+.cx-wrap .sc-search.cx-search .cx-sbox>input{background:var(--surface);border:1px solid var(--pm-line);box-shadow:var(--pm-sh)}
+.cx-wrap .rq-vbar{background:var(--surface)!important;border:1px solid var(--pm-line)!important;box-shadow:var(--pm-sh)}
+.cx-wrap .rq-vbtn{color:var(--muted)}
+.cx-wrap .rq-vbtn.on{background:color-mix(in srgb,var(--pm-acc) 13%,transparent)!important;color:var(--pm-acc)!important;box-shadow:none!important}
+/* day headers */
+.cx-wrap .rq-day b,.cx-wrap .pr-day b{font-weight:700;color:var(--text);font-size:calc(13px*var(--app-text-scale,1))}
+.cx-wrap .rq-day span,.cx-wrap .pr-day span{background:var(--surface);border:1px solid var(--pm-line);color:var(--sub);padding:1px 9px;border-radius:99px;font-weight:700;font-size:calc(11px*var(--app-text-scale,1))}
+/* tiles / rows / cards: receipt-type colour is back */
+.cx-wrap .rq-tile{background:var(--surface);border:1px solid color-mix(in srgb,var(--rq-tc) 28%,var(--pm-line))!important;border-radius:14px;box-shadow:var(--pm-sh)}
+.cx-wrap .rq-tile-meta{background:color-mix(in srgb,var(--rq-tc) 13%,var(--surface))!important;border-top:1px solid color-mix(in srgb,var(--rq-tc) 22%,transparent)!important}
+.cx-wrap .rq-tile-meta b,.cx-wrap .rq-tile-meta .rq-tl-pre{color:color-mix(in srgb,var(--rq-tc) 82%,var(--text))!important}
+.cx-wrap .rq-tile .rq-dot{width:9px;height:9px}
+.cx-wrap .rq-card.rq-t,.cx-wrap .rq-card,.cx-wrap .rq-row{background:var(--surface)!important;border:1px solid var(--pm-line)!important;border-inline-start:4px solid var(--rq-tc,var(--pm-line))!important;box-shadow:var(--pm-sh)!important;border-radius:16px}
+.cx-wrap .rq-card .rq-avatar{background:color-mix(in srgb,var(--rq-tc) 13%,var(--surface))!important;color:var(--rq-tc)!important}
+.cx-wrap .rq-card .rq-type{color:color-mix(in srgb,var(--rq-tc) 80%,var(--text))!important;font-weight:700}
+.cx-wrap .rq-row-plot b{color:color-mix(in srgb,var(--rq-tc) 80%,var(--text))}
+.cx-wrap .cx-chip{border:0!important;font-weight:700}
+.cx-wrap .cx-chip.ok{background:color-mix(in srgb,var(--pm-ok) 14%,var(--surface))!important;color:var(--pm-ok-t)!important}
+.cx-wrap .cx-chip.low{background:color-mix(in srgb,var(--pm-low) 16%,var(--surface))!important;color:var(--pm-low-t)!important}
+.cx-wrap .cx-chip.over{background:color-mix(in srgb,var(--pm-over) 14%,var(--surface))!important;color:var(--pm-over-t)!important}
+
+/* ── CPP page ── */
+.pr-kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.pr-kpi{display:flex;flex-direction:column;gap:4px;min-width:0;padding:12px 14px;border-radius:16px;background:var(--surface);border:1px solid var(--pm-line);box-shadow:var(--pm-sh)}
+.pr-kpi b{font-size:calc(26px*var(--app-text-scale,1));font-weight:750;line-height:1;color:var(--text);font-variant-numeric:tabular-nums}
+.pr-kpi span{font-size:calc(12px*var(--app-text-scale,1));font-weight:600;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pr-kpi.blue{background:color-mix(in srgb,var(--pm-acc) 9%,var(--surface));border-color:color-mix(in srgb,var(--pm-acc) 22%,transparent)}
+.pr-kpi.blue b{color:var(--pm-acc)}
+.pr-kpi.ok{background:color-mix(in srgb,var(--pm-ok) 10%,var(--surface));border-color:color-mix(in srgb,var(--pm-ok) 24%,transparent)}
+.pr-kpi.ok b{color:var(--pm-ok)}
+.pr-kpi.zero b{color:var(--muted)}
+/* card: clipped so the swipe can never widen the page; accent bar + status pill + chips */
+.cx-wrap .pr-swipe{position:relative;overflow:hidden;border-radius:18px;box-shadow:var(--pm-sh);background:transparent}
+.cx-wrap .pr-swipe.drag-dragging{overflow:visible;box-shadow:var(--shadow-xl)}
+.cx-wrap .pr-swipe-del{direction:ltr;justify-content:flex-start;border-radius:18px;background:var(--pm-over)}
+.cx-wrap .pr-swipe .pr-card{position:relative;align-items:center;gap:10px;padding-block:12px;padding-inline:0 14px;border-radius:18px;background:var(--surface);border:1px solid var(--pm-line)!important;border-inline-start:1px solid var(--pm-line)!important;box-shadow:none;touch-action:pan-y}
+.cx-wrap .pr-swipe .pr-card::before{content:'';position:absolute;inset-block:14px;inset-inline-start:0;width:4px;background:var(--pc);border-start-end-radius:4px;border-end-end-radius:4px}
+.cx-wrap .pr-swipe .pr-drag{opacity:.4;padding:0 4px 0 12px;min-width:30px}
+.cx-wrap .pr-swipe .pr-logo{width:52px;height:52px;border-radius:14px;background:#fff;border:1px solid var(--pm-line)}
+.cx-wrap .pr-swipe .pr-main{gap:5px}
+.cx-wrap .pr-swipe .pr-plot b{font-size:calc(20px*var(--app-text-scale,1));font-weight:750;color:var(--text)}
+.cx-wrap .pr-swipe .pr-plot small{font-weight:600;color:var(--sub)}
+.cx-wrap .pr-swipe .pr-work{color:var(--text)!important;font-weight:650;font-size:calc(13.5px*var(--app-text-scale,1))}
+.cx-wrap .pr-swipe .pr-work.none{color:var(--muted)!important;font-weight:500}
+.pr-st{flex:none;display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:99px;font-size:calc(11px*var(--app-text-scale,1));font-weight:700;line-height:1.3;background:color-mix(in srgb,var(--pc) 14%,var(--surface))}
+.pr-st i{width:6px;height:6px;border-radius:50%;background:var(--pc)}
+.pr-card.ok .pr-st{color:var(--pm-ok-t)}.pr-card.low .pr-st{color:var(--pm-low-t)}.pr-card.over .pr-st{color:var(--pm-over-t)}
+.pr-chips{display:flex;flex-wrap:wrap;gap:6px}
+.pr-chip{display:inline-flex;align-items:center;max-width:100%;padding:2px 10px;border-radius:99px;background:var(--surface2);color:var(--text2);font-size:calc(11.5px*var(--app-text-scale,1));font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pr-chip.fl{background:color-mix(in srgb,var(--pm-acc) 11%,var(--surface));color:var(--pm-acc)}
+</style>
+
+<style id="bnk-hero-pro-css">
+/* Accounts · hero: the one "feature" card on the page — deep navy, hairline gold rule, no glow/blobs */
+body #mainContent .screen-wrap.banks-v2 .bnk-hero{
+  background:linear-gradient(160deg,#16305e 0%,#0d1f42 62%,#0a1833 100%)!important;background-image:linear-gradient(160deg,#16305e 0%,#0d1f42 62%,#0a1833 100%)!important;
+  border:1px solid rgba(255,255,255,.08)!important;border-top:2px solid var(--gold-light,#D4AF37)!important;border-inline-start-width:1px!important;
+  border-radius:24px;padding:20px 20px 14px;color:#fff;
+  box-shadow:0 18px 30px -18px rgba(10,24,51,.65),0 2px 6px rgba(10,24,51,.18)!important}
+body #mainContent .screen-wrap.banks-v2 .bnk-hero::before{display:none!important}
+.banks-v2 .bnk-hero .bnk-hero-eyebrow{color:var(--gold-light,#E3C675);font-weight:700;letter-spacing:.06em;font-size:calc(11.5px*var(--app-text-scale,1))}
+.banks-v2 .bnk-hero .bnk-hero-eye,.banks-v2 .bnk-hero .bnk-hero-month-pill{background:rgba(255,255,255,.10);color:rgba(255,255,255,.86)}
+.banks-v2 .bnk-hero .bnk-hero-total-lbl{color:rgba(255,255,255,.62);font-weight:600;margin-top:18px}
+.banks-v2 .bnk-hero .bnk-hero-total{color:#fff}
+.banks-v2 .bnk-hero .sig-num{--sig-a:#ffffff;--sig-b:#cfdcf7}
+.banks-v2 .bnk-hero .bnk-hero-total .sig-amt{font-weight:750;letter-spacing:-.03em;filter:none!important;text-shadow:none}
+.banks-v2 .bnk-hero .sig-cur{background:rgba(255,255,255,.12)!important;color:rgba(255,255,255,.82)!important;-webkit-text-fill-color:currentColor}
+.banks-v2 .bnk-hero .bnk-hero-wallets{color:rgba(255,255,255,.66)!important;font-weight:600!important}
+.banks-v2 .bnk-hero .bnk-hero-row{margin-top:16px;gap:0;align-items:center}
+.banks-v2 .bnk-hero .bnk-hero-chip.up{background:rgba(52,195,143,.16);color:#7be3b9}
+.banks-v2 .bnk-hero .bnk-hero-chip.down{background:rgba(255,107,107,.16);color:#ffa3a3}
+.banks-v2 .bnk-hero .bnk-hero-stat{margin-inline-start:14px;padding-inline-start:14px;border-inline-start:1px solid rgba(255,255,255,.16)}
+.banks-v2 .bnk-hero .bnk-hero-stat-val{color:#fff;font-size:calc(18px*var(--app-text-scale,1));line-height:1.1}
+.banks-v2 .bnk-hero .bnk-hero-stat-lbl{color:rgba(255,255,255,.6);margin-top:1px}
+.banks-v2 .bnk-hero .bnk-hero-spark{margin:14px -6px 0;color:#8fb4ff}
+.banks-v2 .bnk-hero .bnk-hero-spark .bnk-spark-svg.down{color:#ff9d9d}
+.banks-v2 .bnk-hero .bnk-hero-spark .bnk-spark-svg.up{color:#7be3b9}
+.banks-v2 .bnk-hero .bnk-mask{color:rgba(255,255,255,.75)}
 </style>
 </body>
 </html>
