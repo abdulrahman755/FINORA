@@ -15776,12 +15776,12 @@ function updateNavLabels(){
     ['navBtn-Dashboard',   'Dashboard',    'لوحة المؤشرات'],
     ['navBtn-Banks',       'Accounts',     'الحسابات'],
     ['navBtn-Daily',       'Daily Spend',  'الإنفاق اليومي'],
-    ['navBtn-SiteCustody', 'My Job', 'My Job'],
+    ['navBtn-SiteCustody', 'My Job', 'وظيفتي'],
     ['navBtn-MySavings',   'My Finances',  'أموالي'],
   ];
   iconBtnTitles.forEach(([id,tEN,tAR])=>{
     const el=document.getElementById(id);
-    if(el) el.title=lang==='ar'?tAR:tEN;
+    if(el){ el.title=lang==='ar'?tAR:tEN; el.setAttribute('aria-label',lang==='ar'?tAR:tEN); }
     const labelEl=document.getElementById(id+'-label');
     if(labelEl) labelEl.textContent=lang==='ar'?tAR:tEN;
   });
@@ -16455,7 +16455,7 @@ function renderView(preserveScroll){
   if(typeof _getBankBalanceCache!=='undefined' && DATA[activeMonth]) _getBankBalanceCache.delete(DATA[activeMonth]);
   try{ sessionStorage.setItem('fnr_month_v1',activeMonth); }catch(e){}
   const m=DATA[activeMonth];
-  document.getElementById('headerSub').textContent=MONTH_NAMES[activeMonth]||activeMonth;
+  document.getElementById('headerSub').textContent=_monthDisplayLabel(activeMonth);
   const c=document.getElementById('mainContent');
   const _preservedScrollY = preserveScroll ? window.scrollY : 0;
   c.classList.add('screen-mode');
@@ -16920,7 +16920,7 @@ function fdRenderExpenseTrendChart(){
   // orange), matching the same --red/--fin-outcome tone used for expense
   // KPIs elsewhere on the dashboard. Theme-aware, same as gc/tc above.
   const expC=isDark?'#DD766B':'#B2534A';
-  const labels=MONTHS_ORDER.map(k=>(MONTH_NAMES[k]||k).split(' ')[0]||(k.split('-')[0]));
+  const labels=MONTHS_ORDER.map(k=>_monthDisplayLabel(k).split(' ')[0]||(k.split('-')[0]));
   const data=MONTHS_ORDER.map(k=>{const mm=DATA[k]||{};return (mm.transactions||[]).reduce((s,t)=>s+(t.payment||0),0)+(mm.site_expenses||[]).reduce((s,e)=>s+(e.amount||0),0);});
   if(!data.length){ canvas.parentElement.innerHTML=`<div class="list-empty">${L('No expense data yet','لا توجد بيانات مصروفات بعد')}</div>`; return; }
   const activeIdx=MONTHS_ORDER.indexOf(activeMonth), max=Math.max(1,...data);
@@ -17724,7 +17724,7 @@ function renderCustodyDashboardCard(m){
     <div class="sc-card dash-hero-card" style="padding:0;overflow:hidden">
       <div class="dash-hero">
         <div class="dfp-card-head" style="position:relative;z-index:1;margin-bottom:0">
-          <span class="dash-hero-eyebrow">${ic('lock', 12, 'aria-hidden="true"')} ${L('My Job','My Job')}</span>
+          <span class="dash-hero-eyebrow">${ic('lock', 12, 'aria-hidden="true"')} ${L('My Job','وظيفتي')}</span>
         </div>
         <div class="dash-hero-main">
           <div class="dash-hero-main-lbl">${L('Remaining Custody','المتبقي من العهدة')}</div>
@@ -18015,7 +18015,7 @@ function _fdIntelCompute(m, sig){
     D.push([L('Cash cover','تغطية السيولة'), coverDays<7?12:coverDays<15?8:4]);
   }
   if(custodyRemaining<0){
-    A.push({sev:'danger', icon:'lock', title:L('My Job overspent','تجاوز في My Job'),
+    A.push({sev:'danger', icon:'lock', title:L('My Job overspent','تجاوز في وظيفتي'),
       desc:L(`Site expenses exceeded the deposited custody by ${f(-custodyRemaining)}`, `مصروفات الموقع تجاوزت العهدة المودعة بمقدار ${f(-custodyRemaining)}`)});
     D.push([L('Custody','العهدة'), 12]);
   }
@@ -18565,7 +18565,7 @@ function _dfpMonthlyBalanceSeries(m, count){
   return keys.filter(key => DATA[key]).map(key => {
     const mm = DATA[key];
     const total = banks.reduce((s,b)=>s+getBankBalance(mm, b.key), 0);
-    return { label: MONTH_NAMES[key]||key, exp: total };
+    return { label: _monthDisplayLabel(key), exp: total };
   });
 }
 // Single-series labeled bar chart — same structure/sizing as
@@ -18631,7 +18631,7 @@ function renderMonthlyComparisonCard(m, sig){
   const _cmpKeys = (_cmpIdx>=0 ? MONTHS_ORDER.slice(0,_cmpIdx+1) : MONTHS_ORDER.slice()).filter(k=>DATA[k]);
   const _cmpAll = _cmpKeys.map(k=>{
     const st = fdFinanceStats(k);
-    return {key:k, name:MONTH_NAMES[k]||k, inc:st.totalIncomeMonth, exp:st.totalExpMonth, profit:st.monthlyProfit, cf:st.netCashFlow, open:k===_cmpCurKey};
+    return {key:k, name:_monthDisplayLabel(k), inc:st.totalIncomeMonth, exp:st.totalExpMonth, profit:st.monthlyProfit, cf:st.netCashFlow, open:k===_cmpCurKey};
   });
   // The still-running calendar month is partial, so it is kept out of the
   // best/worst ranking and averages (unless that would leave < 2 months).
@@ -19339,7 +19339,7 @@ function renderWorkspaceDashboard(m){
   if(canFinance) candidates.push({id:'attendance', icon:'attendance', label:L('Attendance','الحضور والانصراف'), body:dfpSafeCard(()=>ATT.dashCard()), foldable:true, summary:(()=>{ try{ return ATT.dashSummary(); }catch(e){ return ''; } })()});
   if(canFinance) candidates.push({id:'materials', icon:'package', label:L('Materials','الخامات'), body:dfpSafeCard(()=>renderMaterialsDashCard()), foldable:true, summary:(()=>{ try{ return _matSummary(); }catch(e){ return ''; } })()});
   if(canFinance) candidates.push({id:'sysintel', icon:'insight', label:L('AI Insights','تحليلات ذكية'), body:renderSystemIntelligenceV3(m, sig), foldable:true});
-  if(canFinance) candidates.push({id:'site', icon:'lock', label:L('My Job','My Job'), body:renderCustodyDashboardCard(m), foldable:true, summary:`${L('Remaining','المتبقي')}: ${sig.custodyRemaining<0?'-':''}${fmtEGP(Math.abs(sig.custodyRemaining))}`});
+  if(canFinance) candidates.push({id:'site', icon:'lock', label:L('My Job','وظيفتي'), body:renderCustodyDashboardCard(m), foldable:true, summary:`${L('Remaining','المتبقي')}: ${sig.custodyRemaining<0?'-':''}${fmtEGP(Math.abs(sig.custodyRemaining))}`});
   if(canFinance) candidates.push({id:'comparison', icon:'chart', label:L('Monthly Comparison','مقارنة شهرية'), body:DashboardLazy.placeholder('monthlyComparison', ()=>dfpSafeCard(
     ()=>renderMonthlyComparisonCard(m, sig),
     ()=>!(sig && sig.prevStats),
@@ -22326,6 +22326,32 @@ function savAssetCardMeta(x){
 const AST_AUTO_CUTOUT = true;   // set to false to never touch white backgrounds
 const AST_CUT_HOLES = true;     // also clear enclosed white pockets (ring interior); false = edge background only
 const _AST_CUT = {};
+const _AST_AR = {};   // cut-out aspect ratio (w/h) per picture — lets the stylesheet size + centre the product and seat its contact shadow
+// v8 · "studio" pictures: a product shot on a plain, non-white backdrop (beige, grey, black…). Instead of
+// floating it as a loose box (or cropping it), the stage takes the backdrop colour and the picture's edges
+// dissolve into it. Display only — the stored image is never changed.
+function _astStudio(box, spec){
+  const p=spec.split('|');
+  box.style.setProperty('--ast-bg1','rgb('+p[1]+')');
+  box.style.setProperty('--ast-bg2','rgb('+p[2]+')');
+  box.style.setProperty('--ast-fit',p[3]==='c'?'cover':'contain');
+  box.dataset.astmode='studio';
+}
+function _astEdges(d,cw,ch){
+  // mean colour + spread of each picture edge (3px band); transparent pixels are ignored
+  const band=Math.max(1,Math.min(3,Math.floor(Math.min(cw,ch)/20)));
+  const side=(x0,y0,x1,y1)=>{
+    let n=0,s=[0,0,0],q=[0,0,0];
+    for(let y=y0;y<y1;y++) for(let x=x0;x<x1;x++){
+      const i=(y*cw+x)*4; if(d[i+3]<24) continue;
+      n++; for(let c=0;c<3;c++){ const v=d[i+c]; s[c]+=v; q[c]+=v*v; }
+    }
+    if(n<4) return null;
+    const m=s.map(v=>v/n), sd=q.map((v,c)=>Math.sqrt(Math.max(0,v/n-m[c]*m[c])));
+    return {m,sd:Math.max(sd[0],sd[1],sd[2])};
+  };
+  return { t:side(0,0,cw,band), b:side(0,ch-band,cw,ch), l:side(0,0,band,ch), r:side(cw-band,0,cw,ch) };
+}
 function _astKey(src){ return src.length+'_'+src.slice(-32)+src.slice(48,72); }
 function _astProbe(img){
   try{
@@ -22336,6 +22362,8 @@ function _astProbe(img){
     const hit = key ? _AST_CUT[key] : null;
     if(hit){
       if(hit==='photo' || hit==='fit' || hit==='blend'){ box.dataset.astmode=hit; return; }
+      if(hit.slice(0,7)==='studio|'){ _astStudio(box,hit); return; }
+      if(_AST_AR[key]) box.style.setProperty('--ast-ar',_AST_AR[key]);
       img.src=hit; box.dataset.astmode='cutout'; return;
     }
     const w=img.naturalWidth, h=img.naturalHeight;
@@ -22353,6 +22381,21 @@ function _astProbe(img){
     for(let y=1;y<ch-1;y++){ chk(0,y); chk(cw-1,y); }
     const ar=w/h, aspectOK = ar>0.7 && ar<1.45;
     if(!AST_AUTO_CUTOUT || bg/tot<0.9){
+      // v8: plain, non-white backdrop on all four edges → blend the picture into a matching stage
+      try{
+        const E=_astEdges(d,cw,ch);
+        if(E.t&&E.b&&E.l&&E.r){
+          const sdMax=Math.max(E.t.sd,E.b.sd,E.l.sd,E.r.sd);
+          const lr=Math.max(Math.abs(E.l.m[0]-E.r.m[0]),Math.abs(E.l.m[1]-E.r.m[1]),Math.abs(E.l.m[2]-E.r.m[2]));
+          const tb=Math.max(Math.abs(E.t.m[0]-E.b.m[0]),Math.abs(E.t.m[1]-E.b.m[1]),Math.abs(E.t.m[2]-E.b.m[2]));
+          if(sdMax<16 && lr<24 && tb<70){
+            const rgb=(m)=>m.map(Math.round).join(',');
+            const spec='studio|'+rgb(E.t.m)+'|'+rgb(E.b.m)+'|'+(aspectOK?'c':'t');
+            if(key) _AST_CUT[key]=spec;
+            _astStudio(box,spec); return;
+          }
+        }
+      }catch(_){}
       const m = aspectOK ? 'photo' : 'fit';
       if(key) _AST_CUT[key]=m;
       box.dataset.astmode=m; return;
@@ -22448,7 +22491,8 @@ function _astProbe(img){
     const out=document.createElement('canvas'); out.width=sw; out.height=sh;
     out.getContext('2d').drawImage(cv,sx,sy,sw,sh,0,0,sw,sh);
     const url=out.toDataURL('image/png');
-    if(key) _AST_CUT[key]=url;
+    if(key){ _AST_CUT[key]=url; _AST_AR[key]=(sw/sh).toFixed(4); }
+    box.style.setProperty('--ast-ar',(sw/sh).toFixed(4));
     img.src=url; box.dataset.astmode='cutout';
   }catch(e){
     try{ const bx=img&&img.closest('[data-astmode]'); if(bx) bx.dataset.astmode='fit'; }catch(_){}
@@ -24020,7 +24064,7 @@ function renderSavings(){
     const _ov  = x.iconOverride;
     const _img = (_ov && _ov.mode==='custom' && _ov.img) ? _ov.img : null;
     const _art = _img
-      ? `<span class="atl-bg" style="background-image:url('${_img}')"></span><span class="atl-glow"></span><img class="atl-img" src="${_img}" alt="" draggable="false" data-k="${_astKey(_img)}" onload="_astProbe(this)" onerror="this.closest('[data-astmode]').dataset.astmode='fit'">`
+      ? `<span class="atl-bg" style="background-image:url('${_img}')"></span><span class="atl-glow"></span><img class="atl-img" src="${_img}" alt="" draggable="false" decoding="async" data-k="${_astKey(_img)}" onload="_astProbe(this)" onerror="this.closest('[data-astmode]').dataset.astmode='fit'">`
       : `<span class="atl-glow"></span><span class="atl-ring">${ic((_ov&&_ov.icon)||meta.icon,28)}</span>`;
     const _tileName = x.name||L(t.en,t.ar);
     return `<div class="sav-row asset-card asset-tile${meta.isHighValue?' is-hv':''}" id="savrow-asset-${idx}" data-astmode="${_img?'pending':'icon'}" data-savtype="asset" data-savidx="${idx}" style="--accent:${meta.color}" role="button" tabindex="0" onclick="savOpenAssetCard(${idx})" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();savOpenAssetCard(${idx});}" aria-label="${esc(_tileName)} ${fmt(x.value||0)} ${curLabel()}">
@@ -24458,7 +24502,7 @@ function savOpenAssetCard(idx){
   const meta=savAssetCardMeta(x);
   const name=x.name||L(t.en,t.ar);
   const _hov=x.iconOverride, _heroImg=(_hov&&_hov.mode==='custom'&&_hov.img)?_hov.img:null;
-  const _heroHTML=_heroImg?`<div class="ast-hero" data-astmode="pending"><span class="atl-bg" style="background-image:url('${_heroImg}')"></span><span class="atl-glow"></span><img class="atl-img" src="${_heroImg}" alt="" data-k="${_astKey(_heroImg)}" onload="_astProbe(this)" onerror="this.closest('[data-astmode]').dataset.astmode='fit'"></div>`:'';
+  const _heroHTML=_heroImg?`<div class="ast-hero" data-astmode="pending"><span class="atl-bg" style="background-image:url('${_heroImg}')"></span><span class="atl-glow"></span><img class="atl-img" src="${_heroImg}" alt="" decoding="async" data-k="${_astKey(_heroImg)}" onload="_astProbe(this)" onerror="this.closest('[data-astmode]').dataset.astmode='fit'"></div>`:'';
   const icon = x.iconOverride
     ? (x.iconOverride.mode==='custom' ? `<img src="${x.iconOverride.img}" alt="">` : ic(x.iconOverride.icon,26))
     : ic(meta.icon,26);
@@ -26930,7 +26974,7 @@ function renderMonthlyChart(){
     const exp=(d?.site_expenses||[]).reduce((s,e)=>s+(e.amount||0),0);
     const banks=getAllBanks();
     const bal=banks.reduce((s,b)=>s+getBankBalance(d,b.key),0);
-    return {key:k, name:MONTH_NAMES[k]||k, pay, exp, bal};
+    return {key:k, name:_monthDisplayLabel(k), pay, exp, bal};
   });
   const maxVal=Math.max(1, ...rows.map(r=>Math.max(r.pay,r.exp,r.bal)));
   return `
@@ -27044,7 +27088,7 @@ function editOldBudget(){
       </div>
     </div>
     ${isLinked?`<div style="font-size:calc(12px*var(--app-text-scale,1));color:var(--muted);margin-bottom:14px;padding:10px 13px;background:var(--surface2);border-radius:var(--radius-sm);border:1px solid var(--border);line-height:1.6">
-      ${ic('warning',15)} ${L('Auto-linked from','مرتبطة من')} <b>${MONTH_NAMES[prevKey]||prevKey}</b> ${L('New Budget. Editing will override for this month only.','الميزانية الجديدة. التعديل سيؤثر على هذا الشهر فقط.')}
+      ${ic('warning',15)} ${L('Auto-linked from','مرتبطة من')} <b>${_monthDisplayLabel(prevKey)}</b> ${L('New Budget. Editing will override for this month only.','الميزانية الجديدة. التعديل سيؤثر على هذا الشهر فقط.')}
     </div>`:''}
     <div class="field"><label>${L('Amount','المبلغ')} <span class="f-badge">${curLabel()}</span></label>
       <input type="text" inputmode="decimal" id="oldBudgetInput" data-calc placeholder="0.00" onblur="applyFormula(this)" value="${currentVal||''}" style="font-size:calc(20px*var(--app-text-scale,1));font-weight:800;text-align:center">
@@ -32123,14 +32167,14 @@ function openLanguageSettings(){
   document.getElementById('modalContent').innerHTML=`
     <div class="modal-handle"></div>
     <div class="modal-title">Language / اللغة</div>
-    <div style="font-size:calc(12px*var(--app-text-scale,1));color:var(--sub);line-height:1.6;margin-bottom:10px">Full Arabic interface translation is coming in a future update. For now you can set your preferred language label.</div>
+    <div style="font-size:calc(12px*var(--app-text-scale,1));color:var(--sub);line-height:1.6;margin-bottom:10px">${L('Choose the app language.','اختر لغة التطبيق.')}</div>
     <div class="settings-row" onclick="selectLanguage('en')">
       <span class="settings-icon">${ic('languages',15)}</span><span class="settings-label">English</span><span class="settings-chevron" id="lang-en-check"></span>
     </div>
     <div class="settings-row" onclick="selectLanguage('ar')">
       <span class="settings-icon">${ic('languages',15)}</span><span class="settings-label">العربية</span><span class="settings-chevron" id="lang-ar-check"></span>
     </div>
-    <div class="modal-btns" style="margin-top:10px"><button class="mbtn cancel" onclick="closeModal();openSettings()">Back</button></div>`;
+    <div class="modal-btns" style="margin-top:10px"><button class="mbtn cancel" onclick="closeModal();openSettings()">${L('Back','رجوع')}</button></div>`;
   document.getElementById('modalOverlay').style.display='flex';
   let cur='en'; try{ cur=localStorage.getItem('wdp_lang')||'en'; }catch(e){_logErr('selectLanguage:readLang',e);}
   const el=document.getElementById(cur==='ar'?'lang-ar-check':'lang-en-check');
@@ -32145,15 +32189,15 @@ function selectLanguage(lang){
 function openCurrencySettings(){
   document.getElementById('modalContent').innerHTML=`
     <div class="modal-handle"></div>
-    <div class="modal-title">Currency</div>
-    <div style="font-size:calc(11px*var(--app-text-scale,1));color:var(--sub);line-height:1.6;margin-bottom:10px">Changes the currency label shown next to amounts. Values are not converted.</div>
+    <div class="modal-title">${L('Currency','العملة')}</div>
+    <div style="font-size:calc(11px*var(--app-text-scale,1));color:var(--sub);line-height:1.6;margin-bottom:10px">${L('Changes the currency label shown next to amounts. Values are not converted.','يغيّر تسمية العملة المعروضة بجانب المبالغ. لا يتم تحويل القيم.')}</div>
     ${CURRENCY_OPTIONS.map(c=>`
     <div class="settings-row" onclick="selectCurrency('${c}')">
       <span class="settings-icon">${ic('languages',15)}</span>
       <span class="settings-label">${c}</span>
       <span class="settings-chevron" style="color:var(--green);font-weight:800">${c===CURRENT_CURRENCY?`${ic('check',15)}`:''}</span>
     </div>`).join('')}
-    <div class="modal-btns" style="margin-top:10px"><button class="mbtn cancel" onclick="closeModal();openSettings()">Back</button></div>`;
+    <div class="modal-btns" style="margin-top:10px"><button class="mbtn cancel" onclick="closeModal();openSettings()">${L('Back','رجوع')}</button></div>`;
   document.getElementById('modalOverlay').style.display='flex';
 }
 function selectCurrency(cur){
@@ -32173,36 +32217,36 @@ function openTextSettings(){
 
   document.getElementById('modalContent').innerHTML=`
     <div class="modal-handle"></div>
-    <div class="modal-title">Aa Description Text Style</div>
-    <div class="field"><label>Text Color</label>
+    <div class="modal-title">Aa ${L('Description Text Style','نمط نص الوصف')}</div>
+    <div class="field"><label>${L('Text Color','لون النص')}</label>
       <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin-bottom:8px">
         ${DESC_COLORS.map(c=>`<div onclick="document.getElementById('tsColor').value='${c.value}';previewTextSettings();" title="${c.label}" style="cursor:pointer;width:100%;aspect-ratio:1;border-radius:var(--radius-xs);background:${c.value};border:2px solid var(--border)"></div>`).join('')}
       </div>
       <input type="color" id="tsColor" value="${curColor}" oninput="previewTextSettings()" style="height:42px;padding:4px">
     </div>
-    <div class="field"><label>Font Style</label>
+    <div class="field"><label>${L('Font Style','نوع الخط')}</label>
       <select id="tsFont" onchange="previewTextSettings()">
         ${DESC_FONTS.map(f=>`<option value="${f.value}" ${f.value===curFont?'selected':''}>${f.label}</option>`).join('')}
       </select>
     </div>
-    <div class="field"><label>Font Size: <span id="tsSizeLabel">${curSize}px</span></label>
+    <div class="field"><label>${L('Font Size:','حجم الخط:')} <span id="tsSizeLabel">${curSize}px</span></label>
       <input type="range" id="tsSize" min="10" max="20" value="${curSize}" oninput="document.getElementById('tsSizeLabel').textContent=this.value+'px';previewTextSettings()" style="width:100%">
     </div>
-    <div class="field"><label>Weight</label>
+    <div class="field"><label>${L('Weight','السُّمك')}</label>
       <select id="tsWeight" onchange="previewTextSettings()">
-        <option value="400" ${curWeight==='400'?'selected':''}>Normal</option>
-        <option value="500" ${curWeight==='500'?'selected':''}>Medium</option>
-        <option value="700" ${curWeight==='700'?'selected':''}>Bold</option>
-        <option value="900" ${curWeight==='900'?'selected':''}>Extra Bold</option>
+        <option value="400" ${curWeight==='400'?'selected':''}>${L('Normal','عادي')}</option>
+        <option value="500" ${curWeight==='500'?'selected':''}>${L('Medium','متوسط')}</option>
+        <option value="700" ${curWeight==='700'?'selected':''}>${L('Bold','عريض')}</option>
+        <option value="900" ${curWeight==='900'?'selected':''}>${L('Extra Bold','عريض جدًا')}</option>
       </select>
     </div>
     <div class="field" style="margin-top:4px">
-      <label>Preview</label>
+      <label>${L('Preview','معاينة')}</label>
       <div id="tsPreview" class="desc-text" style="padding:10px 12px;background:var(--surface2);border-radius:var(--radius-sm);border:1px solid var(--border)">مثال: عمرو الغفير اوبر مشوار الكتيبة</div>
     </div>
     <div class="modal-btns">
-      <button class="mbtn save" onclick="saveTextSettings()">Save</button>
-      <button class="mbtn cancel" onclick="closeModal()">Cancel</button>
+      <button class="mbtn save" onclick="saveTextSettings()">${L('Save','حفظ')}</button>
+      <button class="mbtn cancel" onclick="closeModal()">${L('Cancel','إلغاء')}</button>
     </div>`;
   document.getElementById('modalOverlay').style.display='flex';
 }
@@ -36763,7 +36807,7 @@ function renderTransactions(m){
   const _dsIsCur=_dsMi===_dsNow.getMonth()&&_dsYr===_dsNow.getFullYear();
   let _dsDateLbl=_todayStr;
   try{ _dsDateLbl=_dsNow.toLocaleDateString(lang==='ar'?'ar-EG':'en-GB',{weekday:'long',day:'numeric',month:'short'}); }catch(e){}
-  const _dsMonthLbl=MONTH_NAMES[activeMonth]||activeMonth;
+  const _dsMonthLbl=_monthDisplayLabel(activeMonth);
   const _dsBar=(pct,over,hue)=>`<div class="dsum-bar${over?' is-over':(pct>=85?' is-warn':'')}" style="--dsum-hue:${hue}"><i style="width:${Math.min(100,Math.max(0,pct))}%"></i></div>`;
 
   const _dsDayPct=_todayHasTarget?Math.round(_todaySpent/_todayTarget*100):0;
@@ -37210,14 +37254,14 @@ function renderExpenses(m){
 
   if(!_frCustodyOpen && !searchQ && all.length===0 && deposits.length===0){
     return `<div class="screen-wrap cx-wrap" data-fr-empty>
-  ${_pgHdr('Site','الموقع','My Job','My Job','Receipts log and custody money','سجل الاستلامات وفلوس العهدة')}
+  ${_pgHdr('Site','الموقع','My Job','وظيفتي','Receipts log and custody money','سجل الاستلامات وفلوس العهدة')}
   ${_prjBarHTML()}
   ${_cxTabsHTML()}
   ${_frHero({icon:'clipboard',title:L('Start with your custody','ابدأ بالعهدة'),sub:L('Add the money you received for the site, then log each expense.','سجّل الفلوس اللي استلمتها للموقع، وبعدين اكتب كل مصروف.'),btn:{label:L('Add custody','أضف العهدة'),on:'_frCustodyGo()'}})}
   </div>`;
   }
   return `<div class="screen-wrap cx-wrap">
-  ${_pgHdr('Site','الموقع','My Job','My Job','Receipts log and custody money','سجل الاستلامات وفلوس العهدة')}
+  ${_pgHdr('Site','الموقع','My Job','وظيفتي','Receipts log and custody money','سجل الاستلامات وفلوس العهدة')}
   ${_prjBarHTML()}
   ${_cxTabsHTML()}
   ${heroHTML}
@@ -38882,7 +38926,7 @@ function renderJobProfile(){
      +blk(L('Medical insurance','التأمين الطبي'),_jpRow('shield',L('Address','العنوان'),mv(medEmail),_jpCopyBtn(medEmail))+_jpPwRow('medPw',L('Password','الباسورد')));
   const joinedRow=_jpRow('join',L('Joined','تاريخ الالتحاق'),start?`<b dir="auto">${esc(_jpDate(start))}</b>`:_jpVal(''));
   return `<div class="screen-wrap cx-wrap jp-wrap">
-  ${_pgHdr('Site','الموقع','My Job','My Job','Your work profile and attendance','بياناتك الوظيفية والحضور')}
+  ${_pgHdr('Site','الموقع','My Job','وظيفتي','Your work profile and attendance','بياناتك الوظيفية والحضور')}
   ${_prjBarHTML()}
   ${_cxTabsHTML()}
   <section class="jp-hero v2">
@@ -39495,7 +39539,7 @@ function renderMyCV(){
     return `<div class="cv-co-grp"><div class="cv-co-hd"><b dir="auto">${esc(f.company)}</b><small>${sp?`<bdi>${esc(sp)}</bdi> \u00b7 `:''}${g.items.length} ${L('projects','مشاريع')}</small></div>${g.items.map(_cardOf).join('')}</div>`;
   }).join('');
   return `<div class="screen-wrap cx-wrap cv-wrap">
-  ${_pgHdr('Site','الموقع','My Job','My Job','Receipts log and custody money','سجل الاستلامات وفلوس العهدة')}
+  ${_pgHdr('Site','الموقع','My Job','وظيفتي','Receipts log and custody money','سجل الاستلامات وفلوس العهدة')}
   ${_prjBarHTML()}
   ${_cxTabsHTML()}
   <div class="cv-live"><span class="cv-live-dot"></span><span>${L('Auto-updating','بتتحدّث تلقائيًا')}</span><em>${L(`${shown}/${ents.length} in CV`,`${shown}/${ents.length} في السيرة`)}</em>
@@ -41136,7 +41180,7 @@ function renderPours(){
     : `<div class="cx-none">${L('No results','لا نتائج')}</div>`;
   const body=list.length?groups.map(g=>`<div class="pr-day"><b>${esc(_prDayLabel(g.d))}</b><span>${g.items.length}</span></div><div class="pr-grid">${g.items.map(_prCardHTML).join('')}</div>`).join(''):empty;
   return `<div class="screen-wrap cx-wrap">
-  ${_pgHdr('Site','الموقع','My Job','My Job','Receipts log and custody money','سجل الاستلامات وفلوس العهدة')}
+  ${_pgHdr('Site','الموقع','My Job','وظيفتي','Receipts log and custody money','سجل الاستلامات وفلوس العهدة')}
   ${_prjBarHTML()}
   ${_cxTabsHTML()}
   ${_cxRqSubHTML()}
@@ -41231,7 +41275,7 @@ function renderMyRequests(){
   }).length;
   const shown=(q||_rqFilter!=='all'||typeFilter)?`${list.length} / ${all.length}`:String(all.length);
   return `<div class="screen-wrap cx-wrap">
-  ${_pgHdr('Site','الموقع','My Job','My Job','Receipts log and custody money','سجل الاستلامات وفلوس العهدة')}
+  ${_pgHdr('Site','الموقع','My Job','وظيفتي','Receipts log and custody money','سجل الاستلامات وفلوس العهدة')}
   ${_prjBarHTML()}
   ${_cxTabsHTML()}
   ${_cxRqSubHTML()}
@@ -53747,7 +53791,7 @@ const ATT=(function(){
     const tiles = stats + `<div class="att-stat att-st-rec"><span class="att-stat-ic">${ic('calendar',14)}</span><span class="att-stat-n">${total}</span><span class="att-stat-l">${L('Recorded','المسجّل')}</span></div>`;
     setTimeout(spy,150);
     return `<div class="screen-wrap cx-wrap att atp">
-      ${_pgHdr('Site','الموقع','My Job','My Job','Receipts log and custody money','سجل الاستلامات وفلوس العهدة')}
+      ${_pgHdr('Site','الموقع','My Job','وظيفتي','Receipts log and custody money','سجل الاستلامات وفلوس العهدة')}
       ${typeof _prjBarHTML==='function'?_prjBarHTML():''}
       ${typeof _cxTabsHTML==='function'?_cxTabsHTML():''}
 
@@ -54697,7 +54741,7 @@ if(document.readyState === 'loading'){
     <div class="tour-desc" id="tourDesc"></div>
     <div class="tour-footer">
       <div class="tour-footer-left">
-        <button class="tour-btn-back" id="tourBackBtn" onclick="tourPrev()" aria-label="Back"></button>
+        <button class="tour-btn-back" id="tourBackBtn" onclick="tourPrev()" aria-label="Back" data-i18n-attr="aria-label" data-i18n-aria-label-en="Back" data-i18n-aria-label-ar="رجوع"></button>
         <div class="tour-progress" id="tourProgress">
           <span class="tour-progress-count" id="tourProgressCount"></span>
           <span class="tour-progress-bar"><span class="tour-progress-fill" id="tourProgressFill"></span></span>
@@ -54760,7 +54804,7 @@ const TOUR_STEPS = [
   { // Welcome
     view:null, target:null, welcome:true,
     icon:'<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.4 7.2H22l-6 4.6L18.4 21 12 16.4 5.6 21 8 13.8l-6-4.6h7.6z"/></svg>',
-    titleEn:'Welcome to FINORA', titleAr:'Welcome to FINORA',
+    titleEn:'Welcome to FINORA', titleAr:'أهلاً بك في FINORA',
     descEn:'Your money. Your future.<br>Bank accounts, daily spending, your work custody and your personal finances — all in one place. This short tour points at the real buttons so you know exactly where everything is.',
     descAr:'أموالك. مستقبلك.<br>حساباتك البنكية، إنفاقك اليومي، عُهدة عملك وأموالك الشخصية — كلها في مكان واحد. هذه الجولة القصيرة تشير إلى الأزرار الحقيقية لتعرف مكان كل شيء.'
   },
@@ -55626,7 +55670,7 @@ function mrRenderTrendChart(){
   canvas.width=W*dpr; canvas.height=H*dpr; canvas.style.width=W+'px'; canvas.style.height=H+'px'; ctx.scale(dpr,dpr);
   const isDark=document.documentElement.getAttribute('data-theme')==='dark';
   const gc=isDark?'rgba(255,255,255,0.06)':'rgba(0,0,0,0.06)', tc=isDark?'#8FA093':'#637D72';
-  const labels=MONTHS_ORDER.map(k=>(MONTH_NAMES[k]||k).split(' ')[0]||(k.split('-')[0]));
+  const labels=MONTHS_ORDER.map(k=>_monthDisplayLabel(k).split(' ')[0]||(k.split('-')[0]));
   const data=MONTHS_ORDER.map(k=>{const m=DATA[k]||{};return _mrSource==='site'?(m.site_expenses||[]).reduce((s,e)=>s+(e.amount||0),0):(m.transactions||[]).reduce((s,t)=>s+(t.payment||0),0);});
   const activeIdx=MONTHS_ORDER.indexOf(activeMonth), max=Math.max(1,...data);
   const pad={t:10,r:10,b:26,l:44}; const cW=W-pad.l-pad.r, cH=H-pad.t-pad.b;
@@ -55824,7 +55868,7 @@ function brComputeBank(mKey, bankKey){
 function brComputeAll(mKey){
   const banks    = getAllBanks();
   const m        = DATA[mKey]||{};
-  const mName    = MONTH_NAMES[mKey]||mKey;
+  const mName    = _monthDisplayLabel(mKey);
 
   const bankData = banks.map((b,i)=>{
     const stat = brComputeBank(mKey, b.key);
@@ -55867,7 +55911,7 @@ function brComputeAll(mKey){
     const d = DATA[k]||{};
     const bal = banks.reduce((s,b)=>s+getBankBalance(d,b.key),0);
     const int = banks.reduce((s,b)=>s+calcMonthlyInterest(getBankBalance(d,b.key),b.key),0);
-    return { month: (MONTH_NAMES[k]||k).split(' ')[0]||k.split('-')[0], balance: bal, interest: int, key: k };
+    return { month: _monthDisplayLabel(k).split(' ')[0]||k.split('-')[0], balance: bal, interest: int, key: k };
   });
 
   // Per-bank history (closing balance each month)
@@ -56287,7 +56331,7 @@ function brRenderTrendChart(stat){
     const y=pad.t+cH*(1-f);ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(pad.l+cW,y);ctx.stroke();
     ctx.fillStyle=tc;ctx.font='9px sans-serif';ctx.textAlign='right';ctx.fillText(brShort(max*f),pad.l-4,y+3);
   });
-  const labels=MONTHS_ORDER.map(k=>(MONTH_NAMES[k]||k).split(' ')[0]||k.split('-')[0]);
+  const labels=MONTHS_ORDER.map(k=>_monthDisplayLabel(k).split(' ')[0]||k.split('-')[0]);
   const activeIdx=MONTHS_ORDER.indexOf(stat.mKey);
   history.forEach((b,bi)=>{
     const pts=b.values.map((v,i)=>({x:pad.l+(i/(b.values.length-1||1))*cW, y:pad.t+cH*(1-v/max)}));
@@ -56377,7 +56421,7 @@ function brExportPDF(){document.title=`FINORA Bank Report — ${MONTH_NAMES[acti
 
 function brExportExcel(){
   if(typeof XLSX==='undefined'){showToast(L('⚠️ Excel not available','⚠️ Excel غير متاح'), 'warn');return;}
-  const stat=brComputeAll(activeMonth), mName=MONTH_NAMES[activeMonth]||activeMonth;
+  const stat=brComputeAll(activeMonth), mName=_monthDisplayLabel(activeMonth);
   const wb=XLSX.utils.book_new();
   // Summary sheet
   XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([
@@ -57443,7 +57487,7 @@ function renderHealthDashboard(){
     <div class="dash-health-top-v2">
       <div>
         <div class="dash-hero-eyebrow-v2">${ic('heart',13)} ${L('Financial Health Dashboard','لوحة الصحة المالية')}</div>
-        <div class="dash-hero-title-v2">${MONTH_NAMES[activeMonth]||activeMonth}</div>
+        <div class="dash-hero-title-v2">${_monthDisplayLabel(activeMonth)}</div>
         <div class="dash-hero-sub-v2">${L('Works fully offline','يعمل بدون اتصال بالإنترنت')} · ${L('Updated','محدّث')} ${new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',timeZone:_globalTimeZone()})}</div>
       </div>
     </div>
@@ -58999,7 +59043,7 @@ function _msrHTML(monthKey){
   let budget = 0;
   try{ budget = (mrCompute(monthKey,'daily').budget) || 0; }catch(e){ budget = 0; }
 
-  const monthOpts = MONTHS_ORDER.map(k=>`<option value="${esc(k)}" ${k===monthKey?'selected':''}>${esc(MONTH_NAMES[k]||k)}</option>`).join('');
+  const monthOpts = MONTHS_ORDER.map(k=>`<option value="${esc(k)}" ${k===monthKey?'selected':''}>${esc_monthDisplayLabel(k)}</option>`).join('');
   const chrome = `
     <div class="bs-chrome">
       <div class="ds-row-12">
@@ -59195,7 +59239,7 @@ function checkMonthEndSpendingReport(nowOverride){
       icon: ic('chart',15),
       iconBg:'linear-gradient(135deg,#A97C1F,#D4AF37)',
       title: L('Month-End Spending Report','تقرير آخر الشهر'),
-      sub: MONTH_NAMES[rk] || rk,
+      sub: _monthDisplayLabel(rk),
       body: _msrNoticeBody(rk, st, inNewMonth && !inClosingDays),
       primaryLabel:`${ic('chart',12)} ${L('View Report','اعرض التقرير')}`,
       primaryFn:`msrNotifDone('${rk}');msrOpen('${rk}');`,
@@ -63624,6 +63668,75 @@ body #mainContent .sc-card .tx-rows.asset-card-grid>.sav-row.asset-card.asset-ti
   body #mainContent .sc-card .tx-rows.asset-card-grid>.sav-row.asset-card.asset-tile{transition:none}
 }
 </style>
+
+<style id="finora-assets-v8">
+/* ══ FINORA · Assets v8 — Image staging ══ (presentation only; stored pictures, data and logic are untouched)
+   • loading shimmer instead of an empty stage while the picture is analysed
+   • cut-outs: product is sized + centred from its real aspect ratio, contact shadow sits right under it
+   • "studio" mode: pictures shot on a plain beige / grey / black backdrop dissolve into a matching stage
+     (no more boxed print floating on the tile, no cropping, small pictures are scaled up to the frame)
+   • "fit" pictures are scaled to the frame; the muddy dark gradient on "photo" tiles is gone
+   Revert: delete <style id="finora-assets-v8">. */
+
+/* ── loading ── */
+.asset-tile[data-astmode="pending"] .atl-glow,.ast-hero[data-astmode="pending"] .atl-glow{
+  opacity:1;z-index:1;background:linear-gradient(100deg,transparent 32%,rgba(255,255,255,.55) 50%,transparent 68%);
+  background-size:260% 100%;animation:astShim 1.25s linear infinite}
+[data-theme="dark"] .asset-tile[data-astmode="pending"] .atl-glow,[data-theme="dark"] .ast-hero[data-astmode="pending"] .atl-glow{
+  background:linear-gradient(100deg,transparent 32%,rgba(255,255,255,.12) 50%,transparent 68%);background-size:260% 100%}
+@keyframes astShim{0%{background-position:130% 0}100%{background-position:-130% 0}}
+
+/* ── cut-outs: size + centre from the product's real aspect ratio (--ast-ar, set by the probe) ── */
+@supports (width:1cqw){
+  .asset-tile[data-astmode="cutout"] .asset-tile-art{container-type:size;--ast-pt:20px;--ast-pb:34px;--ast-px:16px}
+  .ast-hero[data-astmode="cutout"]{container-type:size;--ast-pt:22px;--ast-pb:40px;--ast-px:24px}
+  .asset-tile[data-astmode="cutout"],.ast-hero[data-astmode="cutout"]{
+    --ast-rh:min(calc(100cqh - var(--ast-pt,20px) - var(--ast-pb,34px)),calc((100cqw - 2*var(--ast-px,16px)) / var(--ast-ar,1)));
+    --ast-rw:calc(var(--ast-rh) * var(--ast-ar,1));
+    --ast-top:calc((100cqh + var(--ast-pt,20px) - var(--ast-pb,34px) - var(--ast-rh)) / 2)}
+  .asset-tile[data-astmode="cutout"] img.atl-img,.ast-hero[data-astmode="cutout"] img.atl-img{
+    left:calc(50% - var(--ast-rw) / 2);top:var(--ast-top);width:var(--ast-rw);height:var(--ast-rh);padding:0;object-fit:contain}
+  /* contact shadow: a soft ellipse centred on the product's base */
+  body .asset-tile[data-astmode="cutout"] .asset-tile-art::after,body .ast-hero[data-astmode="cutout"]::after{
+    bottom:auto!important;top:calc(var(--ast-top) + var(--ast-rh) - 6px)!important;
+    width:calc(var(--ast-rw) * .78)!important;height:12px!important;opacity:.9}
+}
+
+/* ── studio: plain-backdrop product shots ── */
+.sav-row.asset-card.asset-tile[data-astmode="studio"] .asset-tile-art,.ast-hero[data-astmode="studio"]{
+  background:linear-gradient(180deg,var(--ast-bg1,#e9e6df),var(--ast-bg2,var(--ast-bg1,#e9e6df)))}
+.asset-tile[data-astmode="studio"] .atl-bg,.asset-tile[data-astmode="studio"] .atl-glow,
+.ast-hero[data-astmode="studio"] .atl-bg,.ast-hero[data-astmode="studio"] .atl-glow,
+.asset-tile[data-astmode="studio"] .asset-tile-art::after{opacity:0;display:none}
+.sav-row.asset-card.asset-tile[data-astmode="studio"] .asset-tile-art::before{opacity:.5}
+.asset-tile[data-astmode="studio"] img.atl-img,.ast-hero[data-astmode="studio"] img.atl-img{
+  left:0;top:0;width:100%;height:100%;padding:0;object-fit:var(--ast-fit,contain);filter:none;
+  -webkit-mask-image:linear-gradient(90deg,transparent 0,#000 8%,#000 92%,transparent 100%),linear-gradient(180deg,transparent 0,#000 8%,#000 92%,transparent 100%);
+  -webkit-mask-composite:source-in;
+  mask-image:linear-gradient(90deg,transparent 0,#000 8%,#000 92%,transparent 100%),linear-gradient(180deg,transparent 0,#000 8%,#000 92%,transparent 100%);
+  mask-composite:intersect}
+.ast-hero[data-astmode="studio"] img.atl-img{object-fit:contain}
+.ast-hero[data-astmode="studio"]::before{display:none}
+/* the glass grip sits on a tinted stage, keep it legible on dark backdrops too */
+.asset-tile[data-astmode="studio"] .asset-tile-grip{background:rgba(255,255,255,.55)}
+
+/* ── real photos: no dark wash (the info block is below the stage, not over it) ── */
+.asset-tile[data-astmode="photo"] .asset-tile-art::after{display:none!important}
+
+/* ── fit: scale to the frame instead of showing at natural size as a small box ── */
+.asset-tile[data-astmode="fit"] img.atl-img,.ast-hero[data-astmode="fit"] img.atl-img{
+  width:calc(100% - 28px);height:calc(100% - 28px);max-width:none;max-height:none;object-fit:contain;border-radius:0;
+  box-shadow:none;filter:drop-shadow(0 8px 14px rgba(20,20,20,.30))}
+
+/* ── notes edge tab: slimmer + calmer at rest so it stops covering card edges and figures (full size when armed / open / dragged) ── */
+.notes-edge-tab:not(.open):not(.armed):not(.dragging){min-width:24px;padding:0 5px;opacity:.5;height:34px}
+.notes-edge-tab:not(.open):not(.armed):not(.dragging) svg{width:14px;height:14px}
+
+@media (prefers-reduced-motion:reduce){
+  .asset-tile[data-astmode="pending"] .atl-glow,.ast-hero[data-astmode="pending"] .atl-glow{animation:none}
+}
+</style>
+
 
 <style id="finora-quicklinks-v1">
 /* ══ FINORA · Accounts → Quick Links ══ (presentation only) */
