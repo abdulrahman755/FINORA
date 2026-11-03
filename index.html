@@ -16502,6 +16502,7 @@ function renderView(preserveScroll){
     if(currentView==='financedash'||currentView==='wsdash') setTimeout(function(){ DashboardCharts.refreshAll(); try{ dfpAnimateCounts(); }catch(e){_logErr('renderView:dfpAnimateCounts',e);} }, 100);
     setTimeout(attachCalcKb,60);
     if(currentView==='banks') setTimeout(initBankDrag,80);
+    setTimeout(function(){ if(document.querySelector('.pr-drag')) try{ initPourCards(); }catch(e){_logErr('renderView:initPourCards',e);} },80);
     if(currentView==='banks') setTimeout(bnkAnimateHero,80);
     try{ sigAnimateAmounts(); }catch(e){_logErr('renderView:sigAnimateAmounts',e);}
     if(currentView==='savings') setTimeout(savInitDrag,80);
@@ -38994,7 +38995,7 @@ function cvPrint(){
   const R='#cvPrintRoot ';
   const css=`
 #cvPrintRoot{display:none}
-@page{size:A4;margin:${cvMg[0]}mm ${cvMg[1]}mm ${cvMg[2]}mm ${cvMg[3]}mm;${(ios||!cvFoot)?'':`@bottom-right{content:"Updated ${upd} | Page " counter(page);font:7pt Helvetica,Arial,sans-serif;color:#6a7680}`}}
+@page{size:${_cvPaper(cvSt).w}mm ${_cvPaper(cvSt).h}mm;margin:${cvMg[0]}mm ${cvMg[1]}mm ${cvMg[2]}mm ${cvMg[3]}mm;${(ios||!cvFoot)?'':`@bottom-right{content:"Updated ${upd} | Page " counter(page);font:7pt Helvetica,Arial,sans-serif;color:#6a7680}`}}
 @media print{
   /* the app can be in dark mode: force a plain white page whatever the theme / background images are */
   html.cv-printing,html.cv-printing:root{color-scheme:light!important;background:#fff!important;background-image:none!important}
@@ -39026,7 +39027,7 @@ ${_cvDocHTML(m,cvSt,cvPush)}`;
     window.addEventListener('afterprint',cleanup);
     setTimeout(cleanup,180000);   // safety net if the browser never reports afterprint
     // print() must run straight from the tap: Safari on iPhone blocks it ("blocked from automatically printing") when it is deferred with a timer.
-    if(ios) showToast(L('In print options choose Paper Size: A4 and Scale: 100%','في خيارات الطباعة اختار Paper Size: A4 و Scale: 100%'),'info',5000);
+    if(ios) showToast(L('In print options choose Paper Size: '+_cvPaper(cvSt).name+' and Scale: 100%','في خيارات الطباعة اختار Paper Size: '+_cvPaper(cvSt).name+' و Scale: 100%'),'info',5000);
     window.print();
   }catch(e){ _logErr('cvPrint',e); cleanup(); showToast(L('Could not open print','تعذّر فتح الطباعة'),'warn'); }
 }
@@ -39393,15 +39394,19 @@ const _CV_TPL={
 const _CV_ACCENTS=['#17324d','#0f7a55','#0369a1','#6d28d9','#9a3412','#1f2937'];
 const _CV_SP={compact:{g:.75,lh:1.26},normal:{g:1,lh:1.36},relaxed:{g:1.4,lh:1.58}};
 const _CV_FS={s:.93,m:1,l:1.1};
-function _cvStyleGet(){ let s={}; try{ s=_cvLoad().style||{}; }catch(e){} return Object.assign({tpl:'classic',acc:'',sp:'normal',fs:'m',cols:2,photo:true,shape:'circle',font:'auto',caps:'auto',hs:'auto',bu:'dot',mg:'normal',ps:'m',na:'auto',foot:true,hide:[]},s); }
+function _cvStyleGet(){ let s={}; try{ s=_cvLoad().style||{}; }catch(e){} return Object.assign({tpl:'classic',acc:'',sp:'normal',fs:'m',fz:100,pages:0,paper:'a4',cols:2,photo:true,shape:'circle',font:'auto',caps:'auto',hs:'auto',bu:'dot',mg:'normal',ps:'m',na:'auto',foot:true,hide:[]},s); }
 const _CV_FONTS={sans:"Helvetica,Arial,'Helvetica Neue',sans-serif",serif:"Georgia,'Times New Roman',serif",humanist:"'Trebuchet MS','Segoe UI',Verdana,sans-serif"};
 const _CV_PS={s:.8,m:1,l:1.3};
 const _CV_MG={narrow:[9,10,11,10],normal:[14,16,17,16],wide:[20,22,23,22]};   // mm: top,right,bottom,left
 function _cvMarg(st){ return _CV_MG[st.mg]||_CV_MG.normal; }
+// Paper: PW/PH are CSS px (96dpi); w/h are mm for @page
+const _CV_PAPER={a4:{PW:793.7,PH:1122.5,w:210,h:297,name:'A4'},letter:{PW:816,PH:1056,w:215.9,h:279.4,name:'Letter'}};
+function _cvPaper(st){ return _CV_PAPER[st&&st.paper]||_CV_PAPER.a4; }
 function _cvStyleVars(st){
   const T=_CV_TPL[st.tpl]||_CV_TPL.classic, sp=_CV_SP[st.sp]||_CV_SP.normal;
   const acc=/^#[0-9a-f]{6}$/i.test(st.acc||'')?st.acc:T.acc;
-  return `--acc:${acc};--fs:${_CV_FS[st.fs]||1};--lh:${sp.lh};--g:${sp.g};--ps:${_CV_PS[st.ps]||1}${_CV_FONTS[st.font]?`;--ff:${_CV_FONTS[st.font]}`:''}`;
+  const k=(+st.k>0&&+st.k<=1.5)?+st.k:1, fz=Math.max(.8,Math.min(1.3,(+st.fz||100)/100));   // k = shrink factor chosen by "fit to N pages"
+  return `--acc:${acc};--fs:${((_CV_FS[st.fs]||1)*fz*k).toFixed(4)};--lh:${Math.max(1.16,sp.lh*(k<1?(.8+.2*k):1)).toFixed(3)};--g:${(sp.g*k).toFixed(3)};--ps:${_CV_PS[st.ps]||1}${_CV_FONTS[st.font]?`;--ff:${_CV_FONTS[st.font]}`:''}`;
 }
 // One stylesheet for the on-screen preview (R='.cvp-paper ') and the print job (R='#cvPrintRoot ')
 function _cvTplCSS(R){
@@ -39686,7 +39691,8 @@ function _cvThumb(k,a){
   else b=R(8,8,26,3,'#334155')+R(8,14,18,1.5,g)+R(8,24,14,2,'#64748b')+R(8,27.5,44,.5,'#cbd5e1',0)+ln(8,32,44,3)+R(8,50,14,2,'#64748b')+R(8,53.5,44,.5,'#cbd5e1',0)+ln(8,58,44,3);
   return `<svg viewBox="0 0 60 78" width="100%" height="100%" aria-hidden="true"><rect x=".5" y=".5" width="59" height="77" rx="3" fill="#fff" stroke="#d5dbe1"/>${b}</svg>`;
 }
-let _cvDzCur='style';
+let _cvDzCur='pdf';
+function cvFz(d){ const v=Math.max(80,Math.min(130,Math.round((+_cvStyleGet().fz||100)+d))); cvStyleSet('fz',v); }
 function cvDzTab(k){ _cvDzCur=k; _cvDzRender(); }
 function _cvDzHTML(){
   const st=_cvStyleGet(), cur=_CV_TPL[st.tpl]?st.tpl:'classic', acc=st.acc||_CV_TPL[cur].acc;
@@ -39696,9 +39702,18 @@ function _cvDzHTML(){
   const seg=(k,opts)=>`<div class="dz-seg">${opts.map(o=>`<button type="button" class="${String(st[k])===String(o[0])?'on':''}" onclick="cvStyleSet('${k}',${arg(o[0])})">${o[1]}</button>`).join('')}</div>`;
   const lb=(en,ar)=>`<div class="dz-l">${L(en,ar)}</div>`;
   const sw=(label,on,fn)=>`<div class="dz-row"><span>${label}</span><button type="button" class="stt-switch${on?' on':''}" role="switch" aria-checked="${on}" aria-label="${label}" onclick="${fn}"><span class="stt-switch-dot"></span></button></div>`;
-  const tabs=[['style',L('Style','الشكل')],['layout',L('Layout','التخطيط')],['text',L('Text','النص')],['sections',L('Sections','الأقسام')],['photo',L('Photo','الصورة')]];
+  const tabs=[['pdf',L('PDF','PDF')],['style',L('Style','الشكل')],['layout',L('Layout','التخطيط')],['text',L('Text','النص')],['sections',L('Sections','الأقسام')],['photo',L('Photo','الصورة')]];
   let body='';
-  if(_cvDzCur==='style'){
+  if(_cvDzCur==='pdf'){
+    const fz=Math.round(+st.fz||100);
+    body=lb('Number of pages','عدد الصفحات')+seg('pages',[[0,L('Auto','تلقائي')],[1,'1'],[2,'2'],[3,'3']])
+      +`<div class="pr-hint" style="margin:4px 2px 0">${L('Text and spacing shrink automatically (down to 70%) to fit the pages you choose.','الخط والمسافات بيصغّروا تلقائيًا (لحد 70%) عشان السيرة تدخل في عدد الصفحات اللي تختاره.')}</div>`
+      +lb('Paper size','حجم الورقة')+seg('paper',[['a4','A4'],['letter','US Letter']])
+      +lb('Text size','حجم الخط')+`<div class="dz-seg dz-step"><button type="button" onclick="cvFz(-5)" aria-label="-">A−</button><b>${fz}%</b><button type="button" onclick="cvFz(5)" aria-label="+">A+</button></div>`
+      +lb('Line spacing','المسافات بين الأسطر')+seg('sp',[['compact',L('Tight','مضغوط')],['normal',L('Normal','عادي')],['relaxed',L('Spacious','واسع')]])
+      +lb('Page margins','هوامش الصفحة')+seg('mg',[['narrow',L('Narrow','ضيق')],['normal',L('Normal','عادي')],['wide',L('Wide','واسع')]])
+      +sw(L('Date & page number footer','تذييل التاريخ ورقم الصفحة'),st.foot!==false,`cvStyleSet('foot',${st.foot===false})`);
+  }else if(_cvDzCur==='style'){
     const tpls=Object.keys(_CV_TPL).map(k=>`<button type="button" class="dz-tp${k===cur?' on':''}" onclick="cvStyleSet('tpl','${k}')"><span class="th">${_cvThumb(k,acc)}</span><small>${L(_CV_TPL[k].en,_CV_TPL[k].ar)}</small></button>`).join('');
     const sws=_CV_ACCENTS.map(c=>`<button type="button" class="${acc.toLowerCase()===c?'on':''}" style="background:${c}" onclick="cvStyleSet('acc','${c}')" aria-label="${c}"></button>`).join('');
     body=lb('Template','القالب')+`<div class="dz-tpls">${tpls}</div>`+lb('Colour','اللون')+`<div class="dz-sw">${sws}</div>`;
@@ -39707,7 +39722,7 @@ function _cvDzHTML(){
       +lb('Page margins','هوامش الصفحة')+seg('mg',[['narrow',L('Narrow','ضيق')],['normal',L('Normal','عادي')],['wide',L('Wide','واسع')]])
       +lb('Skills columns','أعمدة المهارات')+seg('cols',[[1,L('1 column','عمود')],[2,L('2 columns','عمودين')]]);
   }else if(_cvDzCur==='text'){
-    body=lb('Text size','حجم الخط')+seg('fs',[['s',L('Small','صغير')],['m',L('Medium','متوسط')],['l',L('Large','كبير')]])
+    body=lb('Text size','حجم الخط')+`<div class="dz-seg dz-step"><button type="button" onclick="cvFz(-5)">A−</button><b>${Math.round(+st.fz||100)}%</b><button type="button" onclick="cvFz(5)">A+</button></div>`
       +lb('Font','نوع الخط')+seg('font',[['auto',L('Template','القالب')],['sans','Sans'],['serif','Serif'],['humanist','Humanist']])
       +lb('Heading case','حالة العناوين')+seg('caps',[['auto',L('Template','القالب')],['upper','ABC'],['title','Abc']])
       +lb('Section headings','شكل عناوين الأقسام')+seg('hs',[['auto',L('Template','القالب')],['plain',L('Plain','سادة')],['line',L('Line','خط')],['bar',L('Bar','شريط')]])
@@ -39734,6 +39749,8 @@ function _cvDzRender(){
   const b=d.querySelector('.dz-b'), t=d.querySelector('.dz-tpls'), bt=b?b.scrollTop:0, tl=t?t.scrollLeft:0;
   d.innerHTML=_cvDzHTML();
   const b2=d.querySelector('.dz-b'), t2=d.querySelector('.dz-tpls'); if(b2) b2.scrollTop=bt; if(t2) t2.scrollLeft=tl;
+  const tb=d.querySelector('.dz-tabs'), on=tb&&tb.querySelector('.on');   // keep the chosen tab centred (the row is wider than a phone)
+  if(tb&&on) tb.scrollLeft=Math.max(0,on.offsetLeft-(tb.clientWidth-on.offsetWidth)/2);
 }
 function cvDzToggle(f){
   const ov=document.getElementById('cvPrev'); if(!ov) return;
@@ -39745,7 +39762,7 @@ function cvDzToggle(f){
 // in the same fixed-height column strip the preview uses; returns the heading indexes to push (see _cvDocHTML).
 function _cvOrphans(m,st){
   if((_CV_TPL[st.tpl]||{}).layout==='side') return [];   // sidebar templates lay the main column out in a table cell: left as they were
-  const out=[], mg=_cvMarg(st), K=3.7795, PW=793.7, PH=1122.5, GAP=48;
+  const out=[], mg=_cvMarg(st), K=3.7795, PW=_cvPaper(st).PW, PH=_cvPaper(st).PH, GAP=48;
   const CW=Math.round((PW-(mg[1]+mg[3])*K)*10)/10, CH=Math.round((PH-(mg[0]+mg[2])*K)*10)/10;
   const css=_cvTplCSS('.cvp-pgs ');
   const meas=document.createElement('div'); meas.className='cvp-pgs';
@@ -39788,10 +39805,10 @@ function _cvCols(strip,CW,GAP,flowH,CH){
   if(flowH>0&&CH>0) n=Math.max(n,Math.ceil(flowH/CH-.02));
   return Math.max(1,Math.min(n,30));
 }
-function _cvMeasure(m,st){
-  const mg=_cvMarg(st), K=3.7795, PW=793.7, PH=1122.5, GAP=48;
+function _cvMeasure(m,st,noPush){
+  const mg=_cvMarg(st), K=3.7795, PW=_cvPaper(st).PW, PH=_cvPaper(st).PH, GAP=48;
   const CW=Math.round((PW-(mg[1]+mg[3])*K)*10)/10, CH=Math.round((PH-(mg[0]+mg[2])*K)*10)/10;
-  const doc=_cvDocHTML(m,st,_cvOrphans(m,st)), css=_cvTplCSS('.cvp-pgs ');
+  const doc=_cvDocHTML(m,st,noPush?null:_cvOrphans(m,st)), css=_cvTplCSS('.cvp-pgs ');
   const meas=document.createElement('div'); meas.className='cvp-pgs';
   meas.style.cssText='position:fixed;left:-99999px;top:0;visibility:hidden;pointer-events:none;zoom:1;width:'+PW+'px';
   meas.innerHTML=`<style>${css}</style><div class="cvp-strip" style="width:${CW}px;height:${CH}px;column-width:${CW}px;column-gap:${GAP}px;column-fill:auto;-webkit-column-fill:auto">${doc}</div><div class="cvp-flow" style="width:${CW}px">${doc}</div>`;
@@ -39801,8 +39818,21 @@ function _cvMeasure(m,st){
 }
 // Auto-fit: when the CV spills only a little onto an extra page, tighten spacing / text size / margins (only the
 // values still at their defaults) until it fits on fewer pages. Never changes what the user saved; set style.fit=false to disable.
+// "Pages" option: shrink text + spacing (never below 70%) until the CV fits the chosen number of pages
+function _cvFitPages(m,base,N){
+  try{
+    const n=k=>_cvMeasure(m,Object.assign({},base,{k}),true).n;
+    if(n(1)<=N) return base;
+    let lo=.7, hi=1;
+    if(n(lo)>N) return Object.assign({},base,{k:lo});
+    for(let i=0;i<6;i++){ const mid=(lo+hi)/2; if(n(mid)<=N) lo=mid; else hi=mid; }
+    return Object.assign({},base,{k:Math.floor(lo*.965*1000)/1000});   // small safety margin: print engines paginate a hair differently from the preview
+  }catch(e){ _logErr('_cvFitPages',e); }
+  return base;
+}
 function _cvFit(m){
   const base=_cvStyleGet(); if(base.fit===false) return base;
+  if(+base.pages>0) return _cvFitPages(m,base,+base.pages);
   try{
     const r=_cvMeasure(m,base);
     if(r.n<2 || r.H/r.CH>(r.n-1)+.42) return base;
@@ -39818,9 +39848,11 @@ function _cvFit(m){
   }catch(e){ _logErr('_cvFit',e); }
   return base;
 }
+let _cvLastFit=null;
 function _cvBuildPages(m){
   const host=document.getElementById('cvpPaper'); if(!host) return 0;
-  const st=_cvFit(m), mg=_cvMarg(st), K=3.7795, PW=793.7, PH=1122.5, GAP=48;
+  const st=_cvFit(m), mg=_cvMarg(st), K=3.7795, PW=_cvPaper(st).PW, PH=_cvPaper(st).PH, GAP=48;
+  _cvLastFit=st;
   const CW=Math.round((PW-(mg[1]+mg[3])*K)*10)/10, CH=Math.round((PH-(mg[0]+mg[2])*K)*10)/10;
   const doc=_cvDocHTML(m,st,_cvOrphans(m,st));
   const stripCss=`width:${CW}px;height:${CH}px;column-width:${CW}px;column-gap:${GAP}px;column-fill:auto;-webkit-column-fill:auto`;
@@ -39835,14 +39867,14 @@ function _cvBuildPages(m){
   for(let i=0;i<n;i++){
     out+=`<div class="cvp-sheet" style="width:${PW}px;height:${PH}px;padding:${mg[0]*K}px ${mg[1]*K}px ${mg[2]*K}px ${mg[3]*K}px"><div class="cvp-clip" style="width:${CW}px;height:${CH}px"><div class="cvp-strip" style="${stripCss};left:${-i*(CW+GAP)}px">${doc}</div></div>${st.foot===false?'':`<div class="cvp-pn">Updated ${upd} | Page ${i+1}</div>`}</div><div class="cvp-pl">${L('Page','صفحة')} ${i+1} / ${n}</div>`;
   }
-  host.innerHTML=out; return n;
+  host.style.width=PW+'px'; host.innerHTML=out; return n;
 }
 function _cvRerender(){
   const pa=document.getElementById('cvpPaper'); if(!pa) return;
   try{
     const m=_cvModel(_cvPrevDraft?_cvDraft():null), n=_cvBuildPages(m);
     const c=document.getElementById('cvpCount');
-    if(c) c.innerHTML=`${ic('cv',13)} <b>${n===1?L('1 page','صفحة واحدة'):(n===2?L('2 pages','صفحتين'):n+' '+L('pages','صفحات'))}</b> · A4`;
+    if(c) c.innerHTML=`${ic('cv',13)} <b>${n===1?L('1 page','صفحة واحدة'):(n===2?L('2 pages','صفحتين'):n+' '+L('pages','صفحات'))}</b> · ${_cvPaper(_cvLastFit).name}${(_cvLastFit&&+_cvLastFit.pages>0&&n>+_cvLastFit.pages)?` · <span style="color:#f0b429">${L('does not fit in '+_cvLastFit.pages+' — shorten the text','مش داخلة في '+_cvLastFit.pages+' صفحات — قلّل النص')}</span>`:''}`;
   }catch(e){ _logErr('_cvRerender',e); }
 }
 function cvSecToggle(k){
@@ -39914,7 +39946,7 @@ function cvPreview(fromSheet,openDesign){
 }
 function _cvPrevZoom(z){
   const pa=document.getElementById('cvpPaper'); if(!pa) return;
-  const v=(z==='fit')?Math.min(1.1,(Math.min(window.innerWidth,900)-20)/794):+z;
+  const v=(z==='fit')?Math.min(1.1,(Math.min(window.innerWidth,900)-20)/((pa.offsetWidth)||794)):+z;
   pa.style.zoom=v;
   document.querySelectorAll('#cvPrev .cvp-zoom button').forEach(b=>b.classList.toggle('on',b.dataset.z===String(z)));
 }
@@ -40550,23 +40582,106 @@ function _prMatch(r,q){
 function _prCardHTML(r){
   const st=_RQ_STATUS[r.status]||_RQ_STATUS.received;
   const plot=_rqPlotLabel(r), co=_rqDisplayValue(r,'company');
-  const work=_rqIrLabel(r), floor=_rqFloorLabel(r.floor), type=_rqDisplayValue(r,'type');
-  const logo=_rqCoLogoSrc(r.company)?bankLogoHTML(_rqCoLogoSrc(r.company),48,{alt:esc(co)}):ic('building',24);
+  const work=_rqIrLabel(r), floor=_rqFloorLabel(r.floor);
+  const logo=_rqCoLogoSrc(r.company)?bankLogoHTML(_rqCoLogoSrc(r.company),44,{alt:esc(co)}):ic('building',22);
   const numeric=/^[\d\s\-–—\/.,]+$/.test(plot||'');
-  return `<div class="pr-card ${st.cls}" role="group" aria-label="${esc(L('CPP','CPP'))} ${esc(plot)} ${esc(work)}">
+  const grip=`<svg width="14" height="18" viewBox="0 0 16 20" fill="none"><circle cx="5" cy="4" r="1.6" fill="currentColor"/><circle cx="11" cy="4" r="1.6" fill="currentColor"/><circle cx="5" cy="10" r="1.6" fill="currentColor"/><circle cx="11" cy="10" r="1.6" fill="currentColor"/><circle cx="5" cy="16" r="1.6" fill="currentColor"/><circle cx="11" cy="16" r="1.6" fill="currentColor"/></svg>`;
+  // swipe the card to the right to reveal "Delete"; the grip (press & hold) reorders the cards of the same day
+  return `<div class="pr-swipe" data-id="${r.id}">
+  <button type="button" class="pr-swipe-del" onclick="prDelete('${r.id}')" aria-label="${esc(L('Delete','حذف'))}">${ic('trash',18)}<span>${L('Delete','حذف')}</span></button>
+  <div class="pr-card ${st.cls}" role="group" aria-label="${esc(L('CPP','CPP'))} ${esc(plot)} ${esc(work)}">
+    <div class="pr-drag drag-handle" data-id="${r.id}" title="${esc(L('Hold & drag to reorder','اضغط واسحب لإعادة الترتيب'))}" style="touch-action:pan-y">${grip}</div>
     <span class="pr-logo">${logo}</span>
     <span class="pr-main">
       <span class="pr-top"><span class="pr-plot">${numeric?`<small>${L('Plot','قطعة')}</small>`:''}<b dir="auto">${esc(plot||'—')}</b></span><i class="rq-dot ${st.cls}" title="${esc(_rqStatusLabel(r.status))}"></i></span>
       ${work?`<span class="pr-work" dir="auto">${esc(work)}</span>`:`<span class="pr-work none">${L('No inspection type','بدون نوع استلامة')}</span>`}
-      <span class="pr-meta">
-        ${floor?`<span class="pr-pill fl">${ic('floor',12)}<span dir="auto">${esc(floor)}</span></span>`:''}
-        ${type?`<span class="pr-pill" dir="auto">${esc(type)}</span>`:''}
-        <span class="pr-pill dt" dir="ltr">${ic('calendar',12)}${esc(_purFmtDate(r.date))}</span>
-      </span>
-      <span class="pr-co" dir="auto">${esc(co)}</span>
+      <span class="pr-co" dir="auto">${esc(co)}${floor?` · ${esc(floor)}`:''}</span>
     </span>
-  </div>`;
+  </div></div>`;
 }
+// ── CPP cards: custom order (per day) · swipe right to delete · grip drag ──
+const _PR_ORDER_KEY='wdp_cpp_order_v1';
+function _prOrder(){ try{ const a=JSON.parse(localStorage.getItem(_PR_ORDER_KEY)||'[]'); return Array.isArray(a)?a:[]; }catch(e){ return []; } }
+function _prCmp(order){
+  return (a,b)=>{
+    const d=String(b.date||'').localeCompare(String(a.date||'')); if(d) return d;
+    const ia=order.indexOf(a.id), ib=order.indexOf(b.id);
+    if(ia>=0&&ib>=0) return ia-ib;
+    if(ia<0&&ib<0) return (b.createdAt||0)-(a.createdAt||0);
+    return ia<0?-1:1;   // a card that was never reordered (new) goes first
+  };
+}
+const _PR_VD={
+  cardSel:'.pr-swipe', dragClass:'drag-dragging',
+  idOf:c=>c.dataset.id,
+  onDrop(cards){
+    const ids=cards.map(c=>c.dataset.id);
+    try{ localStorage.setItem(_PR_ORDER_KEY,JSON.stringify(_prOrder().filter(x=>ids.indexOf(x)<0).concat(ids))); }catch(e){}
+    if(typeof SoundManager!=='undefined') try{ SoundManager.play(SoundManager.SOUND.UI.DRAG_DROP); }catch(_){}
+  }
+};
+function _prDragStart(e){
+  if(e.pointerType==='mouse'){ _vdBegin(e,_PR_VD); return; }
+  const h=e.currentTarget, pid=e.pointerId, sx=e.clientX, sy=e.clientY;
+  let ly=sy, t=0;
+  const move=ev=>{ if(ev.pointerId!==pid) return; ly=ev.clientY; if(Math.abs(ev.clientX-sx)>8||Math.abs(ev.clientY-sy)>8) cancel(); };
+  const cancel=()=>{ clearTimeout(t); h.removeEventListener('pointermove',move); h.removeEventListener('pointerup',cancel); h.removeEventListener('pointercancel',cancel); };
+  h.addEventListener('pointermove',move); h.addEventListener('pointerup',cancel); h.addEventListener('pointercancel',cancel);
+  t=setTimeout(()=>{
+    cancel(); _bkArmed=true; h.classList.add('bnk-drag-armed');
+    try{ navigator.vibrate && navigator.vibrate(12); }catch(_){}
+    const done=ev=>{ if(ev && ev.pointerId!=null && ev.pointerId!==pid) return; _bkArmed=false; h.classList.remove('bnk-drag-armed'); window.removeEventListener('pointerup',done); window.removeEventListener('pointercancel',done); };
+    window.addEventListener('pointerup',done); window.addEventListener('pointercancel',done);
+    _vdBegin({pointerType:'touch',button:0,currentTarget:h,pointerId:pid,clientY:ly,preventDefault(){}},_PR_VD);
+  },260);
+}
+function initPourCards(){
+  document.querySelectorAll('.pr-drag').forEach(h=>{
+    if(h._prInit) return; h._prInit=true;
+    h.addEventListener('pointerdown',_prDragStart,{passive:false});
+    h.addEventListener('touchmove',ev=>{ if(_bkArmed && ev.cancelable) ev.preventDefault(); },{passive:false});
+    h.addEventListener('contextmenu',ev=>ev.preventDefault());
+  });
+}
+function prDelete(id){
+  showConfirm(L('Delete this CPP?','حذف الـ CPP ده؟'),function(){
+    _rqSave(_rqLoad().filter(x=>x.id!==id));
+    showToast(L('Deleted','تم الحذف'),'info');
+    renderView(true);
+  });
+}
+// swipe the card to the right: partly = reveal the Delete button, all the way = ask to delete
+const _PR_SW_W=92;
+let _prSw=null;
+function _prSwClose(except){ document.querySelectorAll('.pr-swipe.open').forEach(w=>{ if(w===except) return; w.classList.remove('open','sw'); const c=w.querySelector('.pr-card'); if(c){ c.style.transition='transform .2s'; c.style.transform=''; } }); }
+document.addEventListener('pointerdown',function(e){
+  const card=e.target.closest&&e.target.closest('.pr-card'); if(!card||e.target.closest('.pr-drag,.pr-swipe-del')) { if(!e.target.closest||!e.target.closest('.pr-swipe')) _prSwClose(); return; }
+  if(e.pointerType==='mouse'&&e.button!==0) return;
+  const wrap=card.parentNode; _prSwClose(wrap);
+  _prSw={card,wrap,x:e.clientX,y:e.clientY,lock:null,pid:e.pointerId,base:wrap.classList.contains('open')?_PR_SW_W:0,cur:0};
+},true);
+document.addEventListener('pointermove',function(e){
+  const s=_prSw; if(!s||e.pointerId!==s.pid) return;
+  const dx=e.clientX-s.x, dy=e.clientY-s.y;
+  if(!s.lock){
+    if(Math.abs(dx)>8&&Math.abs(dx)>Math.abs(dy)*1.4) s.lock='h';
+    else if(Math.abs(dy)>8){ _prSw=null; return; }
+    else return;
+    s.card.style.transition='none'; s.wrap.classList.add('sw');
+  }
+  s.cur=Math.max(0,Math.min(_PR_SW_W*2.2,s.base+dx));
+  s.card.style.transform=`translateX(${s.cur}px)`;
+},true);
+function _prSwEnd(e){
+  const s=_prSw; if(!s||(e&&e.pointerId!==undefined&&e.pointerId!==s.pid)) return;
+  _prSw=null; if(s.lock!=='h') return;
+  s.card.style.transition='transform .2s';
+  if(s.cur>=_PR_SW_W*1.7){ s.card.style.transform=''; s.wrap.classList.remove('open','sw'); prDelete(s.wrap.dataset.id); }
+  else if(s.cur>=_PR_SW_W*.5){ s.card.style.transform=`translateX(${_PR_SW_W}px)`; s.wrap.classList.add('open','sw'); }
+  else { s.card.style.transform=''; s.wrap.classList.remove('open','sw'); }
+}
+document.addEventListener('pointerup',_prSwEnd,true);
+document.addEventListener('pointercancel',_prSwEnd,true);
 function renderPours(){
   const everything=_rqLoad().filter(r=>r.pour===true);
   const curMonth=(typeof activeMonth!=='undefined')?activeMonth:'';
@@ -40576,7 +40691,7 @@ function renderPours(){
   const scoped=_prScope==='month'?everything.filter(inMonth):everything;
   const q=(searchQ||'').trim().toLowerCase();
   const list=(q?scoped.filter(r=>_prMatch(r,q)):scoped.slice())
-    .sort((a,b)=>String(b.date||'').localeCompare(String(a.date||''))||((b.createdAt||0)-(a.createdAt||0)));
+    .sort(_prCmp(_prOrder()));
   const groups=[];
   list.forEach(r=>{ const d=String(r.date||''); if(!groups.length||groups[groups.length-1].d!==d) groups.push({d,items:[]}); groups[groups.length-1].items.push(r); });
   let mLbl=curMonth; try{ mLbl=_monthDisplayLabel(curMonth); }catch(e){}
@@ -40601,8 +40716,6 @@ function renderPours(){
   ${_cxTabsHTML()}
   ${_cxRqSubHTML()}
   <section class="cx-sec">
-    <div class="cx-sh"><span class="cx-sh-l"><span class="cx-sh-t">${L('CPP','CPP')}</span><span class="cx-sh-s">${everything.length} ${L('CPP requests','طلب CPP')}</span></span></div>
-    ${summary}
     ${everything.length?`<div class="pr-scope"><div class="rq-scope" role="group">${scopeBtn('all',L('All CPP','كل CPP'),everything.length)}${scopeBtn('month',esc(mLbl),monthN)}</div></div>
     <div class="sc-search cx-search"><span class="cx-sbox">
       <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
@@ -40645,7 +40758,6 @@ function renderMyRequests(){
   const _seg=(k,n)=>n>0?`<i class="${k}" style="flex:${n}"></i>`:'';
   const _sf=(f,k,n,lbl)=>`<button type="button" class="rq-sf ${k}${n===0?' zero':''}${_rqFilter===f?' on':''}" aria-pressed="${_rqFilter===f?'true':'false'}" onclick="_rqSetFilter(_rqFilter==='${f}'?'all':'${f}')"><b><i></i>${n}</b><span>${lbl}</span></button>`;
   const statsHTML=all.length?`<div class="rq-sum">
-    <div class="rq-sum-top"><span class="rq-sum-rate"><b>${rate}%</b><small>${L('received','مستلم')}</small></span><span class="rq-sum-of">${counts.received} / ${all.length}</span></div>
     <div class="rq-sum-bar" aria-hidden="true">${_seg('ok',counts.received)}${_seg('low',counts.notes)}${_seg('over',counts.rejected)}</div>
     <div class="rq-sum-fl">
       ${_sf('received','ok',counts.received,_rqStatusLabel('received'))}
@@ -60622,7 +60734,7 @@ function mioraDismissGreetToast(){
 </style>
 
 <style id="cv-pages-css">
-.cvp-pgs{width:793.7px;margin:0 auto}
+.cvp-pgs{margin:0 auto}
 .cvp-sheet{position:relative;margin:0 auto;background:#fff;box-shadow:0 6px 30px rgba(0,0,0,.45);box-sizing:border-box;overflow:hidden}
 .cvp-pgs .cvp-clip{position:relative;overflow:hidden}
 .cvp-pgs .cvp-strip{column-fill:auto;box-sizing:content-box}
@@ -60643,6 +60755,11 @@ function mioraDismissGreetToast(){
 .dz-tabs{display:flex;gap:6px;padding:0 16px 8px;overflow-x:auto;flex:none}
 .dz-tabs button{flex:1 0 auto;min-height:34px;padding:0 14px;border:0;border-radius:99px;background:var(--surface2,#eee);color:var(--text2,#444);font:inherit;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap}
 .dz-tabs button.on{background:var(--green);color:#fff}
+[data-theme="dark"] .dz-seg button.on{background:var(--surface3,#26272a);color:#fff;box-shadow:0 0 0 1px rgba(255,255,255,.18)}
+[data-theme="dark"] .dz-tabs button:not(.on){color:#cfd6dd}
+.dz-tabs{scrollbar-width:none;-webkit-overflow-scrolling:touch}.dz-tabs::-webkit-scrollbar{display:none}
+.dz-tabs button{padding:0 12px}
+.dz-step{align-items:center}.dz-step b{flex:1;text-align:center;font-size:13px}
 .dz-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 12px;margin-bottom:8px;border-radius:13px;background:var(--surface2,#f1f1f1);font-size:13px;font-weight:600;color:var(--text,#222)}
 </style>
 
@@ -65237,5 +65354,98 @@ body #mainContent .fin-page .sdb-allclear{margin:12px 16px 4px;padding:14px;bord
   new MutationObserver(function(){ if(!raf) raf=requestAnimationFrame(fit); }).observe(mc,{childList:true,subtree:true});
 })();
 </script>
+
+<style id="cx-simplify-css">
+/* CPP screen: calm list — grip + swipe-to-delete */
+.pr-swipe{position:relative;border-radius:16px}
+.pr-swipe-del{position:absolute;inset:0;display:none;align-items:center;justify-content:flex-start;gap:8px;padding:0 22px;border:0;border-radius:16px;background:var(--red);color:#fff;font:inherit;font-size:calc(13px*var(--app-text-scale,1));font-weight:800;cursor:pointer}
+.pr-swipe.sw .pr-swipe-del{display:flex}
+.pr-swipe .pr-card{position:relative;z-index:1;touch-action:pan-y;padding:9px 10px 9px 0;gap:8px;box-shadow:none;border-inline-start-width:3px}
+.pr-swipe .pr-logo{width:48px;height:48px;border-radius:12px}
+.pr-swipe .pr-main{gap:2px}
+.pr-swipe .pr-plot b{font-size:calc(18px*var(--app-text-scale,1))}
+.pr-swipe .pr-work{font-size:calc(13px*var(--app-text-scale,1))}
+.pr-drag{flex:none;align-self:stretch;display:flex;align-items:center;padding:0 6px 0 7px;color:var(--muted);cursor:grab;touch-action:pan-y;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none;border-radius:10px}
+.pr-drag.bnk-drag-armed{background:var(--surface3);color:var(--text)}
+.pr-swipe.drag-dragging{opacity:.92;box-shadow:var(--shadow-xl);z-index:50;transition:none!important}
+.pr-grid{gap:8px}
+.pr-day{padding-top:10px}
+/* Receipts screen: one compact stats card + a slim report row */
+.cx-wrap .rq-sum{padding:12px;gap:10px;border-radius:16px;box-shadow:none}
+.cx-wrap .rq-sum-bar{height:6px}
+.cx-wrap .rq-sf{padding:8px 10px;gap:3px;border-radius:12px}
+.cx-wrap .rq-sf b{font-size:calc(17px*var(--app-text-scale,1))}
+.cx-wrap .rq-hub-top{padding:9px 12px;gap:10px}
+.cx-wrap .rq-mn{margin:2px 0 10px}
+.cx-wrap .rq-mn-b,.cx-wrap .rq-mn-c,.cx-wrap .rq-mn-now{height:38px}
+</style>
+<style id="cx-premium-css">
+/* My Job · Receipts + CPP — quiet, premium: neutral surfaces, hairline borders, muted tones instead of saturated colours */
+.cx-wrap{--pm-ok:#7c9c8c;--pm-low:#b3a074;--pm-over:#b08783;--pm-ok-t:#4f7260;--pm-low-t:#7f6d42;--pm-over-t:#8c5853;--pm-line:color-mix(in srgb,var(--text) 10%,transparent)}
+[data-theme="dark"] .cx-wrap{--pm-ok:#7fa593;--pm-low:#bda877;--pm-over:#b88c88;--pm-ok-t:#9cc0af;--pm-low-t:#d0bc8c;--pm-over-t:#d4a29d;--pm-line:rgba(255,255,255,.09)}
+.cx-wrap .rq-t,.cx-wrap .rq-tchip{--rq-tc:var(--sub)!important}
+/* headings */
+.cx-wrap .cx-sh-t{border-inline-start:0!important;padding-inline-start:0!important;font-size:calc(21px*var(--app-text-scale,1))!important;font-weight:650!important;letter-spacing:-.02em}
+.cx-wrap .cx-sh-s{padding-inline-start:0!important;color:var(--muted)}
+.cx-wrap .rq-grand b{color:var(--text)!important}
+/* toggles */
+.cx-wrap .rq-scope{background:var(--surface2);border:0;box-shadow:none}
+.cx-wrap .rq-scope-b{color:var(--sub)!important;font-weight:600}
+.cx-wrap .rq-scope-b.on{background:var(--surface)!important;color:var(--text)!important;box-shadow:0 0 0 1px var(--pm-line),0 1px 2px rgba(0,0,0,.06)!important}
+.cx-wrap .rq-scope-b.on em,.cx-wrap .rq-scope-b em{color:var(--muted)!important}
+.cx-wrap .rq-mn-b,.cx-wrap .rq-more{background:var(--surface);border-color:var(--pm-line);box-shadow:none;color:var(--sub)}
+.cx-wrap .rq-mn-c{background:var(--surface2);font-weight:650}
+.cx-wrap .rq-mn-now{background:transparent!important;color:var(--text2)!important;border:1px solid var(--pm-line)!important}
+/* stats card */
+.cx-wrap .rq-sum{background:var(--surface);border:1px solid var(--pm-line)!important;box-shadow:none!important}
+.cx-wrap .rq-sum-bar{height:4px;gap:2px}
+.cx-wrap .rq-sum-bar i.ok{background:var(--pm-ok)}.cx-wrap .rq-sum-bar i.low{background:var(--pm-low)}.cx-wrap .rq-sum-bar i.over{background:var(--pm-over)}
+.cx-wrap .rq-sf{background:transparent!important;border:1px solid var(--pm-line)!important;border-radius:12px}
+.cx-wrap .rq-sf.on{border-color:var(--text2)!important;background:var(--surface2)!important}
+.cx-wrap .rq-sf b{font-weight:650;color:var(--text)}
+.cx-wrap .rq-sf span{font-weight:600;color:var(--muted)}
+.cx-wrap .rq-sf.ok b i,.cx-wrap .rq-dot.ok{background:var(--pm-ok)}
+.cx-wrap .rq-sf.low b i,.cx-wrap .rq-dot.low{background:var(--pm-low)}
+.cx-wrap .rq-sf.over b i,.cx-wrap .rq-dot.over{background:var(--pm-over)}
+.cx-wrap .rq-tchip{background:transparent!important;border:1px solid var(--pm-line)!important;box-shadow:none!important;border-radius:99px;min-width:0;flex-direction:row;align-items:center;gap:7px;padding:6px 12px}
+.cx-wrap .rq-tchip b{font-size:calc(12px*var(--app-text-scale,1))!important;font-weight:650;color:var(--muted)!important}
+.cx-wrap .rq-tchip .rq-tc-l{color:var(--text2)!important;font-weight:600}
+.cx-wrap .rq-tchip i{background:var(--muted)!important}
+.cx-wrap .rq-tchip.on{background:var(--text)!important;border-color:var(--text)!important}
+.cx-wrap .rq-tchip.on .rq-tc-l{color:var(--bg)!important}.cx-wrap .rq-tchip.on b{color:var(--bg)!important;opacity:.7}
+/* report row */
+.cx-wrap .rq-hub{background:var(--surface);border:1px solid var(--pm-line)!important;box-shadow:none!important}
+.cx-wrap .rq-hub-ic{background:var(--surface2)!important;color:var(--sub)!important}
+.cx-wrap .rq-hub-go{background:transparent!important;border:1px solid var(--pm-line);color:var(--text2)!important;font-weight:600}
+.cx-wrap .rq-hub-dot,.cx-wrap .rq-hub-dot.on{background:var(--pm-ok)!important}
+/* receipt cards */
+.cx-wrap .rq-card.rq-t,.cx-wrap .rq-card{background:var(--surface)!important;border:1px solid var(--pm-line)!important;border-inline-start:1px solid var(--pm-line)!important;box-shadow:none!important;border-radius:16px}
+.cx-wrap .rq-card .rq-avatar{background:var(--surface2)!important;color:var(--sub)!important}
+.cx-wrap .rq-card .rq-co{font-weight:650}
+.cx-wrap .rq-card .rq-type{color:var(--sub)!important;font-weight:600;letter-spacing:.04em;font-size:calc(11px*var(--app-text-scale,1))}
+.cx-wrap .cx-chip{background:transparent!important;border:1px solid var(--pm-line);font-weight:600}
+.cx-wrap .cx-chip.ok{color:var(--pm-ok-t)!important}.cx-wrap .cx-chip.low{color:var(--pm-low-t)!important}.cx-wrap .cx-chip.over{color:var(--pm-over-t)!important}
+.cx-wrap .pr-badge{background:transparent;border:1px solid var(--pm-line);color:var(--sub)}
+.cx-wrap .rq-card .rq-notes{background:var(--surface2)!important;border-inline-start-color:var(--pm-line)!important}
+.cx-wrap .rq-card .rq-grid,.cx-wrap .rq-card .rq-foot{border-color:var(--pm-line)!important}
+.cx-wrap .rq-day b,.cx-wrap .pr-day b{font-weight:650;color:var(--text2)}
+/* CPP cards */
+.cx-wrap .pr-swipe .pr-card{--pc:var(--muted);background:var(--surface);border:1px solid var(--pm-line)!important;border-inline-start:1px solid var(--pm-line)!important;border-radius:16px}
+.cx-wrap .pr-swipe .pr-card.ok{--pc:var(--pm-ok)}.cx-wrap .pr-swipe .pr-card.low{--pc:var(--pm-low)}.cx-wrap .pr-swipe .pr-card.over{--pc:var(--pm-over)}
+.cx-wrap .pr-work{color:var(--text2)!important;font-weight:600}
+.cx-wrap .pr-plot b{font-weight:700;color:var(--text)}
+.cx-wrap .pr-logo{background:var(--surface2);border-color:var(--pm-line)}
+.cx-wrap .pr-swipe-del{background:#8f5b57}
+.cx-wrap .pr-card .rq-dot{width:8px;height:8px}
+/* remaining accents on these screens: module tabs, view switch, project icon, profile chip → quiet neutrals */
+.cx-wrap .cx-seg-btn.on{color:var(--text)!important}
+.cx-wrap .cx-seg-btn.on svg{color:var(--text)!important;stroke:currentColor}
+.cx-wrap .cx-seg-btn:not(.on){color:var(--muted)}
+.cx-wrap .rq-vbtn.on{background:var(--surface)!important;color:var(--text)!important;box-shadow:0 0 0 1px var(--pm-line)!important}
+.cx-wrap .rq-vbar{background:var(--surface2)!important;border-color:transparent!important}
+.cx-wrap .prj-bar{border-color:var(--pm-line)!important;box-shadow:none!important}
+.cx-wrap .prj-ic:not(.has-logo){background:var(--surface2)!important;color:var(--sub)!important}
+.cx-wrap .cx-hdr-pf [class*="pf"],.cx-wrap .cx-hdr-pf button{box-shadow:none!important}
+</style>
 </body>
 </html>
