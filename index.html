@@ -20838,7 +20838,7 @@ function attachCalcKb(){
 // wire() already overrides, so the existing thousands-formatting and any
 // field's own oninput/onblur handlers keep working untouched.
 (function(){
-  let kbEl=null, activeInput=null, hideTimer=null;
+  let kbEl=null, activeInput=null, hideTimer=null, bodyPadOrig=null;
   function build(){
     if(kbEl) return kbEl;
     kbEl=document.createElement('div');
@@ -20926,8 +20926,16 @@ function attachCalcKb(){
     const sc=(scrollEl && scrollEl.isConnected)?scrollEl:null;
     const bottomLimit=window.innerHeight-kbEl.offsetHeight-14;
     const topLimit=(sc?Math.max(0,sc.getBoundingClientRect().top):0)+8;
-    const r=el.getBoundingClientRect();
-    const labelRoom=30;                       // keep the field's label visible too
+    // Measure the visible field box (and its quick-chips row if it fits), not the bare
+    // <input> — the styled wrapper/padding/chips extend below the input and were
+    // ending up behind the keypad.
+    const wrap=el.closest('.sc-add-field-wrap')||el.parentElement||el;
+    const grp=el.closest('.sc-add-group');
+    const avail=bottomLimit-topLimit;
+    let tgt=wrap;
+    if(grp){ const gr=grp.getBoundingClientRect(); if(gr.height<=avail-8) tgt=grp; }
+    const r=tgt.getBoundingClientRect();
+    const labelRoom=(tgt===grp)?8:30;         // keep the field's label visible too
     let d=0;
     if(r.bottom>bottomLimit) d=r.bottom-bottomLimit;
     else if(r.top-labelRoom<topLimit) d=r.top-labelRoom-topLimit;
@@ -20945,6 +20953,10 @@ function attachCalcKb(){
         scrollElOrig={overflowY:scrollEl.style.overflowY,paddingBottom:scrollEl.style.paddingBottom};
         scrollEl.style.overflowY='auto';
         scrollEl.style.paddingBottom=(kbEl.offsetHeight+16)+'px';
+      }else{
+        // Page itself scrolls: give the body room beneath the content for the keypad.
+        if(bodyPadOrig===null) bodyPadOrig=document.body.style.paddingBottom;
+        document.body.style.paddingBottom=(kbEl.offsetHeight+16)+'px';
       }
       // Keep the field in the strip between the sheet's header and the keypad.
       // (scrollIntoView 'center' ignores the keypad, so the field landed behind it.)
@@ -20959,6 +20971,7 @@ function attachCalcKb(){
       scrollEl.style.paddingBottom=scrollElOrig.paddingBottom;
     }
     scrollEl=null; scrollElOrig=null;
+    if(bodyPadOrig!==null){ document.body.style.paddingBottom=bodyPadOrig; bodyPadOrig=null; }
     activeInput=null;
   }
   document.addEventListener('focusin', e=>{
@@ -20971,6 +20984,11 @@ function attachCalcKb(){
     const el=e.target;
     if(!(el&&el.classList&&el.classList.contains('amt-decimal-field'))) return;
     hideTimer=setTimeout(hide,80);
+  });
+  document.addEventListener('input', e=>{
+    const el=e.target;
+    if(el!==activeInput) return;
+    setTimeout(()=>reveal(el),160);
   });
 })();
 
@@ -65279,8 +65297,8 @@ function dailyInsightsHTML(){
     const over=hasTarget&&tgt>0&&proj>tgt*dim;
     const tile=(lbl,val,sub,cls)=>'<div class="dly-ins '+(cls||'')+'"><span>'+lbl+'</span><b>'+val+'</b><small>'+sub+'</small></div>';
     return '<div class="dly-insights">'+
-      tile(_L('Daily average','متوسط اليوم'),_fmt(avg),_cur()+_L(' / day',' / يوم'))+
-      tile(_L('Projected','المتوقّع'),_fmt(proj),over?_L('Over target','فوق التارجت'):(hasTarget?_L('On track','ماشي كويس'):_cur()),over?'bad':(hasTarget?'ok':''))+
+      tile(_L('Daily average','متوسط اليوم'),_fmt(Math.round(avg)),_cur()+_L(' / day',' / يوم'))+
+      tile(_L('Projected','المتوقّع'),_fmt(Math.round(proj)),over?_L('Over target','فوق التارجت'):(hasTarget?_L('On track','ماشي كويس'):_cur()),over?'bad':(hasTarget?'ok':''))+
       tile(_L('Under target','تحت التارجت'),hasTarget?String(streak):'—',hasTarget?_L('in a row','ورا بعض'):_L('Set a target','حدد تارجت'),hasTarget&&streak>0?'ok':'')+
     '</div>';
   }catch(e){ _log('insights',e); return ''; }
@@ -66340,6 +66358,247 @@ body #mainContent .screen-wrap.banks-v2 .bnk-hero::before{display:none!important
 .banks-v2 .bnk-hero .bnk-hero-spark .bnk-spark-svg.down{color:#ff9d9d}
 .banks-v2 .bnk-hero .bnk-hero-spark .bnk-spark-svg.up{color:#7be3b9}
 .banks-v2 .bnk-hero .bnk-mask{color:rgba(255,255,255,.75)}
+</style>
+<style id="gmy-premium-v1">
+/* ══ Savings-circle detail sheet · premium pass (CSS only — markup/JS/data untouched) ══ */
+#modalContent:has(.gmy-dt) .modal-handle{width:40px;height:4px;border-radius:99px;opacity:.55}
+#modalContent:has(.gmy-dt) .modal-title{display:flex;align-items:center;gap:11px;font-size:calc(20px*var(--app-text-scale,1));font-weight:800;letter-spacing:-.02em;line-height:1.2}
+#modalContent:has(.gmy-dt) .modal-title svg{box-sizing:content-box;width:16px;height:16px;padding:9px;border-radius:14px;flex:none;color:var(--fin-assets);background:color-mix(in srgb,var(--fin-assets) 12%,var(--surface2));box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--fin-assets) 20%,transparent)}
+
+/* hero summary */
+.gmy-sum.gmy-dt{position:relative;overflow:hidden;padding:20px 18px 18px;margin-bottom:14px;border-radius:26px;
+  border:1px solid color-mix(in srgb,var(--gmy-c) 20%,var(--border));
+  background:linear-gradient(165deg,color-mix(in srgb,var(--gmy-c) 11%,var(--surface)) 0%,var(--surface) 62%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.75),0 22px 44px -28px color-mix(in srgb,var(--gmy-c) 60%,transparent),0 2px 6px -2px rgba(20,16,40,.06)}
+.gmy-sum.gmy-dt::before{content:'';position:absolute;inset-inline-end:-56px;top:-72px;width:210px;height:210px;border-radius:50%;pointer-events:none;
+  background:radial-gradient(closest-side,color-mix(in srgb,var(--gmy-c) 24%,transparent),transparent)}
+.gmy-sum.gmy-dt>*{position:relative}
+.gmy-dt .gmy-badge{display:inline-flex;align-items:center;gap:7px;padding:5px 12px 5px 10px;font-size:calc(11.5px*var(--app-text-scale,1));font-weight:700;letter-spacing:.01em;
+  background:color-mix(in srgb,var(--gmy-c) 13%,var(--surface));box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--gmy-c) 22%,transparent)}
+.gmy-dt .gmy-badge::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--gmy-c);box-shadow:0 0 0 3px color-mix(in srgb,var(--gmy-c) 20%,transparent)}
+.gmy-dt .gmy-sum-f{padding:4px 11px;border-radius:99px;background:color-mix(in srgb,var(--muted) 10%,transparent);font-size:calc(11.5px*var(--app-text-scale,1));font-weight:700}
+.gmy-dt .gmy-sum-amt{margin:20px 0 18px;gap:4px}
+.gmy-dt .gmy-sum-amt small{font-size:calc(12px*var(--app-text-scale,1));font-weight:600;letter-spacing:.01em}
+.gmy-dt .gmy-sum-amt b{font-size:calc(44px*var(--app-text-scale,1));font-weight:800;letter-spacing:-.045em;line-height:1.05}
+.gmy-dt .gmy-sum-amt b em{font-size:calc(12px*var(--app-text-scale,1));letter-spacing:.1em;padding:3px 8px;border-radius:8px;vertical-align:.9em;background:color-mix(in srgb,var(--muted) 12%,transparent)}
+.gmy-dt .gmy-steps{gap:5px;height:10px}
+.gmy-dt .gmy-steps i{background:color-mix(in srgb,var(--gmy-c) 12%,var(--border));transition:background .3s ease}
+.gmy-dt .gmy-steps i.on{background:linear-gradient(90deg,color-mix(in srgb,var(--gmy-c) 78%,#fff),var(--gmy-c));box-shadow:0 3px 8px -3px color-mix(in srgb,var(--gmy-c) 70%,transparent)}
+.gmy-dt .gmy-steps i.cur{background:color-mix(in srgb,var(--gmy-c) 22%,var(--surface));box-shadow:inset 0 0 0 1.5px var(--gmy-c);animation:gmyPulse 2.4s ease-in-out infinite}
+.gmy-dt .gmy-bar{height:10px}
+.gmy-dt .gmy-sum-meta{margin-top:14px;padding-top:13px;border-top:1px solid color-mix(in srgb,var(--gmy-c) 14%,var(--border));font-size:calc(13px*var(--app-text-scale,1));font-weight:600;align-items:baseline}
+.gmy-dt .gmy-sum-meta span:first-child{color:var(--text);font-weight:700}
+.gmy-dt .gmy-sum-meta span:last-child{font-variant-numeric:tabular-nums}
+@keyframes gmyPulse{0%,100%{opacity:1}50%{opacity:.55}}
+
+/* actions */
+.gmy-acts{gap:10px;margin-bottom:16px}
+.gmy-acts:not(.one){grid-template-columns:1.25fr 1fr}
+.gmy-act span{white-space:nowrap}
+.gmy-acts:not(.one) .gmy-act{padding:0 10px;gap:6px;font-size:calc(14.5px*var(--app-text-scale,1))}
+.gmy-acts:not(.one) .gmy-act em{padding:3px 8px}
+.gmy-act{min-height:56px;border-radius:18px;font-size:calc(15.5px*var(--app-text-scale,1));font-weight:800;letter-spacing:-.005em;transition:transform .12s ease,box-shadow .2s ease,filter .2s ease}
+.gmy-act.pri{position:relative;overflow:hidden;color:#fff;border:0;
+  background:linear-gradient(180deg,color-mix(in srgb,var(--fin-assets) 84%,#fff) 0%,var(--fin-assets) 55%,color-mix(in srgb,var(--fin-assets) 88%,#000) 100%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.28),inset 0 -1px 0 rgba(0,0,0,.12),0 12px 26px -10px color-mix(in srgb,var(--fin-assets) 75%,transparent),0 3px 8px -3px color-mix(in srgb,var(--fin-assets) 45%,transparent)}
+.gmy-act.pri::after{content:'';position:absolute;inset:0 0 50% 0;pointer-events:none;background:linear-gradient(180deg,rgba(255,255,255,.14),transparent)}
+.gmy-act.pri:active{transform:scale(.975);filter:brightness(.97)}
+.gmy-act.pri em{padding:4px 11px;background:rgba(255,255,255,.22);box-shadow:inset 0 0 0 1px rgba(255,255,255,.16);font-weight:800;letter-spacing:.01em}
+.gmy-act:not(.pri){background:var(--surface);box-shadow:0 1px 0 rgba(255,255,255,.7) inset,0 6px 16px -10px rgba(20,16,40,.25)}
+.gmy-act.ready{box-shadow:0 10px 24px -12px color-mix(in srgb,var(--fin-income) 70%,transparent)}
+.gmy-done-note{border-radius:18px;min-height:52px}
+
+/* facts */
+.gmy-facts{padding:4px 18px;margin-bottom:14px;border-radius:22px;background:var(--surface);box-shadow:0 0 0 1px var(--border),0 14px 30px -24px rgba(20,16,40,.35)}
+.gmy-fact{padding:15px 0}
+.gmy-fact-k{font-size:calc(13.5px*var(--app-text-scale,1));font-weight:600}
+.gmy-fact b{font-size:calc(17px*var(--app-text-scale,1));font-weight:800;letter-spacing:-.015em;font-variant-numeric:tabular-nums}
+.gmy-fact:first-child .gmy-fact-v b{color:var(--fin-assets)}
+.gmy-fact em{font-size:calc(12px*var(--app-text-scale,1));font-weight:600}
+.gmy-fact+.gmy-fact{border-top:1px solid color-mix(in srgb,var(--border) 75%,transparent)}
+
+/* notes */
+.gmy-note{position:relative;padding:14px 16px;border-radius:20px;background:color-mix(in srgb,var(--fin-assets) 6%,var(--surface));box-shadow:0 0 0 1px color-mix(in srgb,var(--fin-assets) 14%,var(--border))}
+.gmy-note::before{content:'';position:absolute;inset-block:14px;inset-inline-start:0;width:3px;border-radius:0 3px 3px 0;background:var(--fin-assets)}
+[dir="rtl"] .gmy-note::before{border-radius:3px 0 0 3px}
+.gmy-note small{font-size:calc(11.5px*var(--app-text-scale,1));font-weight:700;letter-spacing:.02em;color:var(--fin-assets)}
+.gmy-note span{font-size:calc(15px*var(--app-text-scale,1));font-weight:600;line-height:1.65}
+
+/* section titles */
+.gmy-tl-title{display:flex;align-items:center;gap:12px;margin:18px 4px 10px;font-size:calc(12.5px*var(--app-text-scale,1));font-weight:800;letter-spacing:.04em;color:var(--muted)}
+.gmy-tl-title::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,var(--border),transparent)}
+[dir="rtl"] .gmy-tl-title::after{background:linear-gradient(270deg,var(--border),transparent)}
+
+/* schedule timeline */
+.gmy-tl-row{padding:11px 10px;border-radius:16px;transition:background .2s ease}
+.gmy-tl-row::before{inset-inline-start:23px;width:2px;background:color-mix(in srgb,var(--border) 90%,transparent)}
+.gmy-tl-dot{flex:0 0 28px;width:28px;height:28px;font-weight:800}
+.gmy-tl-row.paid::before{background:color-mix(in srgb,var(--fin-income) 35%,var(--border))}
+.gmy-tl-row.next{background:color-mix(in srgb,var(--fin-assets) 8%,var(--surface));box-shadow:0 0 0 1px color-mix(in srgb,var(--fin-assets) 22%,transparent)}
+.gmy-tl-row.next .gmy-tl-dot{box-shadow:0 0 0 4px color-mix(in srgb,var(--fin-assets) 18%,transparent)}
+.gmy-tl-row.mine:not(.next){background:color-mix(in srgb,var(--fin-assets) 5%,transparent)}
+.gmy-tl-main b{font-size:calc(14px*var(--app-text-scale,1));letter-spacing:-.005em}
+.gmy-tl-row.mine{flex-wrap:wrap;row-gap:6px}
+.gmy-tl-row.mine .gmy-tl-mine{flex:0 0 auto;margin-inline-start:40px}
+.gmy-tl-row.mine .gmy-tl-main{flex:1 1 calc(100% - 40px)}
+.gmy-tl-mine{padding:5px 11px;color:var(--fin-assets);background:color-mix(in srgb,var(--fin-assets) 12%,var(--surface));box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--fin-assets) 24%,transparent)}
+.gmy-fold>summary{padding:12px 14px;border-radius:16px;box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--fin-income) 18%,transparent)}
+
+/* transactions */
+.gmy-h{gap:8px}
+.gmy-h-row{padding:12px 12px;border-radius:18px;background:var(--surface);box-shadow:0 0 0 1px var(--border)}
+.gmy-h-ic{flex:0 0 34px;width:34px;height:34px;border-radius:12px}
+.gmy-h-main b{font-size:calc(15px*var(--app-text-scale,1));letter-spacing:-.01em}
+
+/* footer: glass bar, Edit becomes a calm tonal button so “I paid” stays the single hero action */
+#modalContent:has(.gmy-dt) .bs-footer,#modalContent:has(.gmy-dt) .modal-btns{-webkit-backdrop-filter:saturate(1.5) blur(16px);backdrop-filter:saturate(1.5) blur(16px);background:color-mix(in srgb,var(--surface) 86%,transparent)}
+#modalContent:has(.gmy-dt) .modal-btns .mbtn.save,#modalContent:has(.gmy-dt) .bs-footer .bs-save-btn{min-height:52px;font-weight:800;letter-spacing:0;
+  color:var(--fin-assets)!important;background-color:color-mix(in srgb,var(--fin-assets) 11%,var(--surface))!important;background-image:none!important;
+  box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--fin-assets) 28%,transparent)!important;text-shadow:none}
+#modalContent:has(.gmy-dt) .modal-btns .mbtn.save:active,#modalContent:has(.gmy-dt) .bs-footer .bs-save-btn:active{transform:scale(.98)}
+#modalContent:has(.gmy-dt) .modal-btns .mbtn.cancel{font-weight:700}
+
+/* gentle entrance */
+@keyframes gmyRise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.gmy-sum.gmy-dt,.gmy-dt~.gmy-acts,.gmy-dt~.gmy-facts,.gmy-dt~.gmy-notes{animation:gmyRise .42s cubic-bezier(.2,.8,.2,1) both}
+.gmy-dt~.gmy-acts{animation-delay:.05s}.gmy-dt~.gmy-facts{animation-delay:.1s}.gmy-dt~.gmy-notes{animation-delay:.15s}
+
+/* dark mode */
+[data-theme="dark"] .gmy-sum.gmy-dt{background:linear-gradient(165deg,color-mix(in srgb,var(--gmy-c) 14%,var(--surface)) 0%,var(--surface) 65%);box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 22px 44px -28px rgba(0,0,0,.7)}
+[data-theme="dark"] .gmy-act.pri{color:#1a1430;box-shadow:inset 0 1px 0 rgba(255,255,255,.35),0 12px 26px -12px color-mix(in srgb,var(--fin-assets) 55%,transparent)}
+[data-theme="dark"] .gmy-act.pri em{background:rgba(26,20,48,.14);box-shadow:none}
+[data-theme="dark"] .gmy-act:not(.pri){box-shadow:inset 0 1px 0 rgba(255,255,255,.05)}
+[data-theme="dark"] .gmy-facts{box-shadow:0 0 0 1px var(--border)}
+
+@media (prefers-reduced-motion:reduce){.gmy-sum.gmy-dt,.gmy-dt~.gmy-acts,.gmy-dt~.gmy-facts,.gmy-dt~.gmy-notes,.gmy-dt .gmy-steps i.cur{animation:none}}
+
+/* ═══ Premium polish — Daily header + My Savings (additive, CSS-only) ═══ */
+:root{--pm-r:22px;--pm-sh:0 1px 2px rgba(16,24,40,.04),0 10px 28px -14px rgba(16,24,40,.16);--pm-ring:inset 0 1px 0 rgba(255,255,255,.7)}
+[data-theme="dark"]{--pm-sh:0 1px 2px rgba(0,0,0,.35),0 14px 30px -16px rgba(0,0,0,.7);--pm-ring:inset 0 1px 0 rgba(255,255,255,.05)}
+
+/* — Daily: quick actions — */
+.dly-actions{gap:12px}
+.dly-act{min-height:84px;gap:9px;padding:12px 6px;border-radius:var(--pm-r);border:1px solid color-mix(in srgb,var(--border) 70%,transparent);
+  background:var(--surface);box-shadow:var(--pm-sh),var(--pm-ring);font-weight:700;letter-spacing:-.005em;
+  transition:transform .18s cubic-bezier(.2,.8,.2,1),box-shadow .2s ease}
+.dly-act .dly-ic{width:38px;height:38px;border-radius:13px;display:grid;place-items:center;
+  background:color-mix(in srgb,currentColor 0%,transparent)}
+.dly-act:not(.primary) .dly-ic{background:color-mix(in srgb,var(--tone,#1565d8) 13%,var(--surface))}
+.dly-act:nth-child(2){--tone:#c17d0a}
+.dly-act:nth-child(3){--tone:#1565d8}
+.dly-act:nth-child(3) svg{color:#1565d8}
+.dly-act:active{transform:scale(.965)}
+.dly-act.primary{background:linear-gradient(160deg,#2b7cf0 0%,#1565d8 48%,#0f4fb0 100%);
+  box-shadow:0 14px 26px -12px rgba(21,101,216,.7),inset 0 1px 0 rgba(255,255,255,.28);}
+.dly-act.primary .dly-ic{background:rgba(255,255,255,.18);box-shadow:inset 0 1px 0 rgba(255,255,255,.25)}
+
+/* — Daily: insight strip — one connected card, calmer type — */
+.dly-insights{gap:0;background:var(--surface);border:1px solid color-mix(in srgb,var(--border) 70%,transparent);
+  border-radius:var(--pm-r);box-shadow:var(--pm-sh),var(--pm-ring);overflow:hidden}
+.dly-ins{background:transparent!important;border:0!important;border-radius:0!important;box-shadow:none!important;padding:15px 14px 14px;gap:4px;position:relative}
+.dly-ins+.dly-ins::before{content:"";position:absolute;inset-block:16px;inset-inline-start:0;width:1px;background:color-mix(in srgb,var(--border) 80%,transparent)}
+.dly-ins span{font-size:calc(11px*var(--app-text-scale,1));font-weight:600;letter-spacing:.02em;color:var(--muted)}
+.dly-ins b{font-size:calc(21px*var(--app-text-scale,1));font-weight:800;letter-spacing:-.02em;line-height:1.1}
+.dly-ins small{display:inline-flex;align-items:center;gap:5px;font-weight:700}
+.dly-ins.ok small::before,.dly-ins.bad small::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor;flex:none}
+
+/* — Daily: AI one-liner — */
+.txlg-aiinsight-card{border-radius:var(--pm-r)!important;border:1px solid color-mix(in srgb,var(--border) 70%,transparent)!important;
+  background:linear-gradient(135deg,color-mix(in srgb,var(--blue,#1565d8) 6%,var(--surface)) 0%,var(--surface) 62%)!important;
+  box-shadow:var(--pm-sh),var(--pm-ring)!important;padding-block:14px!important}
+.txlg-aiinsight-text{font-weight:600;line-height:1.45}
+.txlg-aiinsight-link{font-weight:800;white-space:nowrap}
+
+/* — Daily: spending chart — */
+.pxw.sc-card{border-radius:var(--pm-r);padding:18px 16px 14px;box-shadow:var(--pm-sh),var(--pm-ring);
+  border:1px solid color-mix(in srgb,var(--border) 70%,transparent)}
+.pxw-hd{align-items:flex-start}
+.pxw-t{font-size:calc(12.5px*var(--app-text-scale,1));font-weight:700;letter-spacing:0;text-transform:none}
+.pxw-hd>b{font-size:calc(19px*var(--app-text-scale,1));font-weight:800;letter-spacing:-.02em}
+.pxw-col .pxw-c{border-radius:14px;background:color-mix(in srgb,var(--muted) 9%,transparent);overflow:visible}
+.pxw-c i{border-radius:14px;min-height:10px;background:linear-gradient(180deg,color-mix(in srgb,var(--blue,#1565d8) 55%,#fff) 0%,var(--blue,#1565d8) 100%);
+  box-shadow:0 6px 12px -6px color-mix(in srgb,var(--blue,#1565d8) 60%,transparent)}
+.pxw-c.today i{background:linear-gradient(180deg,#3a8bf5,#1565d8)}
+.pxw-c.over i{background:linear-gradient(180deg,color-mix(in srgb,var(--red,#c0463c) 70%,#fff),var(--red,#c0463c));
+  box-shadow:0 6px 12px -6px color-mix(in srgb,var(--red,#c0463c) 60%,transparent)}
+.pxw-c.zero i{background:var(--surface3);box-shadow:none}
+.pxw-c u{border-top:1.5px dashed color-mix(in srgb,var(--gold,#b8891c) 85%,transparent)}
+.pxw-col em{font-style:normal;font-weight:700;font-size:calc(11px*var(--app-text-scale,1));color:var(--muted);font-variant-numeric:tabular-nums}
+.pxw-col.today em{color:var(--text)}
+.pxw-col .pxw-dn{width:26px;height:26px;margin:2px auto 0;border-radius:50%;display:grid;place-items:center;font-weight:700;font-variant-numeric:tabular-nums}
+.pxw-col.today .pxw-dn{background:var(--blue,#1565d8);color:#fff;box-shadow:0 6px 12px -5px rgba(21,101,216,.6)}
+.pxw-ft{margin-top:14px;padding-top:12px;gap:8px 12px}
+.pxw-ft>span{display:inline-flex;align-items:center;gap:6px;padding:6px 11px;border-radius:99px;background:var(--surface2);font-weight:600}
+
+/* — My Savings: goals card — */
+.sg-card.jp-card{border-radius:var(--pm-r);padding:8px 18px 6px;box-shadow:var(--pm-sh),var(--pm-ring);
+  border:1px solid color-mix(in srgb,var(--border) 70%,transparent);
+  background:linear-gradient(180deg,color-mix(in srgb,var(--gold,#b8891c) 5%,var(--surface)) 0%,var(--surface) 38%)}
+.sg-card .jp-sec{padding:14px 0 6px;font-size:calc(15px*var(--app-text-scale,1));font-weight:800;letter-spacing:-.01em}
+.sg-card .jp-sec>svg{width:30px;height:30px;padding:7px;border-radius:10px;background:color-mix(in srgb,var(--gold,#b8891c) 14%,transparent)}
+.sg-card .jp-add{height:34px;padding:0 14px;border-radius:99px;background:var(--surface);border:1px solid color-mix(in srgb,var(--border-strong,var(--border)) 80%,transparent);box-shadow:0 1px 2px rgba(16,24,40,.06)}
+.sg-row{padding:16px 0 14px}
+.sg-nm{font-size:calc(17px*var(--app-text-scale,1));font-weight:800;letter-spacing:-.015em}
+.sg-pct{padding:4px 10px;border-radius:99px;background:color-mix(in srgb,var(--blue,#1565d8) 11%,transparent);color:var(--blue,#1565d8);font-size:calc(13px*var(--app-text-scale,1));align-self:center}
+.sg-ib{width:34px;height:34px;background:var(--surface2)}
+.sg-ibd{color:var(--red,#c0463c);background:color-mix(in srgb,var(--red,#c0463c) 9%,var(--surface))}
+.sg-bar{height:12px;margin:14px 0 12px;background:color-mix(in srgb,var(--muted) 13%,transparent);box-shadow:inset 0 1px 2px rgba(16,24,40,.08)}
+.sg-bar i{background:linear-gradient(90deg,#1565d8,#4a97f7);box-shadow:0 0 14px color-mix(in srgb,#1565d8 45%,transparent);position:relative}
+.sg-bar i::after{content:"";position:absolute;inset-block:2px;inset-inline-end:3px;width:6px;border-radius:99px;background:rgba(255,255,255,.55)}
+.sg-amt b{font-size:calc(21px*var(--app-text-scale,1));letter-spacing:-.02em}
+.sg-amt small{font-size:calc(13px*var(--app-text-scale,1))}
+.sg-q,.sg-card .jp-add.sg-q{background:color-mix(in srgb,var(--blue,#1565d8) 10%,var(--surface));color:var(--blue,#1565d8);border-color:transparent;font-weight:800}
+.sg-card .sg-st{display:block;margin-top:10px;font-size:calc(13.5px*var(--app-text-scale,1))}
+
+/* — My Savings: Income / Expenses sections — */
+.sc-card:has(>.fin-sec-hd){border-radius:var(--pm-r);box-shadow:var(--pm-sh),var(--pm-ring);border:1px solid color-mix(in srgb,var(--border) 70%,transparent);overflow:hidden}
+.fin-sec-hd{padding:18px 16px 14px;gap:12px;background:linear-gradient(180deg,color-mix(in srgb,var(--sc) 6%,transparent),transparent);
+  border-bottom:1px solid color-mix(in srgb,var(--border) 75%,transparent)}
+.fin-sec-ic{width:42px;height:42px;border-radius:14px;background:color-mix(in srgb,var(--sc) 15%,var(--surface));
+  box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--sc) 18%,transparent)}
+.fin-sec-t{font-size:calc(17px*var(--app-text-scale,1));font-weight:800;letter-spacing:-.02em}
+.fin-sec-t small{font-size:calc(14px*var(--app-text-scale,1));font-weight:700;color:var(--sc);margin-top:2px;font-variant-numeric:tabular-nums}
+.fin-sec-n{min-width:30px;height:30px;padding:0 9px;border-radius:99px;display:inline-grid;place-items:center;background:var(--surface2);border:1px solid var(--border);color:var(--text)}
+.fin-sec-add{width:42px;height:42px;border:0;background:color-mix(in srgb,var(--sc) 14%,var(--surface));box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--sc) 28%,transparent)}
+.sc-card:has(>.fin-sec-hd) .tx-rows{padding:4px 6px 6px}
+</style>
+<style id="finora-premium-final">
+/* Premium final pass: Daily + My Savings. Additive CSS only. Revert: delete this block. */
+:root{--pf-line:color-mix(in srgb,var(--border) 70%,transparent)}
+
+/* Daily chart: with few days the bars fill the card (scroll behaviour kept from 8 days up) */
+body #mainContent .pxw-track:not(:has(.pxw-col:nth-child(8))) .pxw-col{flex:1 1 0;width:auto;min-width:0}
+body #mainContent .pxw-track:not(:has(.pxw-col:nth-child(8))) .pxw-col .pxw-c{background:transparent;border-radius:0}
+body #mainContent .pxw-track:not(:has(.pxw-col:nth-child(8))) .pxw-c u{inset-inline:-4px}
+body #mainContent .pxw-c i{width:28px}
+
+/* Daily filters: placeholder no longer clipped */
+body #mainContent .txlg-filters input::placeholder{font-size:calc(14px*var(--app-text-scale,1));opacity:.8}
+
+/* My Savings: section headers, one tinted language per section colour */
+body #mainContent .fin-sec-hd .fin-sec-ic{background:color-mix(in srgb,var(--sc) 14%,var(--surface));color:var(--sc);border:0;
+  box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--sc) 20%,transparent)}
+body #mainContent .fin-sec-hd .fin-sec-n{background:color-mix(in srgb,var(--sc) 10%,var(--surface));border:0;color:var(--sc);font-weight:800}
+body #mainContent .fin-sec-hd .fin-sec-add{background:color-mix(in srgb,var(--sc) 12%,var(--surface));color:var(--sc);border:0;
+  box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--sc) 24%,transparent)}
+body #mainContent .fin-sec-hd .fin-sec-add:active{transform:scale(.94)}
+
+/* My Savings: rows. Amount leads, handles and delete step back */
+body #mainContent .tx-rows .sav-row-amount{font-weight:800;letter-spacing:-.01em;font-variant-numeric:tabular-nums}
+body #mainContent .tx-rows .sav-cur{font-size:calc(10.5px*var(--app-text-scale,1));font-weight:600;opacity:.6;margin-inline-start:3px}
+body #mainContent .tx-rows .sav-row-meta{font-weight:500;letter-spacing:0}
+body #mainContent .tx-rows .sav-drag-handle{opacity:.32}
+body #mainContent .tx-rows .sav-row .tx-del{opacity:.42}
+body #mainContent .tx-rows .sav-row .tx-del:active{opacity:1}
+
+/* My Savings: goal card. Delete steps back, status reads as one chip, details sit under a divider */
+body #mainContent .sg-card .sg-ibd{background:transparent;box-shadow:none;color:var(--muted)}
+body #mainContent .sg-card .sg-meta{display:flex;flex-direction:column;align-items:flex-start;gap:5px;margin-top:12px;padding-top:12px;border-top:1px solid var(--pf-line)}
+body #mainContent .sg-card .sg-meta>span:not(.sg-st){font-size:calc(13px*var(--app-text-scale,1));font-weight:500;color:var(--muted)}
+body #mainContent .sg-card .sg-meta>span:not(.sg-st) b{color:var(--text);font-weight:700}
+body #mainContent .sg-card .sg-meta .sg-st{display:inline-flex;margin:0 0 3px;padding:5px 12px;border-radius:99px;
+  font-size:calc(12.5px*var(--app-text-scale,1));font-weight:700;background:color-mix(in srgb,currentColor 11%,transparent)}
+body #mainContent .sg-card .sg-meta>button,body #mainContent .sg-card .sg-meta>a{margin-top:6px;font-weight:700}
 </style>
 </body>
 </html>
