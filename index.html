@@ -7129,8 +7129,9 @@ html.wdash-sheet-lock,html.wdash-sheet-lock body{overflow:hidden}
 
 /* Expandable body — same existing balance/add-row/tx-rows markup inside,
    animated open/close instead of a hard show/hide. */
-.banks-v2 .bnk-card-body{max-height:0;opacity:0;overflow:hidden;overflow-anchor:none;transition:max-height var(--dur-base) var(--ease-standard),opacity var(--dur-base) var(--ease-standard)}
-.banks-v2 .bnk-card-body.bnk-open{max-height:none;opacity:1}
+.banks-v2 .bnk-card-body{max-height:0;overflow:hidden;overflow-anchor:none;transition:max-height var(--dur-base) var(--ease-standard)}
+.banks-v2 .bnk-card-body.bnk-open{max-height:none}
+@media (prefers-reduced-motion:reduce){.banks-v2 .bnk-card-body{transition:none}}
 .banks-v2 .bnk-card-body-inner{padding:0 var(--bk8-2) var(--bk8-2)}
 .banks-v2 .balance-display{padding:0 0 var(--bk8-2);border-bottom:none}
 .banks-v2 .bal-main-card{border-radius:16px}
@@ -9619,6 +9620,7 @@ html[dir="rtl"] .rq-mn-b svg{transform:scaleX(-1)}
    (_bnkMvScrollMode) only when the rows really overflow the window, so a swipe inside a scrolling list does not drag
    the page along; the extra containment/compositing layer is dropped. */
 .banks-v2 .tx-rows.bnk-mv-list{max-height:min(380px,55vh);overflow-y:auto;overflow-x:hidden;overscroll-behavior:auto;contain:none;transform:none;-webkit-overflow-scrolling:touch}
+.banks-v2 .tx-rows.bnk-mv-list.is-scrollable{overscroll-behavior-y:contain}
 .banks-v2 .bnk-mv-list .list-empty{padding:22px 16px}
 .banks-v2 .bnk-mv-day{
   display:flex;align-items:center;justify-content:space-between;gap:8px;
@@ -20918,14 +20920,18 @@ function attachCalcKb(){
       if(/(auto|scroll)/.test(getComputedStyle(node).overflowY)) return node;
       node=node.parentElement;
     }
-    return el.closest('.modal, .stt-sheet, [id$="Sheet"], [id$="Content"]');
+    // #mainContent matches [id$="Content"] but is NOT a scroller (the page itself scrolls). Picking it made
+    // reveal() call scrollBy on an element that cannot scroll, so on the first tap the field stayed behind the keypad.
+    const f=el.closest('.modal, .stt-sheet, [id$="Sheet"], [id$="Content"]');
+    return (f && f.id!=='mainContent') ? f : null;
   }
   let scrollEl=null, scrollElOrig=null;
-  function reveal(el){
+  function reveal(el,instant){
     if(!kbEl || activeInput!==el || !kbEl.classList.contains('open')) return;
     const sc=(scrollEl && scrollEl.isConnected)?scrollEl:null;
     const bottomLimit=window.innerHeight-kbEl.offsetHeight-14;
-    const topLimit=(sc?Math.max(0,sc.getBoundingClientRect().top):0)+8;
+    let topLimit=(sc?Math.max(0,sc.getBoundingClientRect().top):0)+8;
+    if(!sc){ const hd=document.querySelector('.app-header'); if(hd) topLimit=Math.max(topLimit,hd.getBoundingClientRect().bottom+8); }
     // Measure the visible field box (and its quick-chips row if it fits), not the bare
     // <input> — the styled wrapper/padding/chips extend below the input and were
     // ending up behind the keypad.
@@ -20940,7 +20946,8 @@ function attachCalcKb(){
     if(r.bottom>bottomLimit) d=r.bottom-bottomLimit;
     else if(r.top-labelRoom<topLimit) d=r.top-labelRoom-topLimit;
     if(Math.abs(d)<2) return;
-    if(sc) sc.scrollBy({top:d,behavior:'smooth'}); else window.scrollBy({top:d,behavior:'smooth'});
+    const bh=instant?'auto':'smooth';
+    if(sc) sc.scrollBy({top:d,behavior:bh}); else window.scrollBy({top:d,behavior:bh});
   }
   function show(el){
     clearTimeout(hideTimer);
@@ -20960,8 +20967,10 @@ function attachCalcKb(){
       }
       // Keep the field in the strip between the sheet's header and the keypad.
       // (scrollIntoView 'center' ignores the keypad, so the field landed behind it.)
+      reveal(el,true);                // immediately, so the very first tap already lands above the keypad
       setTimeout(()=>reveal(el),120);
       setTimeout(()=>reveal(el),420);
+      setTimeout(()=>reveal(el),800); // after any card/sheet animation has settled
     });
   }
   function hide(){
@@ -20990,6 +20999,67 @@ function attachCalcKb(){
     if(el!==activeInput) return;
     setTimeout(()=>reveal(el),160);
   });
+})();
+
+// ── Keep text fields above the OS keyboard ───────────────────────────────
+// Number fields use the custom keypad above. Letter fields (notes, names, search...) use the native keyboard,
+// which can cover the field when it sits inside a card/sheet that clips or does not scroll on its own.
+// The visual viewport tells where the keyboard starts; the field is scrolled just enough to clear it.
+// Only keyboard show/hide (visualViewport resize) re-checks, never plain scrolling, so it never fights the user.
+(function(){
+  const vv=window.visualViewport;
+  const SKIP='#notesPageOverlay, #modalContent .bs-body, #amtKb';
+  const SEL='input:not(.amt-decimal-field):not([type=checkbox]):not([type=radio]):not([type=range]):not([type=button]):not([type=submit]):not([type=file]):not([type=color]):not([type=hidden]),textarea';
+  let active=null, padOrig=null, raf=0, endT=0;
+  const isNative=el=>!!(el && el.matches && el.matches(SEL) && !el.readOnly && !el.disabled && !el.closest(SKIP));
+  function scroller(el){
+    let n=el.parentElement;
+    while(n && n!==document.body && n!==document.documentElement){
+      if(/(auto|scroll)/.test(getComputedStyle(n).overflowY) && n.scrollHeight>n.clientHeight+1) return n;
+      n=n.parentElement;
+    }
+    return null;
+  }
+  function ensure(instant){
+    const el=active;
+    if(!el || !el.isConnected) return;
+    const sc=scroller(el);
+    const vbot=(vv?vv.offsetTop+vv.height:window.innerHeight)-12;
+    let top=8;
+    if(sc) top=Math.max(top,sc.getBoundingClientRect().top+8);
+    else{ const hd=document.querySelector('.app-header'); if(hd) top=Math.max(top,hd.getBoundingClientRect().bottom+8); }
+    const tgt=el.closest('.sc-add-field-wrap')||el;
+    const r=tgt.getBoundingClientRect();
+    let d=0;
+    if(r.height>vbot-top) d=r.top-top;          // taller than the free strip (big textarea): show its top
+    else if(r.bottom>vbot) d=r.bottom-vbot;
+    else if(r.top<top) d=r.top-top;
+    if(Math.abs(d)<2) return;
+    const o={top:d,behavior:instant?'auto':'smooth'};
+    if(sc) sc.scrollBy(o); else window.scrollBy(o);
+  }
+  function pad(){
+    if(!vv || sc0()) return;
+    const kb=Math.max(0,window.innerHeight-vv.height-vv.offsetTop);
+    if(kb<80) return;
+    if(padOrig===null) padOrig=document.body.style.paddingBottom;
+    document.body.style.paddingBottom=(kb+16)+'px';   // lets the page scroll far enough for the last fields
+  }
+  function sc0(){ return !active || !!scroller(active); }
+  function unpad(){ if(padOrig!==null){ document.body.style.paddingBottom=padOrig; padOrig=null; } }
+  const req=()=>{ if(!raf) raf=requestAnimationFrame(()=>{ raf=0; pad(); ensure(); }); };
+  document.addEventListener('focusin',e=>{
+    if(!isNative(e.target)) return;
+    clearTimeout(endT);
+    active=e.target;
+    [60,320,650].forEach(t=>setTimeout(()=>{ if(active===e.target){ pad(); ensure(t<100); } },t));
+  });
+  document.addEventListener('focusout',()=>{
+    clearTimeout(endT);
+    endT=setTimeout(()=>{ if(!isNative(document.activeElement)){ active=null; unpad(); } },120);
+  });
+  document.addEventListener('input',e=>{ if(e.target===active && e.target.tagName==='TEXTAREA') req(); });
+  if(vv) vv.addEventListener('resize',()=>{ if(active) req(); });
 })();
 
 // ── Bottom-nav height measurement ────────────────────────────────────────
@@ -22352,6 +22422,146 @@ function _astEdges(d,cw,ch){
   };
   return { t:side(0,0,cw,band), b:side(0,ch-band,cw,ch), l:side(0,0,band,ch), r:side(cw-band,0,cw,ch) };
 }
+
+// v9 · "boxed" pictures. Some product pictures carry their own backdrop INSIDE the file: a beige square on a white
+// canvas (the ring), a white rounded card with a shadow on a grey gradient (the earbuds), or a whole picture saved at
+// partial opacity. Cutting the outer margin away leaves that inner box on show (and, when translucent, it fades to
+// nothing on the dark stage). Here the picture is first normalised: translucent pictures are flattened onto white, and a
+// box-shaped inner picture is cropped out (corners/shadow dropped) as an opaque image. The normal pipeline then runs on
+// that result, so the box becomes the stage backdrop instead of a rectangle floating on it. Display only — the stored
+// image is never changed.
+const _AST_SRC = {};   // original picture key -> normalised picture (data URL)
+function _astMaxDiff(d,i,m){ return Math.max(Math.abs(d[i]-m[0]),Math.abs(d[i+1]-m[1]),Math.abs(d[i+2]-m[2])); }
+function _astInnerRect(d,cw,ch){
+  const N=cw*ch;
+  const E=_astEdges(d,cw,ch);
+  if(!(E.t&&E.b&&E.l&&E.r)) return null;
+  const sdMax=Math.max(E.t.sd,E.b.sd,E.l.sd,E.r.sd);
+  const lr=Math.max(Math.abs(E.l.m[0]-E.r.m[0]),Math.abs(E.l.m[1]-E.r.m[1]),Math.abs(E.l.m[2]-E.r.m[2]));
+  const tb=Math.max(Math.abs(E.t.m[0]-E.b.m[0]),Math.abs(E.t.m[1]-E.b.m[1]),Math.abs(E.t.m[2]-E.b.m[2]));
+  if(sdMax>=16 || lr>=24 || tb>=70) return null;                 // outer backdrop must be plain (or a gentle gradient)
+  const m=[0,1,2].map(c=>(E.t.m[c]+E.b.m[c]+E.l.m[c]+E.r.m[c])/4);
+  // flood the outer backdrop: follow smooth gradients, stop at any real edge (the box / card border)
+  const seen=new Uint8Array(N), st=[];
+  const CAP=52, STEP=8, TOL=14;
+  const org=new Uint8Array(N*3);                                 // colour of the frame pixel each flooded pixel grew from
+  const seed=(x,y)=>{
+    const p=y*cw+x;
+    if(!seen[p] && _astMaxDiff(d,p*4,m)<=CAP){ seen[p]=1; st.push(p); org[p*3]=d[p*4]; org[p*3+1]=d[p*4+1]; org[p*3+2]=d[p*4+2]; }
+  };
+  for(let x=0;x<cw;x++){ seed(x,0); seed(x,ch-1); }
+  for(let y=0;y<ch;y++){ seed(0,y); seed(cw-1,y); }
+  const grow=(p,q)=>{
+    if(seen[q]) return;
+    const i=p*4, j=q*4;
+    if(Math.max(Math.abs(d[i]-d[j]),Math.abs(d[i+1]-d[j+1]),Math.abs(d[i+2]-d[j+2]))>STEP) return;
+    if(_astMaxDiff(d,j,m)>CAP) return;
+    const o0=org[p*3], o1=org[p*3+1], o2=org[p*3+2];
+    if(Math.max(Math.abs(d[j]-o0),Math.abs(d[j+1]-o1),Math.abs(d[j+2]-o2))>TOL) return;
+    seen[q]=1; st.push(q); org[q*3]=o0; org[q*3+1]=o1; org[q*3+2]=o2;
+  };
+  while(st.length){
+    const p=st.pop(), x=p%cw, y=(p/cw)|0;
+    if(x>0) grow(p,p-1); if(x<cw-1) grow(p,p+1); if(y>0) grow(p,p-cw); if(y<ch-1) grow(p,p+cw);
+  }
+  // largest connected region of what is left
+  const lab=new Uint8Array(N); let best=null;
+  for(let p0=0;p0<N;p0++){
+    if(seen[p0]||lab[p0]) continue;
+    const comp=[p0]; lab[p0]=1;
+    for(let hd=0;hd<comp.length;hd++){
+      const p=comp[hd], x=p%cw, y=(p/cw)|0; let q;
+      if(x>0)    { q=p-1;  if(!seen[q]&&!lab[q]){ lab[q]=1; comp.push(q); } }
+      if(x<cw-1) { q=p+1;  if(!seen[q]&&!lab[q]){ lab[q]=1; comp.push(q); } }
+      if(y>0)    { q=p-cw; if(!seen[q]&&!lab[q]){ lab[q]=1; comp.push(q); } }
+      if(y<ch-1) { q=p+cw; if(!seen[q]&&!lab[q]){ lab[q]=1; comp.push(q); } }
+    }
+    if(!best || comp.length>best.length) best=comp;
+  }
+  if(!best || best.length<N*0.06) return null;
+  // erode 2px so the anti-aliased rim of the box/card is not part of the crop
+  let mask=new Uint8Array(N); best.forEach(p=>{ mask[p]=1; });
+  for(let it=0;it<2;it++){
+    const nm=new Uint8Array(N);
+    for(let y=1;y<ch-1;y++) for(let x=1;x<cw-1;x++){
+      const p=y*cw+x;
+      if(mask[p] && mask[p-1] && mask[p+1] && mask[p-cw] && mask[p+cw]) nm[p]=1;
+    }
+    mask=nm;
+  }
+  let minX=cw,minY=ch,maxX=-1,maxY=-1,cnt=0;
+  for(let p=0;p<N;p++){ if(!mask[p]) continue; cnt++; const x=p%cw,y=(p/cw)|0; if(x<minX)minX=x; if(x>maxX)maxX=x; if(y<minY)minY=y; if(y>maxY)maxY=y; }
+  if(cnt<N*0.05) return null;
+  const bw=maxX-minX+1, bh=maxY-minY+1;
+  if(cnt/(bw*bh)<0.88) return null;                              // not box-shaped: a real product silhouette, leave it to the cut-out
+  const area=bw*bh/N;
+  if(area<0.2 || area>0.93) return null;
+  const mx=cw*0.02, my=ch*0.02;
+  if(minX<mx || minY<my || cw-1-maxX<mx || ch-1-maxY<my) return null;   // must sit inside the canvas with margin all round
+  // the box's own backdrop: its rim must be plain, light, and different from the outer backdrop
+  let n=0,s0=0,s1=0,s2=0,q0=0,q1=0,q2=0;
+  for(let y=minY;y<=maxY;y++) for(let x=minX;x<=maxX;x++){
+    if(!(x<minX+4||x>maxX-4||y<minY+4||y>maxY-4)) continue;
+    const p=y*cw+x; if(!mask[p]) continue;
+    const i=p*4; n++; s0+=d[i]; s1+=d[i+1]; s2+=d[i+2]; q0+=d[i]*d[i]; q1+=d[i+1]*d[i+1]; q2+=d[i+2]*d[i+2];
+  }
+  if(n<40) return null;
+  const im=[s0/n,s1/n,s2/n];
+  const isd=Math.max(Math.sqrt(Math.max(0,q0/n-im[0]*im[0])),Math.sqrt(Math.max(0,q1/n-im[1]*im[1])),Math.sqrt(Math.max(0,q2/n-im[2]*im[2])));
+  const lum=(im[0]*299+im[1]*587+im[2]*114)/1000;
+  if(isd>14 || lum<150) return null;                             // a dark/busy rim means it is the product itself (phone, screen…)
+  if(Math.max(Math.abs(im[0]-m[0]),Math.abs(im[1]-m[1]),Math.abs(im[2]-m[2]))<8) return null;   // same backdrop: nothing to unwrap
+  const out=new Uint8Array(bw*bh);
+  for(let y=0;y<bh;y++) for(let x=0;x<bw;x++){ if(mask[(minY+y)*cw+minX+x]) out[y*bw+x]=1; }
+  return {sx:minX,sy:minY,sw:bw,sh:bh,mask:out};
+}
+function _astRenderCrop(img,sx,sy,sw,sh,R){
+  const sc=Math.min(1,720/Math.max(sw,sh));
+  const ow=Math.max(1,Math.round(sw*sc)), oh=Math.max(1,Math.round(sh*sc));
+  const out=document.createElement('canvas'); out.width=ow; out.height=oh;
+  const ox=out.getContext('2d');
+  ox.fillStyle='#fff'; ox.fillRect(0,0,ow,oh);                   // flatten on white: how the picture was meant to be seen
+  if(R){
+    const tmp=document.createElement('canvas'); tmp.width=ow; tmp.height=oh;
+    const tx=tmp.getContext('2d');
+    tx.drawImage(img,sx,sy,sw,sh,0,0,ow,oh);
+    const mk=document.createElement('canvas'); mk.width=R.sw; mk.height=R.sh;
+    const mx=mk.getContext('2d'), md=mx.createImageData(R.sw,R.sh);
+    for(let k=0;k<R.mask.length;k++){ md.data[k*4+3]=R.mask[k]?255:0; }
+    mx.putImageData(md,0,0);
+    tx.globalCompositeOperation='destination-in';
+    tx.drawImage(mk,0,0,ow,oh);
+    ox.drawImage(tmp,0,0);
+  }else{
+    ox.drawImage(img,sx,sy,sw,sh,0,0,ow,oh);
+  }
+  return out.toDataURL('image/jpeg',0.95);
+}
+// returns a normalised data URL, or null when the picture is fine as it is
+function _astPre(img,w,h){
+  const S=Math.min(1,360/Math.max(w,h));
+  const cw=Math.max(1,Math.round(w*S)), ch=Math.max(1,Math.round(h*S)), N=cw*ch;
+  const c1=document.createElement('canvas'); c1.width=cw; c1.height=ch;
+  const x1=c1.getContext('2d',{willReadFrequently:true}); x1.drawImage(img,0,0,cw,ch);
+  const raw=x1.getImageData(0,0,cw,ch).data;
+  // (a) a picture saved at partial opacity: it fades into the dark stage — flatten it on white
+  let cnt=0, part=0;
+  for(let p=0;p<N;p++){ const a=raw[p*4+3]; if(a>=24){ cnt++; if(a<235) part++; } }
+  if(cnt>=N*0.08 && part>=cnt*0.5) return _astRenderCrop(img,0,0,w,h,null);
+  // (b) only opaque pictures can hide a box (a transparent cut-out PNG has none)
+  let fr=0, op=0;
+  const f=(x,y)=>{ fr++; if(raw[(y*cw+x)*4+3]>=235) op++; };
+  for(let x=0;x<cw;x++){ f(x,0); f(x,ch-1); }
+  for(let y=1;y<ch-1;y++){ f(0,y); f(cw-1,y); }
+  if(op<fr*0.9) return null;
+  const c2=document.createElement('canvas'); c2.width=cw; c2.height=ch;
+  const x2=c2.getContext('2d',{willReadFrequently:true});
+  x2.fillStyle='#fff'; x2.fillRect(0,0,cw,ch); x2.drawImage(img,0,0,cw,ch);
+  const R=_astInnerRect(x2.getImageData(0,0,cw,ch).data,cw,ch);
+  if(!R) return null;
+  const fx=w/cw, fy=h/ch;
+  return _astRenderCrop(img,R.sx*fx,R.sy*fy,R.sw*fx,R.sh*fy,{sw:R.sw,sh:R.sh,mask:R.mask});
+}
 function _astKey(src){ return src.length+'_'+src.slice(-32)+src.slice(48,72); }
 function _astProbe(img){
   try{
@@ -22361,19 +22571,37 @@ function _astProbe(img){
     const key = img.dataset.k || '';
     const hit = key ? _AST_CUT[key] : null;
     if(hit){
-      if(hit==='photo' || hit==='fit' || hit==='blend'){ box.dataset.astmode=hit; return; }
-      if(hit.slice(0,7)==='studio|'){ _astStudio(box,hit); return; }
-      if(_AST_AR[key]) box.style.setProperty('--ast-ar',_AST_AR[key]);
-      img.src=hit; box.dataset.astmode='cutout'; return;
+      const apply=()=>{
+        if(hit==='photo' || hit==='fit' || hit==='blend'){ box.dataset.astmode=hit; return; }
+        if(hit.slice(0,7)==='studio|'){ _astStudio(box,hit); return; }
+        if(_AST_AR[key]) box.style.setProperty('--ast-ar',_AST_AR[key]);
+        img.src=hit; box.dataset.astmode='cutout';
+      };
+      const nsrc = key ? _AST_SRC[key] : null;
+      if(nsrc && hit.slice(0,5)!=='data:' && img.getAttribute('src')!==nsrc){   // show the normalised picture, then the mode
+        img.addEventListener('load',apply,{once:true}); img.src=nsrc;
+      }else apply();
+      return;
     }
     const w=img.naturalWidth, h=img.naturalHeight;
     if(!w||!h){ box.dataset.astmode='fit'; return; }
+    if(!img.dataset.n){                       // v9: unwrap translucent / boxed pictures first, then analyse the result
+      let pre=null;
+      try{ pre=_astPre(img,w,h); }catch(_){ pre=null; }
+      if(pre){
+        img.dataset.n='1'; delete img.dataset.p;
+        if(key) _AST_SRC[key]=pre;
+        img.src=pre; return;                  // onload runs this probe again on the normalised picture
+      }
+    }
     const S=Math.min(1, 360/Math.max(w,h));
     const cw=Math.max(1,Math.round(w*S)), ch=Math.max(1,Math.round(h*S));
     const cv=document.createElement('canvas'); cv.width=cw; cv.height=ch;
     const cx=cv.getContext('2d',{willReadFrequently:true});
     cx.drawImage(img,0,0,cw,ch);
     const id=cx.getImageData(0,0,cw,ch), d=id.data, N=cw*ch;
+    let _edge0=null;     // the picture's own plain backdrop colours, read before the cut-out edits any pixel
+    try{ const E0=_astEdges(d,cw,ch); if(E0.t&&E0.b&&E0.l&&E0.r) _edge0='studio|'+E0.t.m.map(Math.round).join(',')+'|'+E0.b.m.map(Math.round).join(',')+'|t'; }catch(_){}
     const white=(i)=> d[i+3]<24 || (d[i]>232 && d[i+1]>232 && d[i+2]>232);
     let bg=0, tot=0;
     const chk=(x,y)=>{ tot++; if(white((y*cw+x)*4)) bg++; };
@@ -22390,7 +22618,7 @@ function _astProbe(img){
           const tb=Math.max(Math.abs(E.t.m[0]-E.b.m[0]),Math.abs(E.t.m[1]-E.b.m[1]),Math.abs(E.t.m[2]-E.b.m[2]));
           if(sdMax<16 && lr<24 && tb<70){
             const rgb=(m)=>m.map(Math.round).join(',');
-            const spec='studio|'+rgb(E.t.m)+'|'+rgb(E.b.m)+'|'+(aspectOK?'c':'t');
+            const spec='studio|'+rgb(E.t.m)+'|'+rgb(E.b.m)+'|'+((aspectOK && !img.dataset.n)?'c':'t');
             if(key) _AST_CUT[key]=spec;
             _astStudio(box,spec); return;
           }
@@ -22477,10 +22705,12 @@ function _astProbe(img){
       shattered = largest < kept*0.7 || kept < N*0.12;
     }
     if(maxX<0 || kept<N*0.04){      // basically an all-white picture: leave it alone
+      if(_edge0){ if(key) _AST_CUT[key]=_edge0; _astStudio(box,_edge0); return; }   // v9: its own white backdrop becomes the stage (no framed box)
       if(key) _AST_CUT[key]='fit';
       box.dataset.astmode='fit'; return;
     }
     if(shattered){                  // white product on a white backdrop: keep the original pixels, but let the white blend into the tile
+      if(_edge0 && img.dataset.n){ if(key) _AST_CUT[key]=_edge0; _astStudio(box,_edge0); return; }   // v9: unwrapped card → plain stage, no inner box
       if(key) _AST_CUT[key]='blend';
       box.dataset.astmode='blend'; return;
     }
@@ -29806,7 +30036,14 @@ function _bnkSetBodyOpen(body, open){
     body.style.maxHeight = (body.scrollHeight || 3000) + 'px';
     // Once the open animation is done, release the cap so rows added or
     // re-rendered later (and tall content) are never clipped by overflow:hidden.
-    body._bnkT=setTimeout(()=>{ if(body.classList.contains('bnk-open')) body.style.maxHeight='none'; }, 500);
+    const release=()=>{
+      body.removeEventListener('transitionend',onEnd);
+      clearTimeout(body._bnkT);
+      if(body.classList.contains('bnk-open')) body.style.maxHeight='none';
+    };
+    const onEnd=ev=>{ if(ev.target===body && ev.propertyName==='max-height') release(); };
+    body.addEventListener('transitionend',onEnd);
+    body._bnkT=setTimeout(release, 450);
   } else {
     if(!body.style.maxHeight || body.style.maxHeight==='none'){
       body.style.maxHeight = body.scrollHeight + 'px';
@@ -29837,12 +30074,36 @@ function _bnkNavFreeze(ms){
 }
 // The movements window traps swipes (overscroll contain) only when its rows really overflow it; a short list
 // stays a plain part of the page so the page keeps scrolling over it.
+function _bnkMvSync(el){
+  if(el && el.classList) el.classList.toggle('is-scrollable', el.scrollHeight > el.clientHeight + 1);
+}
 function _bnkMvScrollMode(body){
   if(!body) return;
-  body.querySelectorAll('.bnk-mv-list').forEach(el=>{
-    el.style.overscrollBehaviorY = (el.scrollHeight > el.clientHeight + 1) ? 'contain' : 'auto';
-  });
+  body.querySelectorAll('.bnk-mv-list').forEach(_bnkMvSync);
 }
+// renderView() replaces the whole card HTML after every deposit/withdraw/edit/delete, so a one-shot call on
+// tap-open is not enough: the rebuilt list would silently fall back to chaining swipes into the page. Lists are
+// bound here as they appear (MutationObserver) and kept in sync whenever their size changes (ResizeObserver),
+// so the containment state is always right, with no per-touch or per-scroll work.
+(function _bnkMvInit(){
+  const ro = ('ResizeObserver' in window) ? new ResizeObserver(es=>es.forEach(e=>_bnkMvSync(e.target))) : null;
+  let q=0;
+  function bind(){
+    q=0;
+    document.querySelectorAll('.bnk-mv-list:not([data-mv-bound])').forEach(el=>{
+      el.setAttribute('data-mv-bound','1');
+      _bnkMvSync(el);
+      if(ro) ro.observe(el);
+    });
+  }
+  function start(){
+    const c=document.getElementById('mainContent');
+    if(!c) return;
+    new MutationObserver(()=>{ if(!q) q=requestAnimationFrame(bind); }).observe(c,{childList:true,subtree:true});
+    bind();
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',start); else start();
+})();
 function _bnkPinCard(card, ms){
   if(!card) return;
   _bnkNavFreeze((ms||500)+120);
