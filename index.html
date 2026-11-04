@@ -13817,19 +13817,20 @@ let _encEnabled = false; // true once PIN is verified and key derived
 // Plain copy in the profile is blanked only AFTER the encrypted copy is written and verified.
 // If there is no PIN/key (lock off) nothing changes: passwords stay plain and the screen says so.
 const JP_PW_ENC_KEY = 'wdp_enc_jp_pw_v1';
-let _JP_PW = { emailPw:'', medPw:'' };   // decrypted copy, memory only, cleared on lock
+let _JP_PW = { emailPw:'', medPw:'', proj:{} };   // decrypted copy, memory only, cleared on lock
 let _JP_PW_READY = false;                 // true once the encrypted copy has been read (or there is none)
-function _jpPwClear(){ _JP_PW = { emailPw:'', medPw:'' }; _JP_PW_READY = false; }
+function _jpPwClear(){ _JP_PW = { emailPw:'', medPw:'', proj:{} }; _JP_PW_READY = false; }
 let _jpPwQ = Promise.resolve();
 function _jpPwPersistQ(){ _jpPwQ = _jpPwQ.then(_jpPwPersist).catch(e=>{ console.warn('[WDP] profile password encrypt failed:',e); return false; }); return _jpPwQ; }
 async function _jpPwPersist(){
   if(!_encEnabled || !_cryptoKey || !_JP_PW_READY) return false;
-  const snap = { emailPw:_JP_PW.emailPw, medPw:_JP_PW.medPw };      // latest values at run time (calls are serialized)
+  const snap = { emailPw:_JP_PW.emailPw, medPw:_JP_PW.medPw, proj:JSON.parse(JSON.stringify(_JP_PW.proj||{})) };      // latest values at run time (calls are serialized)
   await saveEncrypted(JP_PW_ENC_KEY, snap);
   let shape=null; try{ shape=JSON.parse(localStorage.getItem(JP_PW_ENC_KEY)||'null'); }catch(e){}
   if(!shape || !shape.iv || !shape.ct){ try{ localStorage.removeItem(JP_PW_ENC_KEY); }catch(e){} return false; }  // never leave a plain fallback behind
   const back = await loadEncrypted(JP_PW_ENC_KEY);
-  if(!back || back.emailPw!==snap.emailPw || back.medPw!==snap.medPw) return false;
+  if(!back || back.emailPw!==snap.emailPw || back.medPw!==snap.medPw || JSON.stringify(back.proj||{})!==JSON.stringify(snap.proj)) return false;
+  try{ _jppBlankPw(); }catch(e){}   // per-project plain copies go only after the encrypted copy is verified
   const pr = JSON.parse(localStorage.getItem(_JP_KEY)||'null');
   if(pr && typeof pr==='object' && (pr.emailPw || pr.medPw)){ pr.emailPw=''; pr.medPw=''; localStorage.setItem(_JP_KEY, JSON.stringify(pr)); }
   return true;
@@ -13840,16 +13841,21 @@ async function _jpPwLoadAfterUnlock(){
     const o = await loadEncrypted(JP_PW_ENC_KEY);
     if(!o || typeof o!=='object') return;            // wrong key / corrupt: touch nothing, stay "not ready" (saves keep plain)
     _JP_PW.emailPw = String(o.emailPw||''); _JP_PW.medPw = String(o.medPw||'');
+    if(o.proj && typeof o.proj==='object'){ Object.keys(o.proj).forEach(id=>{ const q=o.proj[id]||{}; _JP_PW.proj[id]={emailPw:String(q.emailPw||''),medPw:String(q.medPw||'')}; }); }
   }
   _JP_PW_READY = true;
   // plain passwords still sitting in the profile (data from before this update, a backup restore, or a failed save) win and get encrypted now
   try{
     const pr = JSON.parse(localStorage.getItem(_JP_KEY)||'null');
+    let _dirty=false;
     if(pr && typeof pr==='object' && (pr.emailPw || pr.medPw)){
       if(pr.emailPw) _JP_PW.emailPw = String(pr.emailPw);
       if(pr.medPw)   _JP_PW.medPw   = String(pr.medPw);
-      await _jpPwPersistQ();
+      _dirty=true;
     }
+    const _pl=_jppPlainPw();
+    Object.keys(_pl).forEach(id=>{ _JP_PW.proj[id]=Object.assign({},_JP_PW.proj[id],_pl[id]); _dirty=true; });
+    if(_dirty) await _jpPwPersistQ();
   }catch(e){ console.warn('[WDP] profile password migration skipped:',e); }
 }
 // Lock switched off: no key will exist any more, so put the passwords back into the profile as plain first
@@ -13857,11 +13863,12 @@ function _jpPwRestorePlain(){
   try{
     const hasBlob = !!localStorage.getItem(JP_PW_ENC_KEY);
     if(hasBlob && !_JP_PW_READY) return true;         // could not read it this session: leave the encrypted copy untouched
-    if(!hasBlob && !_JP_PW.emailPw && !_JP_PW.medPw) return true;
+    if(!hasBlob && !_JP_PW.emailPw && !_JP_PW.medPw && !Object.keys(_JP_PW.proj||{}).length) return true;
     const pr = JSON.parse(localStorage.getItem(_JP_KEY)||'null') || {};
     pr.emailPw = _JP_PW.emailPw || pr.emailPw || ''; pr.medPw = _JP_PW.medPw || pr.medPw || '';
     const str = JSON.stringify(pr); localStorage.setItem(_JP_KEY, str);
     if(localStorage.getItem(_JP_KEY)!==str) return false;
+    if(!_jppRestorePlainPw(_JP_PW.proj||{})) return false;
     localStorage.removeItem(JP_PW_ENC_KEY);
     return true;
   }catch(e){ return false; }
@@ -38445,23 +38452,52 @@ function _jpSave(o){
 }
 // Per-project employee code + e-mails (own key, one map keyed by project id; falls back to the general profile when empty)
 const _JPP_KEY='wdp_jobprofile_proj_v1';
+const _JPP_F=['title','company','code','start','email','medEmail'];
 function _jppAll(){ try{ const o=JSON.parse(localStorage.getItem(_JPP_KEY)||'null'); return (o&&typeof o==='object'&&!Array.isArray(o))?o:{}; }catch(e){ return {}; } }
-function _jppGet(id){ const r=_jppAll()[id]||{}; return {code:String(r.code||'').trim(),email:String(r.email||'').trim(),medEmail:String(r.medEmail||'').trim()}; }
+function _jppSave(all){ const str=JSON.stringify(all); localStorage.setItem(_JPP_KEY,str); return localStorage.getItem(_JPP_KEY)===str; }
+function _jppEncOn(){ return !!(_encEnabled && _cryptoKey && _JP_PW_READY); }
+function _jppGet(id){
+  const r=_jppAll()[id]||{}, o={};
+  _JPP_F.forEach(k=>{ o[k]=String(r[k]||'').trim(); });
+  o.emailPw=String(r.emailPw||''); o.medPw=String(r.medPw||'');
+  if(_jppEncOn()){ const q=(_JP_PW.proj||{})[id]; if(q){ o.emailPw=String(q.emailPw||o.emailPw); o.medPw=String(q.medPw||o.medPw); } }
+  return o;
+}
 function _jppSet(id,v){
   try{
-    const all=_jppAll(), r={code:String(v.code||'').trim(),email:String(v.email||'').trim(),medEmail:String(v.medEmail||'').trim()};
-    if(!r.code&&!r.email&&!r.medEmail) delete all[id]; else all[id]=r;
-    localStorage.setItem(_JPP_KEY,JSON.stringify(all)); return true;
+    const all=_jppAll(), r={};
+    _JPP_F.forEach(k=>{ r[k]=String(v[k]||'').trim(); });
+    r.emailPw=String(v.emailPw||''); r.medPw=String(v.medPw||'');   // plain copy stays until the encrypted one is verified (same rule as the general passwords)
+    if(_jppEncOn()){ if(r.emailPw||r.medPw) _JP_PW.proj[id]={emailPw:r.emailPw,medPw:r.medPw}; else delete _JP_PW.proj[id]; }
+    if(!Object.keys(r).some(k=>r[k])) delete all[id]; else all[id]=r;
+    _jppSave(all);
+    if(_jppEncOn()) _jpPwPersistQ();
+    return true;
   }catch(e){ _logErr('_jppSet',e); return false; }
+}
+function _jppPlainPw(){ const out={}, all=_jppAll(); Object.keys(all).forEach(id=>{ const r=all[id]||{}; if(r.emailPw||r.medPw) out[id]={emailPw:String(r.emailPw||''),medPw:String(r.medPw||'')}; }); return out; }
+function _jppBlankPw(){
+  const all=_jppAll(); let ch=false;
+  Object.keys(all).forEach(id=>{ const r=all[id]; if(r&&(r.emailPw||r.medPw)){ r.emailPw=''; r.medPw=''; ch=true; if(!_JPP_F.some(k=>r[k])) delete all[id]; } });
+  if(ch) _jppSave(all);
+}
+function _jppRestorePlainPw(proj){
+  try{
+    const ids=Object.keys(proj||{}); if(!ids.length) return true;
+    const all=_jppAll();
+    ids.forEach(id=>{ const q=proj[id]||{}; const r=all[id]||{}; r.emailPw=String(q.emailPw||r.emailPw||''); r.medPw=String(q.medPw||r.medPw||''); all[id]=r; });
+    return _jppSave(all);
+  }catch(e){ return false; }
 }
 // Per-project profile info: the active project's own role / company / location / dates (its My CV entry).
 // Empty fields return '' so callers fall back to the general profile values — nothing is ever overwritten.
 function _jpProj(){
-  const o=Object.assign({company:'',title:'',loc:'',from:'',to:''},_jppGet(_PRJ.active));
+  const o={company:'',title:'',loc:'',from:'',to:''};
   try{
     const e=_cvEntries(_cvLoad()).find(x=>x.kind==='p'&&x.id===_PRJ.active);
     if(e){ o.company=String(e.company||'').trim(); o.title=String(e.role||'').trim(); o.loc=String(e.loc||'').trim(); o.from=/^\d{4}-\d{2}-\d{2}$/.test(e.from||'')?e.from:''; o.to=String(e.to||''); }
   }catch(x){ _logErr('_jpProj',x); }
+  try{ const r=_jppGet(_PRJ.active); Object.keys(r).forEach(k=>{ if(r[k]) o[k]=r[k]; }); }catch(x){ _logErr('_jpProj',x); }
   return o;
 }
 function _jpAtt(){ try{ const p=JSON.parse(localStorage.getItem(_prjKey('wdp_attendance_v1'))||'null')||{}; return {days:(p.days&&typeof p.days==='object')?p.days:{}, company:String(p.company||''), hire:String((p.leave&&p.leave.hire)||'')}; }catch(e){ return {days:{},company:'',hire:''}; } }
@@ -39222,7 +39258,7 @@ function renderJobProfile(){
   const hist=!!E;
   const PJ=_jpProj();
   const company=PJ.company||(hist?E.company:(p.company||att.company)), title=PJ.title||(hist?E.title:p.title), code=PJ.code||(hist?E.code:p.code);
-  const email=PJ.email||(hist?E.email:p.email), medEmail=PJ.medEmail||(hist?E.medEmail:p.medEmail), start=hist?E.start:(p.start||att.hire), ten=_jpTenure(start);
+  const email=PJ.email||(hist?E.email:p.email), medEmail=PJ.medEmail||(hist?E.medEmail:p.medEmail), start=PJ.start||(hist?E.start:(p.start||att.hire)), ten=_jpTenure(start);
   let prj=''; if(hist){ prj=A?A.name:''; } else { try{ prj=_prjName(_prjCur()); }catch(e){} }
   const ini=(p.name||'').trim().charAt(0).toUpperCase();
   const nidShown=p.nid?(_jpShowId?p.nid:_jpMask(p.nid)):'';
@@ -39235,9 +39271,9 @@ function renderJobProfile(){
   // e-mail: may break only before "@" (never at a hyphen), so it never wraps as "dma-" / "mea.com"
   const mv=v=>{ if(!v) return _jpVal(v,true); const s0=String(v), i=s0.indexOf('@'), f=x=>esc(x).replace(/-/g,'&#8209;'); return `<b class="mail"><bdi dir="ltr">${i>0?f(s0.slice(0,i))+'<wbr>'+f(s0.slice(i)):f(s0)}</bdi></b>`; };
   const mailRows=sameMail
-    ?blk(L('Company & medical-insurance e-mail','إيميل الشركة والتأمين الطبي'),_jpRow('mail',L('Address','العنوان'),mv(email),_jpCopyBtn(email))+((PJ.email||PJ.medEmail)?'':_jpPwRow('emailPw',L('Password','الباسورد'))))
-    :blk(L('Company e-mail','إيميل الشركة'),_jpRow('mail',L('Address','العنوان'),mv(email),_jpCopyBtn(email))+(PJ.email?'':_jpPwRow('emailPw',L('Password','الباسورد'))))
-     +blk(L('Medical insurance','التأمين الطبي'),_jpRow('shield',L('Address','العنوان'),mv(medEmail),_jpCopyBtn(medEmail))+(PJ.medEmail?'':_jpPwRow('medPw',L('Password','الباسورد'))));
+    ?blk(L('Company & medical-insurance e-mail','إيميل الشركة والتأمين الطبي'),_jpRow('mail',L('Address','العنوان'),mv(email),_jpCopyBtn(email))+_jpPwRow('emailPw',L('Password','الباسورد')))
+    :blk(L('Company e-mail','إيميل الشركة'),_jpRow('mail',L('Address','العنوان'),mv(email),_jpCopyBtn(email))+_jpPwRow('emailPw',L('Password','الباسورد')))
+     +blk(L('Medical insurance','التأمين الطبي'),_jpRow('shield',L('Address','العنوان'),mv(medEmail),_jpCopyBtn(medEmail))+_jpPwRow('medPw',L('Password','الباسورد')));
   const joinedRow=_jpRow('join',L('Joined','تاريخ الالتحاق'),start?`<b dir="auto">${esc(_jpDate(start))}</b>`:_jpVal(''));
   return `<div class="screen-wrap cx-wrap jp-wrap">
   ${_pgHdr('Site','الموقع','My Job','وظيفتي','Your work profile and attendance','بياناتك الوظيفية والحضور')}
@@ -39280,7 +39316,12 @@ function _jpSheet(icon,title,sub,body,saveFn,delFn){
     <div class="modal-btns"><button class="mbtn cancel" onclick="closeModal()">${L('Cancel','إلغاء')}</button><button class="mbtn save" onclick="${saveFn}">${L('Save','حفظ')}</button></div></div>`;
   document.getElementById('modalOverlay').style.display='flex';
 }
-function _jpPwGet(f){ const p=_jpLoad(); return p[f]||(f==='emailPw'?p.medPw:''); }
+function _jpPwGet(f){
+  const p=_jpLoad(), PJ=_jppGet(_PRJ.active);
+  const own=f==='emailPw'?PJ.email:PJ.medEmail;
+  if(own) return PJ[f]||'';
+  return PJ[f]||p[f]||(f==='emailPw'?(PJ.medPw||p.medPw):'');
+}
 function _jpPwRow(f,label){
   const v=_jpPwGet(f); if(!v) return '';
   const on=!!_jpPwShown[f];
@@ -39310,10 +39351,14 @@ function _jpPwFields(p){
 }
 function _jpProjFieldsHTML(){
   const v=_jppGet(_PRJ.active);
-  return `<div class="ca-note small">${L('Only for this project — leave empty to use the general values.','للمشروع ده بس — سيبها فاضية عشان تستخدم البيانات العامة.')}<b dir="auto"> ${esc(_prjName(_prjCur()))}</b></div>`+
-    `<div class="cv-2col">${_cvField('jpPCode',L('Employee code (this project)','كود التوظيف (المشروع ده)'),v.code,{dir:'ltr'})}</div>`+
+  return `<div class="ca-note small">${L('Only for this project — leave a field empty to use the general value. Name, National ID and photo stay the same for every project.','للمشروع ده بس — سيب أي خانة فاضية عشان تاخد القيمة العامة. الاسم والرقم القومي والصورة ثابتين لكل المشاريع.')}<b dir="auto"> ${esc(_prjName(_prjCur()))}</b></div>`+
+    _cvField('jpPTitle',L('Job title (this project)','المسمى الوظيفي (المشروع ده)'),v.title)+
+    _cvField('jpPCompany',L('Company (this project)','الشركة (المشروع ده)'),v.company)+
+    `<div class="cv-2col">${_cvField('jpPCode',L('Employee code (this project)','كود التوظيف (المشروع ده)'),v.code,{dir:'ltr'})}${_cvField('jpPStart',L('Joining date (this project)','تاريخ الالتحاق (المشروع ده)'),v.start,{type:'date',dir:'ltr'})}</div>`+
     _cvField('jpPEmail',L('Company e-mail (this project)','إيميل الشركة (المشروع ده)'),v.email,{type:'email',dir:'ltr'})+
-    _cvField('jpPMed',L('Medical insurance e-mail (this project)','إيميل التأمين الطبي (المشروع ده)'),v.medEmail,{type:'email',dir:'ltr'});
+    _cvField('jpPPwCo',L('Company e-mail password (this project)','باسورد إيميل الشركة (المشروع ده)'),v.emailPw,{type:'password',dir:'ltr'})+
+    _cvField('jpPMed',L('Medical insurance e-mail (this project)','إيميل التأمين الطبي (المشروع ده)'),v.medEmail,{type:'email',dir:'ltr'})+
+    _cvField('jpPPwMd',L('Medical insurance password (this project)','باسورد التأمين الطبي (المشروع ده)'),v.medPw,{type:'password',dir:'ltr'});
 }
 function _jpEditProfile(){
   const p=_jpLoad(), att=_jpAtt();
@@ -39350,7 +39395,10 @@ function _jpSaveProfile(){
   if(_caState()==='ok'){ p.name=g('jpName'); p.nid=g('jpNid').replace(/\s+/g,''); }
   else{ p.name=g('jpName'); p.title=g('jpTitle'); p.company=g('jpCompany'); p.nid=g('jpNid').replace(/\s+/g,''); p.email=g('jpEmail'); p.medEmail=g('jpMed'); p.code=g('jpCode'); p.start=g('jpStart'); }
   if(!_jpSave(p)) return;
-  try{ _jppSet(_PRJ.active,{code:g('jpPCode'),email:g('jpPEmail'),medEmail:g('jpPMed')}); }catch(e){}
+  try{
+    const _raw=id=>((document.querySelector('input#'+id))?.value||'');
+    _jppSet(_PRJ.active,{title:g('jpPTitle'),company:g('jpPCompany'),code:g('jpPCode'),start:g('jpPStart'),email:g('jpPEmail'),medEmail:g('jpPMed'),emailPw:_raw('jpPPwCo'),medPw:_raw('jpPPwMd')});
+  }catch(e){}
   try{ closeModal(); }catch(e){}
   try{ renderView(); }catch(e){ _logErr('_jpSaveProfile',e); }
   showToast(L('Profile saved','تم حفظ البيانات'),'success');
