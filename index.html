@@ -9628,6 +9628,16 @@ html[dir="rtl"] .rq-mn-b svg{transform:scaleX(-1)}
   text-transform:uppercase;color:var(--muted)
 }
 .banks-v2 .bnk-mv-day:first-child{padding-top:14px}
+/* Movements window = same principle as the receipt sheet: fixed header, scrolling body, fixed footer.
+   The header (title + count) and the footer hint stay put; only the rows scroll, and each day heading sticks while its rows pass. */
+.banks-v2 .bnk-mv-panel{margin-top:14px;display:flex;flex-direction:column;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.banks-v2 .bnk-mv-panel .tx-rows.bnk-mv-list{margin-top:0;border:0;border-radius:0;flex:1 1 auto;min-height:0}
+.banks-v2 .bnk-mv-hd{flex:0 0 auto;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 14px;border-bottom:1px solid var(--border);font-size:calc(11px*var(--app-text-scale,1));font-weight:700;color:var(--text2);background:var(--surface2)}
+.banks-v2 .bnk-mv-hd span{display:flex;align-items:center;gap:6px;min-width:0}
+.banks-v2 .bnk-mv-hd em{font-style:normal;min-width:22px;text-align:center;padding:2px 8px;border-radius:99px;background:var(--surface);border:1px solid var(--border);color:var(--sub);font-variant-numeric:tabular-nums}
+.banks-v2 .bnk-mv-ft{display:none;flex:0 0 auto;padding:7px 14px;border-top:1px solid var(--border);background:var(--surface2);font-size:calc(10.5px*var(--app-text-scale,1));color:var(--muted);text-align:center}
+.banks-v2 .bnk-mv-panel:has(.bnk-mv-list.is-scrollable) .bnk-mv-ft{display:block}
+.banks-v2 .bnk-mv-list .bnk-mv-day{position:sticky;top:0;z-index:2;background:var(--surface);border-bottom:1px solid var(--border)}
 .banks-v2 .bnk-mv-net{font-variant-numeric:tabular-nums;letter-spacing:.2px;direction:ltr}
 .banks-v2 .bnk-mv-net.dep{color:var(--green)}
 .banks-v2 .bnk-mv-net.with{color:var(--red)}
@@ -11166,6 +11176,15 @@ button,[role="button"],.sc-card[onclick],.nav-btn,.dfp-card-btn{touch-action:man
 .sc-chip{flex:none;min-height:38px;padding:0 15px;border-radius:19px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-family:inherit;font-size:calc(13px*var(--app-text-scale,1));font-weight:500;cursor:pointer;transition:transform .1s,background .15s,border-color .15s}
 .sc-chip:active{transform:scale(.95);background:var(--surface2)}
 .banks-v2 .sc-add-submit{min-height:56px;border-radius:16px;font-size:calc(16px*var(--app-text-scale,1));font-weight:700}
+/* Add Movement button: solid bank-accent fill with a real pressed edge, the plus sits in a small round badge.
+   Higher specificity + !important only because the later flat-button layers force box-shadow/radius on every .sc-add-submit. */
+body #mainContent .banks-v2 .sc-add-submit{
+  min-height:54px;gap:10px;border-radius:14px!important;letter-spacing:.2px!important;font-weight:800;
+  box-shadow:inset 0 1px 0 color-mix(in srgb,#fff 24%,transparent),inset 0 -3px 0 rgba(0,0,0,.16),0 8px 16px -8px color-mix(in srgb,var(--accent,var(--fin-outcome)) 70%,transparent)!important;
+  transition:transform .12s,box-shadow .12s,filter .12s}
+body #mainContent .banks-v2 .sc-add-submit svg{box-sizing:border-box;width:24px;height:24px;padding:5px;border-radius:50%;background:color-mix(in srgb,var(--on-accent,#fff) 22%,transparent)}
+body #mainContent .banks-v2 .sc-add-submit:active{transform:translateY(2px);filter:brightness(.96);
+  box-shadow:inset 0 1px 0 color-mix(in srgb,#fff 18%,transparent),inset 0 -1px 0 rgba(0,0,0,.16),0 3px 8px -6px color-mix(in srgb,var(--accent,var(--fin-outcome)) 70%,transparent)!important}
 @media (prefers-reduced-motion:reduce){.banks-v2 .tx-type-toggle::before,.sc-chip{transition:none}}
 </style>
 <script>
@@ -30919,7 +30938,7 @@ function renderBanks(m){
           <div id="fee-preview-${b.key}" style="display:none;margin:0 0 6px;padding:7px 12px;border-radius:var(--radius-sm);background:var(--info-tint);border:1.5px solid color-mix(in srgb,var(--info) 30%,transparent);font-size:calc(11px*var(--app-text-scale,1));font-weight:700;color:var(--info);justify-content:space-between;align-items:center"></div>
 
           <!-- Movements list (this account only) -->
-          <div class="tx-rows bnk-mv-list">${_bnkMovesListHTML(allMoves,b.key)}</div>
+          ${allMoves.length?`<div class="bnk-mv-panel"><div class="bnk-mv-hd"><span>${ic('receipt',14)} ${L('Transactions','الحركات')}</span><em>${allMoves.length}</em></div><div class="tx-rows bnk-mv-list">${_bnkMovesListHTML(allMoves,b.key)}</div><div class="bnk-mv-ft">${L('Scroll for more','اسحب لأسفل لمزيد')}</div></div>`:`<div class="tx-rows bnk-mv-list">${_bnkMovesListHTML(allMoves,b.key)}</div>`}
 
         </div>
       </div>
@@ -32862,6 +32881,9 @@ function exportBackup() {
     const ds  = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
     const ts  = `${String(d.getHours()).padStart(2,'0')}${String(d.getMinutes()).padStart(2,'0')}`;
 
+    const _bkX = _bkExtrasCollect();
+    let _bkPhotoCount = 0;
+    try{ if(typeof _bkX['wdp_myloc_photos_v1']==='string'){ const _pa=JSON.parse(_bkX['wdp_myloc_photos_v1']); if(Array.isArray(_pa)) _bkPhotoCount=_pa.length; } }catch(e){}
     const payload = {
       version:      '2.5',
       appName:      'FINORA',
@@ -32874,6 +32896,8 @@ function exportBackup() {
         monthCount:  MONTHS_ORDER.length,
         hasData:     Object.keys(DATA).length > 0,
         exportedBy:  'FINORA',
+        extrasCount: Object.keys(_bkX).length,   // integrity counters, verified (warn-only) on import
+        photosCount: _bkPhotoCount,
       },
       data: {
         finance:     DATA,
@@ -32899,7 +32923,7 @@ function exportBackup() {
         // ── Added in v2.4 ──
         planner:              PLANNER,
         // ── Added in v2.5: everything else the app stores (see _bkExtrasCollect) ──
-        extras:               _bkExtrasCollect(),
+        extras:               _bkX,
       }
     };
     const json = JSON.stringify(payload, null, 2);
@@ -32912,7 +32936,7 @@ function exportBackup() {
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    setTimeout(function(){ try{ URL.revokeObjectURL(url); }catch(e){} }, 4000);
     const _bkNow = Date.now();
     try { localStorage.setItem(LAST_BACKUP_KEY, String(_bkNow)); } catch(e){_logErr('backup:setLastBackup',e);}
     try { localStorage.setItem(LAST_REMIND_KEY,  String(_bkNow)); } catch(e){_logErr('backup:setLastRemind',e);}
@@ -32960,6 +32984,12 @@ function importBackup(file) {
           if (!parsed.data.finance || typeof parsed.data.finance !== 'object') {
             throw new Error(L('Backup does not contain valid finance data','النسخة الاحتياطية لا تحتوي على بيانات مالية صالحة'));
           }
+          try{
+            const _m=parsed.meta, _x=parsed.data.extras;
+            if(_m && typeof _m.extrasCount==='number' && _x && typeof _x==='object' && Object.keys(_x).length!==_m.extrasCount){
+              setTimeout(function(){ try{ showToast(L('⚠️ Backup file may be incomplete (item count mismatch)','⚠️ ملف النسخة الاحتياطية قد يكون ناقصاً (عدد العناصر غير متطابق)'),'warn'); }catch(e){} },600);
+            }
+          }catch(e){}
           resolve({ version: '2.0', payload: parsed }); // treat both as same internally
           return;
         }
@@ -38358,6 +38388,7 @@ function _cxProfileChipHTML(){
   const full=(p.name||'').trim();
   const short=full.split(/\s+/).slice(0,2).join(' ');
   const ini=full.charAt(0).toUpperCase();
+  try{ const PJ=_jpProj(); if(PJ.title) p.title=PJ.title; if(PJ.company) p.company=PJ.company; }catch(e){}
   const sub=[p.title,p.company].filter(Boolean).join(' · ');
   // two slides that cross-fade inside the card: (name / job) then (job / company) — only when there is something to rotate
   const t2=(p.title||'').trim(), c2=(p.company||'').trim();
@@ -38411,6 +38442,27 @@ function _jpSave(o){
     if(_encEnabled && _cryptoKey && _JP_PW_READY){ _JP_PW.emailPw=String(o.emailPw||''); _JP_PW.medPw=String(o.medPw||''); _jpPwPersistQ(); }  // encrypt, verify, then blank the plain copy
     return true; }
   catch(e){ _logErr('_jpSave',e); try{ showToast(L('⚠️ Could not save (storage full)','⚠️ تعذّر الحفظ (التخزين ممتلئ)'),'warn'); }catch(_){} return false; }
+}
+// Per-project employee code + e-mails (own key, one map keyed by project id; falls back to the general profile when empty)
+const _JPP_KEY='wdp_jobprofile_proj_v1';
+function _jppAll(){ try{ const o=JSON.parse(localStorage.getItem(_JPP_KEY)||'null'); return (o&&typeof o==='object'&&!Array.isArray(o))?o:{}; }catch(e){ return {}; } }
+function _jppGet(id){ const r=_jppAll()[id]||{}; return {code:String(r.code||'').trim(),email:String(r.email||'').trim(),medEmail:String(r.medEmail||'').trim()}; }
+function _jppSet(id,v){
+  try{
+    const all=_jppAll(), r={code:String(v.code||'').trim(),email:String(v.email||'').trim(),medEmail:String(v.medEmail||'').trim()};
+    if(!r.code&&!r.email&&!r.medEmail) delete all[id]; else all[id]=r;
+    localStorage.setItem(_JPP_KEY,JSON.stringify(all)); return true;
+  }catch(e){ _logErr('_jppSet',e); return false; }
+}
+// Per-project profile info: the active project's own role / company / location / dates (its My CV entry).
+// Empty fields return '' so callers fall back to the general profile values — nothing is ever overwritten.
+function _jpProj(){
+  const o=Object.assign({company:'',title:'',loc:'',from:'',to:''},_jppGet(_PRJ.active));
+  try{
+    const e=_cvEntries(_cvLoad()).find(x=>x.kind==='p'&&x.id===_PRJ.active);
+    if(e){ o.company=String(e.company||'').trim(); o.title=String(e.role||'').trim(); o.loc=String(e.loc||'').trim(); o.from=/^\d{4}-\d{2}-\d{2}$/.test(e.from||'')?e.from:''; o.to=String(e.to||''); }
+  }catch(x){ _logErr('_jpProj',x); }
+  return o;
 }
 function _jpAtt(){ try{ const p=JSON.parse(localStorage.getItem(_prjKey('wdp_attendance_v1'))||'null')||{}; return {days:(p.days&&typeof p.days==='object')?p.days:{}, company:String(p.company||''), hire:String((p.leave&&p.leave.hire)||'')}; }catch(e){ return {days:{},company:'',hire:''}; } }
 const _jpLoc=()=>L('en-US','ar-EG-u-nu-latn');
@@ -39168,8 +39220,9 @@ function renderJobProfile(){
   let c=null, E=null, A=null;
   if(cs==='ok'){ c=_caLoad(); const cu=_caCur(c); E=cu.emp; A=cu.asg; }
   const hist=!!E;
-  const company=hist?E.company:(p.company||att.company), title=hist?E.title:p.title, code=hist?E.code:p.code;
-  const email=hist?E.email:p.email, medEmail=hist?E.medEmail:p.medEmail, start=hist?E.start:(p.start||att.hire), ten=_jpTenure(start);
+  const PJ=_jpProj();
+  const company=PJ.company||(hist?E.company:(p.company||att.company)), title=PJ.title||(hist?E.title:p.title), code=PJ.code||(hist?E.code:p.code);
+  const email=PJ.email||(hist?E.email:p.email), medEmail=PJ.medEmail||(hist?E.medEmail:p.medEmail), start=hist?E.start:(p.start||att.hire), ten=_jpTenure(start);
   let prj=''; if(hist){ prj=A?A.name:''; } else { try{ prj=_prjName(_prjCur()); }catch(e){} }
   const ini=(p.name||'').trim().charAt(0).toUpperCase();
   const nidShown=p.nid?(_jpShowId?p.nid:_jpMask(p.nid)):'';
@@ -39182,9 +39235,9 @@ function renderJobProfile(){
   // e-mail: may break only before "@" (never at a hyphen), so it never wraps as "dma-" / "mea.com"
   const mv=v=>{ if(!v) return _jpVal(v,true); const s0=String(v), i=s0.indexOf('@'), f=x=>esc(x).replace(/-/g,'&#8209;'); return `<b class="mail"><bdi dir="ltr">${i>0?f(s0.slice(0,i))+'<wbr>'+f(s0.slice(i)):f(s0)}</bdi></b>`; };
   const mailRows=sameMail
-    ?blk(L('Company & medical-insurance e-mail','إيميل الشركة والتأمين الطبي'),_jpRow('mail',L('Address','العنوان'),mv(email),_jpCopyBtn(email))+_jpPwRow('emailPw',L('Password','الباسورد')))
-    :blk(L('Company e-mail','إيميل الشركة'),_jpRow('mail',L('Address','العنوان'),mv(email),_jpCopyBtn(email))+_jpPwRow('emailPw',L('Password','الباسورد')))
-     +blk(L('Medical insurance','التأمين الطبي'),_jpRow('shield',L('Address','العنوان'),mv(medEmail),_jpCopyBtn(medEmail))+_jpPwRow('medPw',L('Password','الباسورد')));
+    ?blk(L('Company & medical-insurance e-mail','إيميل الشركة والتأمين الطبي'),_jpRow('mail',L('Address','العنوان'),mv(email),_jpCopyBtn(email))+((PJ.email||PJ.medEmail)?'':_jpPwRow('emailPw',L('Password','الباسورد'))))
+    :blk(L('Company e-mail','إيميل الشركة'),_jpRow('mail',L('Address','العنوان'),mv(email),_jpCopyBtn(email))+(PJ.email?'':_jpPwRow('emailPw',L('Password','الباسورد'))))
+     +blk(L('Medical insurance','التأمين الطبي'),_jpRow('shield',L('Address','العنوان'),mv(medEmail),_jpCopyBtn(medEmail))+(PJ.medEmail?'':_jpPwRow('medPw',L('Password','الباسورد'))));
   const joinedRow=_jpRow('join',L('Joined','تاريخ الالتحاق'),start?`<b dir="auto">${esc(_jpDate(start))}</b>`:_jpVal(''));
   return `<div class="screen-wrap cx-wrap jp-wrap">
   ${_pgHdr('Site','الموقع','My Job','وظيفتي','Your work profile and attendance','بياناتك الوظيفية والحضور')}
@@ -39255,6 +39308,13 @@ function _jpPwFields(p){
       ? L('Passwords are encrypted on this device with your PIN. They are not included in backups — keep a copy somewhere safe too.','الباسوردات متشفرة على الجهاز ده بالـ PIN بتاعك، ومش بتدخل في النسخ الاحتياطي — احتفظ بنسخة منها في مكان آمن كمان.')
       : L('Passwords are kept on this device only and are not encrypted — turn on the PIN lock to encrypt them, and do not store anything critical here.','الباسوردات متخزنة على الجهاز ده بس ومش مشفرة — فعّل قفل الـ PIN عشان تتشفّر، ومتحطش هنا حاجة حساسة جدًا.')}</div>`;
 }
+function _jpProjFieldsHTML(){
+  const v=_jppGet(_PRJ.active);
+  return `<div class="ca-note small">${L('Only for this project — leave empty to use the general values.','للمشروع ده بس — سيبها فاضية عشان تستخدم البيانات العامة.')}<b dir="auto"> ${esc(_prjName(_prjCur()))}</b></div>`+
+    `<div class="cv-2col">${_cvField('jpPCode',L('Employee code (this project)','كود التوظيف (المشروع ده)'),v.code,{dir:'ltr'})}</div>`+
+    _cvField('jpPEmail',L('Company e-mail (this project)','إيميل الشركة (المشروع ده)'),v.email,{type:'email',dir:'ltr'})+
+    _cvField('jpPMed',L('Medical insurance e-mail (this project)','إيميل التأمين الطبي (المشروع ده)'),v.medEmail,{type:'email',dir:'ltr'});
+}
 function _jpEditProfile(){
   const p=_jpLoad(), att=_jpAtt();
   if(_caState()==='ok'){
@@ -39263,6 +39323,7 @@ function _jpEditProfile(){
       _cvField('jpName',L('Full name','الاسم بالكامل'),p.name)+
       _cvField('jpNid',L('National ID','الرقم القومي'),p.nid,{dir:'ltr',type:'tel',ph:'14 digits'})+
 _jpPwFields(p)+
+      _jpProjFieldsHTML()+
       `<div class="ca-note small">${L('Company, title, employee code and e-mails belong to the employment period, so they are edited there.','الشركة والمسمى والكود والإيميلات تابعة لفترة التوظيف، فبتتعدل من هناك.')}</div>`+
       (cu.emp?`<button type="button" class="jp-link" style="margin:0 0 10px" onclick="_caDetail('e','${cu.emp.id}')">${ic('building',15)} ${L('Open current employment','فتح فترة التوظيف الحالية')}</button>`:`<button type="button" class="jp-link" style="margin:0 0 10px" onclick="_caManageOpen()">${ic('briefcase',15)} ${L('Edit job details','تعديل بيانات الشغل')}</button>`)+
       (p.photo?`<button type="button" class="jp-photo-rm" onclick="_jpPhotoRemove()">${ic('trash',14)} ${L('Remove photo','حذف الصورة')}</button>`:''),
@@ -39278,6 +39339,7 @@ _jpPwFields(p)+
     _cvField('jpEmail',L('Company e-mail','إيميل الشركة'),p.email,{type:'email',dir:'ltr'})+
     _cvField('jpMed',L('Medical insurance e-mail','إيميل التأمين الطبي'),p.medEmail,{type:'email',dir:'ltr'})+
     `<div class="cv-2col">${_cvField('jpCode',L('Employee code','كود التوظيف'),p.code,{dir:'ltr'})}${_cvField('jpStart',L('Joining date','تاريخ الالتحاق'),p.start||att.hire,{type:'date',dir:'ltr'})}</div>`+
+    _jpProjFieldsHTML()+
     (p.photo?`<button type="button" class="jp-photo-rm" onclick="_jpPhotoRemove()">${ic('trash',14)} ${L('Remove photo','حذف الصورة')}</button>`:''),
     '_jpSaveProfile()');
 }
@@ -39288,6 +39350,7 @@ function _jpSaveProfile(){
   if(_caState()==='ok'){ p.name=g('jpName'); p.nid=g('jpNid').replace(/\s+/g,''); }
   else{ p.name=g('jpName'); p.title=g('jpTitle'); p.company=g('jpCompany'); p.nid=g('jpNid').replace(/\s+/g,''); p.email=g('jpEmail'); p.medEmail=g('jpMed'); p.code=g('jpCode'); p.start=g('jpStart'); }
   if(!_jpSave(p)) return;
+  try{ _jppSet(_PRJ.active,{code:g('jpPCode'),email:g('jpPEmail'),medEmail:g('jpPMed')}); }catch(e){}
   try{ closeModal(); }catch(e){}
   try{ renderView(); }catch(e){ _logErr('_jpSaveProfile',e); }
   showToast(L('Profile saved','تم حفظ البيانات'),'success');
