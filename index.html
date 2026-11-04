@@ -14958,7 +14958,7 @@ function wipeAllData(){
     <div style="font-size:calc(13px*var(--app-text-scale,1));color:var(--sub);line-height:1.6;margin-bottom:4px">${L('This will permanently delete ALL months, transactions, expenses, custody deposits, bank movements and custom banks — and start the app completely empty (one fresh blank month). This cannot be undone.','سيتم حذف كل الأشهر والمعاملات والمصروفات والإيداعات وحركات البنوك والبنوك المخصصة نهائياً. لا يمكن التراجع.')}</div>
     <div class="modal-btns">
       <button class="mbtn save" style="background:#dc4f4f" onclick="confirmWipe()">${L('Yes, Wipe Everything','نعم، امسح كل شيء')}</button>
-      <button class="mbtn cancel" onclick="closeModal()">Cancel</button>
+      <button class="mbtn cancel" onclick="closeModal()">${L('Cancel','إلغاء')}</button>
     </div>`;
   document.getElementById('modalOverlay').style.display='flex';
 }
@@ -17222,7 +17222,7 @@ function renderBankSummaryCompactV3(m){
       ${logoHTML}
       <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px">
         <div class="bank-name-text" style="font-size:calc(12px*var(--app-text-scale,1));font-weight:800;color:var(--text);line-height:1.25;overflow-wrap:break-word">${esc(bankDisplayName(b.name))}</div>
-        <div style="font-size:calc(11.5px*var(--app-text-scale,1));font-weight:800;color:${accentColor}">${mrFmtShort(b.bal)} ${CURRENT_CURRENCY}</div>
+        <div style="font-size:calc(11.5px*var(--app-text-scale,1));font-weight:800;color:${accentColor}">${mrFmtShort(b.bal)} ${curLabel()}</div>
       </div>
     </div>`;
   }).join('') || `<div class="dfp-toplist-empty">${L('No accounts yet','لا توجد حسابات بعد')}</div>`;
@@ -21041,7 +21041,7 @@ function dateChip(dateStr, bg, fg){
   if(parts.length!==3) return `<span class="badge" style="background:${bg};color:${fg}">${dateStr}</span>`;
   const mIdx=parseInt(parts[1],10)-1;
   const day=parseInt(parts[2],10);
-  const mon=MON_ABBR[mIdx]||parts[1];
+  const mon=(lang==='ar'&&typeof MONTH_AR_NAMES!=='undefined'&&MONTH_AR_NAMES[mIdx])?MONTH_AR_NAMES[mIdx]:(MON_ABBR[mIdx]||parts[1]);
   return `<div class="date-chip" style="background:${bg};color:${fg}"><span class="dc-day">${day}</span><span class="dc-mon">${mon}</span></div>`;
 }
 
@@ -26961,7 +26961,7 @@ function renderRecentActivity(m){
         <td class="desc-text" style="max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.label}">${r.label}</td>
         <td style="color:${amtColor};font-weight:800;white-space:nowrap">${amtPrefix}${fmtEGP(Math.abs(r.amount))}</td>
       </tr>`;
-      }).join('')||'<tr><td colspan="3" style="text-align:center;padding:var(--sp5);color:var(--muted)">No data</td></tr>'}</tbody>
+      }).join('')||'<tr><td colspan="3" style="text-align:center;padding:var(--sp5);color:var(--muted)">'+L('No data','لا توجد بيانات')+'</td></tr>'}</tbody>
     </table></div>
   </div>`;
 }
@@ -27012,19 +27012,19 @@ function renderBudgetSummary(m){
   <div class="section">
     <div class="sec-title">${icon('clipboard',{size:14,style:'margin-bottom:-2px;margin-right:5px'})}${L('Budget Summary','ملخص الميزانية')}</div>
     <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)">
-      <span style="font-size:calc(12px*var(--app-text-scale,1));color:var(--sub)">Opening Budget (OLD)</span>
+      <span style="font-size:calc(12px*var(--app-text-scale,1));color:var(--sub)">${L('Opening Budget (OLD)','الميزانية الافتتاحية (القديمة)')}</span>
       <span style="font-size:calc(13px*var(--app-text-scale,1));font-weight:700;color:#3b82c4">${fmtEGP(b.opening_old)}</span>
     </div>
     <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)">
-      <span style="font-size:calc(12px*var(--app-text-scale,1));color:var(--sub)">Closing Budget (NEW)</span>
+      <span style="font-size:calc(12px*var(--app-text-scale,1));color:var(--sub)">${L('Closing Budget (NEW)','الميزانية الختامية (الجديدة)')}</span>
       <span style="font-size:calc(13px*var(--app-text-scale,1));font-weight:700;color:#0f7a55">${fmtEGP(b.closing_new)}</span>
     </div>
     <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)">
-      <span style="font-size:calc(12px*var(--app-text-scale,1));color:var(--sub)">Budget Difference</span>
+      <span style="font-size:calc(12px*var(--app-text-scale,1));color:var(--sub)">${L('Budget Difference','فرق الميزانية')}</span>
       <span style="font-size:calc(13px*var(--app-text-scale,1));font-weight:700;color:${(b.difference||0)>=0?'#0f7a55':'#dc4f4f'}">${(b.difference||0)>=0?'+':''}${fmtEGP(b.difference)}</span>
     </div>
     <div style="display:flex;justify-content:space-between;padding:10px 0 0">
-      <span style="font-size:calc(13px*var(--app-text-scale,1));font-weight:700;color:var(--text);text-transform:none;letter-spacing:.3px">Total Actual</span>
+      <span style="font-size:calc(13px*var(--app-text-scale,1));font-weight:700;color:var(--text);text-transform:none;letter-spacing:.3px">${L('Total Actual','إجمالي الفعلي')}</span>
       <span style="font-size:calc(18px*var(--app-text-scale,1));font-weight:800;color:#c17d0a">${fmtEGP(b.total_actual)}</span>
     </div>
   </div>`;
@@ -29433,7 +29433,7 @@ function getAllBanks(){
 function renderBankMetaRow(bal, key, tot, vis){
   var monthInt = calcMonthlyInterest(bal, key);
   var hasInt   = monthInt > 0;
-  var cur      = CURRENT_CURRENCY;
+  var cur      = curLabel();
   var hidCls   = vis ? '' : 'hidden';
 
   // FIX (Opening Balance visibility): Available Balance = Opening Balance +
@@ -30689,7 +30689,7 @@ function renderBanks(m){
   const _withPct = _flowTotal>0 ? 100-_depPct : 0;
 
   const _hideAll=_bnkHideAll;
-  const _mask='<span class="bnk-mask" aria-label="hidden">● ● ● ●</span>';
+  const _mask='<span class="bnk-mask" aria-label="'+L('hidden','مخفي')+'">● ● ● ●</span>';
   return `<div class="screen-wrap banks-v2${_hideAll?' bnk-privacy':''}">
 ${_pgHdr('Finance','المالية','Accounts','الحسابات','Banks and e-wallets: balances and movements','البنوك والمحافظ: الأرصدة والحركة')}
 
@@ -32454,7 +32454,7 @@ function numStyleSet(v){ try{ localStorage.setItem(NUM_STYLE_KEY,v); }catch(e){}
 numStyleApply(numStyleGet());
 function openNumStylePicker(){
   const cur=numStyleGet();
-  const cc=(typeof CURRENT_CURRENCY!=='undefined'?CURRENT_CURRENCY:'EGP');
+  const cc=(typeof CURRENT_CURRENCY!=='undefined'?curLabel(CURRENT_CURRENCY):'EGP');
   const opts=NUM_STYLES.map(function(x){
     return '<button type="button" class="ns-opt'+(x[0]===cur?' on':'')+'" data-ns="'+x[0]+'" onclick="numStyleSet(\''+x[0]+'\')" aria-pressed="'+(x[0]===cur)+'">'
       +'<span class="ns-name">'+esc(L(x[1],x[2]))+(x[0]===cur?' <i>✓</i>':'')+'</span>'
@@ -32525,7 +32525,7 @@ setInterval(recurTick,300000);
 document.addEventListener('visibilitychange',function(){ if(document.visibilityState==='visible') setTimeout(recurTick,1200); });
 
 function openRecurringPanel(){
-  const cur=(typeof CURRENT_CURRENCY!=='undefined'?CURRENT_CURRENCY:'');
+  const cur=(typeof CURRENT_CURRENCY!=='undefined'?curLabel(CURRENT_CURRENCY):'');
   const fmt=function(v){ return Number(v).toLocaleString('en-US',{maximumFractionDigits:2}); };
   const list=RECUR.length
     ? RECUR.map(function(r){
@@ -43233,7 +43233,7 @@ function saveCustodyDeposit(){
   let valid = true;
   const deps=DATA[activeMonth].custody_deposits||[];
   const idx=deps.findIndex(x=>x.id===_editDepId);
-  if(idx<0){showToast('Not found', 'error');return;}
+  if(idx<0){showToast(L('Not found','غير موجود'), 'error');return;}
   // Date
   const dateVal = document.getElementById('editDepDate').value;
   const dateChk = _valDate(dateVal, true);
@@ -43264,7 +43264,7 @@ function saveCustodyDeposit(){
     DATA[activeMonth].custody_deposits.push(_rec);
   }
   _editDepId=null;
-  showToast('✓ Updated', 'success', undefined, _savedDepType);
+  showToast(L('✓ Updated','✓ تم التحديث'), 'success', undefined, _savedDepType);
   persistData();
   _autoDropReadyToClose(activeMonth);
   closeModal();
@@ -44030,7 +44030,7 @@ function openAIQuickEntry(mode){
   _aiqMode = mode==='tx' ? 'tx' : 'expense';
   const exampleText = _aiqMode==='tx'
     ? 'جبت علبة زبادي ب 12 جنيه من السوبر ماركت بتاع بيم'
-    : '01/07 Cement 25000\nSteel 12mm 85000\nSand 4200';
+    : L('01/07 Cement 25000\nSteel 12mm 85000\nSand 4200','01/07 أسمنت 25000\nحديد تسليح 85000\nرمل 4200');
   const subTitle = _aiqMode==='tx' ? L('Daily Spending','الإنفاق اليومي') : L('Site Expenses','مصروفات الموقع');
   document.getElementById('modalContent').innerHTML = `
     <div class="bs-chrome">
@@ -52488,7 +52488,7 @@ async function saveNewMonth(){
   }
   const key=moName+'-'+year;
   if(MONTHS_ORDER.includes(key)){
-    showToast('Month already exists', 'success');
+    showToast(L('Month already exists','الشهر موجود بالفعل'), 'success');
     closeModal();
     selectMonth(key);
     return;
@@ -52526,7 +52526,7 @@ async function saveNewMonth(){
   await persistMonths();
   await persistData();
   closeModal();
-  showToast('✓ Month added', 'success');
+  showToast(L('✓ Month added','✓ تمت إضافة الشهر'), 'success');
   selectMonth(key);
 }
 // ── Delete Month ─────────────────────────────────────────────────────────────
@@ -52593,13 +52593,17 @@ async function deleteMonth(key){
 function _fmtN(n){ return (n||0).toLocaleString(_dtLocale('en-US'),{minimumFractionDigits:2,maximumFractionDigits:2}); }
 function _cur(n){ return _fmtN(n)+' '+curLabel(); }
 
+const _XL_AR={"Summary": "الملخص", "Transactions": "المعاملات", "SiteExpenses": "مصروفات الموقع", "Categories": "التصنيفات", "DailySpending": "الإنفاق اليومي", "Site Expenses": "مصروفات الموقع", "Banks": "البنوك", "Month": "الشهر", "Date": "التاريخ", "Notes": "ملاحظات", "Category": "التصنيف", "Payment": "المدفوع", "Receipt": "المستلم", "Description": "الوصف", "Amount": "المبلغ", "Linked Bank": "البنك المرتبط", "Bank": "البنك", "Deposits": "الإيداعات", "Withdrawals": "السحوبات", "Balance": "الرصيد", "Daily Spending": "الإنفاق اليومي", "Banks Total": "إجمالي البنوك", "Transactions #": "عدد المعاملات", "Expenses #": "عدد المصروفات", "FINORA Monthly Report": "تقرير FINORA الشهري", "Generated": "تاريخ الإنشاء", "Metric": "المؤشر", "Currency": "العملة", "Total Income": "إجمالي الدخل", "Total Expenses": "إجمالي المصروفات", "Net Savings": "صافي المدخرات", "Cash Flow": "التدفق النقدي", "Budget": "الميزانية", "Not set": "غير محددة", "Budget Accuracy %": "دقة الميزانية %", "N/A": "غير متاح", "Avg Daily Spending": "متوسط الإنفاق اليومي", "Total Transactions": "إجمالي المعاملات", "Highest Category": "أعلى تصنيف", "Largest Transaction": "أكبر معاملة", "% of Total": "% من الإجمالي", "FINORA — Bank Report": "FINORA — تقرير البنوك", "SUMMARY": "الملخص", "Net Worth": "صافي الثروة", "Total Bank Balance": "إجمالي أرصدة البنوك", "Total Wallet Balance": "إجمالي أرصدة المحافظ", "Cash on Hand": "النقد المتاح", "Total Deposits": "إجمالي الإيداعات", "Total Withdrawals": "إجمالي السحوبات", "Total Interest Earned": "إجمالي الفوائد المكتسبة", "Type": "النوع", "Opening": "الافتتاحي", "Interest": "الفائدة", "Closing": "الختامي", "Difference": "الفرق", "Wallet": "محفظة", "Total Balance": "إجمالي الرصيد", "BalanceHistory": "سجل الأرصدة", "Assets": "الأصول", "Asset": "الأصل", "Value": "القيمة", "FINORA — Yearly Analytics": "FINORA — التحليلات السنوية", "Total Savings": "إجمالي المدخرات", "Best Month": "أفضل شهر", "Worst Month": "أسوأ شهر", "Highest Spending Month": "أعلى شهر إنفاقًا", "Highest Saving Month": "أعلى شهر ادخارًا", "Net Worth Growth": "نمو صافي الثروة", "Net Worth Growth %": "نمو صافي الثروة %", "Savings Growth": "نمو المدخرات", "Bank Growth": "نمو البنوك", "Bank Growth %": "نمو البنوك %", "Income": "الدخل", "Expenses": "المصروفات", "Savings": "المدخرات", "Bank+Wallet": "البنوك+المحافظ", "Monthly Breakdown": "التفصيل الشهري", "Site": "الموقع", "Daily": "يومي"};
+function _xlTr(v){ return (lang==='ar' && typeof v==='string' && Object.prototype.hasOwnProperty.call(_XL_AR,v)) ? _XL_AR[v] : v; }
+function _xlAoa(rows){ return XLSX.utils.aoa_to_sheet(lang==='ar' ? rows.map(function(r){ return Array.isArray(r)?r.map(_xlTr):r; }) : rows); }
+function _xlAppend(wb,ws,name){ var n=_xlTr(name); try{ if(ws&&ws['!cols']&&lang==='ar'){ /* keep widths */ } }catch(_){} return XLSX.utils.book_append_sheet(wb,ws,String(n).slice(0,31)); }
 // ── PDF Export — opens full HTML page in new tab → Share → Save to Files ─────
 // ══════════════════════════════════════════════════════════════════════════════
 function exportToPDF(){
   SoundManager.play('export_pdf');
   closeSettings();
   const m     = DATA[activeMonth];
-  const mName = MONTH_NAMES[activeMonth] || activeMonth;
+  const mName = _monthDisplayLabel(activeMonth);
   const banks = getBanksOrdered();
 
   const txns     = m?.transactions   || [];
@@ -52614,32 +52618,32 @@ function exportToPDF(){
   const dateStr  = new Date().toLocaleDateString(_dtLocale(),{day:'2-digit',month:'short',year:'numeric'});
 
   const kpis = [
-    {label:'Daily Spending', val:totalPay,  col:'#c17d0a'},
-    {label:'Site Expenses',  val:totalExp,  col:'#dc2626'},
-    {label:'Banks Total',    val:totalBank, col:'#0f766e'},
-    {label:'Net Flow',       val:net,       col:net>=0?'#16a34a':'#dc2626'},
+    {label:L('Daily Spending','الإنفاق اليومي'), val:totalPay,  col:'#c17d0a'},
+    {label:L('Site Expenses','مصروفات الموقع'),  val:totalExp,  col:'#dc2626'},
+    {label:L('Banks Total','إجمالي البنوك'),    val:totalBank, col:'#0f766e'},
+    {label:L('Net Flow','صافي التدفق'),       val:net,       col:net>=0?'#16a34a':'#dc2626'},
   ];
 
   const bankRows = banks.map(b=>{
     const bal=getBankBalance(m,b.key);
     const tot=getTxTotals(m,b.key);
     return `<tr><td>${esc(bankDisplayName(b.name))}</td><td class="num green">${_cur(tot.dep)}</td><td class="num red">${_cur(tot.with)}</td><td class="num" style="color:${bal>=0?'#0f766e':'#dc2626'};font-weight:800">${_cur(bal)}</td></tr>`;
-  }).join('') || `<tr><td colspan="4" class="empty">No banks</td></tr>`;
+  }).join('') || `<tr><td colspan="4" class="empty">${L('No banks','لا توجد بنوك')}</td></tr>`;
 
   const txRows = txns.length ? txns.map(t=>`
     <tr><td>${t.date||'—'}</td><td style="font-size:var(--desc-size)">${esc(t.notes||'—')}</td><td>${esc(t.category||'—')}</td><td class="num amber">${_cur(t.payment)}</td></tr>`
-  ).join('') : `<tr><td colspan="4" class="empty">No transactions</td></tr>`;
+  ).join('') : `<tr><td colspan="4" class="empty">${L('No transactions','لا توجد معاملات')}</td></tr>`;
 
   const expRows = exps.length ? exps.map(e=>`
     <tr><td>${e.date||'—'}</td><td>${esc(e.description||'—')}</td><td>${esc(e.notes||'—')}</td><td class="num red">${_cur(e.amount)}</td></tr>`
-  ).join('') : `<tr><td colspan="4" class="empty">No expenses</td></tr>`;
+  ).join('') : `<tr><td colspan="4" class="empty">${L('No expenses','لا توجد مصروفات')}</td></tr>`;
 
   const html = `<!DOCTYPE html>
-<html lang="en">
+<html lang="${lang==='ar'?'ar':'en'}" dir="${lang==='ar'?'rtl':'ltr'}">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>FINORA Report — ${mName}</title>
+<title>${L('FINORA Report','تقرير FINORA')} — ${mName}</title>
 <style>
   *{box-sizing:border-box;margin:0;padding:0}
   body{font-family:'Segoe UI',Arial,sans-serif;font-size:calc(13px*var(--app-text-scale,1));color:#1e293b;background:#f8fafc;padding:0}
@@ -52657,10 +52661,10 @@ function exportToPDF(){
   .section{background:#fff;border-radius:10px;box-shadow:0 1px 3px #0001;margin-bottom:16px;overflow:hidden}
   .sec-head{padding:12px 16px;border-bottom:1px solid #f1f5f9;font-size:calc(12px*var(--app-text-scale,1));font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#475569}
   table{width:100%;border-collapse:collapse}
-  th{background:#f1f5f9;padding:8px 12px;text-align:left;font-size:calc(11px*var(--app-text-scale,1));font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:.3px}
+  th{background:#f1f5f9;padding:8px 12px;text-align:start;font-size:calc(11px*var(--app-text-scale,1));font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:.3px}
   td{padding:8px 12px;border-bottom:1px solid #f8fafc;font-size:calc(12px*var(--app-text-scale,1))}
   tr:last-child td{border-bottom:none}
-  .num{text-align:right;font-weight:700;white-space:nowrap}
+  .num{text-align:end;font-weight:700;white-space:nowrap}
   .green{color:#16a34a} .red{color:#dc2626} .amber{color:#c17d0a}
   .empty{text-align:center;color:#94a3b8;padding:16px!important;font-style:italic}
   .footer{text-align:center;font-size:calc(10px*var(--app-text-scale,1));color:#94a3b8;padding:var(--sp5);margin-top:4px}
@@ -52675,39 +52679,39 @@ function exportToPDF(){
 </head>
 <body>
 <div class="topbar">
-  <div><div class="sub">FINORA</div><h1>${mName} — Monthly Report</h1></div>
-  <button class="print-btn" onclick="window.print()">${ic('print',14)} Print / Save PDF</button>
+  <div><div class="sub">FINORA</div><h1>${mName} — ${L('Monthly Report','التقرير الشهري')}</h1></div>
+  <button class="print-btn" onclick="window.print()">${ic('print',14)} ${L('Print / Save PDF','طباعة / حفظ PDF')}</button>
 </div>
 <div class="body">
   <div class="ios-hint">
-    ${ic('hint',13)} <b>To save as PDF on iPhone:</b> Tap the <b>Share</b> button (□↑) in Safari → choose <b>"Print"</b> → pinch-zoom the preview → tap Share again → <b>"Save to Files"</b>
+    ${ic('hint',13)} ${L('<b>To save as PDF on iPhone:</b> Tap the <b>Share</b> button (□↑) in Safari → choose <b>"Print"</b> → pinch-zoom the preview → tap Share again → <b>"Save to Files"</b>','<b>لحفظ التقرير كـ PDF على الآيفون:</b> اضغط زر <b>المشاركة</b> (□↑) في Safari ← اختر <b>«طباعة»</b> ← كبّر المعاينة بإصبعين ← اضغط المشاركة مرة أخرى ← <b>«حفظ في الملفات»</b>')}
   </div>
   <div class="kpi-grid">
     ${kpis.map(k=>`<div class="kpi"><div class="kpi-label">${k.label}</div><div class="kpi-val" style="color:${k.col}">${_cur(k.val)}</div></div>`).join('')}
   </div>
   <div class="section">
-    <div class="sec-head">Banks Balance</div>
-    <table><thead><tr><th>Bank</th><th style="text-align:right">Deposits</th><th style="text-align:right">Withdrawals</th><th style="text-align:right">Balance</th></tr></thead>
+    <div class="sec-head">${L('Banks Balance','أرصدة البنوك')}</div>
+    <table><thead><tr><th>${L('Bank','البنك')}</th><th style="text-align:end">${L('Deposits','الإيداعات')}</th><th style="text-align:end">${L('Withdrawals','السحوبات')}</th><th style="text-align:end">${L('Balance','الرصيد')}</th></tr></thead>
     <tbody>${bankRows}</tbody></table>
   </div>
   <div class="section">
-    <div class="sec-head">Daily Spending (${txns.length})</div>
-    <table><thead><tr><th>Date</th><th>Notes</th><th>Category</th><th style="text-align:right">Amount</th></tr></thead>
+    <div class="sec-head">${L('Daily Spending','الإنفاق اليومي')} (${txns.length})</div>
+    <table><thead><tr><th>${L('Date','التاريخ')}</th><th>${L('Notes','ملاحظات')}</th><th>${L('Category','التصنيف')}</th><th style="text-align:end">${L('Amount','المبلغ')}</th></tr></thead>
     <tbody>${txRows}</tbody></table>
   </div>
   <div class="section">
-    <div class="sec-head">Site Expenses (${exps.length})</div>
-    <table><thead><tr><th>Date</th><th>Description</th><th>Notes</th><th style="text-align:right">Amount</th></tr></thead>
+    <div class="sec-head">${L('Site Expenses','مصروفات الموقع')} (${exps.length})</div>
+    <table><thead><tr><th>${L('Date','التاريخ')}</th><th>${L('Description','الوصف')}</th><th>${L('Notes','ملاحظات')}</th><th style="text-align:end">${L('Amount','المبلغ')}</th></tr></thead>
     <tbody>${expRows}</tbody></table>
   </div>
-  <div class="footer">FINORA · ${mName} · Generated ${dateStr}</div>
+  <div class="footer">FINORA · ${mName} · ${L('Generated','تاريخ الإنشاء')} ${dateStr}</div>
 </div>
 </body></html>`;
 
   const blob = new Blob([html], {type:'text/html;charset=utf-8'});
   const url  = URL.createObjectURL(blob);
   window.open(url, '_blank');
-  showToast(L('✓ Report opened — tap Share → Print → Save to Files','✓ التقرير مفتوح — اضغط Share → Print → Save to Files'), 'success');
+  showToast(L('✓ Report opened — tap Share → Print → Save to Files','✓ التقرير مفتوح — اضغط مشاركة ← طباعة ← حفظ في الملفات'), 'success');
 }
 
 // ── Excel Export — blob in new tab → Safari downloads automatically ───────────
@@ -52734,9 +52738,9 @@ function exportToExcel(){
       banks.reduce((s,b)=>s+getBankBalance(md,b.key),0),
       txns.length, exps.length]);
   });
-  const ws1=XLSX.utils.aoa_to_sheet(sumRows);
+  const ws1=_xlAoa(sumRows);
   ws1['!cols']=[{wch:18},{wch:18},{wch:18},{wch:18},{wch:14},{wch:12}];
-  XLSX.utils.book_append_sheet(wb,ws1,'Summary');
+  _xlAppend(wb,ws1,'Summary');
 
   // Sheet 2: Transactions
   const txRows=[['Month','Date','Notes','Category','Payment','Receipt']];
@@ -52746,9 +52750,9 @@ function exportToExcel(){
       txRows.push([mName,t.date||'',t.notes||'',t.category||'',t.payment||0,t.receipt||0]);
     });
   });
-  const ws2=XLSX.utils.aoa_to_sheet(txRows);
+  const ws2=_xlAoa(txRows);
   ws2['!cols']=[{wch:16},{wch:12},{wch:28},{wch:18},{wch:14},{wch:14}];
-  XLSX.utils.book_append_sheet(wb,ws2,'Transactions');
+  _xlAppend(wb,ws2,'Transactions');
 
   // Sheet 3: Site Expenses
   const expRows=[['Month','Date','Description','Notes','Amount','Linked Bank']];
@@ -52759,9 +52763,9 @@ function exportToExcel(){
       expRows.push([mName,e.date||'',e.description||'',e.notes||'',e.amount||0,bname]);
     });
   });
-  const ws3=XLSX.utils.aoa_to_sheet(expRows);
+  const ws3=_xlAoa(expRows);
   ws3['!cols']=[{wch:16},{wch:12},{wch:28},{wch:22},{wch:14},{wch:18}];
-  XLSX.utils.book_append_sheet(wb,ws3,'Site Expenses');
+  _xlAppend(wb,ws3,'Site Expenses');
 
   // Sheet 4: Banks
   const bankRows=[['Month','Bank','Deposits','Withdrawals','Balance']];
@@ -52772,9 +52776,9 @@ function exportToExcel(){
       bankRows.push([mName,b.name,tot.dep,tot.with,getBankBalance(md,b.key)]);
     });
   });
-  const ws4=XLSX.utils.aoa_to_sheet(bankRows);
+  const ws4=_xlAoa(bankRows);
   ws4['!cols']=[{wch:16},{wch:22},{wch:14},{wch:14},{wch:14}];
-  XLSX.utils.book_append_sheet(wb,ws4,'Banks');
+  _xlAppend(wb,ws4,'Banks');
 
   // Write as blob → open in new tab (iOS Safari downloads it automatically)
   const d   = new Date();
@@ -55732,10 +55736,10 @@ function mrLoadSavedReports(){
   el.innerHTML=saved.map(r=>`<div style="display:flex;align-items:center;gap:var(--sp3);padding:10px 14px;border-bottom:1px solid var(--border)">
     <div style="width:38px;height:38px;border-radius:var(--icon-r-3);background:var(--green-tint);color:var(--green);display:flex;align-items:center;justify-content:center;font-size:calc(18px*var(--app-text-scale,1));flex-shrink:0">${ic('chart',18)}</div>
     <div style="flex:1;min-width:0">
-      <div style="font-size:calc(13px*var(--app-text-scale,1));font-weight:800;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${mrEsc(r.monthName)}</div>
-      <div style="font-size:calc(10px*var(--app-text-scale,1));color:var(--muted);margin-top:2px">${new Date(r.savedAt).toLocaleDateString(_dtLocale())} · ${mrEsc(r.currency||'')}</div>
+      <div style="font-size:calc(13px*var(--app-text-scale,1));font-weight:800;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${mrEsc(r.monthKey?_monthDisplayLabel(r.monthKey):r.monthName)}</div>
+      <div style="font-size:calc(10px*var(--app-text-scale,1));color:var(--muted);margin-top:2px">${new Date(r.savedAt).toLocaleDateString(_dtLocale())} · ${mrEsc(r.currency?curLabel(r.currency):'')}</div>
       <div style="font-size:calc(10px*var(--app-text-scale,1));color:var(--orange);font-weight:700;margin-top:1px">
-        ${r.data?.totalExpenses?mrFmtShort(r.data.totalExpenses)+' '+r.currency:''} &nbsp;·&nbsp; ${r.data?.totalSavings>=0?`${ic('money',15)} +`+mrFmtShort(r.data.totalSavings):`${ic('trend_down',15)} `+mrFmtShort(Math.abs(r.data?.totalSavings||0))}
+        ${r.data?.totalExpenses?mrFmtShort(r.data.totalExpenses)+' '+curLabel(r.currency):''} &nbsp;·&nbsp; ${r.data?.totalSavings>=0?`${ic('money',15)} +`+mrFmtShort(r.data.totalSavings):`${ic('trend_down',15)} `+mrFmtShort(Math.abs(r.data?.totalSavings||0))}
       </div>
     </div>
     <button class="mr-del-saved-btn" onclick="mrDeleteSaved('${r.id}')">${ic('close',15)}</button>
@@ -55760,8 +55764,8 @@ function mrExportExcel(){
   const stat=mrCompute(activeMonth,_mrSource), mName=MONTH_NAMES[activeMonth]||activeMonth;
   const srcTag=_mrSource==='site'?'Site':'Daily';
   const wb=XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([
-    ['FINORA Monthly Report',mName+' — '+srcTag],['Generated',new Date().toLocaleDateString()],[],
+  _xlAppend(wb,_xlAoa([
+    ['FINORA Monthly Report',_monthDisplayLabel(activeMonth)+' — '+_xlTr(srcTag)],['Generated',new Date().toLocaleDateString()],[],
     ['Metric','Amount','Currency'],
     ['Total Income',stat.totalIncome,CURRENT_CURRENCY],['Total Expenses',stat.totalExpenses,CURRENT_CURRENCY],
     ['Net Savings',stat.totalSavings,CURRENT_CURRENCY],['Cash Flow',stat.cashFlow,CURRENT_CURRENCY],
@@ -55770,20 +55774,20 @@ function mrExportExcel(){
     ['Total Transactions',stat.txns.length+stat.exps.length,''],
     ['Highest Category',stat.highestCat?.name||'',''],['Largest Transaction',stat.largest?.label||'',''],
   ]),'Summary');
-  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([
+  _xlAppend(wb,_xlAoa([
     ['Date','Notes','Payment'],
     ...(_mrSource==='site'?[]:(DATA[activeMonth]?.transactions||[])).map(t=>[t.date||'',t.notes||'',t.payment||0])
   ]),'Transactions');
-  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([
+  _xlAppend(wb,_xlAoa([
     ['Date','Description','Amount'],
     ...(_mrSource==='daily'?[]:(DATA[activeMonth]?.site_expenses||[])).map(e=>[e.date||'',e.description||e.notes||'',e.amount||0])
   ]),'SiteExpenses');
   const catTotal=stat.categories.reduce((s,c)=>s+c.amount,0)||1;
-  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([
+  _xlAppend(wb,_xlAoa([
     ['Category','Amount','% of Total'],
     ...stat.categories.map(c=>[c.name,c.amount,Math.round(c.amount/catTotal*100)])
   ]),'Categories');
-  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([
+  _xlAppend(wb,_xlAoa([
     ['Date','Amount'],
     ...Object.entries(stat.dailyMap).sort().map(([d,v])=>[d,v])
   ]),'DailySpending');
@@ -56404,9 +56408,9 @@ function brLoadSavedReports(){
   el.innerHTML=saved.map(r=>`<div style="display:flex;align-items:center;gap:var(--sp3);padding:10px 14px;border-bottom:1px solid var(--border)">
     <div style="width:38px;height:38px;border-radius:var(--icon-r-3);background:color-mix(in srgb,#0284c7 15%,var(--surface));color:#0284c7;display:flex;align-items:center;justify-content:center;font-size:calc(18px*var(--app-text-scale,1));flex-shrink:0">${ic('bank',18)}</div>
     <div style="flex:1;min-width:0">
-      <div style="font-size:calc(13px*var(--app-text-scale,1));font-weight:800;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${brEsc(r.monthName)}</div>
+      <div style="font-size:calc(13px*var(--app-text-scale,1));font-weight:800;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${brEsc(r.monthKey?_monthDisplayLabel(r.monthKey):r.monthName)}</div>
       <div style="font-size:calc(10px*var(--app-text-scale,1));color:var(--muted);margin-top:2px">${new Date(r.savedAt).toLocaleDateString(_dtLocale())} · ${r.banks} ${L('banks','بنوك')}</div>
-      <div style="font-size:calc(10px*var(--app-text-scale,1));color:#0284c7;font-weight:700;margin-top:1px">Net Worth: ${brEsc(r.netWorth)}</div>
+      <div style="font-size:calc(10px*var(--app-text-scale,1));color:#0284c7;font-weight:700;margin-top:1px">${L('Net Worth','صافي الثروة')}: ${brEsc(r.netWorth)}</div>
     </div>
     <button class="mr-del-saved-btn" onclick="brDeleteSaved('${r.id}')">${ic('close',15)}</button>
   </div>`).join('');
@@ -56424,7 +56428,7 @@ function brExportExcel(){
   const stat=brComputeAll(activeMonth), mName=_monthDisplayLabel(activeMonth);
   const wb=XLSX.utils.book_new();
   // Summary sheet
-  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([
+  _xlAppend(wb,_xlAoa([
     ['FINORA — Bank Report', mName],['Generated',new Date().toLocaleDateString()],[],
     ['SUMMARY','',''],
     ['Net Worth',stat.netWorth,CURRENT_CURRENCY],
@@ -56436,17 +56440,17 @@ function brExportExcel(){
     ['Total Interest Earned',stat.totalInterest,CURRENT_CURRENCY],
   ]),'Summary');
   // Per-bank sheet
-  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([
+  _xlAppend(wb,_xlAoa([
     ['Bank','Type','Opening','Deposits','Withdrawals','Interest','Closing','Difference'],
     ...stat.bankData.map(b=>[b.name,b.isWallet?'Wallet':'Bank',b.opening,b.deposits,b.withdrawals,b.interest,b.closing,b.difference])
   ]),'Banks');
   // Balance history
-  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([
+  _xlAppend(wb,_xlAoa([
     ['Month','Total Balance','Interest'],
     ...stat.balHistory.map(h=>[h.month,h.balance,h.interest])
   ]),'BalanceHistory');
   // Assets
-  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([
+  _xlAppend(wb,_xlAoa([
     ['Asset','Value','Currency'],
     ...stat.assets.map(a=>[a.label,a.value,CURRENT_CURRENCY])
   ]),'Assets');
@@ -57127,8 +57131,8 @@ function yrExportExcel(){
   const stat=yrComputeYear(activeYear,_yrSource); if(!stat) return;
   const yrSrcTag=_yrSource==='site'?'Site':'Daily';
   const wb=XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([
-    ['FINORA — Yearly Analytics', activeYear+' — '+yrSrcTag],['Generated',new Date().toLocaleDateString()],[],
+  _xlAppend(wb,_xlAoa([
+    ['FINORA — Yearly Analytics', activeYear+' — '+_xlTr(yrSrcTag)],['Generated',new Date().toLocaleDateString()],[],
     ['SUMMARY','',''],
     ['Total Income',stat.totalIncomeYear,CURRENT_CURRENCY],
     ['Total Expenses',stat.totalExpensesYear,CURRENT_CURRENCY],
@@ -57143,7 +57147,7 @@ function yrExportExcel(){
     ['Bank Growth',stat.bankGrowth,CURRENT_CURRENCY],
     ['Bank Growth %',stat.bankGrowthPct,'%'],
   ]),'Summary');
-  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([
+  _xlAppend(wb,_xlAoa([
     ['Month','Income','Expenses','Savings','Net Worth','Bank+Wallet','Budget'],
     ...stat.yearSnaps.map(s=>[s.monthName,s.totalIncome,s.totalExpenses,s.totalSavings,s.netWorth,s.totalBankAndWallet,s.budget])
   ]),'Monthly Breakdown');
@@ -58594,7 +58598,7 @@ function renderDailyAIInsight(monthKey){
   if(!picked && d.topCategories && d.topCategories[0]){
     const cat = d.topCategories[0].category;
     picked = { emoji:'💡', text: L(`${cat} accounts for most of today's spending.`,
-                                    `أغلب مصروف اليوم كان على «${cat}».`) };
+                                    `أغلب مصروف اليوم كان على «${(()=>{ try{ return getCategoryMeta(cat).canonicalName||cat; }catch(e){ return cat; } })()}».`) };
   }
 
   if(!picked && p && p.hasBudget && p.budgetAmount>0){
@@ -59043,7 +59047,7 @@ function _msrHTML(monthKey){
   let budget = 0;
   try{ budget = (mrCompute(monthKey,'daily').budget) || 0; }catch(e){ budget = 0; }
 
-  const monthOpts = MONTHS_ORDER.map(k=>`<option value="${esc(k)}" ${k===monthKey?'selected':''}>${esc_monthDisplayLabel(k)}</option>`).join('');
+  const monthOpts = MONTHS_ORDER.map(k=>`<option value="${esc(k)}" ${k===monthKey?'selected':''}>${esc(_monthDisplayLabel(k))}</option>`).join('');
   const chrome = `
     <div class="bs-chrome">
       <div class="ds-row-12">
