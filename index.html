@@ -12941,6 +12941,17 @@ function fpInitSmartHeader(){
 :root:root .pf-chip.pf-in .pf-id{animation:pfTx .5s ease-out .22s backwards}
 [dir="rtl"] .pf-chip.pf-in .pf-id{animation-name:pfTxR}
 @keyframes pfTxR{from{opacity:0;transform:translateX(8px)}to{opacity:1;transform:none}}
+/* Design v2: brand-blue ID card (same blue + diagonal texture as the profile hero), white text, chevron */
+:root:root .pf-chip{background:repeating-linear-gradient(135deg,rgba(255,255,255,.07) 0 2px,transparent 2px 11px),linear-gradient(135deg,#1A6FE8 0%,#0B3F8F 100%);border:0;border-radius:20px;box-shadow:0 10px 20px -12px rgba(11,63,143,.8);padding-inline-end:10px;gap:11px}
+:root:root .pf-chip:active{background:repeating-linear-gradient(135deg,rgba(255,255,255,.07) 0 2px,transparent 2px 11px),linear-gradient(135deg,#1A6FE8 0%,#0B3F8F 100%);filter:brightness(.95)}
+:root:root .pf-chip .pf-id b{color:#fff;letter-spacing:.1px}
+:root:root .pf-chip .pf-sub{color:rgba(255,255,255,.82)}
+:root:root .pf-chip .pf-av{box-shadow:0 0 0 2px rgba(255,255,255,.95)!important}
+:root:root .pf-chip::before{border-color:rgba(255,255,255,.6)}
+:root:root .pf-chip::after,[data-theme="dark"] .pf-chip::after{background:linear-gradient(105deg,transparent 38%,rgba(255,255,255,.28) 50%,transparent 62%)}
+.pf-go{flex:0 0 auto;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.18);color:#fff}
+[dir="rtl"] .pf-go svg{transform:scaleX(-1)}
+@media (max-width:360px){.pf-go{display:none}}
 @media (prefers-reduced-motion:reduce){:root:root .pf-chip::before,:root:root .pf-chip::after{animation:none;opacity:0}:root:root .pf-chip.pf-in,:root:root .pf-chip.pf-in .pf-av,:root:root .pf-chip.pf-in .pf-id{animation:none}}
 :root:root .pf-chip .pf-id{gap:3px}
 :root:root .pf-chip .pf-id b{font-size:calc(14.5px*var(--app-text-scale,1));font-weight:800;line-height:1.25}
@@ -38455,7 +38466,7 @@ function _cxProfileChipHTML(){
   // two slides that cross-fade inside the card: (name / job) then (job / company) — only when there is something to rotate
   const t2=(p.title||'').trim(), c2=(p.company||'').trim();
   const slide2='';   // static layout: name, then job title · company (wraps to 2 lines) — no rotating slides
-  return `<button type="button" class="pf-chip${slide2?' rot':''}${_pfIn}" onclick="_cxSetTab('profile')" aria-label="${L('My profile','ملفي الشخصي')}${full?': '+esc(full):''}" title="${esc(full)}"><span class="pf-av">${p.photo?`<img src="${p.photo}" alt="">`:(ini?`<span class="pf-ini">${esc(ini)}</span>`:ic('id',18))}</span><span class="pf-id"><span class="pf-sl s1"><b dir="auto">${short?esc(short):L('My profile','ملفي الشخصي')}</b><span class="pf-sub" dir="auto"><span>${sub?esc(sub):L('View profile','عرض الملف')}</span></span></span>${slide2}</span></button>`;
+  return `<button type="button" class="pf-chip${slide2?' rot':''}${_pfIn}" onclick="_cxSetTab('profile')" aria-label="${L('My profile','ملفي الشخصي')}${full?': '+esc(full):''}" title="${esc(full)}"><span class="pf-av">${p.photo?`<img src="${p.photo}" alt="">`:(ini?`<span class="pf-ini">${esc(ini)}</span>`:ic('id',18))}</span><span class="pf-id"><span class="pf-sl s1"><b dir="auto">${short?esc(short):L('My profile','ملفي الشخصي')}</b><span class="pf-sub" dir="auto"><span>${sub?esc(sub):L('View profile','عرض الملف')}</span></span></span>${slide2}</span><span class=\"pf-go\" aria-hidden=\"true\">${ic('chevron_right',14)}</span></button>`;
 }
 function _cxTabsHTML(){
   const t=(k,lbl,icn)=>{ const _on=(_cxTab===k)||(k==='requests'&&_cxTab==='pour'); return `<button type="button" role="tab" class="cx-seg-btn${_on?' on':''}" aria-selected="${_on?'true':'false'}" onclick="_cxSetTab('${k}')">${ic(icn,18)}<span>${lbl}</span></button>`; };
