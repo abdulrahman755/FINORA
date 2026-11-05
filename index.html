@@ -12922,37 +12922,21 @@ function fpInitSmartHeader(){
 .pf-chip .pf-id b{display:block;font-family:inherit;font-size:calc(13px*var(--app-text-scale,1));font-weight:700;line-height:1.25;letter-spacing:-.1px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pf-chip .pf-sub{font-size:calc(11px*var(--app-text-scale,1));line-height:1.25}
 @media (max-width:360px){ .pf-chip{max-width:52%} .pf-chip .pf-av{width:34px;height:34px} .pf-chip .pf-sub{display:none} }
-/* Profile card (header): rounded card instead of a capsule, calm photo ring, name + job title/company that wraps instead of "depar…" */
-:root:root .pf-chip{border-radius:22px;gap:11px;padding:6px;padding-inline-end:16px;align-items:center}
-:root:root .pf-chip .pf-av{width:46px;height:46px;animation:none}
-/* Animation: soft ripple behind the photo + a light sweep across the card (both loop slowly); entrance once per session */
-:root:root .pf-chip{position:relative;overflow:hidden;transition:transform .15s ease,background .15s ease}
-:root:root .pf-chip::before{content:'';position:absolute;inset-block-start:6px;inset-inline-start:6px;width:46px;height:46px;border-radius:50%;border:2px solid rgba(21,101,216,.5);opacity:0;pointer-events:none;animation:pfRipple 3.6s ease-out 1.4s infinite}
-:root:root .pf-chip::after{content:'';position:absolute;inset:0;border-radius:inherit;background:linear-gradient(105deg,transparent 38%,rgba(255,255,255,.7) 50%,transparent 62%);transform:translateX(-130%);pointer-events:none;animation:pfShine 6.5s ease-in-out 2s infinite}
-[data-theme="dark"] .pf-chip::after{background:linear-gradient(105deg,transparent 38%,rgba(255,255,255,.12) 50%,transparent 62%)}
-@keyframes pfRipple{0%{transform:scale(1);opacity:.65}70%,100%{transform:scale(1.26);opacity:0}}
-@keyframes pfShine{0%,62%{transform:translateX(-130%)}100%{transform:translateX(130%)}}
-@keyframes pfIn{from{opacity:0;transform:translateY(-8px) scale(.95)}to{opacity:1;transform:none}}
-@keyframes pfPop{0%{opacity:0;transform:scale(.55)}65%{opacity:1;transform:scale(1.08)}100%{transform:none}}
-@keyframes pfTx{from{opacity:0;transform:translateX(-8px)}to{opacity:1;transform:none}}
-[dir="rtl"] .pf-chip .pf-id{--pf-dx:8px}
-:root:root .pf-chip.pf-in{animation:pfIn .55s cubic-bezier(.2,.8,.2,1) backwards}
-:root:root .pf-chip.pf-in .pf-av{animation:pfPop .6s cubic-bezier(.2,.8,.2,1) .12s backwards}
-:root:root .pf-chip.pf-in .pf-id{animation:pfTx .5s ease-out .22s backwards}
-[dir="rtl"] .pf-chip.pf-in .pf-id{animation-name:pfTxR}
-@keyframes pfTxR{from{opacity:0;transform:translateX(8px)}to{opacity:1;transform:none}}
-/* Design v2: brand-blue ID card (same blue + diagonal texture as the profile hero), white text, chevron */
-:root:root .pf-chip{background:repeating-linear-gradient(135deg,rgba(255,255,255,.07) 0 2px,transparent 2px 11px),linear-gradient(135deg,#1A6FE8 0%,#0B3F8F 100%);border:0;border-radius:20px;box-shadow:0 10px 20px -12px rgba(11,63,143,.8);padding-inline-end:10px;gap:11px}
-:root:root .pf-chip:active{background:repeating-linear-gradient(135deg,rgba(255,255,255,.07) 0 2px,transparent 2px 11px),linear-gradient(135deg,#1A6FE8 0%,#0B3F8F 100%);filter:brightness(.95)}
-:root:root .pf-chip .pf-id b{color:#fff;letter-spacing:.1px}
-:root:root .pf-chip .pf-sub{color:rgba(255,255,255,.82)}
-:root:root .pf-chip .pf-av{box-shadow:0 0 0 2px rgba(255,255,255,.95)!important}
-:root:root .pf-chip::before{border-color:rgba(255,255,255,.6)}
-:root:root .pf-chip::after,[data-theme="dark"] .pf-chip::after{background:linear-gradient(105deg,transparent 38%,rgba(255,255,255,.28) 50%,transparent 62%)}
-.pf-go{flex:0 0 auto;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.18);color:#fff}
+/* Profile card (header) — simple and professional: plain surface card, thin border, name + job title, small chevron.
+   No gradients or looping effects; one quick fade-in the first time it appears in a session. */
+:root:root .pf-chip{background:var(--surface);border:1px solid var(--border);border-radius:16px;box-shadow:none;gap:10px;padding:6px;padding-inline-end:10px;align-items:center;position:static;overflow:visible}
+:root:root .pf-chip::before,:root:root .pf-chip::after{display:none}
+:root:root .pf-chip .pf-av{width:42px;height:42px;animation:none;box-shadow:0 0 0 1.5px var(--border)!important}
+:root:root .pf-chip .pf-id{gap:2px}
+:root:root .pf-chip .pf-id b{font-size:calc(14px*var(--app-text-scale,1));font-weight:700;line-height:1.25;color:var(--text)}
+:root:root .pf-chip .pf-sub{font-size:calc(11.5px*var(--app-text-scale,1));font-weight:500;line-height:1.3;color:var(--muted);overflow:visible}
+:root:root .pf-chip .pf-sub span{white-space:normal;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;text-overflow:ellipsis;overflow-wrap:anywhere}
+.pf-go{flex:0 0 auto;display:flex;align-items:center;color:var(--muted)}
 [dir="rtl"] .pf-go svg{transform:scaleX(-1)}
 @media (max-width:360px){.pf-go{display:none}}
-@media (prefers-reduced-motion:reduce){:root:root .pf-chip::before,:root:root .pf-chip::after{animation:none;opacity:0}:root:root .pf-chip.pf-in,:root:root .pf-chip.pf-in .pf-av,:root:root .pf-chip.pf-in .pf-id{animation:none}}
+@keyframes pfIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+:root:root .pf-chip.pf-in{animation:pfIn .4s ease-out backwards}
+@media (prefers-reduced-motion:reduce){:root:root .pf-chip.pf-in{animation:none}}
 :root:root .pf-chip .pf-id{gap:3px}
 :root:root .pf-chip .pf-id b{font-size:calc(14.5px*var(--app-text-scale,1));font-weight:800;line-height:1.25}
 :root:root .pf-chip .pf-sub{font-size:calc(11.5px*var(--app-text-scale,1));font-weight:600;line-height:1.3;color:var(--sub);overflow:visible}
@@ -38462,7 +38446,7 @@ function _cxProfileChipHTML(){
   const short=full.split(/\s+/).slice(0,2).join(' ');
   const ini=full.charAt(0).toUpperCase();
   try{ const PJ=_jpProj(); if(PJ.title) p.title=PJ.title; if(PJ.company) p.company=PJ.company; }catch(e){}
-  const sub=[p.title,p.company].filter(Boolean).join(' · ');
+  const sub=(p.title||p.company||'').trim();
   // two slides that cross-fade inside the card: (name / job) then (job / company) — only when there is something to rotate
   const t2=(p.title||'').trim(), c2=(p.company||'').trim();
   const slide2='';   // static layout: name, then job title · company (wraps to 2 lines) — no rotating slides
