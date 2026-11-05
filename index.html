@@ -67446,6 +67446,15 @@ body #mainContent .sg-card .sg-meta>button,body #mainContent .sg-card .sg-meta>a
 /* fit-all: pages side by side when that makes them larger (labels sit under each page) */
 .cvp-pgs.cvp-row{display:grid;grid-auto-flow:column;grid-template-rows:auto auto;column-gap:28px;align-items:start}
 .cvp-pgs.cvp-row .cvp-pl{margin:10px auto 0}
+/* empty sections */
+.cvp-empty{max-width:560px;margin:6px auto 0;padding:16px;border-radius:20px;background:rgba(255,255,255,.07);border:1px dashed rgba(255,255,255,.28);color:#e6ebf0}
+.cvp-empty-t{display:flex;flex-direction:column;gap:5px;margin-bottom:12px}
+.cvp-empty-t b{font-size:15px;font-weight:800}
+.cvp-empty-t span{font-size:12.5px;line-height:1.5;color:#b9c3cd}
+.cvp-empty-l{display:flex;flex-wrap:wrap;gap:8px}
+.cvp-empty-l button{display:inline-flex;align-items:center;gap:7px;min-height:40px;padding:0 16px 0 12px;border:0;border-radius:99px;background:#fff;color:#17324d;font:700 13.5px system-ui,-apple-system,sans-serif;cursor:pointer}
+.cvp-empty-l button i{font-style:normal;display:grid;place-items:center;width:22px;height:22px;border-radius:50%;background:var(--blue,#3D6FA3);color:#fff;font-size:16px;line-height:1}
+.cvp-dz .dz-empty{margin-inline:auto 10px;min-height:30px;padding:0 12px;border:0;border-radius:99px;background:color-mix(in srgb,#d99a1a 18%,transparent);color:#8a5d00;font:700 12px system-ui,-apple-system,sans-serif;cursor:pointer;white-space:nowrap}
 </style>
 <script id="cvp-fitpage">
 /* CV preview: fit the WHOLE page into the visible area while the design drawer is open; drawer can be collapsed. */
@@ -67499,11 +67508,53 @@ body #mainContent .sg-card .sg-meta>button,body #mainContent .sg-card .sg-meta>a
     g.onclick=function(){ window.cvDzMin(); };
     d.insertBefore(g,d.firstChild);
   };
+  var _r2=window._cvDzRender; window._cvDzRender=function(){ _r2.apply(this,arguments); drawerBadges(); };
   if(typeof oRer==='function') window._cvRerender=function(){
     var r=oRer.apply(this,arguments);
-    if(ov()) requestAnimationFrame(refit);
+    if(ov()){ requestAnimationFrame(refit); emptyPanel(); }
     return r;
   };
+
+  /* ---- empty sections: tell the user (instead of silently leaving them out of the PDF) ---- */
+  var SECS=[['ct','hdr','Contact details','بيانات التواصل'],['sum','sum','Summary','النبذة'],['sk','skills','Core skills','المهارات'],['edu','edu','Education','التعليم'],['certs','certs','Certifications & training','الشهادات والتدريب'],['langs','langs','Languages','اللغات']];
+  function tr(en,ar){ try{ return L(en,ar); }catch(e){ return en; } }
+  function emptyOf(k){
+    var p; try{ p=_cvLoad().profile||{}; }catch(e){ return false; }
+    var lst=function(v){ try{ return _cvList(v).length; }catch(e){ return String(v||'').trim()?1:0; } };
+    if(k==='ct') return !(p.phone||p.email||p.linkedin||p.loc);
+    if(k==='sum') return !String(p.summary||'').trim();
+    if(k==='sk') return !lst(p.skills);
+    if(k==='edu') return !String(p.edu||'').trim();
+    if(k==='certs') return !lst(p.certs);
+    if(k==='langs') return !lst(p.langs);
+    return false;
+  }
+  function hiddenKeys(){ try{ var h=_cvStyleGet().hide; return Array.isArray(h)?h:[]; }catch(e){ return []; } }
+  window.cvpAddSec=function(ek){ try{ cvPreviewClose(); }catch(e){} setTimeout(function(){ try{ _cvEditSec(ek); }catch(e){} },60); };
+  function emptyPanel(){
+    var o=ov(); if(!o) return;
+    var st=o.querySelector('.cvp-stage'); if(!st) return;
+    var old=st.querySelector('.cvp-empty'); if(old) old.remove();
+    if(window._cvPrevDraft) return;
+    var hide=hiddenKeys(), miss=SECS.filter(function(s){ return hide.indexOf(s[0])<0 && emptyOf(s[0]); });
+    if(!miss.length) return;
+    var d=document.createElement('div'); d.className='cvp-empty';
+    d.innerHTML='<div class="cvp-empty-t"><b>'+tr('Not in your CV yet','لسه مش في سيرتك')+'</b><span>'+tr('These sections are switched on but empty, so they are left out of the PDF. Tap one to fill it in.','الأقسام دي شغّالة بس فاضية، عشان كده مش ظاهرة في الـ PDF. دوس على القسم وأضف بياناته.')+'</span></div>'
+      +'<div class="cvp-empty-l">'+miss.map(function(s){ return '<button type="button" onclick="cvpAddSec(\''+s[1]+'\')"><i>+</i>'+tr(s[2],s[3])+'</button>'; }).join('')+'</div>';
+    st.appendChild(d);
+  }
+  function drawerBadges(){
+    var d=document.getElementById('cvpDz'); if(!d) return;
+    d.querySelectorAll('.dz-row').forEach(function(r){
+      var sw=r.querySelector('.stt-switch'); var m=sw&&/cvSecToggle\('([a-z]+)'\)/.exec(sw.getAttribute('onclick')||'');
+      if(!m||r.querySelector('.dz-empty')) return;
+      var def=SECS.filter(function(s){ return s[0]===m[1]; })[0]; if(!def||!emptyOf(def[0])) return;
+      var b=document.createElement('button'); b.type='button'; b.className='dz-empty';
+      b.textContent=tr('Empty · add','فاضي · أضف'); b.onclick=function(e){ e.stopPropagation(); window.cvpAddSec(def[1]); };
+      var lab=r.querySelector('span'); if(lab) lab.insertAdjacentElement('afterend',b);
+    });
+  }
+  var oPrev=window.cvPreview; if(typeof oPrev==='function') window.cvPreview=function(){ var r=oPrev.apply(this,arguments); emptyPanel(); drawerBadges(); return r; };
   window.addEventListener('resize',function(){ if(ov()) refit(); });
 })();
 </script>
