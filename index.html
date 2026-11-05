@@ -12922,6 +12922,13 @@ function fpInitSmartHeader(){
 .pf-chip .pf-id b{display:block;font-family:inherit;font-size:calc(13px*var(--app-text-scale,1));font-weight:700;line-height:1.25;letter-spacing:-.1px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pf-chip .pf-sub{font-size:calc(11px*var(--app-text-scale,1));line-height:1.25}
 @media (max-width:360px){ .pf-chip{max-width:52%} .pf-chip .pf-av{width:34px;height:34px} .pf-chip .pf-sub{display:none} }
+/* Profile card (header): rounded card instead of a capsule, calm photo ring, name + job title/company that wraps instead of "depar…" */
+:root:root .pf-chip{border-radius:22px;gap:11px;padding:6px;padding-inline-end:16px;align-items:center}
+:root:root .pf-chip .pf-av{width:46px;height:46px;animation:none;box-shadow:0 0 0 2px var(--surface),0 0 0 3.5px var(--green-light)}
+:root:root .pf-chip .pf-id{gap:3px}
+:root:root .pf-chip .pf-id b{font-size:calc(14.5px*var(--app-text-scale,1));font-weight:800;line-height:1.25}
+:root:root .pf-chip .pf-sub{font-size:calc(11.5px*var(--app-text-scale,1));font-weight:600;line-height:1.3;color:var(--sub);overflow:visible}
+:root:root .pf-chip .pf-sub span{white-space:normal;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;text-overflow:ellipsis;overflow-wrap:anywhere}
 .jp-hero.v2{background:var(--surface);color:var(--text);border:1px solid var(--border);box-shadow:var(--shadow-sm);padding:16px 16px 14px}
 .jp-hero.v2 .jp-ph{width:68px;height:68px}
 .jp-hero.v2 .jp-ph-in{background:var(--green-tint);color:var(--green)}
@@ -21778,7 +21785,7 @@ function _gmySectionHTML(q,total){
   if(!rows && q) return '';
   const body = rows ? `<div class="gmy-list">${rows}</div>`
     : `<button type="button" class="gmy-empty" onclick="gmyOpenModal()">${ic('users',18)}<span><b>${L('Track a savings circle','تابع جمعيتك')}</b><small>${L('Installments, payout date and every payment in one place','الأقساط وموعد القبض وكل دفعة في مكان واحد')}</small></span>${ic('plus',16)}</button>`;
-  return `<div class="sc-card">
+  return `<div class="sc-card" data-fsec="circles">
       <div class="fin-sec-hd" style="--sc:var(--fin-assets)">
         <span class="fin-sec-ic">${ic('users',16)}</span>
         <span class="fin-sec-t">${L('My circles','جمعياتي')}<small>${list.length&&total>0?fmtEGP(total):L('Savings circles','جمعيات الادخار')}</small></span>
@@ -24219,6 +24226,17 @@ function savToggleSearch(){
     doSearch(''); // closing the bar also clears the filter, so nothing stays filtered out of sight
   }
 }
+// ── My Finances: one section at a time ──────────────────────────────────────
+// Overview (net worth, KPIs, quick actions, goals) + one tab per section. Nothing is removed or recomputed:
+// every section is still rendered, the tab only decides which ones are visible (data-tab on .fin-page).
+// While a search is active all sections show so results are never hidden behind a tab.
+let _finTab='overview';
+function finTab(k){
+  _finTab=k;
+  const pg=document.querySelector('.fin-page'); if(pg) pg.dataset.tab=k;
+  document.querySelectorAll('.fin-tab').forEach(b=>{ const on=b.dataset.k===k; b.classList.toggle('on',on); b.setAttribute('aria-selected',on?'true':'false'); });
+  const bar=document.querySelector('.fin-tabs'); if(bar){ try{ bar.scrollIntoView({block:'nearest'}); }catch(e){} const a=bar.querySelector('.fin-tab.on'); if(a){ try{ a.scrollIntoView({block:'nearest',inline:'center'}); }catch(e){} } }
+}
 function renderSavings(){
   const incomes  = SAVINGS.incomes||[];
   const assets   = SAVINGS.assets||[];
@@ -24380,7 +24398,22 @@ function renderSavings(){
     ${_frHero({icon:'wallet',title:L('Track your personal money','تابع فلوسك الشخصية'),sub:L('Start with an income or an expense. Assets and debts can wait.','ابدأ بدخل أو مصروف. الأصول والديون وقت تاني.'),btn:{label:L('Add income','أضف دخل'),on:'savAddIncome()'},link:{label:L('Add expense instead','أو أضف مصروف'),on:'savAddOutcome()'}})}
     </div>`;
   }
-  return `<div class="screen-wrap fin-page">
+  const _ftab = searchQ ? 'all' : _finTab;
+  const _ftBtn=(k,label,n)=>`<button type="button" class="fin-tab${_ftab===k?' on':''}" data-k="${k}" role="tab" aria-selected="${_ftab===k?'true':'false'}" onclick="finTab('${k}')">${label}${n==null?'':`<em>${n}</em>`}</button>`;
+  const _gmyCount=(()=>{ try{ return _gmyList().length; }catch(e){ return 0; } })();
+  const _ftabsHTML=`<div class="fin-tabs" role="tablist" aria-label="${L('Finance sections','أقسام المالية')}">`+
+    _ftBtn('overview',L('Overview','نظرة عامة'))+_ftBtn('income',L('Income','الدخل'),visIncomes.length)+_ftBtn('expenses',L('Expenses','المصروفات'),visOutcomes.length)+
+    _ftBtn('assets',L('Assets','الأصول'),visAssets.length)+_ftBtn('circles',L('Circles','الجمعيات'),_gmyCount)+_ftBtn('debts',L('Debts','المديونيات'),_actAll.length)+`</div>`;
+  const _netTone=netDebt>0?'var(--fin-income)':netDebt<0?'var(--fin-outcome)':'var(--text)';
+  const _dirRow=(k,icon,color,title,desc,amtHTML,sub)=>`<button type="button" class="fin-dir-row" style="--fc:${color}" onclick="finTab('${k}')"><span class="fin-dir-ic">${ic(icon,18)}</span><span class="fin-dir-tx"><b>${title}</b><small>${desc}</small></span><span class="fin-dir-val">${amtHTML}<small>${sub}</small></span><span class="fin-dir-chev">${ic('chevron_right',14)}</span></button>`;
+  const _dirHTML=`<div class="fin-lbl" data-fsec="ov">${L('What\'s in this page','محتويات الصفحة')}</div><div class="fin-dir" data-fsec="ov">`+
+    _dirRow('income','cash','var(--fin-income)',L('Income','الدخل'),L('Salary, bonuses and other money coming in','المرتب والمكافآت وأي فلوس داخلة'),`<b>${fmtEGP(totalIncome)}</b>`,_cnt(visIncomes.length,'entry','entries','سجل','سجلان','سجلات','سجلاً'))+
+    _dirRow('expenses','trend_down','var(--fin-outcome)',L('Expenses','المصروفات'),L('Rent, food, transport and everything you spend','الإيجار والأكل والمواصلات وكل اللي بتصرفه'),`<b>${fmtEGP(totalOutcome)}</b>`,_cnt(visOutcomes.length,'entry','entries','سجل','سجلان','سجلات','سجلاً'))+
+    _dirRow('assets','gem','var(--fin-assets)',L('Assets','الأصول'),L('What you own: electronics, gold, vehicles','اللي بتملكه: إلكترونيات وذهب وعربيات'),`<b>${fmtEGP(totalAssets)}</b>`,_cnt(visAssets.length,'item','items','عنصر','عنصران','عناصر','عنصراً'))+
+    _dirRow('circles','users','var(--fin-assets)',L('My circles','جمعياتي'),L('Savings circles: installments and payout dates','الجمعيات: الأقساط وميعاد القبض'),`<b>${totalGmy>0?fmtEGP(totalGmy):'—'}</b>`,_cnt(_gmyCount,'circle','circles','جمعية','جمعيتان','جمعيات','جمعية'))+
+    _dirRow('debts','scale','#b45309',L('Debts','المديونيات'),L('Money owed to you and money you owe','فلوس ليك وفلوس عليك'),`<b style="color:${_netTone}">${_actAll.length?fmtEGP(netDebt):'—'}</b>`,_actAll.length?L('Net · ','الصافي · ')+_cnt(_actAll.length,'active','active','نشطة','نشطتان','نشطة','نشطة'):L('None active','مفيش نشطة'))+
+    `</div>`;
+  return `<div class="screen-wrap fin-page" data-tab="${_ftab}">
     <div class="sc-header sav-plain-header">
       <div class="sc-header-eyebrow">${L('Finance','المالية')}</div>
       <div class="sc-header-title">${L('My Finances','أموالي')}</div>
@@ -24390,7 +24423,8 @@ function renderSavings(){
 
     <!-- Finance Summary — Hero KPI (Net Worth) + compact secondary strip
          (Income / Outcome / Assets). FINORA Premium hierarchy pass. -->
-    <div class="fin-summary-grid">
+    ${_ftabsHTML}
+    <div class="fin-summary-grid" data-fsec="ov">
       <div class="fin-hero-card" style="--fc:var(--fin-networth);--fc-tint:var(--fin-networth-tint)">
         <div class="fin-hero-top">
           <div class="fin-hero-icon">${ic('overview',16)}</div>
@@ -24402,7 +24436,7 @@ function renderSavings(){
       </div>
 
       <div class="fin-secondary-grid">
-        <div class="fin-card" style="--fc:var(--fin-income);--fc-tint:var(--fin-income-tint)">
+        <div class="fin-card fin-card-go" role="button" tabindex="0" onclick="finTab('income')" style="--fc:var(--fin-income);--fc-tint:var(--fin-income-tint)">
           <div class="fin-card-top">
             <div class="fin-card-icon">${ic('cash',13)}</div>
             ${_savChangeBadge(incomeDelta)}
@@ -24411,7 +24445,7 @@ function renderSavings(){
           <div class="fin-card-title">${L('Income','الدخل')}</div>
           <div class="fin-card-sub">${_cnt(visIncomes.length,'entry','entries','سجل','سجلان','سجلات','سجلاً')}</div>
         </div>
-        <div class="fin-card" style="--fc:var(--fin-outcome);--fc-tint:var(--fin-outcome-tint)">
+        <div class="fin-card fin-card-go" role="button" tabindex="0" onclick="finTab('expenses')" style="--fc:var(--fin-outcome);--fc-tint:var(--fin-outcome-tint)">
           <div class="fin-card-top">
             <div class="fin-card-icon">${ic('trend_down',13)}</div>
             ${_savChangeBadge(outcomeDelta)}
@@ -24420,7 +24454,7 @@ function renderSavings(){
           <div class="fin-card-title">${L('Expenses','المصروفات')}</div>
           <div class="fin-card-sub">${_cnt(visOutcomes.length,'entry','entries','سجل','سجلان','سجلات','سجلاً')}</div>
         </div>
-        <div class="fin-card" style="--fc:var(--fin-assets);--fc-tint:var(--fin-assets-tint)">
+        <div class="fin-card fin-card-go" role="button" tabindex="0" onclick="finTab('assets')" style="--fc:var(--fin-assets);--fc-tint:var(--fin-assets-tint)">
           <div class="fin-card-top">
             <div class="fin-card-icon">${ic('gem',13)}</div>
             ${_savChangeBadge(assetDelta)}
@@ -24432,10 +24466,12 @@ function renderSavings(){
       </div>
     </div>
 
-    ${_savGoalsHTML()}
+    ${_dirHTML}
+    ${(_savGoalsHTML()||'').replace('<section class="jp-card sg-card"','<section data-fsec="ov" class="jp-card sg-card"')}
 
     <!-- Quick Actions -->
-    <div class="fin-qa-row sav-qa-scroll">
+    <div class="fin-lbl fin-lbl-qa" data-fsec="ov">${L('Quick add','إضافة سريعة')}</div>
+    <div class="fin-qa-row sav-qa-scroll" data-fsec="ov">
       <button type="button" class="fin-qa-chip fin-qa-chip-primary" data-tone="income" style="--qc:var(--fin-income);--qc-tint:var(--fin-income-tint)" onclick="savAddIncome()"><span class="fqa-ic"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="m7 11 5 5 5-5"/><path d="M5 21h14"/></svg></span><span class="fqa-t">${L('Income','دخل')}</span></button>
       <button type="button" class="fin-qa-chip fin-qa-chip-primary" data-tone="expense" style="--qc:var(--fin-outcome);--qc-tint:var(--fin-outcome-tint)" onclick="savAddOutcome()"><span class="fqa-ic"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21V9"/><path d="m7 13 5-5 5 5"/><path d="M5 3h14"/></svg></span><span class="fqa-t">${L('Expense','مصروف')}</span></button>
       <button type="button" class="fin-qa-chip fin-qa-chip-primary" data-tone="transfer" style="--qc:var(--fin-networth);--qc-tint:var(--fin-networth-tint)" onclick="savTransfer()"><span class="fqa-ic"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m17 3 4 4-4 4"/><path d="M3 7h18"/><path d="m7 21-4-4 4-4"/><path d="M21 17H3"/></svg></span><span class="fqa-t">${L('Transfer','تحويل')}</span></button>
@@ -24449,7 +24485,7 @@ function renderSavings(){
       <input placeholder="${L('Search finances...','ابحث في أموالي...')}" value="${esc(searchQ)}" oninput="doSearch(this.value)"/>
     </span></div>
 
-    <div class="sc-card">
+    <div class="sc-card" data-fsec="income">
       <div class="fin-sec-hd" style="--sc:var(--fin-income)">
         <span class="fin-sec-ic">${ic('cash',16)}</span>
         <span class="fin-sec-t">${L('Income','الدخل')}<small>${fmtEGP(totalIncome)}</small></span>
@@ -24459,7 +24495,7 @@ function renderSavings(){
       <div class="tx-rows">${incomeRows}</div>
     </div>
 
-    <div class="sc-card">
+    <div class="sc-card" data-fsec="expenses">
       <div class="fin-sec-hd" style="--sc:var(--fin-outcome)">
         <span class="fin-sec-ic">${ic('trend_down',16)}</span>
         <span class="fin-sec-t">${L('Expenses','المصروفات')}<small>${fmtEGP(totalOutcome)}</small></span>
@@ -24469,7 +24505,7 @@ function renderSavings(){
       <div class="tx-rows">${outcomeRows}</div>
     </div>
 
-    <div class="sc-card">
+    <div class="sc-card" data-fsec="assets">
       <div class="fin-sec-hd" style="--sc:var(--fin-assets)">
         <span class="fin-sec-ic">${ic('gem',16)}</span>
         <span class="fin-sec-t">${L('Assets','الأصول')}<small>${fmtEGP(totalAssets)}</small></span>
@@ -24482,7 +24518,7 @@ function renderSavings(){
 
     ${_gmySectionHTML(_savQ,totalGmy)}
 
-    <div class="sc-card">
+    <div class="sc-card" data-fsec="debts">
       <div class="fin-sec-hd" style="--sc:#b45309">
         <span class="fin-sec-ic">${ic('scale',16)}</span>
         <span class="fin-sec-t">${L('Debts','المديونيات')}<small>${_actAll.length?L('Net','الصافي')+' '+fmtEGP(netDebt):(_histF.length?L('All settled','كلها مسوّاة'):L('Money owed to / by you','فلوس ليك / عليك'))}</small></span>
@@ -38399,7 +38435,7 @@ function _cxProfileChipHTML(){
   const sub=[p.title,p.company].filter(Boolean).join(' · ');
   // two slides that cross-fade inside the card: (name / job) then (job / company) — only when there is something to rotate
   const t2=(p.title||'').trim(), c2=(p.company||'').trim();
-  const slide2=(short&&(t2||c2))?`<span class="pf-sl s2" aria-hidden="true"><b dir="auto">${esc(t2||c2)}</b><span class="pf-sub" dir="auto"><span>${esc(t2&&c2?c2:short)}</span></span></span>`:'';
+  const slide2='';   // static layout: name, then job title · company (wraps to 2 lines) — no rotating slides
   return `<button type="button" class="pf-chip${slide2?' rot':''}" onclick="_cxSetTab('profile')" aria-label="${L('My profile','ملفي الشخصي')}${full?': '+esc(full):''}" title="${esc(full)}"><span class="pf-av">${p.photo?`<img src="${p.photo}" alt="">`:(ini?`<span class="pf-ini">${esc(ini)}</span>`:ic('id',18))}</span><span class="pf-id"><span class="pf-sl s1"><b dir="auto">${short?esc(short):L('My profile','ملفي الشخصي')}</b><span class="pf-sub" dir="auto"><span>${sub?esc(sub):L('View profile','عرض الملف')}</span></span></span>${slide2}</span></button>`;
 }
 function _cxTabsHTML(){
@@ -66004,6 +66040,37 @@ body #mainContent .fin-page>.fin-summary-grid{order:1}
 body #mainContent .fin-page>.fin-qa-row{order:2}
 body #mainContent .fin-page>.sg-card{order:3}
 body #mainContent .fin-page>.sav-search{order:4}
+/* My Finances tabs: tab bar + circles/debts strip sit in the hero block (order 1, DOM order decides) */
+body #mainContent .fin-page>.fin-tabs{order:1}
+body #mainContent .fin-page>.fin-lbl,body #mainContent .fin-page>.fin-dir{order:3}
+body #mainContent .fin-page>.fin-lbl.fin-lbl-qa{order:2}
+.fin-tabs{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;padding:2px 1px 4px;margin:0}
+.fin-tabs::-webkit-scrollbar{display:none}
+.fin-tab{flex:0 0 auto;display:inline-flex;align-items:center;gap:7px;min-height:40px;padding:0 14px;border-radius:99px;border:1px solid var(--border);background:var(--surface);color:var(--text2);font:inherit;font-size:calc(13px*var(--app-text-scale,1));font-weight:700;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background .15s,color .15s,border-color .15s}
+.fin-tab em{font-style:normal;min-width:20px;padding:1px 7px;border-radius:99px;background:var(--surface2);color:var(--sub);font-size:.85em;font-variant-numeric:tabular-nums;text-align:center}
+.fin-tab.on{background:var(--primary);border-color:var(--primary);color:#fff}
+.fin-tab.on em{background:rgba(255,255,255,.22);color:#fff}
+.fin-lbl{font-size:calc(11.5px*var(--app-text-scale,1));font-weight:800;letter-spacing:.7px;text-transform:uppercase;color:var(--muted);padding:6px 4px 0}
+.fin-dir{display:flex;flex-direction:column;border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);overflow:hidden}
+.fin-dir-row{display:flex;align-items:center;gap:12px;width:100%;padding:13px 14px;border:0;border-bottom:1px solid var(--border);background:transparent;font:inherit;text-align:start;cursor:pointer;-webkit-tap-highlight-color:transparent;min-width:0}
+.fin-dir-row:last-child{border-bottom:0}
+.fin-dir-row:active{background:var(--surface2)}
+.fin-dir-ic{flex:0 0 auto;width:38px;height:38px;border-radius:12px;display:flex;align-items:center;justify-content:center;color:var(--fc);background:color-mix(in srgb,var(--fc) 13%,transparent)}
+.fin-dir-tx{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:2px}
+.fin-dir-tx b{font-size:calc(15px*var(--app-text-scale,1));font-weight:800;color:var(--text)}
+.fin-dir-tx small{font-size:calc(11.5px*var(--app-text-scale,1));color:var(--muted);line-height:1.35}
+.fin-dir-val{flex:0 0 auto;display:flex;flex-direction:column;align-items:flex-end;gap:2px;max-width:42%}
+.fin-dir-val b{font-size:calc(14px*var(--app-text-scale,1));font-weight:800;color:var(--fc);font-variant-numeric:tabular-nums;white-space:nowrap}
+.fin-dir-val small{font-size:calc(11px*var(--app-text-scale,1));color:var(--muted);white-space:nowrap}
+.fin-dir-chev{flex:0 0 auto;color:var(--muted);display:flex}
+[dir="rtl"] .fin-dir-chev{transform:scaleX(-1)}
+.fin-card-go{cursor:pointer;-webkit-tap-highlight-color:transparent}
+.fin-page[data-tab="overview"] [data-fsec]:not([data-fsec="ov"]),
+.fin-page[data-tab="income"] [data-fsec]:not([data-fsec="income"]),
+.fin-page[data-tab="expenses"] [data-fsec]:not([data-fsec="expenses"]),
+.fin-page[data-tab="assets"] [data-fsec]:not([data-fsec="assets"]),
+.fin-page[data-tab="circles"] [data-fsec]:not([data-fsec="circles"]),
+.fin-page[data-tab="debts"] [data-fsec]:not([data-fsec="debts"]){display:none!important}
 
 /* Accounts rhythm */
 body #mainContent .banks-v2 .bnk-hero{border-radius:var(--pg-r);margin-bottom:4px}
