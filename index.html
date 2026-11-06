@@ -67623,5 +67623,82 @@ body #mainContent .sg-card .sg-meta>button,body #mainContent .sg-card .sg-meta>a
 #lockScreen #wLogoImg{width:76px;height:76px}
 @media (prefers-reduced-motion:reduce){#finoraSplash svg .m-f,#finoraSplash svg .m-w{animation:none!important}}
 </style>
+<style id="mlx-lux">
+/* ═══ Place History — premium layout (CSS only). Revert: delete this <style id="mlx-lux"> block. ═══ */
+#mainContent .mlx{
+  --lx-acc:var(--mlx-acc,var(--accent-finance,var(--green)));--lx-gold:#E6A21F;
+  --lx-line:color-mix(in srgb,var(--text) 8%,transparent);
+  --lx-sh:0 1px 2px rgba(16,24,40,.04),0 14px 30px -18px rgba(16,24,40,.22);
+  --lx-sh-lift:0 1px 2px rgba(16,24,40,.06),0 10px 22px -12px rgba(16,24,40,.30);
+  --lx-ease:cubic-bezier(.22,.9,.3,1);
+  display:flex;flex-direction:column;gap:14px;position:relative;isolation:isolate}
+[data-theme="dark"] #mainContent .mlx{--lx-line:rgba(255,255,255,.09);--lx-sh:0 1px 0 rgba(255,255,255,.03) inset,0 16px 32px -18px rgba(0,0,0,.75);--lx-sh-lift:0 10px 22px -12px rgba(0,0,0,.8)}
+#mainContent .mlx::before{content:"";position:absolute;z-index:-1;inset:-28px -16px auto -16px;height:260px;pointer-events:none;
+  background:radial-gradient(70% 85% at 88% 0%,color-mix(in srgb,var(--lx-acc) 14%,transparent),transparent 72%),radial-gradient(55% 70% at 12% 16%,color-mix(in srgb,var(--lx-gold) 9%,transparent),transparent 72%);
+  -webkit-mask-image:linear-gradient(90deg,transparent,#000 16%,#000 84%,transparent);mask-image:linear-gradient(90deg,transparent,#000 16%,#000 84%,transparent)}
+#mainContent .mlx>*{margin-top:0;margin-bottom:0}
+/* header */
+#mainContent .mlx .sc-header{margin-bottom:2px}
+#mainContent .mlx .sc-header-title{font-size:calc(30px*var(--app-text-scale,1))!important;font-weight:800!important;letter-spacing:-.035em;line-height:1.1}
+#mainContent .mlx .sc-header-sub{margin-top:6px;font-size:calc(13.5px*var(--app-text-scale,1));color:var(--sub)}
+/* tracking panel */
+#mainContent .mlx .mlx-panel{padding:20px;border-radius:28px;border:1px solid var(--lx-line)!important;box-shadow:var(--lx-sh)!important;
+  background:linear-gradient(180deg,color-mix(in srgb,var(--lx-acc) 5%,var(--surface)),var(--surface) 48%)}
+#mainContent .mlx .mlx-status{margin-bottom:18px}
+#mainContent .mlx .mlx-status-l{gap:12px;font-size:calc(19px*var(--app-text-scale,1));font-weight:800;letter-spacing:-.025em}
+#mainContent .mlx .mlx-dot{width:11px;height:11px}
+#mainContent .mlx .mlx-dot.on{background:var(--lx-acc);box-shadow:0 0 0 4px color-mix(in srgb,var(--lx-acc) 20%,transparent)}
+#mainContent .mlx .mlx-btn{min-height:40px;padding:0 20px;border-radius:99px;font-weight:700;letter-spacing:.005em}
+#mainContent .mlx .mlx-btn.ghost{background:var(--surface);border:1px solid var(--lx-line);box-shadow:var(--lx-sh);color:var(--text)}
+#mainContent .mlx .mlx-btn.primary{border:0;color:#fff;background:linear-gradient(180deg,color-mix(in srgb,var(--lx-acc) 82%,#fff),var(--lx-acc));box-shadow:0 10px 18px -10px color-mix(in srgb,var(--lx-acc) 80%,transparent),inset 0 1px 0 rgba(255,255,255,.28)}
+#mainContent .mlx .mlx-prog-row{margin-bottom:10px;font-size:calc(13px*var(--app-text-scale,1))}
+#mainContent .mlx .mlx-pct{font-size:calc(14px*var(--app-text-scale,1));font-weight:800;color:var(--lx-acc)}
+#mainContent .mlx .mlx-track{height:10px;background:color-mix(in srgb,var(--text) 7%,transparent);box-shadow:inset 0 1px 2px rgba(16,24,40,.08)}
+#mainContent .mlx .mlx-fill{background:linear-gradient(90deg,color-mix(in srgb,var(--lx-acc) 78%,#fff),var(--lx-acc))}
+#mainContent .mlx .mlx-sep{margin:20px 0 18px;background:var(--lx-line)}
+#mainContent .mlx .mlx-label-s{font-size:calc(11.5px*var(--app-text-scale,1));font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+#mainContent .mlx .mlx-chips{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
+#mainContent .mlx .mlx-chip{min-height:44px;border-radius:15px;padding:0 8px;justify-content:center;font-size:calc(13.5px*var(--app-text-scale,1));font-weight:700;background:var(--surface2);border:1px solid var(--lx-line);color:var(--text2);transition:transform .2s var(--lx-ease),background .2s,box-shadow .2s}
+#mainContent .mlx .mlx-chip.on{border-color:transparent;color:#fff;background:linear-gradient(180deg,color-mix(in srgb,var(--lx-acc) 82%,#fff),var(--lx-acc));box-shadow:0 10px 18px -10px color-mix(in srgb,var(--lx-acc) 80%,transparent),inset 0 1px 0 rgba(255,255,255,.28)}
+#mainContent .mlx .mlx-note{margin-top:16px;padding:12px 14px;border-radius:15px;background:var(--surface2);font-size:calc(12px*var(--app-text-scale,1));line-height:1.65}
+/* add manually */
+#mainContent .mlx .mlx-add{min-height:56px!important;border-radius:20px!important;border:1px solid color-mix(in srgb,var(--lx-acc) 26%,transparent)!important;border-style:solid!important;
+  background:color-mix(in srgb,var(--lx-acc) 7%,var(--surface))!important;color:var(--lx-acc)!important;font-size:calc(14.5px*var(--app-text-scale,1));box-shadow:var(--lx-sh)}
+#mainContent .mlx .mlx-add:active{transform:scale(.985)}
+/* all / favourites */
+#mainContent .mlx .mlx-tabs{margin:0;padding:5px;gap:4px;border-radius:20px;border:1px solid var(--lx-line);background:color-mix(in srgb,var(--text) 6%,var(--surface2));box-shadow:inset 0 1px 2px rgba(16,24,40,.05)}
+#mainContent .mlx .mlx-tab{height:44px;border-radius:15px;font-size:calc(14px*var(--app-text-scale,1));transition:background .25s var(--lx-ease),box-shadow .25s}
+#mainContent .mlx .mlx-tab.on{background:var(--surface);color:var(--text);box-shadow:0 1px 2px rgba(16,24,40,.08),0 8px 16px -10px rgba(16,24,40,.32)}
+#mainContent .mlx .mlx-tab.on b{color:var(--lx-acc)}
+/* place cards */
+#mainContent .mlx .mlx-card{position:relative;overflow:hidden;padding:18px 18px 12px;border-radius:26px;border:1px solid var(--lx-line)!important;box-shadow:var(--lx-sh)!important}
+#mainContent .mlx .mlx-card.is-fav{border-color:color-mix(in srgb,var(--lx-gold) 40%,var(--lx-line))!important}
+#mainContent .mlx .mlx-card.is-fav::before{content:"";position:absolute;inset:0 0 auto 0;height:3px;background:linear-gradient(90deg,var(--lx-gold),#F3D580 45%,transparent 85%)}
+[dir="rtl"] #mainContent .mlx .mlx-card.is-fav::before{background:linear-gradient(270deg,var(--lx-gold),#F3D580 45%,transparent 85%)}
+#mainContent .mlx .mlx-card-top{gap:14px}
+#mainContent .mlx .mlx-name{font-size:calc(17px*var(--app-text-scale,1))!important;font-weight:800!important;letter-spacing:-.02em;line-height:1.35!important}
+#mainContent .mlx .mlx-meta{margin-top:6px;gap:4px 10px;font-size:calc(12.5px*var(--app-text-scale,1))}
+#mainContent .mlx .mlx-meta>*+*::before{display:none}
+#mainContent .mlx .mlx-map{padding:3px 11px 3px 9px;border-radius:99px;background:color-mix(in srgb,var(--lx-acc) 10%,transparent);font-size:calc(12px*var(--app-text-scale,1))}
+#mainContent .mlx .mlx-fav{width:42px;height:42px;border:1px solid var(--lx-line);background:var(--surface2);box-shadow:none;transition:transform .2s var(--lx-ease),background .2s}
+#mainContent .mlx .mlx-fav.on{color:var(--lx-gold);border-color:color-mix(in srgb,var(--lx-gold) 55%,transparent);background:color-mix(in srgb,var(--lx-gold) 16%,var(--surface))}
+#mainContent .mlx .mlx-stats{gap:8px;margin-top:14px}
+#mainContent .mlx .mlx-pill{padding:6px 13px;font-size:calc(12px*var(--app-text-scale,1));background:var(--surface2);border:1px solid var(--lx-line)}
+#mainContent .mlx .mlx-foot{margin-top:14px!important;padding:10px 14px!important;border-radius:16px;background:var(--surface2);border:0!important}
+#mainContent .mlx .mlx-label-s{text-transform:none;letter-spacing:0;font-size:calc(13px*var(--app-text-scale,1));font-weight:600}
+#mainContent .mlx .mlx-star{font-size:20px!important;padding:2px}
+#mainContent .mlx .mlx-photos{margin-top:14px;gap:8px}
+#mainContent .mlx .mlx-thumb,#mainContent .mlx .mlx-photo-add{width:54px!important;height:54px!important;border-radius:15px!important}
+#mainContent .mlx .mlx-thumb{border:1px solid var(--lx-line);box-shadow:0 6px 12px -8px rgba(16,24,40,.5)}
+#mainContent .mlx .mlx-photo-add{border:1.5px dashed color-mix(in srgb,var(--lx-acc) 40%,transparent);background:color-mix(in srgb,var(--lx-acc) 5%,transparent);color:var(--lx-acc)}
+#mainContent .mlx .mlx-card .mlx-acts{margin-top:14px;padding-top:12px;gap:8px;border-top:1px solid var(--lx-line)}
+#mainContent .mlx .mlx-act{height:40px;padding:0 15px;border-radius:13px;background:color-mix(in srgb,var(--lx-acc) 8%,transparent);color:var(--lx-acc);font-weight:700;transition:transform .2s var(--lx-ease)}
+#mainContent .mlx .mlx-act:active{transform:scale(.95);background:color-mix(in srgb,var(--lx-acc) 14%,transparent)}
+#mainContent .mlx .mlx-act.del{width:40px;padding:0;justify-content:center;color:var(--red);background:color-mix(in srgb,var(--red) 9%,transparent)}
+#mainContent .mlx .mlx-clear{padding:2px 0 6px}
+#mainContent .mlx .mlx-linkbtn{font-weight:600}
+@media (prefers-reduced-motion:no-preference){#mainContent .mlx .mlx-dot.on{animation:mlxPulse 2.6s ease-out infinite}}
+@keyframes mlxPulse{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--lx-acc) 45%,transparent)}70%,100%{box-shadow:0 0 0 9px transparent}}
+</style>
 </body>
 </html>
