@@ -67788,5 +67788,40 @@ body #mainContent .att.atp .att-co>.att-map{height:46px;border-radius:15px;borde
 body #mainContent .att.atp .att-foot{display:flex;justify-content:center;padding:8px 0 4px}
 body #mainContent .att.atp .att-link.danger{min-height:44px;padding:0 18px;border-radius:99px;background:color-mix(in srgb,var(--red) 8%,transparent);font-weight:700}
 </style>
+<style id="jp-lux">
+/* ═══ Profile tab (employee ID) — brand harmonisation (CSS only). Revert: delete this block. ═══ */
+body #mainContent .jp-wrap .jp-hero.v2{border-radius:28px;border:1px solid color-mix(in srgb,var(--text) 8%,transparent);box-shadow:0 1px 2px rgba(16,24,40,.04),0 16px 34px -20px rgba(16,24,40,.28)}
+body #mainContent .jp-wrap .jp-hero.v2 .jp-bd-hd{background:radial-gradient(110% 80% at 100% 0%,rgba(226,184,87,.24),rgba(226,184,87,0) 55%),radial-gradient(90% 70% at 0% 100%,rgba(70,125,235,.30),rgba(70,125,235,0) 60%),linear-gradient(160deg,#14407F 0%,#0E2C5C 55%,#0A2047 100%)}
+body #mainContent .jp-wrap .jp-hero.v2 .jp-bd-tag{background:rgba(226,184,87,.16);border-color:rgba(226,184,87,.5);color:#F6DE97}
+body #mainContent .jp-wrap .jp-hero.v2 .jp-ph-in{box-shadow:0 0 0 2.5px #E2B857,0 18px 30px -14px rgba(10,36,80,.75)}
+body #mainContent .jp-wrap .jp-hero.v2 .jp-cam{background:#E2B857!important;color:#0A2450!important;border-color:var(--surface)!important}
+body #mainContent .jp-wrap .jp-hero.v2 .jp-chip,body #mainContent .jp-wrap .jp-hero.v2 .jp-chip+.jp-chip{border-radius:16px}
+body #mainContent .jp-wrap .jp-hero.v2 .jp-nm{letter-spacing:-.03em}
+</style>
+<style id="bnk-lux">
+/* ═══ Accounts page — unified surface language (CSS only). Revert: delete this block. ═══ */
+body #mainContent .banks-v2{
+  --lx-line:color-mix(in srgb,var(--text) 8%,transparent);
+  --lx-sh:0 1px 2px rgba(16,24,40,.04),0 14px 30px -18px rgba(16,24,40,.22);
+  --lx-ease:cubic-bezier(.22,.9,.3,1);position:relative;isolation:isolate}
+[data-theme="dark"] body #mainContent .banks-v2,[data-theme="dark"] #mainContent .banks-v2{--lx-line:rgba(255,255,255,.09);--lx-sh:0 1px 0 rgba(255,255,255,.03) inset,0 16px 32px -18px rgba(0,0,0,.75)}
+body #mainContent .banks-v2::before{content:"";position:absolute;z-index:-1;inset:-28px -16px auto -16px;height:260px;pointer-events:none;
+  background:radial-gradient(70% 85% at 88% 0%,color-mix(in srgb,var(--green) 12%,transparent),transparent 72%),radial-gradient(55% 70% at 12% 16%,rgba(226,184,87,.09),transparent 72%);
+  -webkit-mask-image:linear-gradient(90deg,transparent,#000 16%,#000 84%,transparent);mask-image:linear-gradient(90deg,transparent,#000 16%,#000 84%,transparent)}
+body #mainContent .banks-v2 .sc-header-title{font-size:calc(30px*var(--app-text-scale,1))!important;font-weight:800!important;letter-spacing:-.035em}
+/* section titles → same icon-chip style as My Job */
+body #mainContent .banks-v2 .bnk-section-title{display:flex;align-items:center;gap:10px;margin:22px 2px 12px;font-size:calc(18px*var(--app-text-scale,1));font-weight:800;letter-spacing:-.025em;color:var(--text)}
+body #mainContent .banks-v2 .bnk-section-title svg{flex:none;box-sizing:border-box!important;width:34px!important;height:34px!important;padding:8px!important;border-radius:12px;color:var(--green);background:color-mix(in srgb,var(--green) 11%,var(--surface));box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--green) 14%,transparent)}
+body #mainContent .banks-v2 .bnk-section-title button{font-size:calc(14px*var(--app-text-scale,1));font-weight:700;letter-spacing:0;margin-inline-start:auto}
+/* quick-links promo: navy + gold instead of the old green */
+body #mainContent .banks-v2 .bl-empty{border-radius:24px;border:1px solid rgba(226,184,87,.28)!important;
+  background:radial-gradient(110% 90% at 100% 0%,rgba(226,184,87,.20),rgba(226,184,87,0) 55%),linear-gradient(160deg,#14407F 0%,#0E2C5C 55%,#0A2047 100%)!important;box-shadow:0 18px 34px -22px rgba(6,16,45,.85),inset 0 1px 0 rgba(255,255,255,.12)!important}
+/* account cards: keep each bank's colour stripe, unify the rest */
+body #mainContent .banks-v2 .bnk-card{border-radius:24px;border-top-color:var(--lx-line);border-right-color:var(--lx-line);border-bottom-color:var(--lx-line);box-shadow:var(--lx-sh)!important;transition:transform .2s var(--lx-ease)}
+body #mainContent .banks-v2 .bnk-card:active{transform:scale(.99)}
+body #mainContent .banks-v2 .bnk-drag{position:absolute;inset-inline-start:6px;top:50%;transform:translateY(-50%);opacity:.32;margin:0}
+body #mainContent .banks-v2 .bnk-timeline,body #mainContent .banks-v2 .bnk-analytics{border-radius:26px;border:1px solid var(--lx-line)!important;box-shadow:var(--lx-sh)!important}
+body #mainContent .banks-v2 .sc-search.cx-search .cx-sbox>input{height:50px;border-radius:18px;border:1px solid var(--lx-line);box-shadow:var(--lx-sh)}
+</style>
 </body>
 </html>
