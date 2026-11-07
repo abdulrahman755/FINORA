@@ -67822,6 +67822,57 @@ body #mainContent .banks-v2 .bnk-card:active{transform:scale(.99)}
 body #mainContent .banks-v2 .bnk-drag{position:absolute;inset-inline-start:6px;top:50%;transform:translateY(-50%);opacity:.32;margin:0}
 body #mainContent .banks-v2 .bnk-timeline,body #mainContent .banks-v2 .bnk-analytics{border-radius:26px;border:1px solid var(--lx-line)!important;box-shadow:var(--lx-sh)!important}
 body #mainContent .banks-v2 .sc-search.cx-search .cx-sbox>input{height:50px;border-radius:18px;border:1px solid var(--lx-line);box-shadow:var(--lx-sh)}
+
+/* expanded card: add-movement form + movements list */
+body #mainContent .banks-v2 .bnk-card-body-inner .sc-add-row{border-radius:24px;border:1px solid var(--lx-line)!important;box-shadow:none;background:var(--surface)}
+body #mainContent .banks-v2 .sc-add-submit{min-height:54px;border-radius:18px;font-weight:800;letter-spacing:.005em;box-shadow:0 14px 24px -14px color-mix(in srgb,var(--bnk-accent,#0B3F8F) 85%,transparent),inset 0 1px 0 rgba(255,255,255,.22);transition:transform .2s var(--lx-ease)}
+body #mainContent .banks-v2 .sc-add-submit:active{transform:scale(.98)}
+body #mainContent .banks-v2 .sc-add-row .chip,body #mainContent .banks-v2 .sc-add-row [class*="quick"] button{min-height:38px;border-radius:99px;border:1px solid var(--lx-line);font-weight:700}
+body #mainContent .banks-v2 .bnk-mv-panel{border-radius:22px;border:1px solid var(--lx-line);background:var(--surface);overflow:hidden;box-shadow:none}
+body #mainContent .banks-v2 .bnk-mv-hd{padding:14px 16px;background:transparent;border-bottom:1px solid var(--lx-line);font-weight:800;letter-spacing:-.01em}
+body #mainContent .banks-v2 .bnk-mv-hd em{background:color-mix(in srgb,var(--green) 11%,transparent);color:var(--green);font-style:normal;font-weight:800;padding:2px 10px;border-radius:99px}
+body #mainContent .banks-v2 .bnk-mv-day{padding:10px 16px;font-size:calc(11.5px*var(--app-text-scale,1));font-weight:700;letter-spacing:.06em;color:var(--muted);background:var(--surface2);border-top:1px solid var(--lx-line)}
+body #mainContent .banks-v2 .tx-row.bnk-mv{padding:12px 16px;border-top:1px solid var(--lx-line)}
+body #mainContent .banks-v2 .bnk-mv-day+.tx-row.bnk-mv{border-top:0}
+</style>
+<style id="pln-lux">
+/* ═══ Spending Planner — same surface language as the rest (CSS only). Revert: delete this block. ═══ */
+body #mainContent .sc-header:has(+ .pln-month-bar) .sc-header-title{font-size:calc(30px*var(--app-text-scale,1))!important;font-weight:800!important;letter-spacing:-.035em}
+body #mainContent .pln-month-bar{padding:8px;border-radius:22px;border:1px solid color-mix(in srgb,var(--text) 8%,transparent);box-shadow:0 1px 2px rgba(16,24,40,.04),0 14px 30px -18px rgba(16,24,40,.22)}
+body #mainContent .pln-month-arrow{width:46px;height:46px;border-radius:16px;border:1px solid color-mix(in srgb,var(--text) 8%,transparent);transition:transform .15s cubic-bezier(.22,.9,.3,1)}
+body #mainContent .pln-month-arrow:active{transform:scale(.92)}
+body #mainContent .pln-month-label{font-size:calc(17px*var(--app-text-scale,1));font-weight:800;letter-spacing:-.02em}
+body #mainContent .sc-card:has(.pln-cal-grid){border-radius:26px;border:1px solid color-mix(in srgb,var(--text) 8%,transparent)!important;box-shadow:0 1px 2px rgba(16,24,40,.04),0 14px 30px -18px rgba(16,24,40,.22)!important}
+body #mainContent .pln-cal-cell{border-radius:16px;transition:transform .15s cubic-bezier(.22,.9,.3,1)}
+body #mainContent .pln-cal-cell:active{transform:scale(.94)}
+body #mainContent .pln-cal-cell.today{background:var(--green)!important;border-color:transparent!important;box-shadow:0 10px 16px -10px var(--green)}
+body #mainContent .pln-cal-cell.today .pln-cal-daynum{color:#fff!important}
+</style>
+<style id="fin-lux">
+/* ═══ My Finances — brand hero + unified surfaces (CSS only). Revert: delete this block. ═══ */
+body #mainContent .fin-page{
+  --lx-line:color-mix(in srgb,var(--text) 8%,transparent);
+  --lx-sh:0 1px 2px rgba(16,24,40,.04),0 14px 30px -18px rgba(16,24,40,.22);
+  --lx-ease:cubic-bezier(.22,.9,.3,1);position:relative;isolation:isolate}
+[data-theme="dark"] #mainContent .fin-page{--lx-line:rgba(255,255,255,.09);--lx-sh:0 1px 0 rgba(255,255,255,.03) inset,0 16px 32px -18px rgba(0,0,0,.75)}
+body #mainContent .fin-page .sc-header-title{font-size:calc(30px*var(--app-text-scale,1))!important;font-weight:800!important;letter-spacing:-.035em}
+/* tabs */
+body #mainContent .fin-page .fin-tab{min-height:42px;border-color:var(--lx-line);box-shadow:var(--lx-sh);transition:background .2s,color .2s,transform .15s var(--lx-ease)}
+body #mainContent .fin-page .fin-tab.on{border-color:transparent;color:#fff!important;background:linear-gradient(180deg,color-mix(in srgb,var(--blue,#3D6FA3) 80%,#fff),var(--blue,#3D6FA3))!important;box-shadow:0 10px 18px -10px color-mix(in srgb,var(--blue,#3D6FA3) 80%,transparent),inset 0 1px 0 rgba(255,255,255,.28)}
+/* net-worth hero: deep navy + champagne gold (same language as the logo and the salary card) */
+body #mainContent .fin-page .fin-hero-card{position:relative;overflow:hidden;padding:22px 20px 20px;border-radius:28px;border:1px solid rgba(226,184,87,.22)!important;color:#fff;
+  background:radial-gradient(110% 80% at 100% 0%,rgba(226,184,87,.22),rgba(226,184,87,0) 55%),radial-gradient(90% 70% at 0% 100%,rgba(70,125,235,.30),rgba(70,125,235,0) 60%),linear-gradient(160deg,#14407F 0%,#0E2C5C 55%,#0A2047 100%)!important;
+  box-shadow:0 24px 42px -24px rgba(6,16,45,.9),inset 0 1px 0 rgba(255,255,255,.14)!important}
+body #mainContent .fin-page .fin-hero-icon{background:rgba(255,255,255,.12)!important;color:#F6DE97!important;border-radius:14px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.14)}
+body #mainContent .fin-page .fin-hero-label{color:#F6DE97!important;font-weight:700;letter-spacing:.02em}
+body #mainContent .fin-page .fin-hero-amount,body #mainContent .fin-page .fin-hero-amount *{color:#fff!important;-webkit-text-fill-color:#fff!important;background:none!important;background-image:none!important;text-shadow:none!important;letter-spacing:-.03em}
+body #mainContent .fin-page .fin-hero-amount .unit,body #mainContent .fin-page .fin-hero-amount .cur,body #mainContent .fin-page .fin-hero-amount small,body #mainContent .fin-page .fin-hero-amount .sig-cur{color:#F6DE97!important;-webkit-text-fill-color:#F6DE97!important}
+body #mainContent .fin-page .fin-hero-amount .unit,body #mainContent .fin-page .fin-hero-amount [class*="cur"],body #mainContent .fin-page .fin-hero-amount small{background:rgba(226,184,87,.18)!important;color:#F6DE97!important}
+body #mainContent .fin-page .fin-hero-formula{color:rgba(255,255,255,.72)!important}
+/* secondary stat strip */
+body #mainContent .fin-page .fin-secondary-grid{border-radius:24px;border:1px solid var(--lx-line);box-shadow:var(--lx-sh);overflow:hidden}
+body #mainContent .fin-page .fin-card{transition:background .2s}
+body #mainContent .fin-page .fin-card:active{background:var(--surface2)}
 </style>
 </body>
 </html>
