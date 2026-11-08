@@ -13400,7 +13400,7 @@ window._fnrBar=function(theme){
     var ls=document.getElementById('lockScreen');
     var up=!!document.getElementById('finoraSplash') || !!(ls && ls.style.display!=='none' && !document.documentElement.classList.contains('ls-skip'));
     if(!theme) theme=document.documentElement.getAttribute('data-theme')==='dark'?'dark':'light';
-    m.setAttribute('content',up?'#1565D8':(theme==='dark'?'#111C30':'#FFFFFF'));
+    m.setAttribute('content',up?'#1565D8':(theme==='dark'?'#000000':'#FFFFFF'));
   }catch(e){}
 };
 document.addEventListener('DOMContentLoaded',function(){
@@ -31537,7 +31537,7 @@ function applyTheme(theme, animate){
     document.documentElement.removeAttribute('data-theme');
   }
   const metaTheme=document.querySelector('meta[name="theme-color"]');
-  if(window._fnrBar) window._fnrBar(theme); else if(metaTheme) metaTheme.setAttribute('content', theme==='dark' ? '#111C30' : '#FFFFFF');
+  if(window._fnrBar) window._fnrBar(theme); else if(metaTheme) metaTheme.setAttribute('content', theme==='dark' ? '#000000' : '#FFFFFF');
   const btn=document.getElementById('themeToggleBtn');
   if(btn) btn.innerHTML = theme==='dark' ? `${ic('sun',15)}` : `${ic('moon',15)}`;
   const hdrBtn=document.getElementById('themeToggleBtnHdr');
@@ -56075,10 +56075,10 @@ function mrRenderCatChart(stat){
     const slice=(c.amount/total)*Math.PI*2;
     ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,r,angle,angle+slice);ctx.closePath();
     ctx.fillStyle=MR_PALETTE[i%MR_PALETTE.length];ctx.fill();
-    ctx.strokeStyle=isDark?'#111C30':'#fff';ctx.lineWidth=2;ctx.stroke();
+    ctx.strokeStyle=isDark?'#121212':'#fff';ctx.lineWidth=2;ctx.stroke();
     angle+=slice;
   });
-  ctx.beginPath();ctx.arc(cx,cy,r*.55,0,Math.PI*2);ctx.fillStyle=isDark?'#111C30':'#fff';ctx.fill();
+  ctx.beginPath();ctx.arc(cx,cy,r*.55,0,Math.PI*2);ctx.fillStyle=isDark?'#121212':'#fff';ctx.fill();
   const lx=cx+r+14; let ly=cy-(top5.length*15)/2;
   top5.forEach((c,i)=>{
     ctx.fillStyle=MR_PALETTE[i%MR_PALETTE.length];ctx.fillRect(lx,ly-8,8,8);
@@ -56720,11 +56720,11 @@ function brRenderDistChart(stat){
     const slice=(b.closing/total)*Math.PI*2;
     ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,r,angle,angle+slice);ctx.closePath();
     ctx.fillStyle=b.color||BR_PALETTE[i%BR_PALETTE.length];ctx.fill();
-    ctx.strokeStyle=isDark?'#111C30':'#fff';ctx.lineWidth=2;ctx.stroke();
+    ctx.strokeStyle=isDark?'#121212':'#fff';ctx.lineWidth=2;ctx.stroke();
     angle+=slice;
   });
   // Center hole + total
-  ctx.beginPath();ctx.arc(cx,cy,r*.52,0,Math.PI*2);ctx.fillStyle=isDark?'#111C30':'#fff';ctx.fill();
+  ctx.beginPath();ctx.arc(cx,cy,r*.52,0,Math.PI*2);ctx.fillStyle=isDark?'#121212':'#fff';ctx.fill();
   ctx.fillStyle=isDark?'#EBEBF0':'#0F1F18';ctx.font='bold 11px sans-serif';ctx.textAlign='center';
   ctx.fillText(brShort(total),cx,cy+4);
   ctx.fillStyle=isDark?'#8FA093':'#637D72';ctx.font='8px sans-serif';ctx.fillText(curLabel(),cx,cy+15);
@@ -67885,24 +67885,30 @@ body #mainContent .fin-page .ast-sum{border:1px solid rgba(226,184,87,.26)!impor
   background:radial-gradient(110% 90% at 100% 0%,rgba(226,184,87,.20),rgba(226,184,87,0) 55%),linear-gradient(160deg,#14407F 0%,#0E2C5C 55%,#0A2047 100%)!important;box-shadow:0 18px 34px -22px rgba(6,16,45,.85),inset 0 1px 0 rgba(255,255,255,.12)!important}
 </style>
 <style id="dark-lux">
-/* ═══ Dark mode v2 — "Midnight Navy": deep ink-navy surfaces + brand blue/gold instead of neutral grey. ═══
-   Tokens only (everything in the app reads them). Revert: delete this block and restore the 3 colour strings noted in the changelog. */
+/* ═══ Dark mode v3 — Instagram / Facebook style: true black page, neutral dark-grey cards, hairline borders, white text. ═══
+   Tokens only. Revert: delete this block and restore the 3 colour strings noted in the changelog. */
 [data-theme="dark"]{
   color-scheme:dark;
-  --bg:#0A1220;--bg2:#0A1220;--surface:#111C30;--surface2:#17253D;--surface3:#203252;
-  --border:rgba(160,190,255,.10);--border-strong:rgba(160,190,255,.19);--card-marble:#111C30;
-  --green:#3A86F5;--green-light:#84B8FF;--green-dark:#2563C9;--green-glow:rgba(58,134,245,.30);--green-tint:rgba(58,134,245,.20);
-  --gold-tint:rgba(226,184,87,.16);
-  --text:#EAF0FA;--text2:#D2DBEA;--sub:#A7B4CA;--muted:#7F8EA8;--desc-color:#EAF0FA;
-  --fin-networth:#84B8FF;--fin-networth-tint:rgba(132,184,255,.14);
-  --shadow-sm:0 2px 8px rgba(2,8,22,.30);--shadow-md:0 8px 24px rgba(2,8,22,.42);--shadow-lg:0 24px 58px rgba(2,8,22,.55);--shadow-xl:0 32px 80px rgba(2,8,22,.62);
+  --bg:#000000;--bg2:#000000;--surface:#121212;--surface2:#1C1C1E;--surface3:#2A2A2C;
+  --border:rgba(255,255,255,.11);--border-strong:rgba(255,255,255,.20);--card-marble:#121212;
+  --green:#2D88FF;--green-light:#6AB0FF;--green-dark:#1B6AD6;--green-glow:rgba(45,136,255,.30);--green-tint:rgba(45,136,255,.20);
+  --gold-tint:rgba(226,184,87,.12);
+  --text:#F5F5F5;--text2:#E4E6EB;--sub:#A8A8A8;--muted:#8A8D91;--desc-color:#F5F5F5;
+  --fin-networth:#6AB0FF;--fin-networth-tint:rgba(106,176,255,.14);
+  --shadow-sm:0 2px 8px rgba(0,0,0,.35);--shadow-md:0 8px 24px rgba(0,0,0,.45);--shadow-lg:0 24px 58px rgba(0,0,0,.6);--shadow-xl:0 32px 80px rgba(0,0,0,.68);
 }
-/* soft blue glow behind the page (fixed, so it does not scroll or repaint) */
-[data-theme="dark"] body{background:var(--bg)!important;background-image:radial-gradient(120% 42% at 50% -6%,rgba(58,110,210,.20),rgba(58,110,210,0) 62%)!important;background-repeat:no-repeat!important;background-attachment:fixed!important}
-/* header + bottom bar: navy with a fine light edge */
-[data-theme="dark"] body .app-header{background:var(--surface)!important;border-bottom:1px solid var(--border)!important;box-shadow:0 1px 0 rgba(160,190,255,.04)}
-[data-theme="dark"] body .bottom-nav{background:var(--surface)!important;border-top:1px solid var(--border)!important}
-/* the system UI colour (status bar) matches the new header surface */
+/* plain black page (no glow) */
+[data-theme="dark"] body{background:#000!important;background-image:none!important}
+/* header + bottom bar: black with a hairline, like Instagram */
+[data-theme="dark"] body .app-header{background:#000!important;border-bottom:1px solid var(--border)!important;box-shadow:none}
+[data-theme="dark"] body .bottom-nav{background:#000!important;border-top:1px solid var(--border)!important}
+/* the soft top glow behind pages is toned down on pure black */
+[data-theme="dark"] #mainContent .cx-wrap::before,[data-theme="dark"] #mainContent .att.atp::before,[data-theme="dark"] #mainContent .mlx::before,[data-theme="dark"] #mainContent .banks-v2::before{opacity:.35}
+
+/* contrast fixes found by the automated audit */
+[data-theme="dark"] body #mainContent .att.atp .att-time.out:not(.set) b{color:#E8B94F!important}
+[data-theme="dark"] body #mainContent .att.atp .att-time.out .att-time-ic{color:#E8B94F}
+[data-theme="dark"] body #mainContent .banks-v2 .bnk-card-badge{color:var(--text2)!important}
 </style>
 </body>
 </html>
