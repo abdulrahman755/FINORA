@@ -47785,7 +47785,7 @@ function _txEntryHTML(sfx, d){
       </div>
       <div class="field tx-notes">
         <label>${L('Notes','الملاحظات')}</label>
-        <div class="tx-notes-box"><span class="tx-notes-ic" aria-hidden="true">${ic('edit',16)}</span><input type="text" id="mNotes${sfx}" list="sdeList-${ctx}" placeholder="${L('e.g. Materials, Labor, Equipment…','مثال: خامات، عمالة، معدات…')}" value="${esc(d.notes||'')}" oninput="_sdeOnInput('mNotes${sfx}','sdeBox-${ctx}','${ctx}');_aipOnInput('mNotes${sfx}','${ctx}')"></div>
+        <div class="tx-notes-box"><span class="tx-notes-ic" aria-hidden="true">${ic('edit',16)}</span><input type="text" id="mNotes${sfx}" placeholder="${L('e.g. Materials, Labor, Equipment…','مثال: خامات، عمالة، معدات…')}" value="${esc(d.notes||'')}" oninput="_sdeOnInput('mNotes${sfx}','sdeBox-${ctx}','${ctx}');_aipOnInput('mNotes${sfx}','${ctx}')"></div>
         <datalist id="sdeList-${ctx}"></datalist>
         <div id="aipCard-${ctx}" class="aip-card" data-ctx="${ctx}"></div>
         <div id="sdeBox-${ctx}" class="sde-box" data-field="mNotes${sfx}" data-ctx="${ctx}"></div>
@@ -48029,7 +48029,7 @@ function showExpModal(exp){
     <div class="field"><label>${L('Date','التاريخ')}</label><input type="date" id="mDate" value="${exp?.date||today()}"></div>
     <div class="field">
       <label>${L('Description','الوصف')} <span class="f-req">*</span></label>
-      <input type="text" id="mDesc" list="sdeList-exp" placeholder="${L('e.g. Steel bars, Concrete, Tiles…','مثال: حديد تسليح، خرسانة، بلاط…')}" value="${esc(exp?.description||'')}" oninput="_sdeOnInput('mDesc','sdeBox-exp','exp')">
+      <input type="text" id="mDesc" placeholder="${L('e.g. Steel bars, Concrete, Tiles…','مثال: حديد تسليح، خرسانة، بلاط…')}" value="${esc(exp?.description||'')}" oninput="_sdeOnInput('mDesc','sdeBox-exp','exp')">
       <datalist id="sdeList-exp"></datalist>
       <div id="sdeBox-exp" class="sde-box" data-field="mDesc" data-ctx="exp" style="margin-top:6px"></div>
     </div>
@@ -67910,5 +67910,209 @@ body #mainContent .fin-page .ast-sum{border:1px solid rgba(226,184,87,.26)!impor
 [data-theme="dark"] body #mainContent .att.atp .att-time.out .att-time-ic{color:#E8B94F}
 [data-theme="dark"] body #mainContent .banks-v2 .bnk-card-badge{color:var(--text2)!important}
 </style>
+<style id="tx-lux">
+/* ═══ Transaction sheet — in-app suggestion chips instead of the iOS datalist bubble (CSS) ═══ */
+.sde-chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.sde-chip{display:inline-flex;align-items:center;max-width:100%;min-height:38px;padding:0 15px;border-radius:99px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font:inherit;font-size:calc(13.5px*var(--app-text-scale,1));font-weight:600;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;transition:transform .15s cubic-bezier(.22,.9,.3,1),background .2s,border-color .2s}
+.sde-chip::before{content:"";flex:none;width:6px;height:6px;margin-inline-end:8px;border-radius:50%;background:var(--green)}
+.sde-chip:active{transform:scale(.95);background:color-mix(in srgb,var(--green) 14%,var(--surface2));border-color:color-mix(in srgb,var(--green) 40%,transparent)}
+/* notes field + sheet: calmer, clearer, and never hidden behind the footer while typing */
+body .tx-notes-box input{font-size:max(16px,calc(15.5px*var(--app-text-scale,1)))}
+body .modal-body,body .txm-body,body .modal-content{scroll-padding-block-end:150px}
+</style>
+<script id="tx-sde-chips">
+/* iOS Safari paints a native bubble (from <input list>) right on top of the text being typed.
+   We drop the list attribute and show the same suggestions as in-app chips under the field instead. */
+(function(){
+  'use strict';
+  var orig=window._sdeRenderSuggestions;
+  if(typeof orig!=='function') return;
+  window._sdeRenderSuggestions=function(fieldId,ctx){
+    try{ orig.apply(this,arguments); }catch(e){}
+    var input=document.getElementById(fieldId); if(!input) return;
+    input.removeAttribute('list');
+    var dl=document.getElementById('sdeList-'+ctx), list=dl?[].map.call(dl.options,function(o){ return o.value; }):[];   // the engine already filled the datalist
+    try{ if(window.InputMemory){ var mc=(/^mDesc/.test(fieldId)?'mDesc':'mNotes'); InputMemory.suggest(mc,input.value,6).forEach(function(v){ if(list.indexOf(v)<0) list.push(v); }); } }catch(e){}
+    var cur=(input.value||'').trim();
+    list=list.filter(function(s){ return s&&String(s).trim()&&String(s).trim()!==cur; }).slice(0,4);
+    var anchor=input.closest('.tx-notes-box')||input;
+    var box=anchor.nextElementSibling; if(box&&!box.classList.contains('sde-chips')) box=null;
+    if(!list.length){ if(box) box.remove(); return; }
+    if(!box){ box=document.createElement('div'); box.className='sde-chips'; box.setAttribute('role','group'); anchor.insertAdjacentElement('afterend',box); }
+    box.textContent='';
+    list.forEach(function(s){
+      var b=document.createElement('button'); b.type='button'; b.className='sde-chip'; b.textContent=s; b.dir='auto';
+      b.addEventListener('mousedown',function(e){ e.preventDefault(); });          // keep the keyboard open
+      b.addEventListener('click',function(){
+        input.value=s; input.dispatchEvent(new Event('input',{bubbles:true})); box.remove();
+        try{ input.focus(); input.setSelectionRange(s.length,s.length); }catch(e){}
+      });
+      box.appendChild(b);
+    });
+  };
+})();
+</script>
+<script id="input-memory">
+/* InputMemory — the app keeps learning from what you type.
+   • Remembers every text value you SAVE in any form (notes, descriptions, vendors, places, names…), per field.
+   • Rebuilds that memory from your saved history (also after a restore) — nothing to retype.
+   • Shows the best matches as in-app chips while you type (replaces the iOS datalist bubble everywhere).
+   • 100% on-device (localStorage). Never touches passwords, PINs, numbers, e-mails, phones, cards or search boxes.
+   Clear it any time:  InputMemory.clear()                                                                   */
+(function(){
+  'use strict';
+  var KEY='wdp_input_memory_v1', SIGKEY='wdp_input_memory_sig_v1', MAXCTX=250, MAXLEN=80, DAY=864e5;
+  var SKIP_ID=/pin|pass|secret|token|apikey|api-key|key\b|card|iban|acct|account|national|nid|ssn|phone|mobile|email|mail|salary|amount|price|total|qty|search|find|filter|otp|code|cvv|color|colour|date|time/i;
+  function load(k,d){ try{ return JSON.parse(localStorage.getItem(k))||d; }catch(e){ return d; } }
+  function save(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} }
+  var OFFKEY='wdp_input_memory_off_v1';
+  function enabled(){ try{ return localStorage.getItem(OFFKEY)!=='1'; }catch(e){ return true; } }
+  var mem=load(KEY,{}), sigs=load(SIGKEY,{});
+  var dirty=false, saveT=0;
+  function flush(){ clearTimeout(saveT); saveT=setTimeout(function(){ if(dirty){ save(KEY,mem); save(SIGKEY,sigs); dirty=false; } },400); }
+  function norm(s){ return String(s==null?'':s).replace(/\s+/g,' ').trim(); }
+  function ctxOf(el){ var id=el.id||el.name||''; return id.replace(/[-_]custom_[\w]+$/i,'').replace(/[-_][0-9a-f]{6,}$/i,'').replace(/\d+$/,'').replace(/[-_]?(tx|exp)$/i,'$1')||''; }
+  function okValue(v){ return v.length>=2&&v.length<=MAXLEN&&!/^[\d\s.,:/\-+]+$/.test(v)&&v.indexOf('@')<0&&!/\d{9,}/.test(v.replace(/\D/g,'')); }
+  function okInput(el){
+    if(!el||el.readOnly||el.disabled) return false;
+    var t=(el.type||'text').toLowerCase();
+    if(el.tagName==='INPUT'&&['text',''].indexOf(t)<0) return false;
+    if(el.tagName!=='INPUT'&&el.tagName!=='TEXTAREA') return false;
+    if(el.closest('#lockScreen,[data-no-learn],.pin-pad,[id*=pin i]')) return false;
+    var id=(el.id||'')+' '+(el.name||'')+' '+(el.getAttribute('placeholder')||'')+' '+(el.getAttribute('autocomplete')||'');
+    if(/password|one-time|cc-|current-password|new-password/i.test(id)) return false;
+    if(SKIP_ID.test(el.id||'')||SKIP_ID.test(el.name||'')) return false;
+    if(/search|بحث/i.test(el.getAttribute('placeholder')||'')) return false;
+    return !!ctxOf(el);
+  }
+  function add(ctx,val,n,ts){
+    if(!enabled()) return;
+    val=norm(val); if(!ctx||!okValue(val)) return;
+    var b=mem[ctx]||(mem[ctx]={}), k=val.toLowerCase(), e=b[k];
+    if(e){ e.n+=(n||1); if((ts||Date.now())>e.t) e.t=ts||Date.now(); if(val!==e.v&&/[A-Z\u0600-\u06FF]/.test(val[0])) e.v=val; }
+    else b[k]={v:val,n:n||1,t:ts||Date.now()};
+    var keys=Object.keys(b); if(keys.length>MAXCTX){ keys.sort(function(a,c){ return score(b[a])-score(b[c]); }); keys.slice(0,keys.length-MAXCTX).forEach(function(x){ delete b[x]; }); }
+    dirty=true; flush();
+  }
+  function score(e){ var age=(Date.now()-e.t)/DAY; return e.n*Math.exp(-age/90)+ (age<2?0.6:0); }
+  function suggest(ctx,text,limit,extra){
+    var b=mem[ctx]||{}, q=norm(text).toLowerCase(), seen={}, out=[];
+    var all=Object.keys(b).map(function(k){ return {v:b[k].v,s:score(b[k])}; });
+    (extra||[]).forEach(function(v){ v=norm(v); if(v&&!b[v.toLowerCase()]) all.push({v:v,s:0.05}); });
+    all.forEach(function(c){
+      var l=c.v.toLowerCase(); if(l===q) return;
+      var m=!q?1:(l.indexOf(q)===0?3:(l.split(/\s+/).some(function(w){ return w.indexOf(q)===0; })?2:(l.indexOf(q)>0&&q.length>=2?1:0)));
+      if(m) c.r=m*10+c.s; else c.r=0;
+    });
+    all.filter(function(c){ return c.r>0; }).sort(function(a,c){ return c.r-a.r; }).forEach(function(c){ var k=c.v.toLowerCase(); if(!seen[k]){ seen[k]=1; out.push(c.v); } });
+    return out.slice(0,limit||4);
+  }
+  /* ---- rebuild from saved history (once per record; also catches restores / other flows that never used a form) ---- */
+  function sig(s){ var h=0; for(var i=0;i<s.length;i++){ h=(h*31+s.charCodeAt(i))|0; } return h.toString(36); }
+  function ingest(markOnly){
+    if(!enabled()&&!markOnly) return 0;
+    var D; try{ D=(typeof DATA!=='undefined')?DATA:null; }catch(e){ D=null; } if(!D) return 0;
+    var n=0, cap=6000;
+    function take(ctx,val,date,extra){
+      val=norm(val); if(!okValue(val)) return;
+      var sg=sig(ctx+'|'+val+'|'+(date||'')+'|'+(extra||'')); if(sigs[sg]) return;
+      if(Object.keys(sigs).length>cap) return;
+      sigs[sg]=1; n++; if(markOnly) return; var ts=date?Date.parse(date):NaN; add(ctx,val,1,isNaN(ts)?Date.now():ts);
+    }
+    Object.keys(D).forEach(function(m){ var mo=D[m]; if(!mo||typeof mo!=='object') return;
+      (mo.transactions||[]).forEach(function(t){ take('mNotes',t&&t.notes,t&&t.date,t&&t.payment); });
+      (mo.site_expenses||[]).forEach(function(x){ take('mDesc',x&&x.description,x&&x.date,x&&x.amount); });
+      (mo.bank_movements||[]).forEach(function(x){ take('mv-note',x&&x.note,x&&x.date,x&&x.amount); });
+      (mo.custody_deposits||[]).forEach(function(x){ take('editDepNote',x&&x.note,x&&x.date,x&&x.amount); });
+    });
+    
+    try{ if(typeof SAVINGS!=='undefined'&&SAVINGS){
+      (SAVINGS.incomes||[]).forEach(function(r){ take('savIncSource',r.source,r.date,r.amount); take('savIncNote',r.note,r.date,r.amount); });
+      (SAVINGS.outcomes||[]).forEach(function(r){ take('savOutSource',r.source,r.date,r.amount); take('savOutNote',r.note,r.date,r.amount); });
+      (SAVINGS.assets||[]).forEach(function(r){ take('savAssetName',r.name,r.purchaseDate,r.value); take('savAssetNote',r.note,r.purchaseDate,r.value); });
+      (SAVINGS.debts||[]).forEach(function(r){ take('savDebtPerson',r.person,r.date,r.amount); take('savDebtNote',r.note,r.date,r.amount); });
+    } }catch(e){}
+    if(n){ dirty=true; flush(); }
+    return n;
+  }
+  /* ---- learn from forms: record text fields when a save actually went through ---- */
+  var SAVE=/save|submit|confirm|commit|apply|add|done|ok\b/i, CONT='.modal,.modal-box,#modalOverlay,[class*=modal],.sheet,form,.sc-add-row,.bnk-card-body,.cx-sheet,[role=dialog]';
+  document.addEventListener('click',function(ev){
+    var b=ev.target.closest&&ev.target.closest('button,[role=button],[onclick]'); if(!b) return;
+    var oc=(b.getAttribute('onclick')||'')+' '+(b.className||'');
+    if(!SAVE.test(oc)||/cancel|close|dismiss|delete|remove|clear/i.test(oc)) return;
+    var box=b.closest(CONT); if(!box) return;
+    var items=[]; box.querySelectorAll('input,textarea').forEach(function(el){
+      if(!okInput(el)) return; var v=norm(el.value); if(okValue(v)) items.push({el:el,ctx:ctxOf(el),v:v});
+    });
+    if(!items.length) return;
+    setTimeout(function(){
+      items.forEach(function(it){
+        var gone=!document.body.contains(it.el)||it.el.offsetParent===null||norm(it.el.value)===''||norm(it.el.value)!==it.v;
+        if(gone) add(it.ctx,it.v);
+      });
+    },650);
+  },true);
+  /* ---- suggestions while typing (any eligible field; tx notes / expense description are merged in tx-sde-chips) ---- */
+  var active=null;
+  function anchorOf(el){ var t=el.closest('.tx-notes-box'); if(t) return t; var p=el.parentElement; if(p){ var cs=getComputedStyle(p); if((cs.display==='flex'||cs.display==='inline-flex')&&cs.flexDirection.indexOf('row')===0) return p; } return el; }
+  function chipsFor(el){ var p=anchorOf(el); var n=p.nextElementSibling; return (n&&n.classList&&n.classList.contains('sde-chips')&&n.dataset.im==='1')?n:null; }
+  function hide(el){ var c=el&&chipsFor(el); if(c) c.remove(); }
+  function show(el){
+    if(!enabled()){ hide(el); return; }
+    if(!okInput(el)||/^(mNotes|mDesc)/.test(el.id||'')) return;
+    var ctx=ctxOf(el), extra=[];
+    var lid=el.getAttribute('list'); if(lid){ var dl=document.getElementById(lid); if(dl) extra=[].map.call(dl.options,function(o){ return o.value; }); el.removeAttribute('list'); el.dataset.wasList=lid; }
+    else if(el.dataset.wasList){ var dl2=document.getElementById(el.dataset.wasList); if(dl2) extra=[].map.call(dl2.options,function(o){ return o.value; }); }
+    var list=suggest(ctx,el.value,4,extra);
+    var box=chipsFor(el);
+    if(!list.length){ if(box) box.remove(); return; }
+    if(!box){ box=document.createElement('div'); box.className='sde-chips'; box.dataset.im='1'; box.setAttribute('role','group'); anchorOf(el).insertAdjacentElement('afterend',box); }
+    box.textContent='';
+    list.forEach(function(s){
+      var c=document.createElement('button'); c.type='button'; c.className='sde-chip'; c.textContent=s; c.dir='auto';
+      var keep=function(e){ e.preventDefault(); }; c.addEventListener('mousedown',keep); c.addEventListener('pointerdown',keep); c.addEventListener('touchstart',keep,{passive:false});
+      c.addEventListener('click',function(){ el.value=s; el.dispatchEvent(new Event('input',{bubbles:true})); el.dispatchEvent(new Event('change',{bubbles:true})); box.remove(); try{ el.focus(); el.setSelectionRange(s.length,s.length); }catch(e){} });
+      box.appendChild(c);
+    });
+  }
+  document.addEventListener('focusin',function(e){ var t=e.target; if(t&&(t.tagName==='INPUT'||t.tagName==='TEXTAREA')){ active=t; if(Date.now()-(window.__imIngestAt||0)>60000){ window.__imIngestAt=Date.now(); try{ ingest(); }catch(x){} } show(t); if(/^(mNotes|mDesc)/.test(t.id||'')&&!t.value&&typeof _sdeRenderSuggestions==='function'){ try{ _sdeRenderSuggestions(t.id,/^mDesc/.test(t.id)?'exp':'tx'); }catch(x){} } } },true);
+  document.addEventListener('input',function(e){ var t=e.target; if(t===active) show(t); },true);
+  document.addEventListener('focusout',function(e){ var t=e.target; setTimeout(function(){ if(document.activeElement!==t) hide(t); },250); },true);
+  /* tx notes / expense description: merge learned values into the existing chips (see tx-sde-chips) */
+  window.InputMemory={
+    suggest:suggest, add:add, ingest:ingest, ctxOf:ctxOf,
+    clear:function(){ mem={}; sigs={}; try{ localStorage.removeItem(KEY); localStorage.removeItem(SIGKEY); }catch(e){} try{ ingest(true); }catch(e){} dirty=true; flush(); },   // history already on the device is NOT re-learned after a clear
+    enabled:enabled, stats:function(){ var o={}; Object.keys(mem).forEach(function(c){ o[c]=Object.keys(mem[c]).length; }); return o; }
+  };
+
+  /* ---- Settings: control over what the app learns ---- */
+  function count(){ var c=0; Object.keys(mem).forEach(function(k){ c+=Object.keys(mem[k]).length; }); return c; }
+  function T(en,ar){ try{ return L(en,ar); }catch(e){ return en; } }
+  function esc2(x){ return String(x).replace(/[&<>"]/g,function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+  function injectSettings(){
+    var body=document.querySelector('.stt-body'); if(!body||body.querySelector('#imSettings')) return;
+    var on=enabled(), n=count();
+    var wrap=document.createElement('div'); wrap.id='imSettings';
+    wrap.innerHTML='<div class="stt-card-label">'+esc2(T('Smart suggestions','الاقتراحات الذكية'))+'</div>'
+     +'<div class="stt-card">'
+     +'<div class="stt-row" id="imRowToggle" role="button" tabindex="0"><div class="stt-row-icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="var(--accent-settings)" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.6L18.5 9.5l-4.6 1.9L12 16l-1.9-4.6L5.5 9.5l4.6-1.9z"/><path d="M19 15l.8 1.9 1.9.8-1.9.8L19 20.4l-.8-1.9-1.9-.8 1.9-.8z"/></svg></div>'
+     +'<div class="stt-row-body"><div class="stt-row-title">'+esc2(T('Learn from what I type','التعلّم من اللي بكتبه'))+'</div><div class="stt-row-sub">'+esc2(T('Remembers notes, names and places on this device to suggest them next time','بيتذكّر الملاحظات والأسماء والأماكن على جهازك عشان يقترحها المرة الجاية'))+'</div></div>'
+     +'<div class="stt-row-trail"><div class="stt-switch'+(on?' on':'')+'" id="imSwitch"><div class="stt-switch-dot"></div></div></div></div>'
+     +'<div class="stt-row" id="imRowClear" role="button" tabindex="0"><div class="stt-row-icon danger-icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></svg></div>'
+     +'<div class="stt-row-body"><div class="stt-row-title">'+esc2(T('Clear learned suggestions','مسح الاقتراحات المتعلَّمة'))+'</div><div class="stt-row-sub" id="imCount">'+esc2(n+' '+T('saved suggestions','اقتراح محفوظ'))+'</div></div></div>'
+     +'</div>';
+    var cards=body.querySelectorAll('.stt-card'); var anchor=cards[cards.length-1];
+    // put it above the red "danger" card when there is one
+    var danger=body.querySelector('.danger-card'); (danger?danger.previousElementSibling&&danger.previousElementSibling.classList.contains('stt-card-label')?danger.previousElementSibling:danger:anchor).insertAdjacentElement(danger?'beforebegin':'afterend',wrap);
+    wrap.querySelector('#imRowToggle').addEventListener('click',function(){ var off=enabled(); try{ localStorage.setItem(OFFKEY,off?'1':'0'); }catch(e){} wrap.querySelector('#imSwitch').classList.toggle('on',!off); if(off){ document.querySelectorAll('.sde-chips[data-im="1"]').forEach(function(x){ x.remove(); }); } else { try{ ingest(); }catch(e){} } });
+    wrap.querySelector('#imRowClear').addEventListener('click',function(){ if(!count()){ return; } if(window.confirm(T('Delete everything the app learned from your typing? Your data is not affected.','مسح كل اللي التطبيق اتعلّمه من كتابتك؟ بياناتك مش هتتأثر.'))){ window.InputMemory.clear(); wrap.querySelector('#imCount').textContent='0 '+T('saved suggestions','اقتراح محفوظ'); try{ showToast(T('Learned suggestions cleared','تم مسح الاقتراحات'),'success'); }catch(e){} } });
+  }
+  var oSet=window.openSettings, oRef=window.refreshSettingsSheet;
+  if(typeof oSet==='function') window.openSettings=function(){ var r=oSet.apply(this,arguments); setTimeout(injectSettings,60); setTimeout(injectSettings,350); return r; };
+  if(typeof oRef==='function') window.refreshSettingsSheet=function(){ var r=oRef.apply(this,arguments); setTimeout(injectSettings,60); return r; };
+  setTimeout(function(){ try{ ingest(); }catch(e){} },2500);
+})();
+</script>
 </body>
 </html>
