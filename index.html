@@ -46680,6 +46680,74 @@ function _qnNewChkRow(){
   line.appendChild(box); line.appendChild(text);
   return {line, text};
 }
+// Self-healing for checklist rows. If the keyboard ever splits a row natively (iOS Arabic keyboard can ignore our
+// preventDefault on Enter), the row ends up as  [box][text][box][box][text]  or with a row nested inside a row's text.
+// This detects that (read-only check first, so a healthy note is never touched) and rebuilds clean one-box-one-text rows.
+function _qnChkBroken(body){
+  const lines = body.getElementsByClassName('qn-chk');
+  for(let i = 0; i < lines.length; i++){
+    const l = lines[i];
+    let boxes = 0, texts = 0;
+    for(let c = l.firstElementChild; c; c = c.nextElementSibling){
+      if(c.classList.contains('qn-chk-box')) boxes++;
+      else if(c.classList.contains('qn-chk-text')) texts++;
+      else return true;
+    }
+    if(boxes !== 1 || texts !== 1) return true;
+    if(!l.firstElementChild.classList.contains('qn-chk-box')) return true;
+    if(l.querySelector('.qn-chk, .qn-chk-text .qn-chk-box')) return true;
+    for(let n = l.firstChild; n; n = n.nextSibling) if(n.nodeType === 3 && n.nodeValue.replace(/​/g,'').trim()) return true;
+  }
+  const bx = body.getElementsByClassName('qn-chk-box');
+  for(let i = 0; i < bx.length; i++){ const p = bx[i].parentElement; if(!p || !p.classList.contains('qn-chk')) return true; }
+  return false;
+}
+function _qnChkRepair(body){
+  if(!body || !_qnChkBroken(body)) return false;
+  const sel = window.getSelection();
+  let sc = null, so = 0;
+  if(sel && sel.rangeCount){ const r = sel.getRangeAt(0); if(body.contains(r.startContainer)){ sc = r.startContainer; so = r.startOffset; } }
+  // A) rows nested inside another row → pull them out as siblings (document order kept)
+  const lastOf = new Map();
+  for(let g = 0; g < 500; g++){
+    const n = body.querySelector('.qn-chk .qn-chk'); if(!n) break;
+    let top = n.parentElement.closest('.qn-chk');
+    while(top.parentElement && top.parentElement.closest('.qn-chk')) top = top.parentElement.closest('.qn-chk');
+    const at = lastOf.get(top) || top;
+    at.after(n); lastOf.set(top, n);
+  }
+  // B) every row → exactly one box (first) + one text; extra text spans become their own rows
+  Array.from(body.querySelectorAll('.qn-chk')).forEach(line => {
+    const kids = Array.from(line.children);
+    const texts = kids.filter(c => c.classList.contains('qn-chk-text'));
+    const boxes = kids.filter(c => c.classList.contains('qn-chk-box'));
+    line.querySelectorAll('.qn-chk-text .qn-chk-box').forEach(b => b.remove());
+    let text = texts[0];
+    if(!text){ text = document.createElement('span'); text.className = 'qn-chk-text'; line.appendChild(text); }
+    kids.forEach(o => { if(o !== text && !texts.includes(o) && !boxes.includes(o)) text.appendChild(o); });
+    Array.from(line.childNodes).forEach(n => { if(n.nodeType === 3){ if(n.nodeValue.replace(/​/g,'').trim()) text.appendChild(n); else n.remove(); } });
+    let prev = line;
+    texts.slice(1).forEach(t => {
+      if(_qnTextIsEmpty(t)){ t.remove(); return; }
+      const nr = _qnNewChkRow();
+      while(t.firstChild) nr.text.appendChild(t.firstChild);
+      t.remove(); prev.after(nr.line); prev = nr.line;
+    });
+    boxes.forEach((b, i) => { if(i > 0) b.remove(); });
+    let box = boxes[0];
+    if(!box){ box = document.createElement('span'); box.className = 'qn-chk-box'; box.contentEditable = 'false'; }
+    if(line.firstChild !== box) line.insertBefore(box, line.firstChild);
+    if(!text.firstChild) text.textContent = _QN_ZW;
+  });
+  // C) boxes sitting outside any row
+  body.querySelectorAll('.qn-chk-box').forEach(b => { if(!b.parentElement || !b.parentElement.classList.contains('qn-chk')) b.remove(); });
+  // keep the caret where the user was typing
+  if(sc && body.contains(sc)){
+    const max = sc.nodeType === 3 ? sc.nodeValue.length : sc.childNodes.length;
+    _qnSetCaret(sc, Math.min(so, max));
+  }
+  return true;
+}
 function _qnSetCaret(node, offset){
   const sel = window.getSelection(); if(!sel) return;
   const r = document.createRange();
@@ -46772,6 +46840,11 @@ function _notesInsertChecklist(){
 function _notesChecklistBind(body){
   if(!body || body._qnChkBound) return;
   body._qnChkBound = true;
+  // heal rows the keyboard broke: now (a note saved that way) and after every edit / finished composition
+  try{ if(_qnChkRepair(body)) _notesAutosave(); }catch(_){}
+  const heal = e => { if(e && e.isComposing) return; try{ if(_qnChkRepair(body)) _notesAutosave(); }catch(_){} };
+  body.addEventListener('input', heal);
+  body.addEventListener('compositionend', () => setTimeout(heal, 0));
   const boxOf = t => { const el = t && (t.nodeType === 1 ? t : t.parentElement); return el && el.closest ? el.closest('.qn-chk-box') : null; };
   let tap = null, lastTouchToggle = 0, lastTouchBox = null;
   body.addEventListener('touchstart', e => {
@@ -63939,6 +64012,69 @@ color-scheme:dark;
 body .tx-notes-box input{font-size:max(16px,calc(15.5px*var(--app-text-scale,1)))}
 body .modal-body,body .txm-body,body .modal-content{scroll-padding-block-end:150px}
 </style>
+<style id="dash-premium-v2">
+/* ── Dashboard premium pass (presentation only: no markup, logic, IDs or storage touched) ──
+   One calm surface language: 1px hairline borders, one soft layered shadow, 22–24px radii,
+   flat divided rows instead of boxes-inside-boxes, tabular numbers, semantic color only where it carries meaning. */
+html body #mainContent > .wdash-wrap.dv3-dark-v2{
+  --pm-r:22px;
+  --pm-rule:color-mix(in srgb,var(--text) 9%,transparent);
+  --pm-sh:0 1px 2px rgba(16,24,20,.04),0 12px 28px -16px rgba(16,24,20,.20);
+}
+/* greeting */
+html body #mainContent > .wdash-wrap .wdash-greet{padding:16px 18px;border-radius:var(--pm-r);border:1px solid var(--border);background:var(--surface);box-shadow:var(--pm-sh);row-gap:2px}
+html body #mainContent > .wdash-wrap .wdash-greet-l small{font-size:calc(12px*var(--app-text-scale,1));font-weight:500;color:var(--muted);letter-spacing:.1px}
+html body #mainContent > .wdash-wrap .wdash-greet-l b{font-size:calc(21px*var(--app-text-scale,1));font-weight:700;letter-spacing:-.4px}
+html body #mainContent > .wdash-wrap .wdash-greet-r b{font-size:calc(18px*var(--app-text-scale,1));font-weight:700;letter-spacing:-.3px}
+html body #mainContent > .wdash-wrap .wdash-greet-r small{font-weight:500}
+html body #mainContent > .wdash-wrap .wdash-greet [class*="bar"],html body #mainContent > .wdash-wrap .wdash-greet [class*="track"]{height:6px!important;margin-top:12px!important;border-radius:99px!important;background:var(--pm-rule)!important}
+html body #mainContent > .wdash-wrap .wdash-greet [class*="bar"] i{background:var(--green)!important;border-radius:99px!important}
+html body #mainContent > .wdash-wrap .wdash-greet-r.over ~ [class*="bar"] i{background:var(--red)!important}
+
+/* hero balance card */
+html body #mainContent > .wdash-wrap.dv3-dark-v2 #fpHeroCard{
+  border-radius:24px!important;border:1px solid var(--border)!important;box-shadow:var(--pm-sh)!important;
+  background:linear-gradient(180deg,color-mix(in srgb,var(--green) 6%,var(--surface)) 0,var(--surface) 58%)!important;
+}
+html body #mainContent > .wdash-wrap.dv3-dark-v2 #fpHeroCard .dv3-hero-inner{padding:20px 20px 18px!important}
+html body #mainContent > .wdash-wrap.dv3-dark-v2 #fpHeroCard .dash-hero-eyebrow{font-size:calc(11.5px*var(--app-text-scale,1))!important;font-weight:600!important;letter-spacing:.9px!important;text-transform:uppercase;color:var(--muted)!important}
+html body #mainContent > .wdash-wrap.dv3-dark-v2 #fpHeroCard .dash-hero-eye{height:32px;padding:0 13px;border-radius:99px;border:1px solid var(--border);background:color-mix(in srgb,var(--surface) 70%,transparent);color:var(--muted);font-weight:600}
+html body #mainContent > .wdash-wrap.dv3-dark-v2 #fpHeroCard .fp-hero-toggle{width:32px;height:32px;min-width:32px;min-height:32px;background:var(--surface2)!important;border:1px solid var(--border)!important;color:var(--muted)!important;box-shadow:none}
+html body #mainContent > .wdash-wrap.dv3-dark-v2 #fpHeroCard .dash-hero-main{margin-top:18px}
+html body #mainContent > .wdash-wrap.dv3-dark-v2 #fpHeroCard .dash-hero-main-lbl{font-size:calc(13px*var(--app-text-scale,1))!important;font-weight:500!important;color:var(--muted)!important;margin:0 0 6px!important}
+html body #mainContent > .wdash-wrap.dv3-dark-v2 #fpHeroCard .dash-hero-main-val{font-weight:750!important;letter-spacing:-2px!important}
+html body #mainContent > .wdash-wrap.dv3-dark-v2 #fpHeroCard .hnum-sign.pos{color:var(--success)}
+/* secondary stats: a flat divided row (no box inside the card) */
+html body #mainContent > .wdash-wrap.dv3-dark-v2 #fpHeroCard .fp-hero-body{max-height:160px}
+html body #mainContent > .wdash-wrap.dv3-dark-v2 #fpHeroCard .dv3h-stat-row{margin:20px 0 0!important;padding:16px 0 0!important;border:0!important;border-top:1px solid var(--pm-rule)!important;border-radius:0!important;background:none!important}
+html body #mainContent > .wdash-wrap.dv3-dark-v2 #fpHeroCard .dv3h-stat{border-inline-start:1px solid var(--pm-rule)!important}
+html body #mainContent > .wdash-wrap.dv3-dark-v2 #fpHeroCard .dv3h-stat:first-child{border-inline-start:0!important}
+html body #mainContent > .wdash-wrap.dv3-dark-v2 #fpHeroCard .dv3h-stat-lbl{font-size:calc(11px*var(--app-text-scale,1))!important;font-weight:500!important;color:var(--muted)!important}
+html body #mainContent > .wdash-wrap.dv3-dark-v2 #fpHeroCard .dv3h-stat-val{font-weight:700!important}
+/* collapsed: the stats row used to keep its margin/padding/border (!important) and leave a big empty gap */
+html body #mainContent > .wdash-wrap.dv3-dark-v2 #fpHeroCard.fp-hero-collapsed .dv3h-stat-row{margin:0!important;padding:0!important;border-width:0!important;min-height:0!important}
+html body #mainContent > .wdash-wrap.dv3-dark-v2 #fpHeroCard.fp-hero-collapsed .dv3-hero-inner{padding-bottom:16px!important}
+
+/* KPI block */
+html body #mainContent > .wdash-wrap.dv3-dark-v2 > .dv3-kpi-row{border-radius:var(--pm-r);border:1px solid var(--border);background:var(--surface);box-shadow:var(--pm-sh)}
+html body #mainContent > .wdash-wrap.dv3-dark-v2 > .dv3-kpi-row .dfp-kpi3-card{min-height:82px;padding:15px 16px!important;gap:12px}
+html body #mainContent > .wdash-wrap.dv3-dark-v2 .dv3-kpi-row .dfp-kpi3-icon{width:40px!important;height:40px!important;border-radius:13px!important;background:color-mix(in srgb,var(--text) 5%,transparent)!important;color:var(--muted)!important;opacity:1}
+html body #mainContent > .wdash-wrap.dv3-dark-v2 .dv3-kpi-row .dfp-kpi3-icon svg{width:19px!important;height:19px!important}
+html body #mainContent > .wdash-wrap.dv3-dark-v2 .dv3-kpi-row .dfp-kpi3-card:nth-child(1) .dfp-kpi3-icon{background:color-mix(in srgb,var(--fin-income) 12%,transparent)!important;color:var(--fin-income)!important}
+html body #mainContent > .wdash-wrap.dv3-dark-v2 .dv3-kpi-row .dfp-kpi3-card:nth-child(2) .dfp-kpi3-icon{background:color-mix(in srgb,var(--fin-outcome) 12%,transparent)!important;color:var(--fin-outcome)!important}
+html body #mainContent > .wdash-wrap.dv3-dark-v2 .dv3-kpi-row .dfp-kpi3-card:nth-child(3) .dfp-kpi3-icon{background:color-mix(in srgb,var(--info) 12%,transparent)!important;color:var(--info)!important}
+html body #mainContent > .wdash-wrap.dv3-dark-v2 .dv3-kpi-row .dfp-kpi3-lbl{font-size:calc(12px*var(--app-text-scale,1))!important;font-weight:500!important;color:var(--muted)!important}
+html body #mainContent > .wdash-wrap.dv3-dark-v2 .dv3-kpi-row .dfp-kpi3-val{font-size:calc(19px*var(--app-text-scale,1))!important;font-weight:700!important;letter-spacing:-.5px!important;margin-top:3px}
+
+/* quick actions + check-in card share the same surface language */
+html body #mainContent > .wdash-wrap.dv3-dark-v2 .fp-qa-row{gap:10px}
+html body #mainContent > .wdash-wrap.dv3-dark-v2 .fp-qa-btn{min-height:88px;border-radius:20px;border:1px solid var(--border);background:var(--surface);box-shadow:0 1px 2px rgba(16,24,20,.04);transition:transform .15s ease,box-shadow .2s ease,border-color .2s ease}
+html body #mainContent > .wdash-wrap.dv3-dark-v2 .fp-qa-btn:active{transform:scale(.96);box-shadow:none}
+html body #mainContent > .wdash-wrap.dv3-dark-v2 .fp-qa-label{font-weight:600;letter-spacing:-.1px}
+html body #mainContent > .wdash-wrap.dv3-dark-v2 .att-quick{border-radius:var(--pm-r)!important;border:1px solid var(--border);box-shadow:var(--pm-sh)}
+html body #mainContent > .wdash-wrap.dv3-dark-v2 .wdash-manage-btn{border-radius:99px;border:1px solid var(--border);background:var(--surface);box-shadow:0 1px 2px rgba(16,24,20,.05);font-weight:600}
+@media(prefers-reduced-motion:reduce){html body #mainContent > .wdash-wrap.dv3-dark-v2 .fp-qa-btn{transition:none}}
+</style>
 <script id="tx-sde-chips">
 /* iOS Safari paints a native bubble (from <input list>) right on top of the text being typed.
    We drop the list attribute and show the same suggestions as in-app chips under the field instead. */
@@ -64132,8 +64268,16 @@ body .modal-body,body .txm-body,body .modal-content{scroll-padding-block-end:150
     box.textContent='';
     list.forEach(function(s){
       var c=document.createElement('button'); c.type='button'; c.className='sde-chip'; c.textContent=s; c.dir='auto';
-      var keep=function(e){ e.preventDefault(); }; c.addEventListener('mousedown',keep); c.addEventListener('pointerdown',keep); c.addEventListener('touchstart',keep,{passive:false});
-      c.addEventListener('click',function(){ el.value=s; el.dispatchEvent(new Event('input',{bubbles:true})); el.dispatchEvent(new Event('change',{bubbles:true})); box.remove(); try{ el.focus(); el.setSelectionRange(s.length,s.length); }catch(e){} });
+      // NOTE: never preventDefault on touchstart here — on iOS that cancels the click, so the chip did nothing.
+      // Mouse: mousedown keeps the field focused, click picks. Touch: a still finger on touchend picks (click is then ignored).
+      var pick=function(){ el.value=s; el.dispatchEvent(new Event('input',{bubbles:true})); el.dispatchEvent(new Event('change',{bubbles:true})); box.remove(); try{ el.focus(); el.setSelectionRange(s.length,s.length); }catch(e){} };
+      var t0=null, touchedAt=0;
+      c.addEventListener('mousedown',function(e){ e.preventDefault(); });
+      c.addEventListener('touchstart',function(e){ var t=e.touches[0]; t0=t?{x:t.clientX,y:t.clientY}:null; },{passive:true});
+      c.addEventListener('touchmove',function(e){ var t=e.touches[0]; if(t0&&t&&(Math.abs(t.clientX-t0.x)>10||Math.abs(t.clientY-t0.y)>10)) t0=null; },{passive:true});
+      c.addEventListener('touchcancel',function(){ t0=null; },{passive:true});
+      c.addEventListener('touchend',function(e){ if(!t0) return; t0=null; if(e.cancelable) e.preventDefault(); touchedAt=Date.now(); pick(); });
+      c.addEventListener('click',function(){ if(Date.now()-touchedAt<700) return; pick(); });
       box.appendChild(c);
     });
   }
@@ -64173,6 +64317,112 @@ body .modal-body,body .txm-body,body .modal-content{scroll-padding-block-end:150
   if(typeof oSet==='function') window.openSettings=function(){ var r=oSet.apply(this,arguments); setTimeout(injectSettings,60); setTimeout(injectSettings,350); return r; };
   if(typeof oRef==='function') window.refreshSettingsSheet=function(){ var r=oRef.apply(this,arguments); setTimeout(injectSettings,60); return r; };
   setTimeout(function(){ try{ ingest(); ingestSmart(); }catch(e){} },2500);
+})();
+</script>
+<style id="stt-premium-v1">
+/* ── Settings premium pass: same surface language as the dashboard (hairlines, one soft shadow, flat dividers, no glow) ── */
+html body .stt-sheet{--stt-rule:color-mix(in srgb,var(--text) 8%,transparent);--stt-sh:0 1px 2px rgba(16,24,20,.04),0 10px 24px -16px rgba(16,24,20,.18);background:var(--bg)}
+html body .stt-sheet .stt-header{background:var(--surface);backdrop-filter:none;-webkit-backdrop-filter:none;border-bottom:1px solid var(--border)}
+html body .stt-sheet .stt-icon-wrap{border-radius:14px;box-shadow:none}
+html body .stt-sheet .stt-title{font-size:calc(18px*var(--app-text-scale,1));font-weight:750;letter-spacing:-.4px}
+html body .stt-sheet .stt-subtitle{font-weight:500}
+html body .stt-sheet .stt-close-btn{background:var(--surface2);border:1px solid var(--border)}
+html body .stt-sheet .stt-body{padding:14px 14px 36px;gap:8px}
+html body .stt-sheet .stt-body>.stt-card-label,html body .stt-sheet .stt-body>#imSettings>.stt-card-label{font-size:calc(11px*var(--app-text-scale,1));font-weight:700;letter-spacing:.9px;text-transform:uppercase;color:var(--muted);padding:0 10px 2px;margin-top:20px}
+html body .stt-sheet .stt-search + .stt-card-label,html body .stt-sheet .stt-search + .stt-search-empty + .stt-card-label{margin-top:14px}
+html body .stt-sheet .stt-card{border-radius:20px;border:1px solid var(--border);background:var(--surface);box-shadow:var(--stt-sh)}
+html[data-theme="dark"] body .stt-sheet .stt-card{background:var(--surface2);box-shadow:none}
+html body .stt-sheet .stt-row{min-height:58px;padding:10px 16px 10px 14px;gap:14px}
+html body .stt-sheet .stt-row:not(:last-child)::after{inset-inline-start:64px;inset-inline-end:0;background:var(--stt-rule)}
+html body .stt-sheet .stt-row.stt-last::after{display:none}
+html body .stt-sheet .stt-row:active{background:color-mix(in srgb,var(--text) 4%,transparent)}
+html body .stt-sheet .stt-row-title{font-weight:650;letter-spacing:-.1px}
+html body .stt-sheet .stt-row-sub{color:var(--muted);font-weight:400}
+html body .stt-sheet .stt-trail-val{font-weight:500;color:var(--muted)}
+html body .stt-sheet .stt-switch{border:0;background:color-mix(in srgb,var(--text) 15%,var(--surface3));box-shadow:none}
+html body .stt-sheet .stt-switch.on{background:var(--green);box-shadow:none}
+html body .stt-sheet .stt-card.danger-card{background:var(--surface);border-color:color-mix(in srgb,var(--red) 28%,var(--border))}
+html[data-theme="dark"] body .stt-sheet .stt-card.danger-card{background:var(--surface2)}
+html body .stt-sheet .stt-card.danger-card .stt-row:not(:last-child)::after{background:color-mix(in srgb,var(--red) 14%,transparent)}
+/* search */
+.stt-search{display:flex;align-items:center;gap:8px;height:44px;padding:0 6px 0 14px;border-radius:14px;border:1px solid var(--border);background:var(--surface);box-shadow:var(--stt-sh,none);color:var(--muted)}
+.stt-search:focus-within{border-color:color-mix(in srgb,var(--green) 55%,var(--border));box-shadow:0 0 0 3px color-mix(in srgb,var(--green) 14%,transparent)}
+.stt-search svg{flex:none}
+.stt-search input{flex:1;min-width:0;height:100%;border:0;outline:0;background:transparent;color:var(--text);font:inherit;font-size:max(16px,calc(14.5px*var(--app-text-scale,1)))}
+.stt-search input::placeholder{color:var(--muted)}
+.stt-search-x{flex:none;width:32px;height:32px;border:0;border-radius:50%;background:transparent;color:var(--muted);display:grid;place-items:center;cursor:pointer}
+.stt-search-x[hidden]{display:none}
+.stt-search-empty{padding:28px 12px;text-align:center;color:var(--muted);font-size:calc(13.5px*var(--app-text-scale,1))}
+.stt-search-empty[hidden]{display:none}
+.stt-hide{display:none!important}
+</style>
+<script id="stt-search">
+/* Settings search: filters rows (and hides empty sections) as you type. Presentation only — rows keep their own handlers;
+   hiding uses a class, never inline display, so the app's own show/hide logic is untouched. */
+(function(){
+  'use strict';
+  var Q='';
+  function T(en,ar){ try{ return L(en,ar); }catch(e){ return en; } }
+  function norm(s){ return String(s==null?'':s).toLowerCase().replace(/[\u064B-\u065F\u0670\u0640]/g,'').replace(/[\u0623\u0625\u0622\u0671]/g,'\u0627').replace(/\u0629/g,'\u0647').replace(/\u0649/g,'\u064A').replace(/\s+/g,' ').trim(); }
+  function apply(){
+    var body=document.querySelector('#sttOverlay .stt-body'); if(!body) return;
+    var q=norm(Q), anyShown=false, groups=[], cur=null;
+    Array.prototype.forEach.call(body.children,function(el){
+      if(el.id==='sttSearchHost'||el.id==='sttSearchEmpty') return;
+      if(el.classList.contains('stt-card-label')){ cur={units:[el],label:el,cards:[]}; groups.push(cur); }
+      else if(el.classList.contains('stt-card')){ if(!cur){ cur={units:[],label:null,cards:[]}; groups.push(cur); } cur.units.push(el); cur.cards.push(el); }
+      else if(el.querySelector&&el.querySelector('.stt-card')){          // wrapper that holds its own label + card (e.g. smart suggestions)
+        var lb=el.querySelector('.stt-card-label');
+        groups.push({units:[el],label:lb,cards:Array.prototype.slice.call(el.querySelectorAll('.stt-card'))}); cur=null;
+      }
+    });
+    groups.forEach(function(g){
+      var labelHit=!!q&&!!g.label&&norm(g.label.textContent).indexOf(q)>=0, shown=false;
+      g.cards.forEach(function(card){
+        var rows=card.querySelectorAll('.stt-row'), vis=[];
+        Array.prototype.forEach.call(rows,function(r){
+          r.classList.remove('stt-last');
+          var hit=!q||labelHit||norm(r.textContent).indexOf(q)>=0;
+          r.classList.toggle('stt-hide',!hit);
+          if(hit) vis.push(r);
+        });
+        if(q&&vis.length) vis[vis.length-1].classList.add('stt-last');
+        var cardShown=!q||vis.length>0||(!rows.length&&labelHit);
+        card.classList.toggle('stt-hide',!cardShown);
+        if(cardShown) shown=true;
+      });
+      g.units.forEach(function(u){ u.classList.toggle('stt-hide',!!q&&!shown&&!labelHit); });
+      if(g.label&&g.units.indexOf(g.label)<0) g.label.classList.toggle('stt-hide',!!q&&!shown);
+      if(!q||shown||labelHit) anyShown=true;
+    });
+    var em=document.getElementById('sttSearchEmpty'); if(em) em.hidden=!q||anyShown;
+  }
+  function inject(){
+    var body=document.querySelector('#sttOverlay .stt-body'); if(!body) return;
+    if(!body.querySelector('#sttSearchHost')){
+      var host=document.createElement('div'); host.id='sttSearchHost'; host.className='stt-search';
+      var ic0=''; try{ ic0=ic('search',16); }catch(e){}
+      var icx=''; try{ icx=ic('close',14); }catch(e){}
+      host.innerHTML=ic0+'<input id="sttSearch" type="text" inputmode="search" enterkeyhint="search" dir="auto" autocomplete="off" autocapitalize="off" spellcheck="false">'
+        +'<button type="button" class="stt-search-x" hidden>'+icx+'</button>';
+      var inp=host.querySelector('input'), x=host.querySelector('button');
+      inp.placeholder=T('Search settings','ابحث في الإعدادات'); x.setAttribute('aria-label',T('Clear','مسح'));
+      inp.value=Q; x.hidden=!Q;
+      inp.addEventListener('input',function(){ Q=inp.value; x.hidden=!Q; apply(); });
+      x.addEventListener('click',function(){ Q=''; inp.value=''; x.hidden=true; apply(); try{ inp.focus(); }catch(e){} });
+      var em=document.createElement('div'); em.id='sttSearchEmpty'; em.className='stt-search-empty'; em.hidden=true;
+      em.textContent=T('No settings match your search','مفيش إعدادات مطابقة للبحث');
+      body.insertBefore(em,body.firstChild); body.insertBefore(host,body.firstChild);
+    }
+    apply();
+  }
+  var oS=window.openSettings, oR=window.refreshSettingsSheet, oC=window.closeSettings;
+  if(typeof oS==='function') window.openSettings=function(){
+    if(!document.getElementById('sttOverlay')) Q='';                    // a fresh open starts with an empty search
+    var r=oS.apply(this,arguments); inject(); setTimeout(inject,90); setTimeout(inject,420); return r;
+  };
+  if(typeof oR==='function') window.refreshSettingsSheet=function(){ var r=oR.apply(this,arguments); inject(); setTimeout(inject,90); return r; };
+  if(typeof oC==='function') window.closeSettings=function(){ Q=''; return oC.apply(this,arguments); };
 })();
 </script>
 </body>
