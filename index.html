@@ -34041,7 +34041,7 @@ function renderTransactions(m){
           ${o.hasTarget?`<b>${fmtEGP(o.target)}</b>${ic('edit',12)}`:`<b>${L('Set','حدد')}</b>${ic('plus',12)}`}
         </button>
       </header>
-      <div class="dsum-main" role="button" tabindex="0" onclick="document.getElementById('txlgTimelineAnchor')?.scrollIntoView({behavior:'smooth',block:'start'})">
+      <div class="dsum-main" role="button" tabindex="0" onclick="txScrollToTimeline()">
         <div><div class="dsum-lbl">${o.spentLbl}</div><div class="dsum-num">${sigNumHTML(o.spent,{tone:o.over?'neg':'orange'})}</div></div>
         ${o.hasTarget?`<span class="dsum-pctb${o.over?' is-over':(o.pct>=85?' is-warn':'')}">${o.pct}%</span>`:''}
       </div>
@@ -64441,6 +64441,27 @@ html body .stt-sheet .stt-card.danger-card .stt-row:not(:last-child)::after{back
   if(typeof oR==='function') window.refreshSettingsSheet=function(){ var r=oR.apply(this,arguments); inject(); setTimeout(inject,90); return r; };
   if(typeof oC==='function') window.closeSettings=function(){ Q=''; return oC.apply(this,arguments); };
 })();
+</script>
+<style id="pages-premium-v1">
+/* Press feedback for tappable rows on Daily Spend / My Finances (Accounts and My Job already had it). Layout-neutral: background only. */
+body #mainContent :is(.txlg-row-content,.sav-row-main,.fin-dir-row,.sdb-hrow,.sc-compact-tap,.sc-field-clickable,.sc-accordion-trigger,.sc-main-header[onclick]){transition:background-color .15s ease}
+body #mainContent :is(.txlg-row-content,.sav-row-main,.fin-dir-row,.sdb-hrow,.sc-compact-tap,.sc-field-clickable,.sc-accordion-trigger,.sc-main-header[onclick]):active{background:color-mix(in srgb,var(--text) 4.5%,transparent)}
+body #mainContent :is(.sc-chip,.fin-qa-chip,.fin-qa-chip-primary){transition:transform .15s ease}
+body #mainContent :is(.sc-chip,.fin-qa-chip,.fin-qa-chip-primary):active{transform:scale(.97)}
+@media(prefers-reduced-motion:reduce){body #mainContent :is(.txlg-row-content,.sav-row-main,.fin-dir-row,.sdb-hrow,.sc-compact-tap,.sc-field-clickable,.sc-accordion-trigger,.sc-chip,.fin-qa-chip,.fin-qa-chip-primary){transition:none}}
+</style>
+<script id="pages-premium-v1-js">
+/* Daily Spend: tapping the spending summary scrolls to the Timeline. The old call put the Timeline header under the sticky app header. */
+function txScrollToTimeline(){
+  var a=document.getElementById('txlgTimelineAnchor'); if(!a) return;
+  var off=10;
+  try{
+    var h=document.querySelector('.app-header');
+    if(h){ var pos=getComputedStyle(h).position; if(pos==='sticky'||pos==='fixed') off+=h.getBoundingClientRect().bottom; }
+  }catch(e){}
+  a.style.scrollMarginTop=off+'px';
+  a.scrollIntoView({behavior:'smooth',block:'start'});
+}
 </script>
 </body>
 </html>
