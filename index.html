@@ -64073,6 +64073,23 @@ html body #mainContent > .wdash-wrap.dv3-dark-v2 .fp-qa-btn:active{transform:sca
 html body #mainContent > .wdash-wrap.dv3-dark-v2 .fp-qa-label{font-weight:600;letter-spacing:-.1px}
 html body #mainContent > .wdash-wrap.dv3-dark-v2 .att-quick{border-radius:var(--pm-r)!important;border:1px solid var(--border);box-shadow:var(--pm-sh)}
 html body #mainContent > .wdash-wrap.dv3-dark-v2 .wdash-manage-btn{border-radius:99px;border:1px solid var(--border);background:var(--surface);box-shadow:0 1px 2px rgba(16,24,20,.05);font-weight:600}
+/* v2.1 — fixes from the hidden-balances screenshot */
+/* stats row: take the full card width (its parent used to be narrower than the card) and line up with the label above */
+html body #mainContent > .wdash-wrap.dv3-dark-v2 #fpHeroCard .dash-hero-main,html body #mainContent > .wdash-wrap.dv3-dark-v2 #fpHeroCard .dv3-hero-main{width:100%!important;max-width:none!important;padding-inline:0!important;margin-inline:0!important;box-sizing:border-box}
+html body #mainContent > .wdash-wrap.dv3-dark-v2 #fpHeroCard .dv3h-stat-row{width:100%!important;max-width:none!important;margin-inline:0!important;box-sizing:border-box!important}
+html body #mainContent > .wdash-wrap.dv3-dark-v2 #fpHeroCard .dv3h-stat{padding-inline:14px 0!important}
+html body #mainContent > .wdash-wrap.dv3-dark-v2 #fpHeroCard .dv3h-stat:first-child{padding-inline-start:0!important}
+/* collapse button sits on the same line as the month / Hide row, aligned to the content edge */
+html body #mainContent > .wdash-wrap.dv3-dark-v2 #fpHeroCard .fp-hero-toggle{top:20px!important;inset-inline-end:20px!important}
+html body #mainContent > .wdash-wrap.dv3-dark-v2 #fpHeroCard .dash-hero-head{padding-inline-end:46px!important}
+/* privacy mode: the trend arrow overlapped the masked text, and its red/green colour leaked the sign of the change */
+html body #mainContent > .wdash-wrap.dv3-dark-v2.dash-privacy #fpHeroCard .dv3h-stat-val svg{display:none!important}
+html body #mainContent > .wdash-wrap.dv3-dark-v2.dash-privacy #fpHeroCard .dv3h-stat-val.up,html body #mainContent > .wdash-wrap.dv3-dark-v2.dash-privacy #fpHeroCard .dv3h-stat-val.down{color:var(--muted)!important}
+/* KPI cards: same text-block geometry in all four, so labels that wrap ("Expense (Withdrawals)") no longer push values out of line */
+html body #mainContent > .wdash-wrap.dv3-dark-v2 > .dv3-kpi-row .dfp-kpi3-card{align-items:center!important}
+html body #mainContent > .wdash-wrap.dv3-dark-v2 .dv3-kpi-row .dv3-kpi-text{display:flex;flex-direction:column;justify-content:flex-end;flex:1;min-width:0}
+html body #mainContent > .wdash-wrap.dv3-dark-v2 .dv3-kpi-row .dfp-kpi3-lbl{display:flex;align-items:flex-end;min-height:2.5em;line-height:1.25!important}
+html body #mainContent > .wdash-wrap.dv3-dark-v2 .dv3-kpi-row .dfp-kpi3-val{display:flex!important;align-items:baseline;gap:4px;min-height:28px;line-height:1.1!important;white-space:nowrap}
 @media(prefers-reduced-motion:reduce){html body #mainContent > .wdash-wrap.dv3-dark-v2 .fp-qa-btn{transition:none}}
 </style>
 <script id="tx-sde-chips">
