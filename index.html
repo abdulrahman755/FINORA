@@ -8752,15 +8752,17 @@ function fpInitSwipeNav(){
   if(!document.getElementById('mainContent')) return;
   const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const EDGE = 16;            // px dead-zone at both screen edges (OS back gesture / notes edge tab)
-  const LOCK_PX = 8;          // movement before we decide horizontal vs vertical
-  const H_RATIO = 1.35;       // |dx| must beat |dy| by this much to count as a horizontal swipe
+  const LOCK_PX = 10;         // movement before we decide horizontal vs vertical (also the dead-zone the page then ignores, so it starts from 0 with no jump)
+  const H_RATIO = 1.7;        // |dx| must beat |dy| by this much (~30° from horizontal): a diagonal scroll never flips the page
+  const COMMIT_FRAC = 0.30;   // drag past this share of the screen width to switch
+  const FLICK_V = 0.42, FLICK_MIN = 56;   // or a deliberate flick: px/ms and a minimum travel
   const EASE = 'cubic-bezier(.3,.6,.3,1)';     // starts at roughly the finger's own speed, then a long soft landing
   let st = null;              // active gesture
   let busy = false;           // an animated switch is running
   let raf = 0, pendingX = 0;
   // ── "pull past the last page" → Settings ──────────────────────────────────────────────────────────────────────
-  // At the last tab, dragging further in the forward direction (left in LTR, right in RTL) stretches the page
-  // like iOS overscroll and reveals a gear in the gap. Past EDGE_PULL the gear fills + a haptic tick says "ready";
+  // At the FIRST tab, dragging further in the backward direction (right in LTR, left in RTL — i.e. toward the
+  // header's Settings ☰ button) stretches the page like iOS overscroll and reveals a gear in the gap. Past EDGE_PULL the gear fills + a haptic tick says "ready";
   // releasing then springs the page back and slides Settings in from that same edge.
   const EDGE_MAX = 104, EDGE_PULL = 120;
   let edgeEl = null, edgeT = 0;
@@ -8857,21 +8859,22 @@ function fpInitSwipeNav(){
     if(st.locked !== 'h'){ if(st.locked === 'v') st = null; return; }
     if(e.cancelable) e.preventDefault();
     e.stopImmediatePropagation();
-    st.dx = dx;
-    st.target = targetFor(dx);
-    const fwd = ((dx < 0 ? 1 : -1) * (isRTL() ? -1 : 1)) === 1;
-    st.edge = !st.target && fwd && idx() === ORDER.length - 1 && swipeSettingsOn() && !reduceMotion;
+    const adx = dx - Math.sign(dx) * Math.min(Math.abs(dx), LOCK_PX);   // page starts moving from 0 once the swipe is recognised
+    st.dx = adx;
+    st.target = targetFor(adx);
+    const fwd = ((adx < 0 ? 1 : -1) * (isRTL() ? -1 : 1)) === 1;
+    st.edge = !st.target && !fwd && idx() === 0 && swipeSettingsOn() && !reduceMotion;   // pull past the FIRST page, toward the side where the Settings (☰) button sits
     if(st.edge){
       // elastic stretch (diminishing returns) + readiness flag
-      const a = Math.abs(dx);
+      const a = Math.abs(adx);
       st.pull = a;
-      st.shown = Math.sign(dx) * EDGE_MAX * (1 - 1 / (a / (EDGE_MAX * 0.9) + 1));
+      st.shown = Math.sign(adx) * EDGE_MAX * (1 - 1 / (a / (EDGE_MAX * 0.9) + 1));
       const ready = a >= EDGE_PULL;
       if(ready !== st.ready){ st.ready = ready; try{ if(navigator.vibrate) navigator.vibrate(ready ? 14 : 5); }catch(_){} }
     } else {
       st.ready = false;
       // at the first/last tab there is nothing beyond, so resist (rubber-band)
-      st.shown = st.target ? dx : Math.sign(dx) * Math.min(28, Math.abs(dx) * 0.22);
+      st.shown = st.target ? adx : Math.sign(adx) * Math.min(28, Math.abs(adx) * 0.22);
     }
     pendingX = st.shown;
     if(!raf) raf = requestAnimationFrame(function(){           // one style write per frame, no matter how fast events arrive
@@ -8951,7 +8954,8 @@ function fpInitSwipeNav(){
       }
       return;
     }
-    const go = !cancelled && g.target && (Math.abs(g.dx) > W * 0.25 || (Math.abs(v) > 0.3 && Math.abs(g.dx) > 40));
+    const back = (v * g.dx < 0) && Math.abs(v) > 0.25;                  // finger is flicking back toward where it started = cancel
+    const go = !cancelled && g.target && !back && (Math.abs(g.dx) > W * COMMIT_FRAC || (Math.abs(v) > FLICK_V && Math.abs(g.dx) > FLICK_MIN));
     if(go) commit(g, v); else springBack(g);
   }
   document.addEventListener('touchend',    function(){ finish(false); }, {passive:true});
@@ -28558,7 +28562,7 @@ async function toggleLockEnabled(){
 }
 
 // ── Sound Effects settings (SoundManager on/off + volume) ───────────────────
-// ── Swipe past the last page → open Settings (option, default ON) ──
+// ── Swipe past the first page (toward the Settings button) → open Settings (option, default ON) ──
 function sttToggleSwipeSettings(){
   const on = !swipeSettingsOn();
   try{ localStorage.setItem(SWIPE_SETTINGS_KEY, on?'on':'off'); }catch(e){ _logErr('sttToggleSwipeSettings',e); }
@@ -28967,7 +28971,7 @@ function openSettings(){
           ${sttMakeIcon('swipe')}
           <div class="stt-row-body">
             <div class="stt-row-title">${L('Swipe to open Settings','السحب لفتح الإعدادات')}</div>
-            <div class="stt-row-sub">${L('Keep swiping past the last page to open Settings','كمّل السحب بعد آخر صفحة لفتح الإعدادات')}</div>
+            <div class="stt-row-sub">${L('From the first page, keep swiping toward the menu button to open Settings','من أول صفحة كمّل السحب ناحية زر القائمة لفتح الإعدادات')}</div>
           </div>
           <div class="stt-row-trail">
             <div class="stt-switch ${swipeSettingsOn()?'on':''}" id="sttSwipeSwitch"><div class="stt-switch-dot"></div></div>
@@ -64656,6 +64660,19 @@ html body #mainContent .screen-wrap.banks-v2.banks-v2 .bnk-analytics-stat-lbl{fo
 html body #mainContent .screen-wrap.banks-v2.banks-v2 .bnk-analytics-stat-val{margin-top:4px;font-size:calc(16px*var(--app-text-scale,1));font-weight:800;letter-spacing:-.2px}
 html body #mainContent .screen-wrap.banks-v2.banks-v2 .tx-type-toggle button{min-height:42px;font-weight:700}
 </style>
+<style id="banks-open-fix">
+/* Bank card open: remove the micro-flash (CSS-only; open/close logic untouched)
+   1) no press-scale pulse on the card at the moment it starts expanding
+   2) the compact front balance fades out quickly while the opened content fades in just after the box starts growing,
+      so the two never pop at the same instant */
+html body #mainContent .screen-wrap.banks-v2.banks-v2 .bnk-card:not(.drag-dragging):active,html body #mainContent .screen-wrap.banks-v2.banks-v2 .bnk-card.bnk-clickable:active{transform:none}
+html body #mainContent .screen-wrap.banks-v2.banks-v2 .bnk-card-balance{transition:opacity .10s ease,max-height var(--dur-base) var(--ease-standard),margin var(--dur-base) var(--ease-standard)}
+html body #mainContent .screen-wrap.banks-v2.banks-v2 .bnk-card-body>*{opacity:0;transition:opacity .10s ease}
+html body #mainContent .screen-wrap.banks-v2.banks-v2 .bnk-card-body.bnk-open>*{opacity:1;transition:opacity .22s ease .06s}
+html body #mainContent .screen-wrap.banks-v2.banks-v2 .bnk-card.bnk-instant .bnk-card-body>*{transition:none!important}
+@media (prefers-reduced-motion:reduce){html body #mainContent .screen-wrap.banks-v2.banks-v2 .bnk-card-body>*,html body #mainContent .screen-wrap.banks-v2.banks-v2 .bnk-card-balance{transition:none}}
+</style>
+
 <style id="savings-pro">
 /* My Savings / Finance hub polish — CSS-only; asset tiles and debt rows untouched */
 html body #mainContent .fin-page.fin-page .fin-hero-card{border-radius:24px!important;box-shadow:0 1px 2px rgba(16,24,40,.05),0 18px 34px -24px rgba(16,24,40,.28)!important}
