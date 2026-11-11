@@ -35490,7 +35490,7 @@ function _jpCustHTML(p){
   if(_caState()==='ok') return _caCustHTML();
   const items=p.custody.map(x=>`<div class="jp-row jp-crow" style="cursor:pointer" onclick="_custView('jp','${esc(x.id)}')">${_custPhIcon(x)}<div class="jp-rtx"><b dir="auto">${esc(x.name||L('Item','عنصر'))}</b>${x.note?`<small dir="auto" class="jp-cdesc" style="margin:3px 0 0">${esc(x.note)}</small>`:''}${x.date?`<small class="jp-cmeta" style="margin:3px 0 0">${ic('calendar',11)} ${esc(_jpDate(x.date))}</small>`:''}</div><button type="button" class="jp-rb" onclick="event.stopPropagation();_jpEditCustody('${esc(x.id)}')" aria-label="${L('Edit','تعديل')}">${ic('edit',15)}</button></div>`).join('');
   return `<section class="jp-card">
-    <div class="jp-sec">${ic('package',17)}<span>${L('My custody','العهدة اللي معايا')}</span>${p.custody.length?`<em style="font-style:normal;font-size:12px;color:var(--muted);font-weight:700">${p.custody.length}</em>`:''}<span class="sp"></span><button type="button" class="jp-add" onclick="_jpEditCustody(null)">${ic('plus',14)} ${L('Add','إضافة')}</button></div>
+    <div class="jp-sec">${ic('package',17)}<span>${L('Company custody','عهدة الشركة')}</span>${p.custody.length?`<em style="font-style:normal;font-size:12px;color:var(--muted);font-weight:700">${p.custody.length}</em>`:''}<span class="sp"></span><button type="button" class="jp-add" onclick="_jpEditCustody(null)">${ic('plus',14)} ${L('Add','إضافة')}</button></div>
     ${items||`<div class="jp-empty">${L('No items yet — add your laptop, charger, mouse, bag…','لسه مفيش عهدة — ضيف اللاب توب والشاحن والماوس والشنطة…')}</div>`}
   </section>`;
 }
@@ -35954,9 +35954,9 @@ function _caCustRow(k,c){
   return `<div class="jp-row jp-crow" style="cursor:pointer" onclick="_custView('ca','${k.id}')">${_custPhIcon(k)}<div class="jp-rtx"><b dir="auto">${esc(k.name)}${k.review?` <span class="ca-b rev">${L('Needs review','يحتاج مراجعة')}</span>`:''}</b>${k.note?`<small dir="auto" class="jp-cdesc" style="margin:3px 0 0">${esc(k.note)}</small>`:''}<small class="jp-cmeta" style="margin:3px 0 0">${esc(_caCustLine(k))}</small>${!gone&&_jpHeld(k.receivedOn)?`<span class="jp-held">${ic('clock',11)} ${_jpHeld(k.receivedOn)}</span>`:''}${gone&&k.handoverNote?`<small dir="auto" style="margin:3px 0 0">${esc(k.handoverNote)}</small>`:''}</div><button type="button" class="jp-rb" onclick="event.stopPropagation();_caCustSheet('${k.id}')" aria-label="${L('Edit','تعديل')}">${ic('edit',15)}</button></div>`;
 }
 function _caCustHTML(){
-  const c=_caLoad(), cAll=c.custody.filter(k=>_caKProj(c,k)===_PRJ.active), w=cAll.filter(k=>k.status==='with').sort((a,b)=>(b.receivedOn||'').localeCompare(a.receivedOn||'')), h=cAll.filter(k=>k.status!=='with').sort((a,b)=>(b.closedOn||'').localeCompare(a.closedOn||''));
+  const c=_caLoad(), _cE=_caCur(c).emp, cAll=c.custody.filter(k=>_caKProj(c,k)===_PRJ.active&&(!_cE||!k.empId||k.empId===_cE.id)), w=cAll.filter(k=>k.status==='with').sort((a,b)=>(b.receivedOn||'').localeCompare(a.receivedOn||'')), h=cAll.filter(k=>k.status!=='with').sort((a,b)=>(b.closedOn||'').localeCompare(a.closedOn||''));
   return `<section class="jp-card">
-    <div class="jp-sec">${ic('package',17)}<span>${L('My custody','العهدة اللي معايا')}</span>${w.length?`<em style="font-style:normal;font-size:12px;color:var(--muted);font-weight:700">${w.length}</em>`:''}<span class="sp"></span><button type="button" class="jp-add" onclick="_caCustSheet(null)">${ic('plus',14)} ${L('Add','إضافة')}</button></div>
+    <div class="jp-sec">${ic('package',17)}<span>${L('Company custody','عهدة الشركة')}</span>${w.length?`<em style="font-style:normal;font-size:12px;color:var(--muted);font-weight:700">${w.length}</em>`:''}<span class="sp"></span><button type="button" class="jp-add" onclick="_caCustSheet(null)">${ic('plus',14)} ${L('Add','إضافة')}</button></div>
     ${w.map(k=>_caCustRow(k,c)).join('')||`<div class="jp-empty">${L('Nothing with you right now','مفيش عهدة معاك دلوقتي')}</div>`}
     ${h.length?`<button type="button" class="jp-link" style="margin:6px 0 10px" onclick="_caShowHist=!_caShowHist;renderView()">${ic('clock',15)} ${L('Handover history','سجل التسليم')} (${h.length}) ${_caShowHist?'▲':'▼'}</button>${_caShowHist?h.map(k=>_caCustRow(k,c)).join(''):''}`:''}
   </section>`;
@@ -63555,6 +63555,43 @@ background:linear-gradient(180deg,color-mix(in srgb,var(--lx-acc) 4%,var(--surfa
 #mainContent .cx-wrap .cx-hero~.cx-sec>.sc-search,#mainContent .cx-wrap .cx-hero~.cx-sec>.cx-search{margin:0 0 12px}
 #mainContent .cx-wrap .cx-hero~.cx-sec>.cx-cat,#mainContent .cx-wrap .cx-hero~.cx-sec>.cx-ins{border-radius:24px;border:1px solid var(--lx-line)!important;box-shadow:var(--lx-sh)!important}
 </style>
+<style id="myjob-pro">
+/* My Job → Profile: professional polish (CSS-only, scoped to .jp-wrap) */
+body #mainContent .jp-wrap{display:flex;flex-direction:column;gap:14px}
+body #mainContent .jp-wrap>.jp-hero,body #mainContent .jp-wrap>.jp-card,body #mainContent .jp-wrap>.jp-attc{margin:0}
+body #mainContent .jp-wrap .jp-card,body #mainContent .jp-wrap .jp-attc{padding:18px;border-radius:24px;border:1px solid var(--border);background:var(--surface)}
+/* section headers: sentence case, clear hierarchy */
+body #mainContent .jp-wrap .jp-card>.jp-sec{padding:0 0 14px;gap:12px;font-size:calc(16px*var(--app-text-scale,1));font-weight:800;letter-spacing:0;text-transform:none;color:var(--text);border-bottom:1px solid var(--border);margin-bottom:6px}
+body #mainContent .jp-wrap .jp-card>.jp-sec>span:not(.jp-lock):not(.sp){font-size:calc(16px*var(--app-text-scale,1));font-weight:800;letter-spacing:0}
+body #mainContent .jp-wrap .jp-card>.jp-sec>svg:first-child{width:36px;height:36px;padding:9px;border-radius:12px}
+/* grouped info blocks */
+body #mainContent .jp-wrap .jp-blk{margin-top:12px;padding:4px 14px;border-radius:18px;background:var(--surface2);border:1px solid var(--border)}
+body #mainContent .jp-wrap .jp-grp{display:flex;align-items:center;gap:8px;margin:0;padding:12px 0 4px;font-size:calc(12px*var(--app-text-scale,1));font-weight:700;letter-spacing:0;text-transform:none;color:var(--muted)}
+body #mainContent .jp-wrap .jp-grp i{width:6px;height:6px;border-radius:50%;background:var(--green);opacity:.85}
+body #mainContent .jp-wrap .jp-blk .jp-row{padding:12px 0}
+body #mainContent .jp-wrap .jp-blk .jp-row+.jp-row::before{inset-inline-start:0}
+body #mainContent .jp-wrap .jp-rtx small{font-size:calc(11.5px*var(--app-text-scale,1));font-weight:600;color:var(--muted)}
+body #mainContent .jp-wrap .jp-rtx b{font-size:calc(14.5px*var(--app-text-scale,1));font-weight:700;color:var(--text);overflow-wrap:anywhere}
+body #mainContent .jp-wrap .jp-rtx b.empty{font-weight:500;color:var(--muted)}
+body #mainContent .jp-wrap .jp-rb{width:34px;height:34px;border-radius:50%}
+body #mainContent .jp-wrap .jp-rb:active{transform:scale(.92)}
+/* attendance */
+body #mainContent .jp-wrap .jp-attc{gap:16px}
+body #mainContent .jp-wrap .jp-ast-row{gap:10px}
+body #mainContent .jp-wrap .jp-ast{padding:14px 6px 12px;border-radius:16px;border:1px solid transparent}
+body #mainContent .jp-wrap .jp-ast small{margin-top:2px;font-size:calc(12px*var(--app-text-scale,1));font-weight:700}
+body #mainContent .jp-wrap .jp-attc-f{padding-top:14px;border-top:1px solid var(--border);font-weight:700}
+/* custody */
+body #mainContent .jp-wrap .jp-card .jp-row.jp-crow{padding:16px 0;align-items:center}
+body #mainContent .jp-wrap .jp-crow .jp-ric{width:64px;height:64px;border-radius:16px}
+body #mainContent .jp-wrap .jp-crow .jp-rtx b{font-size:calc(15.5px*var(--app-text-scale,1));font-weight:800}
+body #mainContent .jp-wrap .jp-crow .jp-cdesc{-webkit-line-clamp:2;font-size:calc(12.5px*var(--app-text-scale,1));color:var(--muted)}
+body #mainContent .jp-wrap .jp-crow .jp-cmeta{margin-top:8px!important;padding:3px 10px;border-radius:99px;font-size:calc(11.5px*var(--app-text-scale,1));font-weight:600}
+body #mainContent .jp-wrap .jp-crow .jp-held{display:inline-flex;align-items:center;gap:4px;margin-inline-start:6px;padding:3px 10px;border-radius:99px;background:var(--green-tint);color:var(--green);font-size:calc(11.5px*var(--app-text-scale,1));font-weight:700}
+body #mainContent .jp-wrap .jp-empty{padding:22px 12px;margin-top:6px;border:1px dashed var(--border-strong,var(--border));border-radius:16px;text-align:center;color:var(--muted);font-size:calc(13px*var(--app-text-scale,1))}
+body #mainContent .jp-wrap .jp-add{height:34px;padding:0 14px;border-radius:99px;font-weight:700}
+@media (prefers-reduced-motion:reduce){body #mainContent .jp-wrap *{transition:none!important}}
+</style>
 <style id="cvp-lux">
 .cvp-ov{background:radial-gradient(120% 60% at 50% 0%,#454d57 0%,#353b43 55%,#2d3238 100%)}
 .cvp-ov .cvp-bar{gap:8px;padding:calc(env(safe-area-inset-top,0px) + 10px) 12px 12px;background:rgba(24,27,31,.92);-webkit-backdrop-filter:saturate(1.4) blur(14px);backdrop-filter:saturate(1.4) blur(14px);border-bottom:1px solid rgba(255,255,255,.07);position:relative;z-index:5}
@@ -64509,6 +64546,50 @@ body #mainContent .fin-page .fin-dir-chev{opacity:.45}
 body #mainContent .fin-page>.fin-tabs{position:sticky;top:var(--fin-tabs-top,0px);z-index:8;padding:8px 1px;background:var(--bg);box-shadow:0 0 0 100vmax var(--bg);clip-path:inset(0 -100vmax)}
 @media(prefers-reduced-motion:reduce){body #mainContent :is(.txlg-row-content,.sav-row-main,.fin-dir-row,.sdb-hrow,.sc-compact-tap,.sc-field-clickable,.sc-accordion-trigger,.sc-chip,.fin-qa-chip,.fin-qa-chip-primary){transition:none}}
 </style>
+<style id="dash-pro-final">
+/* Dashboard polish v2 — high-specificity, CSS-only (markup/JS untouched). Keeps the gold top line + accent borders. */
+body #mainContent .wdash-wrap.wdash-wrap .wdash-greet{padding:16px 18px;gap:2px 14px;border-radius:22px;border:1px solid var(--border);background:var(--surface);box-shadow:0 1px 2px rgba(16,24,40,.04),0 12px 24px -18px rgba(16,24,40,.22)}
+body #mainContent .wdash-wrap.wdash-wrap .wdash-greet-l small{font-size:calc(12.5px*var(--app-text-scale,1));font-weight:600;color:var(--muted)}
+body #mainContent .wdash-wrap.wdash-wrap .wdash-greet-l b{margin-top:3px;font-size:calc(21px*var(--app-text-scale,1));font-weight:800;letter-spacing:-.4px;line-height:1.2}
+body #mainContent .wdash-wrap.wdash-wrap .wdash-greet-r b{font-size:calc(19px*var(--app-text-scale,1));font-weight:800;letter-spacing:-.3px;line-height:1.2}
+body #mainContent .wdash-wrap.wdash-wrap .wdash-greet-r small{margin-top:3px;font-size:calc(12px*var(--app-text-scale,1))}
+body #mainContent .wdash-wrap.wdash-wrap .wdash-greet-bar{height:8px;margin-top:12px;background:var(--surface2);box-shadow:inset 0 0 0 1px var(--border)}
+body #mainContent .wdash-wrap.wdash-wrap .wdash-greet-bar i{min-width:8px;transition:width .6s cubic-bezier(.22,.9,.3,1)}
+
+body #mainContent .wdash-wrap.wdash-wrap #fpHeroCard.dfp-hero-v2{border-radius:24px!important;box-shadow:0 1px 2px rgba(16,24,40,.05),0 18px 34px -24px rgba(16,24,40,.28)!important}
+body #mainContent .wdash-wrap.wdash-wrap #fpHeroCard.dfp-hero-v2 .dash-hero{padding:18px 20px 18px}
+body #mainContent .wdash-wrap.wdash-wrap #fpHeroCard.dfp-hero-v2 .dash-hero-head{display:flex;align-items:center;gap:10px;min-height:36px;padding-inline-end:46px}
+body #mainContent .wdash-wrap.wdash-wrap #fpHeroCard.dfp-hero-v2 .dash-hero-eyebrow{font-size:calc(13px*var(--app-text-scale,1));font-weight:700;letter-spacing:0;text-transform:none;color:var(--text2)}
+body #mainContent .wdash-wrap.wdash-wrap #fpHeroCard.dfp-hero-v2 .dash-hero-eye{display:inline-flex;align-items:center;gap:6px;height:34px;padding:0 14px;border-radius:99px;border:1px solid var(--border);background:var(--surface);color:var(--text2);font-size:calc(13px*var(--app-text-scale,1));font-weight:600;box-shadow:none}
+body #mainContent .wdash-wrap.wdash-wrap #fpHeroCard.dfp-hero-v2 .fp-hero-toggle{top:10px;inset-inline-end:12px;width:36px;height:36px;border:1px solid var(--border)!important;background:var(--surface2)!important;color:var(--muted)}
+body #mainContent .wdash-wrap.wdash-wrap #fpHeroCard.dfp-hero-v2 .dash-hero-main-lbl{margin-top:20px;font-size:calc(13.5px*var(--app-text-scale,1));font-weight:600}
+body #mainContent .wdash-wrap.wdash-wrap #fpHeroCard.dfp-hero-v2 .hnum-amt{font-size:clamp(32px,10.6vw,45px)!important;font-weight:800!important;letter-spacing:-.04em!important;line-height:1.05}
+body #mainContent .wdash-wrap.wdash-wrap #fpHeroCard.dfp-hero-v2 .hnum-sign{font-size:.5em;font-weight:700!important;opacity:1!important;align-self:center}
+body #mainContent .wdash-wrap.wdash-wrap #fpHeroCard.dfp-hero-v2 .hnum-cur{margin-inline-start:6px;font-size:calc(12.5px*var(--app-text-scale,1))!important;font-weight:700!important;letter-spacing:.1em;opacity:.7}
+body #mainContent .wdash-wrap.wdash-wrap #fpHeroCard.dfp-hero-v2 .dv3h-stat-row{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:0!important;margin-top:20px;padding-top:16px;border-top:1px solid var(--border)!important}
+body #mainContent .wdash-wrap.wdash-wrap #fpHeroCard.dfp-hero-v2 .dv3h-stat-sep{display:none!important}
+body #mainContent .wdash-wrap.wdash-wrap #fpHeroCard.dfp-hero-v2 .dv3h-stat{display:block;padding-inline:14px 0;border-inline-start:1px solid var(--border);min-width:0}
+body #mainContent .wdash-wrap.wdash-wrap #fpHeroCard.dfp-hero-v2 .dv3h-stat:first-child{padding-inline:0;border-inline-start:0}
+body #mainContent .wdash-wrap.wdash-wrap #fpHeroCard.dfp-hero-v2 .dv3h-stat-lbl{margin-bottom:6px;font-size:calc(12px*var(--app-text-scale,1))!important;font-weight:600!important;white-space:nowrap}
+body #mainContent .wdash-wrap.wdash-wrap #fpHeroCard.dfp-hero-v2 .dv3h-stat-val{display:flex;align-items:center;gap:3px;font-size:calc(15.5px*var(--app-text-scale,1))!important;font-weight:800!important;letter-spacing:-.3px;white-space:nowrap}
+body #mainContent .wdash-wrap.wdash-wrap #fpHeroCard.dfp-hero-v2 .dv3h-stat-val.up{color:var(--fin-income,#0f7a55)!important}
+body #mainContent .wdash-wrap.wdash-wrap #fpHeroCard.dfp-hero-v2 .dv3h-stat-val.down{color:var(--fin-outcome,#c0453f)!important}
+body #mainContent .wdash-wrap.wdash-wrap #fpHeroCard.dfp-hero-v2.fp-hero-collapsed .dv3h-stat-row{margin-top:0;padding-top:0;border-top-width:0!important}
+@media (max-width:380px){
+body #mainContent .wdash-wrap.wdash-wrap #fpHeroCard.dfp-hero-v2 .dv3h-stat{padding-inline:8px 0}
+body #mainContent .wdash-wrap.wdash-wrap #fpHeroCard.dfp-hero-v2 .dv3h-stat-val{font-size:calc(13.5px*var(--app-text-scale,1))!important}
+}
+
+/* sections below the KPI row: calmer, consistent cards (accent side borders kept) */
+body #mainContent .wdash-wrap.wdash-wrap .wdash-section{border-radius:22px}
+body #mainContent .wdash-wrap.wdash-wrap .wdash-section .pxi-section-head{margin:2px 4px 12px;font-size:calc(14px*var(--app-text-scale,1));font-weight:800;letter-spacing:0;text-transform:none}
+body #mainContent .wdash-wrap.wdash-wrap .wdash-section .sc-card{border-radius:18px;border:1px solid var(--border);box-shadow:0 1px 2px rgba(16,24,40,.04)}
+body #mainContent .wdash-wrap.wdash-wrap .wdash-section .sc-card:active{transform:scale(.995)}
+body #mainContent .wdash-wrap.wdash-wrap .wdash-fold-summary{font-size:calc(12.5px*var(--app-text-scale,1));font-weight:700}
+body #mainContent .wdash-wrap.wdash-wrap .wdash-head-label{font-weight:800}
+@media (prefers-reduced-motion:reduce){body #mainContent .wdash-wrap.wdash-wrap .wdash-greet-bar i{transition:none}}
+</style>
+
 <script id="pages-premium-v1-js">
 /* Daily Spend: tapping the spending summary scrolls to the Timeline. The old call put the Timeline header under the sticky app header. */
 function txScrollToTimeline(){
