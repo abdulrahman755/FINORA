@@ -21289,7 +21289,7 @@ function renderSavings(){
     _ftBtn('assets',L('Assets','الأصول'),visAssets.length)+_ftBtn('circles',L('Circles','الجمعيات'),_gmyCount)+_ftBtn('debts',L('Debts','المديونيات'),_actAll.length)+`</div>`;
   const _netTone=netDebt>0?'var(--fin-income)':netDebt<0?'var(--fin-outcome)':'var(--text)';
   const _dirRow=(k,icon,color,title,desc,amtHTML,sub)=>`<button type="button" class="fin-dir-row" style="--fc:${color}" onclick="finTab('${k}')"><span class="fin-dir-ic">${ic(icon,18)}</span><span class="fin-dir-tx"><b>${title}</b><small>${desc}</small></span><span class="fin-dir-val">${amtHTML}<small>${sub}</small></span><span class="fin-dir-chev">${ic('chevron_right',14)}</span></button>`;
-  const _dirHTML=`<div class="fin-lbl" data-fsec="ov">${L('What\'s in this page','محتويات الصفحة')}</div><div class="fin-dir" data-fsec="ov">`+
+  const _dirHTML=`<div class="fin-lbl" data-fsec="ov">${L('Sections','الأقسام')}</div><div class="fin-dir" data-fsec="ov">`+
     _dirRow('income','cash','var(--fin-income)',L('Income','الدخل'),L('Salary, bonuses and other money coming in','المرتب والمكافآت وأي فلوس داخلة'),`<b>${fmtEGP(totalIncome)}</b>`,_cnt(visIncomes.length,'entry','entries','سجل','سجلان','سجلات','سجلاً'))+
     _dirRow('expenses','trend_down','var(--fin-outcome)',L('Expenses','المصروفات'),L('Rent, food, transport and everything you spend','الإيجار والأكل والمواصلات وكل اللي بتصرفه'),`<b>${fmtEGP(totalOutcome)}</b>`,_cnt(visOutcomes.length,'entry','entries','سجل','سجلان','سجلات','سجلاً'))+
     _dirRow('assets','gem','var(--fin-assets)',L('Assets','الأصول'),L('What you own: electronics, gold, vehicles','اللي بتملكه: إلكترونيات وذهب وعربيات'),`<b>${fmtEGP(totalAssets)}</b>`,_cnt(visAssets.length,'item','items','عنصر','عنصران','عناصر','عنصراً'))+
@@ -28681,6 +28681,8 @@ function _sttIcon(path, opts={}){
   return `<svg viewBox="0 0 24 24" width="${size}" height="${size}" fill="none" stroke="${col}" stroke-width="${_IC_SNAP?_icStroke(size):2}" stroke-linecap="round" stroke-linejoin="round">${path}</svg>`;
 }
 const STT_ICONS={
+     numbers:   `<path d="M4 9h16"/><path d="M4 15h16"/><path d="M10 3 8 21"/><path d="M16 3l-2 18"/>`,
+     key:       `<circle cx="8" cy="15" r="4"/><path d="M10.8 12.2 20 3"/><path d="M16 7l3 3"/>`,
   home:      `<path d="M3 10L12 3l9 7"/><path d="M4 10v9a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-9"/><path d="M9 21v-6a3 3 0 0 1 6 0v6"/>`,
   reports:   `<rect x="3" y="14" width="4" height="7" rx="1"/><rect x="10" y="9" width="4" height="12" rx="1"/><rect x="17" y="4" width="4" height="17" rx="1"/>`,
   language:  `<circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a14 14 0 0 1 3.5 9A14 14 0 0 1 12 21a14 14 0 0 1-3.5-9A14 14 0 0 1 12 3z"/>`,
@@ -28834,31 +28836,19 @@ function openSettings(){
     <!-- Body -->
     <div class="stt-body">
 
+      <!-- QUICK ACCESS (shortcuts, not settings) -->
+      <div class="stt-quick" role="group" aria-label="${L('Quick access','وصول سريع')}">
+        <button type="button" class="stt-qt" onclick="closeSettings();setView('wsdash')">${sttMakeIcon('home')}<span>${L('Home','الرئيسية')}</span></button>
+        <button type="button" class="stt-qt" onclick="closeSettings();setTimeout(openReportsSheet,380)">${sttMakeIcon('reports')}<span>${L('Reports','التقارير')}</span></button>
+        <button type="button" class="stt-qt" onclick="closeSettings();setTimeout(openMiora,380)">${sttMakeIcon('miora')}<span>MIORA</span></button>
+        <button type="button" class="stt-qt" onclick="tourReplay()">${sttMakeIcon('helptour')}<span>${L('App Tour','الجولة')}</span></button>
+      </div>
+
       <!-- GENERAL -->
-      <div class="stt-card-label">${L('General','عام')}</div>
+      <div class="stt-card-label">${L('Preferences','التفضيلات')}</div>
       <div class="stt-card">
-        <div class="stt-row" onclick="closeSettings();setView('wsdash')" role="button" tabindex="0">
-          ${sttMakeIcon('home')}
-          <div class="stt-row-body"><div class="stt-row-title">${L('Home','الرئيسية')}</div><div class="stt-row-sub">${L('Go to overview screen','الذهاب إلى الشاشة الرئيسية')}</div></div>
-          <div class="stt-row-trail">${sttChevron()}</div>
-        </div>
-        <div class="stt-row" onclick="closeSettings();setTimeout(openReportsSheet,380)" role="button" tabindex="0">
-          ${sttMakeIcon('reports')}
-          <div class="stt-row-body"><div class="stt-row-title">${L('Reports','التقارير')}</div><div class="stt-row-sub">${L('Financial insights & analytics','تحليلات ورؤى مالية')}</div></div>
-          <div class="stt-row-trail">${sttChevron()}</div>
-        </div>
-        <div class="stt-row" onclick="tourReplay()" role="button" tabindex="0">
-          ${sttMakeIcon('helptour')}
-          <div class="stt-row-body"><div class="stt-row-title">${L('Replay App Tour','إعادة عرض الجولة')}</div><div class="stt-row-sub">${L('See a quick guide to FINORA again.','شاهد جولة سريعة على FINORA مرة أخرى.')}</div></div>
-          <div class="stt-row-trail">${sttChevron()}</div>
-        </div>
-        <div class="stt-row" onclick="closeSettings();setTimeout(openMiora,380)" role="button" tabindex="0">
-          ${sttMakeIcon('miora')}
-          <div class="stt-row-body"><div class="stt-row-title">${L('Ask MIORA','اسأل MIORA')}</div><div class="stt-row-sub">${L('Open your in-app assistant.','افتح مساعدك داخل البرنامج.')}</div></div>
-          <div class="stt-row-trail">${sttChevron()}</div>
-        </div>
         <div class="stt-row" onclick="closeSettings();setTimeout(openNumStylePicker,380)" role="button" tabindex="0">
-          ${sttMakeIcon('reports')}
+          ${sttMakeIcon('numbers')}
           <div class="stt-row-body"><div class="stt-row-title">${L('Balance numbers','شكل الأرقام')}</div><div class="stt-row-sub">${L('Choose how balances look.','اختر شكل عرض الأرصدة.')}</div></div>
           <div class="stt-row-trail">${sttChevron()}</div>
         </div>
@@ -28955,11 +28945,16 @@ function openSettings(){
             </div>
           </div>
         </div>` : ''}
+</div>
+
+      <!-- BEHAVIOR -->
+      <div class="stt-card-label">${L('Behavior','السلوك')}</div>
+      <div class="stt-card">
         <div class="stt-row" onclick="document.getElementById('sttCycleSel')&&document.getElementById('sttCycleSel').focus()">
           ${sttMakeIcon('cycle')}
           <div class="stt-row-body">
             <div class="stt-row-title">${L('Bank month starts on','بداية شهر البنوك')}</div>
-            <div class="stt-row-sub">${L('Dashboard Monthly Change, Income & Expense count deposits & withdrawals from this day of last month (e.g. 27). Off = calendar month','التغيّر الشهري والدخل والمصروف في الداشبورد بيحسبوا الإيداع والسحب من اليوم ده من الشهر اللي فات (مثلاً 27). مقفول = الشهر العادي')}</div>
+            <div class="stt-row-sub">${L('Dashboard totals count from this day of last month (Off = calendar month)','إجماليات الداشبورد بتتحسب من اليوم ده في الشهر اللي فات (مقفول = الشهر الميلادي)')}</div>
           </div>
           <div class="stt-row-trail">
             <select id="sttCycleSel" class="stt-cycle-sel" onclick="event.stopPropagation()" onchange="sttSetCycleDay(this.value)" aria-label="${L('Bank month start day','يوم بداية شهر البنوك')}">
@@ -29068,7 +29063,7 @@ function openSettings(){
           </div>
         </div>
         <div class="stt-row" onclick="sttTogglePinGroup()" role="button" tabindex="0">
-          ${sttMakeIcon('lock')}
+          ${sttMakeIcon('key')}
           <div class="stt-row-body"><div class="stt-row-title">${(!lockEnabled&&!_hasCustomPin())?L('Set PIN','تعيين PIN'):L('Change PIN','تغيير الـ PIN')}</div><div class="stt-row-sub">${(!lockEnabled&&!_hasCustomPin())?L('Create a 4-digit access code','إنشاء رمز وصول من 4 أرقام'):L('Update your 4-digit access code','تحديث رمز الوصول المكون من 4 أرقام')}</div></div>
           <div class="stt-row-trail"><span style="display:inline-flex;transform:rotate(${_sttPinExpanded?90:0}deg);transition:transform .2s">${sttChevron()}</span></div>
         </div>
@@ -51935,7 +51930,10 @@ const WDP_IDB = (function(){
 function _isFirstRunNoPinChoice(){
   try{
     const ls = localStorage;
-    return [LOCK_ENABLED_KEY, PIN_KEY, STORAGE_KEY, MONTHS_KEY, ENCRYPTED_DATA_KEY, ENCRYPTED_MONTHS_KEY, 'wdp_meta_v1'].every(k => ls.getItem(k) === null);
+    // Fresh = no PIN/lock choice yet and nothing encrypted that a PIN could unlock. Plain data/metadata keys are deliberately
+    // NOT part of this test: if the app wrote any of them before the first choice, the old check treated the next launch as a
+    // returning user and showed a PIN pad for a PIN that was never created (only the legacy default existed).
+    return [LOCK_ENABLED_KEY, PIN_KEY, ENCRYPTED_DATA_KEY, ENCRYPTED_MONTHS_KEY].every(k => ls.getItem(k) === null);
   }catch(e){ return false; }
 }
 function _hasCustomPin(){ try{ return localStorage.getItem(PIN_KEY) !== null; }catch(e){ return true; } }
@@ -52023,7 +52021,21 @@ function _wsProceedToApp(){
 }
 function _wsProceedToApp0(){
   // Brand-new install: let the person choose whether to use a PIN before anything else.
-  if(_isFirstRunNoPinChoice()){ _pinSetupOpen('first'); return; }
+  if(_isFirstRunNoPinChoice()){
+    // Hide the PIN pad underneath: on a fresh install there is no PIN to type.
+    try{ const ls0 = document.getElementById('lockScreen'); if(ls0) ls0.style.display = 'none'; document.documentElement.classList.add('ls-skip'); }catch(e){}
+    try{ _pinSetupOpen('first'); }
+    catch(e){
+      // The choice dialog could not open: start without a lock instead of an unknowable PIN screen.
+      console.warn('[WDP] first-run PIN dialog failed', e);
+      try{ persistLockEnabled(false); lockEnabled = false; }catch(_){}
+      const app0 = document.getElementById('app');
+      if(app0){ app0.style.display = 'flex'; app0.style.flexDirection = 'column'; }
+      document.documentElement.classList.remove('ls-skip');
+      try{ initApp(); }catch(_){}
+    }
+    return;
+  }
   const ls  = document.getElementById('lockScreen');
   const app = document.getElementById('app');
 
@@ -64375,6 +64387,19 @@ html body .stt-sheet .stt-card.danger-card .stt-row:not(:last-child)::after{back
 .stt-search-x[hidden]{display:none}
 .stt-search-empty{padding:28px 12px;text-align:center;color:var(--muted);font-size:calc(13.5px*var(--app-text-scale,1))}
 .stt-search-empty[hidden]{display:none}
+/* v2 — quick-access tiles, calmer icon tiles, time-range overflow fix, long descriptions capped at 3 lines */
+.stt-quick{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:2px}
+.stt-qt{-webkit-appearance:none;appearance:none;font:inherit;display:flex;flex-direction:column;align-items:center;gap:7px;min-width:0;padding:12px 4px 10px;border-radius:18px;border:1px solid var(--border);background:var(--surface);box-shadow:var(--stt-sh,none);color:var(--text);cursor:pointer;-webkit-tap-highlight-color:transparent;transition:transform .15s ease}
+.stt-qt:active{transform:scale(.96)}
+.stt-qt span:last-child{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:calc(11.5px*var(--app-text-scale,1));font-weight:650;line-height:1.2}
+html[data-theme="dark"] .stt-qt{background:var(--surface2);box-shadow:none}
+html body .stt-sheet .stt-qt .stt-row-icon{width:40px!important;height:40px!important;border-radius:13px!important}
+html body .stt-sheet .stt-quick + .stt-card-label{margin-top:18px}
+html body .stt-sheet .stt-row-icon:not([style*="gradient"]){box-shadow:none!important;background:color-mix(in srgb,var(--green) 10%,transparent)!important}
+html body .stt-sheet .stt-row-sub{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+html body .stt-sheet .stt-auto-range{grid-template-columns:minmax(0,1fr) minmax(0,1fr);background:color-mix(in srgb,var(--text) 3.5%,transparent);border:0;border-radius:16px}
+html body .stt-sheet .stt-auto-range input[type="time"]{display:block;width:100%;max-width:100%;min-width:0;box-sizing:border-box;-webkit-appearance:none;appearance:none;min-height:42px;text-align:center}
+@media(prefers-reduced-motion:reduce){.stt-qt{transition:none}}
 .stt-hide{display:none!important}
 </style>
 <script id="stt-search">
@@ -64390,6 +64415,7 @@ html body .stt-sheet .stt-card.danger-card .stt-row:not(:last-child)::after{back
     var q=norm(Q), anyShown=false, groups=[], cur=null;
     Array.prototype.forEach.call(body.children,function(el){
       if(el.id==='sttSearchHost'||el.id==='sttSearchEmpty') return;
+      if(el.classList.contains('stt-quick')){ el.classList.toggle('stt-hide',!!q); return; }   // shortcuts are not settings: hide while searching
       if(el.classList.contains('stt-card-label')){ cur={units:[el],label:el,cards:[]}; groups.push(cur); }
       else if(el.classList.contains('stt-card')){ if(!cur){ cur={units:[],label:null,cards:[]}; groups.push(cur); } cur.units.push(el); cur.cards.push(el); }
       else if(el.querySelector&&el.querySelector('.stt-card')){          // wrapper that holds its own label + card (e.g. smart suggestions)
@@ -64452,6 +64478,35 @@ body #mainContent :is(.txlg-row-content,.sav-row-main,.fin-dir-row,.sdb-hrow,.sc
 body #mainContent :is(.txlg-row-content,.sav-row-main,.fin-dir-row,.sdb-hrow,.sc-compact-tap,.sc-field-clickable,.sc-accordion-trigger,.sc-main-header[onclick]):active{background:color-mix(in srgb,var(--text) 4.5%,transparent)}
 body #mainContent :is(.sc-chip,.fin-qa-chip,.fin-qa-chip-primary){transition:transform .15s ease}
 body #mainContent :is(.sc-chip,.fin-qa-chip,.fin-qa-chip-primary):active{transform:scale(.97)}
+/* Daily Spend summary: This Month on top (primary figure), Today underneath (secondary), and the whole card ~30% shorter */
+body #mainContent .txlg-wrap .dsum-month{order:1;padding:14px 18px 12px;background:transparent!important;border-top:0!important}
+body #mainContent .txlg-wrap .dsum-day{order:2;padding:12px 18px 12px;background:color-mix(in srgb,var(--text) 3.5%,transparent)!important;border-top:1px solid var(--dl-line)!important}
+body #mainContent .txlg-wrap .dsum-hd{margin-bottom:4px}
+body #mainContent .txlg-wrap .dsum-tgt{min-height:28px;padding:0 11px}
+body #mainContent .txlg-wrap .dsum-main{margin-top:6px}
+body #mainContent .txlg-wrap .dsum-month .sig-amt{font-size:calc(34px*var(--app-text-scale,1));font-weight:700;letter-spacing:-.8px;line-height:1.05}
+body #mainContent .txlg-wrap .dsum-day .sig-amt{font-size:calc(26px*var(--app-text-scale,1));font-weight:700;letter-spacing:-.5px;line-height:1.05}
+body #mainContent .txlg-wrap .dsum-pctb{padding:4px 10px;margin-bottom:3px}
+body #mainContent .txlg-wrap .dsum-bar{height:7px;margin:8px 0 6px}
+body #mainContent .txlg-wrap .dsum-meta{min-height:18px;margin-top:0}
+/* My Finances — calmer overview: neutral Quick-add tiles (colour only on the icon), lighter section list, tabs stay reachable while scrolling */
+body #mainContent .fin-page[data-tab="overview"] .fin-qa-chip[data-tone]{min-height:86px;gap:8px;padding:12px 4px 10px!important;border-radius:20px!important;background:var(--surface)!important;border:1px solid var(--border)!important;box-shadow:0 1px 2px rgba(16,24,20,.04)!important}
+body #mainContent .fin-page[data-tab="overview"] .fin-qa-chip[data-tone] .fqa-ic{width:40px;height:40px;border-radius:13px;background:color-mix(in srgb,var(--tn) 11%,transparent);border:0;box-shadow:none}
+body #mainContent .fin-page[data-tab="overview"] .fin-qa-chip[data-tone] .fqa-ic svg{width:20px!important;height:20px!important}
+[data-theme="dark"] body #mainContent .fin-page[data-tab="overview"] .fin-qa-chip[data-tone]{background:var(--surface2)!important;border-color:var(--border)!important;box-shadow:none!important}
+[data-theme="dark"] body #mainContent .fin-page[data-tab="overview"] .fin-qa-chip[data-tone] .fqa-ic{background:color-mix(in srgb,var(--tn) 18%,var(--surface2));border:0}
+body #mainContent .fin-page .fin-lbl{margin-top:10px;letter-spacing:.8px}
+body #mainContent .fin-page .fin-dir{border-radius:22px;border:1px solid var(--border);box-shadow:0 1px 2px rgba(16,24,20,.04),0 12px 28px -16px rgba(16,24,20,.20)}
+[data-theme="dark"] body #mainContent .fin-page .fin-dir{background:var(--surface2);box-shadow:none}
+body #mainContent .fin-page .fin-dir-row{min-height:68px;padding:13px 16px;gap:14px;border-bottom:1px solid color-mix(in srgb,var(--text) 7%,transparent)}
+body #mainContent .fin-page .fin-dir-row:last-child{border-bottom:0}
+body #mainContent .fin-page .fin-dir-ic{width:40px;height:40px;border-radius:13px;background:color-mix(in srgb,var(--fc) 11%,transparent)}
+body #mainContent .fin-page .fin-dir-tx b{font-weight:700}
+body #mainContent .fin-page .fin-dir-tx small{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+body #mainContent .fin-page .fin-dir-val b{font-weight:700}
+body #mainContent .fin-page .fin-dir-row:nth-child(3) .fin-dir-val b,body #mainContent .fin-page .fin-dir-row:nth-child(4) .fin-dir-val b{color:var(--text)}
+body #mainContent .fin-page .fin-dir-chev{opacity:.45}
+body #mainContent .fin-page>.fin-tabs{position:sticky;top:var(--fin-tabs-top,0px);z-index:8;padding:8px 1px;background:var(--bg);box-shadow:0 0 0 100vmax var(--bg);clip-path:inset(0 -100vmax)}
 @media(prefers-reduced-motion:reduce){body #mainContent :is(.txlg-row-content,.sav-row-main,.fin-dir-row,.sdb-hrow,.sc-compact-tap,.sc-field-clickable,.sc-accordion-trigger,.sc-chip,.fin-qa-chip,.fin-qa-chip-primary){transition:none}}
 </style>
 <script id="pages-premium-v1-js">
@@ -64466,6 +64521,26 @@ function txScrollToTimeline(){
   a.style.scrollMarginTop=off+'px';
   a.scrollIntoView({behavior:'smooth',block:'start'});
 }
+</script>
+<script id="fin-tabs-sticky-js">
+/* Keeps the My Finances tab bar just under the app header while scrolling. Works whether the page or #mainContent is the scroller. */
+(function(){
+  var raf=0;
+  function upd(){
+    raf=0;
+    var h=document.querySelector('.app-header'); if(!h) return;
+    var pos=getComputedStyle(h).position, top=0;
+    var se=document.scrollingElement||document.documentElement;
+    // page itself scrolls under a sticky/fixed header -> tabs must sit below it; otherwise #mainContent scrolls below the header -> 0
+    if((pos==='sticky'||pos==='fixed') && se.scrollHeight>window.innerHeight+1) top=Math.max(0,Math.round(h.getBoundingClientRect().bottom));
+    document.documentElement.style.setProperty('--fin-tabs-top',top+'px');
+  }
+  function sched(){ if(!raf) raf=requestAnimationFrame(upd); }
+  window.addEventListener('resize',sched); window.addEventListener('orientationchange',sched); window.addEventListener('load',sched);
+  var mc=document.getElementById('mainContent');
+  if(mc && window.MutationObserver) new MutationObserver(sched).observe(mc,{childList:true});
+  sched();
+})();
 </script>
 </body>
 </html>
