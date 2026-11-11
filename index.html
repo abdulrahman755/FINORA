@@ -64589,6 +64589,110 @@ body #mainContent .wdash-wrap.wdash-wrap .wdash-fold-summary{font-size:calc(12.5
 body #mainContent .wdash-wrap.wdash-wrap .wdash-head-label{font-weight:800}
 @media (prefers-reduced-motion:reduce){body #mainContent .wdash-wrap.wdash-wrap .wdash-greet-bar i{transition:none}}
 </style>
+<style id="daily-pro">
+/* Daily (Daily Spend) page polish — CSS-only, markup/JS untouched */
+html body #mainContent .txlg-wrap.txlg-wrap .dsum-merged{border-radius:24px;box-shadow:0 1px 2px rgba(16,24,40,.05),0 18px 34px -24px rgba(16,24,40,.28)}
+html body #mainContent .txlg-wrap.txlg-wrap .dsum-ttl b{font-weight:800}
+html body #mainContent .txlg-wrap.txlg-wrap .dsum-tgt{border:1px solid var(--border);background:var(--surface);font-size:calc(12.5px*var(--app-text-scale,1))}
+html body #mainContent .txlg-wrap.txlg-wrap .dsum-pctb{font-weight:800;letter-spacing:0}
+html body #mainContent .txlg-wrap.txlg-wrap .dsum-bar{box-shadow:inset 0 0 0 1px var(--border)}
+html body #mainContent .txlg-wrap.txlg-wrap .dsum-bar i{transition:width .6s cubic-bezier(.22,.9,.3,1)}
+html body #mainContent .txlg-wrap.txlg-wrap .dsum-meta{font-size:calc(12.5px*var(--app-text-scale,1))}
+
+html body #mainContent .txlg-wrap.txlg-wrap .txlg-filters{padding:14px;border-radius:22px;box-shadow:0 1px 2px rgba(16,24,40,.04)}
+html body #mainContent .txlg-wrap.txlg-wrap .txlg-filters .cx-sbox,html body #mainContent .txlg-wrap.txlg-wrap .txlg-filters .sc-search{border-radius:14px}
+html body #mainContent .txlg-wrap.txlg-wrap .txlg-seg{padding:4px;border-radius:14px}
+html body #mainContent .txlg-wrap.txlg-wrap .txlg-seg button{min-height:36px;border-radius:11px;font-weight:700}
+html body #mainContent .txlg-wrap.txlg-wrap .txlg-seg button.active{box-shadow:0 1px 2px rgba(16,24,40,.10),0 4px 10px -6px rgba(16,24,40,.25)}
+html body #mainContent .txlg-wrap.txlg-wrap .txlg-chip{border-radius:99px;font-weight:600}
+html body #mainContent .txlg-wrap.txlg-wrap .txlg-var-select{border-radius:12px;font-weight:600}
+
+html body #mainContent .txlg-wrap.txlg-wrap #txlgTimelineAnchor{border-radius:22px;overflow:hidden}
+html body #mainContent .txlg-wrap.txlg-wrap #txlgTimelineAnchor .sc-main-title{font-size:calc(15px*var(--app-text-scale,1));font-weight:800;letter-spacing:0;text-transform:none}
+html body #mainContent .txlg-wrap.txlg-wrap .tx-count-badge{padding:2px 10px;border-radius:99px;background:var(--surface2);color:var(--text2);font-size:calc(12px*var(--app-text-scale,1));font-weight:700}
+html body #mainContent .txlg-wrap.txlg-wrap .txlg-group-label{padding:16px 16px 8px;background:transparent!important;border:0!important;font-size:calc(12.5px*var(--app-text-scale,1));font-weight:700;letter-spacing:0;text-transform:none;color:var(--muted)}
+html body #mainContent .txlg-wrap.txlg-wrap .txlg-group-n{margin-inline-start:6px;padding:1px 8px;border-radius:99px;background:var(--surface2);font-style:normal;font-size:calc(11.5px*var(--app-text-scale,1));font-weight:700}
+html body #mainContent .txlg-wrap.txlg-wrap .txlg-group-total{padding:3px 11px;border-radius:99px;background:var(--surface2);color:var(--text)!important;font-size:calc(12.5px*var(--app-text-scale,1));font-weight:800}
+html body #mainContent .txlg-wrap.txlg-wrap .txlg-row-content{padding:14px 16px;gap:14px}
+html body #mainContent .txlg-wrap.txlg-wrap .txlg-ico{width:44px;height:44px;border-radius:14px}
+html body #mainContent .txlg-wrap.txlg-wrap .txlg-notes{font-size:calc(15px*var(--app-text-scale,1));font-weight:700;line-height:1.3}
+html body #mainContent .txlg-wrap.txlg-wrap .txlg-ai-line{margin-top:3px;font-size:calc(12px*var(--app-text-scale,1));font-weight:500;color:var(--muted)}
+html body #mainContent .txlg-wrap.txlg-wrap .txlg-amt{font-size:calc(16px*var(--app-text-scale,1));font-weight:800;letter-spacing:-.2px}
+html body #mainContent .txlg-wrap.txlg-wrap .txlg-cur{margin-inline-start:3px;font-size:.7em;font-weight:700;opacity:.6}
+html body #mainContent .txlg-wrap.txlg-wrap .txlg-viewall{display:block;width:calc(100% - 32px);margin:12px 16px 14px;padding:12px;border:1px solid var(--border);border-radius:99px;background:var(--surface);font-weight:700}
+
+html body #mainContent .txlg-wrap.txlg-wrap .pur2-card{border-radius:22px}
+html body #mainContent .txlg-wrap.txlg-wrap .sc-bottom .sc-btn.secondary{min-height:46px;border-radius:99px;font-weight:700}
+@media (prefers-reduced-motion:reduce){html body #mainContent .txlg-wrap.txlg-wrap .dsum-bar i{transition:none}}
+</style>
+<style id="banks-pro">
+/* Banks page polish — CSS-only; account cards/visa cards untouched */
+html body #mainContent .screen-wrap.banks-v2.banks-v2 .bnk-hero .bnk-hero-eyebrow{letter-spacing:0;font-size:calc(12.5px*var(--app-text-scale,1))}
+html body #mainContent .screen-wrap.banks-v2.banks-v2 .bnk-hero .bnk-hero-eye,html body #mainContent .screen-wrap.banks-v2.banks-v2 .bnk-hero .bnk-hero-month-pill{height:32px;display:inline-flex;align-items:center;padding:0 13px;border-radius:99px;border:1px solid rgba(255,255,255,.14);font-weight:600}
+html body #mainContent .screen-wrap.banks-v2.banks-v2 .bnk-hero .bnk-hero-total .sig-amt{font-size:clamp(32px,10.4vw,44px);font-weight:800;letter-spacing:-.04em}
+html body #mainContent .screen-wrap.banks-v2.banks-v2 .bnk-hero .bnk-hero-wallets{color:rgba(255,255,255,.7)!important;font-weight:600!important}
+html body #mainContent .screen-wrap.banks-v2.banks-v2 .bnk-hero .bnk-hero-row{margin-top:16px;padding-top:14px;border-top:1px solid rgba(255,255,255,.12);align-items:center}
+html body #mainContent .screen-wrap.banks-v2.banks-v2 .bnk-hero .bnk-hero-chip{padding:5px 12px;border-radius:99px;font-weight:700}
+html body #mainContent .screen-wrap.banks-v2.banks-v2 .bnk-hero .bnk-hero-stat-val{font-weight:800}
+html body #mainContent .screen-wrap.banks-v2.banks-v2 .bnk-section-title{font-size:calc(17px*var(--app-text-scale,1))}
+
+html body #mainContent .screen-wrap.banks-v2.banks-v2 .bnk-timeline{overflow:hidden}
+html body #mainContent .screen-wrap.banks-v2.banks-v2 .bnk-tl-group-label{padding:14px 16px 6px;font-size:calc(12.5px*var(--app-text-scale,1));font-weight:700;letter-spacing:0;text-transform:none;color:var(--muted);background:transparent}
+html body #mainContent .screen-wrap.banks-v2.banks-v2 .bnk-tl-row{padding:12px 16px;gap:12px}
+html body #mainContent .screen-wrap.banks-v2.banks-v2 .bnk-tl-dot{width:40px;height:40px;border-radius:13px}
+html body #mainContent .screen-wrap.banks-v2.banks-v2 .bnk-tl-title{font-size:calc(14.5px*var(--app-text-scale,1));font-weight:700}
+html body #mainContent .screen-wrap.banks-v2.banks-v2 .bnk-tl-sub{margin-top:2px;font-size:calc(12px*var(--app-text-scale,1));color:var(--muted)}
+html body #mainContent .screen-wrap.banks-v2.banks-v2 .bnk-tl-amt{font-size:calc(15.5px*var(--app-text-scale,1));font-weight:800;letter-spacing:-.2px;font-variant-numeric:tabular-nums}
+html body #mainContent .screen-wrap.banks-v2.banks-v2 .bnk-tl-time{margin-top:2px;font-size:calc(11.5px*var(--app-text-scale,1));color:var(--muted)}
+
+html body #mainContent .screen-wrap.banks-v2.banks-v2 .bnk-mv-day{letter-spacing:0;text-transform:none;font-size:calc(12.5px*var(--app-text-scale,1))}
+html body #mainContent .screen-wrap.banks-v2.banks-v2 .bnk-sec-hdr{align-items:center}
+html body #mainContent .screen-wrap.banks-v2.banks-v2 .bnk-sec-sum{padding:3px 11px;border-radius:99px;background:var(--surface2);font-weight:800;font-variant-numeric:tabular-nums}
+
+html body #mainContent .screen-wrap.banks-v2.banks-v2 .bnk-analytics{padding:16px;overflow:hidden}
+html body #mainContent .screen-wrap.banks-v2.banks-v2 .bnk-analytics-chip{padding:7px 12px;border-radius:99px;font-weight:700}
+html body #mainContent .screen-wrap.banks-v2.banks-v2 .bnk-analytics-stat{border-radius:16px;padding:14px;border:1px solid var(--border)}
+html body #mainContent .screen-wrap.banks-v2.banks-v2 .bnk-analytics-stat-lbl{font-size:calc(12px*var(--app-text-scale,1));font-weight:600;letter-spacing:0;text-transform:none;color:var(--muted)}
+html body #mainContent .screen-wrap.banks-v2.banks-v2 .bnk-analytics-stat-val{margin-top:4px;font-size:calc(16px*var(--app-text-scale,1));font-weight:800;letter-spacing:-.2px}
+html body #mainContent .screen-wrap.banks-v2.banks-v2 .tx-type-toggle button{min-height:42px;font-weight:700}
+</style>
+<style id="savings-pro">
+/* My Savings / Finance hub polish — CSS-only; asset tiles and debt rows untouched */
+html body #mainContent .fin-page.fin-page .fin-hero-card{border-radius:24px!important;box-shadow:0 1px 2px rgba(16,24,40,.05),0 18px 34px -24px rgba(16,24,40,.28)!important}
+html body #mainContent .fin-page.fin-page .fin-hero-label{font-size:calc(13px*var(--app-text-scale,1));font-weight:600;letter-spacing:0;text-transform:none}
+html body #mainContent .fin-page.fin-page .fin-hero-amount{font-weight:800;letter-spacing:-.04em;font-variant-numeric:tabular-nums lining-nums}
+html body #mainContent .fin-page.fin-page .fin-hero-formula{font-size:calc(12px*var(--app-text-scale,1));font-weight:500;letter-spacing:0;color:var(--muted)}
+html body #mainContent .fin-page.fin-page .fin-secondary-grid .fin-card{padding:14px 16px}
+html body #mainContent .fin-page.fin-page .fin-card-title{font-size:calc(12.5px*var(--app-text-scale,1));font-weight:600;letter-spacing:0;text-transform:none;color:var(--muted)}
+html body #mainContent .fin-page.fin-page .fin-card-amount{font-size:calc(19px*var(--app-text-scale,1));font-weight:800;letter-spacing:-.4px;font-variant-numeric:tabular-nums}
+html body #mainContent .fin-page.fin-page .fin-card-sub{font-size:calc(12px*var(--app-text-scale,1));font-weight:500}
+html body #mainContent .fin-page.fin-page .fin-tabs{padding:4px;border-radius:16px}
+html body #mainContent .fin-page.fin-page .fin-tab{min-height:38px;border-radius:12px;font-weight:700}
+html body #mainContent .fin-page.fin-page .fin-sec-hd{padding:14px 16px}
+html body #mainContent .fin-page.fin-page .fin-sec-t{font-weight:800;letter-spacing:0;text-transform:none}
+html body #mainContent .fin-page.fin-page .fin-sec-n{padding:2px 10px;border-radius:99px;font-weight:700}
+html body #mainContent .fin-page.fin-page .fin-sec-add{min-height:34px;border-radius:99px;font-weight:700}
+html body #mainContent .fin-page.fin-page .fin-dir-row{padding:14px 16px;gap:12px}
+html body #mainContent .fin-page.fin-page .fin-dir-val{font-weight:800;letter-spacing:-.2px;font-variant-numeric:tabular-nums}
+html body #mainContent .fin-page.fin-page .fin-qa-chip .fqa-t{font-size:calc(12.5px*var(--app-text-scale,1));font-weight:700}
+html body #mainContent .fin-page.fin-page .sav-search .cx-sbox>input,html body #mainContent .fin-page.fin-page.sav-search .cx-sbox>input{height:48px;border-radius:16px}
+</style>
+<style id="settings-pro">
+/* Settings sheet polish — CSS-only (labels no longer all-caps/tracked, which breaks Arabic joining) */
+html body .stt-sheet.stt-sheet .stt-body>.stt-card-label,html body .stt-sheet.stt-sheet .stt-body>#imSettings>.stt-card-label{font-size:calc(12.5px*var(--app-text-scale,1));font-weight:700;letter-spacing:0;text-transform:none;color:var(--text2);padding:0 10px 6px;margin-top:22px}
+html body .stt-sheet.stt-sheet .stt-search + .stt-card-label,html body .stt-sheet.stt-sheet .stt-search + .stt-search-empty + .stt-card-label{margin-top:16px}
+html body .stt-sheet.stt-sheet .stt-card{border-radius:22px;box-shadow:0 1px 2px rgba(16,24,40,.04),0 10px 22px -18px rgba(16,24,40,.22)}
+html body .stt-sheet.stt-sheet .stt-row{min-height:60px;padding:11px 16px 11px 14px}
+html body .stt-sheet.stt-sheet .stt-row-icon:not([style*="gradient"]){width:38px;height:38px;border-radius:12px}
+html body .stt-sheet.stt-sheet .stt-row-title{font-size:calc(14.5px*var(--app-text-scale,1));font-weight:700;letter-spacing:0}
+html body .stt-sheet.stt-sheet .stt-row-sub{margin-top:2px;font-size:calc(12.5px*var(--app-text-scale,1));font-weight:500;line-height:1.4}
+html body .stt-sheet.stt-sheet .stt-trail-val{font-weight:700}
+html body .stt-sheet.stt-sheet .stt-search input{height:46px;border-radius:16px}
+</style>
+
+
+
+
 
 <script id="pages-premium-v1-js">
 /* Daily Spend: tapping the spending summary scrolls to the Timeline. The old call put the Timeline header under the sticky app header. */
