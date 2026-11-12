@@ -46489,6 +46489,8 @@ function _renderNoteEditorUnlocked(n){
     </div>
     <input type="file" id="qnPhotoInput" accept="image/*" multiple style="display:none" onchange="_notesHandlePhotoFile(this.files)">
     <input type="file" id="qnFileInput" style="display:none" onchange="_notesHandleGenericFile(this.files)">`;
+  _qnLastRange = null;
+  ['qnFabMenu','qnFab'].forEach(function(id){ const el = document.getElementById(id); if(el) el.addEventListener('mousedown', function(e){ e.preventDefault(); }); });
   _notesChecklistBind(document.getElementById('qnBody'));
   document.getElementById('qnBody').addEventListener('paste', _notesPaste);
   _notesAttachKeyboardTracking();
@@ -46720,8 +46722,29 @@ function _notesDeleteCurrent(){
   _notesCurrentId = null;
   renderNotesList();
 }
+// Remember the last selection made INSIDE the note body, so a tap on the format button / the Text-style sheet
+// (which move focus away) still formats exactly what the person selected, not the first line.
+let _qnLastRange = null;
+document.addEventListener('selectionchange', function(){
+  const b = document.getElementById('qnBody'); if(!b) return;
+  const s = window.getSelection(); if(!s || !s.rangeCount) return;
+  const r = s.getRangeAt(0);
+  if(b.contains(r.commonAncestorContainer)){
+    _qnLastRange = r.cloneRange();
+    const m = document.getElementById('qnFabMenu');
+    if(m && m.classList.contains('open')){ try{ _notesFabSync(); }catch(_){} }
+  }
+});
+function _qnRestoreSel(){
+  const b = document.getElementById('qnBody'); if(!b) return;
+  try{ b.focus({preventScroll:true}); }catch(_){ b.focus(); }
+  if(_qnLastRange && b.contains(_qnLastRange.commonAncestorContainer)){
+    const s = window.getSelection();
+    try{ s.removeAllRanges(); s.addRange(_qnLastRange); }catch(_){}
+  }
+}
 function _notesFormat(cmd){
-  document.getElementById('qnBody').focus();
+  _qnRestoreSel();
   try{ document.execCommand(cmd, false, null); }catch(e){ _logErr('_notesFormat', e); }
   _notesAutosave();
 }
@@ -46954,9 +46977,44 @@ function _notesChecklistClick(e){            // kept for any external caller
   e.preventDefault();
   _notesToggleChkBox(box);
 }
+// ── Playful feedback for checklists (visual only: nothing here is written into the note) ─────────────────────────
+function _qnReduceMotion(){ try{ return window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches; }catch(_){ return false; } }
+function _qnSparkle(box){            // a tiny burst out of the circle when an item is ticked
+  if(_qnReduceMotion() || !box || !box.getBoundingClientRect) return;
+  const r = box.getBoundingClientRect(), ox = r.left + r.width/2, oy = r.top + r.height/2;
+  const cols = ['#2fb67c','#1565d8','#f2b63d','#e5645a','#7b61ff'];
+  const host = document.createElement('div');
+  host.style.cssText = 'position:fixed;inset:0;pointer-events:none;z-index:2147483000;overflow:hidden';
+  for(let i = 0; i < 9; i++){
+    const d = document.createElement('i'), a = (Math.PI*2/9)*i + Math.random()*.5, v = 20 + Math.random()*16;
+    d.style.cssText = 'position:absolute;left:'+ox+'px;top:'+oy+'px;width:5px;height:5px;margin:-2.5px 0 0 -2.5px;border-radius:50%;background:'+cols[i%cols.length]+';opacity:0';
+    host.appendChild(d);
+    try{ d.animate([{transform:'translate(0,0) scale(.4)',opacity:1},{transform:'translate('+Math.cos(a)*v+'px,'+Math.sin(a)*v+'px) scale(1)',opacity:1,offset:.5},{transform:'translate('+Math.cos(a)*v*1.5+'px,'+Math.sin(a)*v*1.5+'px) scale(.2)',opacity:0}],{duration:520,easing:'cubic-bezier(.2,.7,.3,1)',fill:'forwards'}); }catch(_){}
+  }
+  document.body.appendChild(host); setTimeout(function(){ host.remove(); }, 700);
+}
+function _qnConfetti(anchor){        // when the whole list is done
+  if(_qnReduceMotion() || !anchor || !anchor.getBoundingClientRect) return;
+  const r = anchor.getBoundingClientRect(), ox = r.left + r.width/2, oy = r.top + r.height/2;
+  const cols = ['#1565d8','#2fb67c','#f2b63d','#e5645a','#7b61ff','#18b6c9'];
+  const host = document.createElement('div');
+  host.style.cssText = 'position:fixed;inset:0;pointer-events:none;z-index:2147483000;overflow:hidden';
+  for(let i = 0; i < 38; i++){
+    const p = document.createElement('i'), s = 5 + Math.random()*6, h = s*(Math.random() < .5 ? 1 : .45);
+    p.style.cssText = 'position:absolute;left:'+ox+'px;top:'+oy+'px;width:'+s+'px;height:'+h+'px;background:'+cols[i%cols.length]+';border-radius:'+(Math.random() < .4 ? '50%' : '2px')+';opacity:0';
+    host.appendChild(p);
+    const a = -Math.PI/2 + (Math.random()-.5)*Math.PI*1.15, v = 150 + Math.random()*190, dx = Math.cos(a)*v, dy = Math.sin(a)*v;
+    try{ p.animate([{transform:'translate(0,0) rotate(0deg)',opacity:1},{transform:'translate('+dx+'px,'+dy+'px) rotate('+(Math.random()*360)+'deg)',opacity:1,offset:.45},{transform:'translate('+dx*1.15+'px,'+(dy+260)+'px) rotate('+(Math.random()*720)+'deg)',opacity:0}],{duration:1100 + Math.random()*500,easing:'cubic-bezier(.2,.7,.3,1)',fill:'forwards'}); }catch(_){}
+  }
+  document.body.appendChild(host); setTimeout(function(){ host.remove(); }, 1800);
+  try{ if(navigator.vibrate) navigator.vibrate([10,40,18]); }catch(_){}
+}
 function _notesToggleChkBox(box){
   const line = box.closest('.qn-chk'); if(!line) return;
   line.classList.toggle('checked');
+  { const on = line.classList.contains('checked');
+    try{ if(!_qnReduceMotion()) box.animate(on ? [{transform:'scale(.7)'},{transform:'scale(1.28)',offset:.55},{transform:'scale(1)'}] : [{transform:'scale(1.12)'},{transform:'scale(1)'}], {duration:on?380:200, easing:'cubic-bezier(.22,1,.36,1)'}); }catch(_){}
+    if(on) try{ _qnSparkle(box); }catch(_){} }
   if(_notesChkAutoSort()) _notesChkReposition(line);
   try{ if(navigator.vibrate) navigator.vibrate(8); }catch(_){}
   _notesAutosave();
@@ -47044,6 +47102,17 @@ function _notesUpdateChkProgressNow(){
   if(bar) bar.style.width = pct + '%';
   if(b) b.textContent = d + '/' + t;
   if(em) em.textContent = (d === t ? '✓ ' : '') + pct + '%';
+  // mood badge + celebration (visual only; the strip is not part of the saved note)
+  if(!el.querySelector('.qn-cp-mood')) el.insertAdjacentHTML('afterbegin', '<span class="qn-cp-mood" aria-hidden="true"></span>');
+  const mood = el.querySelector('.qn-cp-mood'), key = d === t ? 'done' : pct === 0 ? 'zero' : pct < 34 ? 'low' : pct < 67 ? 'mid' : 'high';
+  const MOOD = {zero:'\uD83D\uDCDD', low:'\uD83C\uDF31', mid:'\uD83D\uDD25', high:'\uD83D\uDE80', done:'\uD83C\uDF89'};
+  if(el.dataset.mood !== key){
+    el.dataset.mood = key;
+    if(mood){ mood.textContent = MOOD[key]; if(el.dataset.live === '1' && !_qnReduceMotion()) try{ mood.animate([{transform:'scale(.6) rotate(-14deg)'},{transform:'scale(1.25) rotate(8deg)',offset:.55},{transform:'none'}],{duration:480,easing:'cubic-bezier(.22,1,.36,1)'}); }catch(_){} }
+  }
+  const wasDone = el.dataset.done; el.dataset.done = (d === t) ? '1' : '0';
+  if(d === t && wasDone === '0' && el.dataset.live === '1') try{ _qnConfetti(el); }catch(_){}
+  el.dataset.live = '1';
 }
 // The native contenteditable Enter-split / Backspace-join don't know how to handle a display:flex row that has a
 // contenteditable="false" checkbox span in it (on mobile they drop the new line inside the SAME row, leave the caret
@@ -47306,15 +47375,13 @@ function _notesOpenStyleMenu(){
   document.getElementById('modalOverlay').style.display = 'flex';
 }
 function _notesApplyBlockStyle(tag){
-  const body = document.getElementById('qnBody');
-  body.focus();
+  _qnRestoreSel();
   try{ document.execCommand('formatBlock', false, tag); }catch(e){ _logErr('_notesApplyBlockStyle', e); }
   closeModal();
   _notesAutosave();
 }
 function _notesApplyList(kind){
-  const body = document.getElementById('qnBody');
-  body.focus();
+  _qnRestoreSel();
   try{
     document.execCommand(kind==='number' ? 'insertOrderedList' : 'insertUnorderedList', false, null);
     if(kind==='dashed'){
@@ -64797,6 +64864,85 @@ html body #mainContent .cx-wrap.cv-wrap.cv-wrap .cv-btn{height:48px;border-radiu
 html body #mainContent .cx-wrap.cv-wrap.cv-wrap .cv-btn:active{transform:scale(.985)}
 @media (prefers-reduced-motion:reduce){html body #mainContent .cx-wrap.cv-wrap.cv-wrap .cv-live-dot{animation:none}}
 </style>
+<style id="notes-pro">
+/* Notes editor: a more playful, crafted feel (visual only — nothing here changes the saved note) */
+html body #notesPageOverlay .qn-header:has(#qnTitleInput){padding-block:10px;box-shadow:0 8px 18px -16px rgba(16,24,40,.35)}
+html body #notesPageOverlay .qn-title-input{font-size:calc(19px*var(--app-text-scale,1));font-weight:800;letter-spacing:0}
+/* progress strip with a mood badge */
+html body #notesPageOverlay .qn-chk-progress{margin:12px var(--sp4) 2px;padding:12px 14px;gap:12px;border-radius:20px;background:linear-gradient(135deg,color-mix(in srgb,var(--green) 7%,var(--surface)),var(--surface) 70%);box-shadow:0 1px 2px rgba(16,24,40,.06),0 12px 22px -16px rgba(16,24,40,.28);transition:background .4s ease,border-color .4s ease}
+html body #notesPageOverlay .qn-cp-mood{flex:none;width:36px;height:36px;border-radius:13px;display:grid;place-items:center;background:var(--surface2);font-size:19px;line-height:1}
+html body #notesPageOverlay .qn-cp-bar{height:9px;background:var(--surface2);box-shadow:inset 0 0 0 1px var(--border)}
+html body #notesPageOverlay .qn-cp-bar i{position:relative;overflow:hidden;background:linear-gradient(90deg,#1565d8,#18b6c9 55%,#2fb67c);min-width:0}
+html body #notesPageOverlay .qn-cp-bar i::after{content:'';position:absolute;inset:0;background:linear-gradient(100deg,transparent 30%,rgba(255,255,255,.55) 50%,transparent 70%);transform:translateX(-100%);animation:qnShine 2.6s ease-in-out infinite}
+@keyframes qnShine{0%{transform:translateX(-100%)}60%,100%{transform:translateX(100%)}}
+html body #notesPageOverlay .qn-chk-progress[data-mood="done"]{background:linear-gradient(135deg,color-mix(in srgb,#2fb67c 20%,var(--surface)),color-mix(in srgb,#f2b63d 12%,var(--surface)));border-color:color-mix(in srgb,#2fb67c 45%,var(--border))}
+html body #notesPageOverlay .qn-chk-progress[data-mood="done"] .qn-cp-bar i::after{animation-duration:1.4s}
+html body #notesPageOverlay .qn-chk-progress[data-mood="done"] .qn-cp-bar i{background:linear-gradient(90deg,#2fb67c,#f2b63d)}
+/* checklist rows: receipt-style list, satisfying circles */
+html body #notesPageOverlay #qnBody{font-size:calc(17px*var(--app-text-scale,1));line-height:1.65}
+html body #notesPageOverlay #qnBody .qn-chk{padding:11px 0;border-bottom:1px dashed var(--border);transition:opacity .25s ease}
+html body #notesPageOverlay #qnBody .qn-chk:last-of-type{border-bottom:0}
+html body #notesPageOverlay #qnBody .qn-chk-box{width:26px;height:26px;margin-top:3px;border-width:2px;border-color:color-mix(in srgb,var(--green) 55%,var(--border));background:var(--surface)}
+html body #notesPageOverlay #qnBody .qn-chk.checked .qn-chk-box{background:linear-gradient(145deg,#2fb67c,#1b8f5e);border-color:transparent;box-shadow:0 4px 10px -3px color-mix(in srgb,#2fb67c 70%,transparent)}
+html body #notesPageOverlay #qnBody .qn-chk.checked .qn-chk-box::after{left:8px;top:3.5px;width:6px;height:11px;border-color:#fff}
+html body #notesPageOverlay [dir="rtl"] #qnBody .qn-chk.checked .qn-chk-box::after,html body #notesPageOverlay #qnBody[dir="rtl"] .qn-chk.checked .qn-chk-box::after{left:auto;right:8px}
+html body #notesPageOverlay #qnBody .qn-chk.checked .qn-chk-text{opacity:.5;text-decoration-thickness:2px;text-decoration-color:color-mix(in srgb,var(--green) 70%,transparent)}
+/* the floating T button gently breathes while idle */
+html body #notesPageOverlay .qn-fab::before{content:'';position:absolute;inset:-2px;border-radius:inherit;border:2px solid color-mix(in srgb,#1565d8 55%,transparent);opacity:0;animation:qnBreath 3.2s ease-out infinite;pointer-events:none}
+@keyframes qnBreath{0%{opacity:.7;transform:scale(1)}70%,100%{opacity:0;transform:scale(1.35)}}
+html body #notesPageOverlay .qn-fab.open::before,html body #notesPageOverlay .qn-fab-wrap.dragging .qn-fab::before{animation:none;opacity:0}
+@media (prefers-reduced-motion:reduce){html body #notesPageOverlay .qn-cp-bar i::after,html body #notesPageOverlay .qn-fab::before{animation:none}}
+</style>
+<style id="notes-menu-pro">
+/* Format menu: smooth open AND close (no display toggle), calmer layout, rows cascade from the button */
+html body #notesPageOverlay .qn-fab-scrim{display:block;opacity:0;visibility:hidden;transition:opacity .24s ease,visibility 0s linear .24s;background:rgba(8,14,11,.28);-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px)}
+html body #notesPageOverlay .qn-fab-scrim.open{opacity:1;visibility:visible;transition:opacity .24s ease,visibility 0s;animation:none}
+html body #notesPageOverlay .qn-fab-menu{display:flex;visibility:hidden;opacity:0;pointer-events:none;min-width:212px;padding:6px;border-radius:20px;border:1px solid color-mix(in srgb,var(--text) 8%,transparent);
+background:color-mix(in srgb,var(--surface) 94%,transparent);box-shadow:0 2px 6px rgba(16,24,40,.08),0 24px 48px -12px rgba(16,24,40,.38);
+transform:translateY(12px) scale(.9);will-change:transform,opacity;
+transition:opacity .18s ease,transform .3s cubic-bezier(.22,1,.36,1),visibility 0s linear .3s}
+html body #notesPageOverlay .qn-fab-wrap.qn-below .qn-fab-menu{transform:translateY(-12px) scale(.9)}
+html body #notesPageOverlay .qn-fab-menu.open{visibility:visible;opacity:1;pointer-events:auto;transform:none;animation:none;transition:opacity .2s ease,transform .34s cubic-bezier(.22,1,.36,1),visibility 0s}
+html body #notesPageOverlay .qn-fab-row{min-height:44px;padding:0 10px 0 6px;gap:12px;border-radius:14px;font-size:calc(14.5px*var(--app-text-scale,1));font-weight:600;opacity:0;transform:translateY(8px);transition:opacity .16s ease,transform .26s cubic-bezier(.22,1,.36,1),background .15s ease}
+html body #notesPageOverlay .qn-fab-menu.open .qn-fab-row{opacity:1;transform:none;animation:none}
+html body #notesPageOverlay .qn-fab-wrap.qn-below .qn-fab-row{transform:translateY(-8px)}
+html body #notesPageOverlay .qn-fab-wrap.qn-below .qn-fab-menu.open .qn-fab-row{transform:none}
+html body #notesPageOverlay .qn-fab-menu.open .qn-fab-row:nth-last-child(1){transition-delay:0ms}
+html body #notesPageOverlay .qn-fab-menu.open .qn-fab-row:nth-last-child(2){transition-delay:16ms}
+html body #notesPageOverlay .qn-fab-menu.open .qn-fab-row:nth-last-child(3){transition-delay:32ms}
+html body #notesPageOverlay .qn-fab-menu.open .qn-fab-row:nth-last-child(4){transition-delay:48ms}
+html body #notesPageOverlay .qn-fab-menu.open .qn-fab-row:nth-last-child(5){transition-delay:64ms}
+html body #notesPageOverlay .qn-fab-menu.open .qn-fab-row:nth-last-child(6){transition-delay:80ms}
+html body #notesPageOverlay .qn-fab-menu.open .qn-fab-row:nth-last-child(7){transition-delay:96ms}
+html body #notesPageOverlay .qn-fab-menu.open .qn-fab-row:nth-last-child(8){transition-delay:112ms}
+html body #notesPageOverlay .qn-fab-menu.open .qn-fab-row:nth-last-child(9){transition-delay:128ms}
+html body #notesPageOverlay .qn-fab-menu.open .qn-fab-row:nth-last-child(10){transition-delay:144ms}
+html body #notesPageOverlay .qn-fab-menu.open .qn-fab-row:nth-last-child(11){transition-delay:160ms}
+html body #notesPageOverlay .qn-fab-menu.open .qn-fab-row:nth-last-child(12){transition-delay:176ms}
+html body #notesPageOverlay .qn-fab-menu.open .qn-fab-row:nth-last-child(13){transition-delay:192ms}
+html body #notesPageOverlay .qn-fab-wrap.qn-below .qn-fab-menu.open .qn-fab-row:nth-child(1){transition-delay:0ms}
+html body #notesPageOverlay .qn-fab-wrap.qn-below .qn-fab-menu.open .qn-fab-row:nth-child(2){transition-delay:16ms}
+html body #notesPageOverlay .qn-fab-wrap.qn-below .qn-fab-menu.open .qn-fab-row:nth-child(3){transition-delay:32ms}
+html body #notesPageOverlay .qn-fab-wrap.qn-below .qn-fab-menu.open .qn-fab-row:nth-child(4){transition-delay:48ms}
+html body #notesPageOverlay .qn-fab-wrap.qn-below .qn-fab-menu.open .qn-fab-row:nth-child(5){transition-delay:64ms}
+html body #notesPageOverlay .qn-fab-wrap.qn-below .qn-fab-menu.open .qn-fab-row:nth-child(6){transition-delay:80ms}
+html body #notesPageOverlay .qn-fab-wrap.qn-below .qn-fab-menu.open .qn-fab-row:nth-child(7){transition-delay:96ms}
+html body #notesPageOverlay .qn-fab-wrap.qn-below .qn-fab-menu.open .qn-fab-row:nth-child(8){transition-delay:112ms}
+html body #notesPageOverlay .qn-fab-wrap.qn-below .qn-fab-menu.open .qn-fab-row:nth-child(9){transition-delay:128ms}
+html body #notesPageOverlay .qn-fab-wrap.qn-below .qn-fab-menu.open .qn-fab-row:nth-child(10){transition-delay:144ms}
+html body #notesPageOverlay .qn-fab-wrap.qn-below .qn-fab-menu.open .qn-fab-row:nth-child(11){transition-delay:160ms}
+html body #notesPageOverlay .qn-fab-wrap.qn-below .qn-fab-menu.open .qn-fab-row:nth-child(12){transition-delay:176ms}
+html body #notesPageOverlay .qn-fab-wrap.qn-below .qn-fab-menu.open .qn-fab-row:nth-child(13){transition-delay:192ms}
+html body #notesPageOverlay .qn-fab-row:active{background:color-mix(in srgb,var(--green) 10%,transparent);transform:scale(.98)}
+html body #notesPageOverlay .qn-fab-row-ic{width:32px;height:32px;border-radius:10px}
+html body #notesPageOverlay .qn-fab-row-ic svg{width:17px;height:17px}
+html body #notesPageOverlay .qn-fab-row[data-fmt]::after{width:8px;height:8px}
+html body #notesPageOverlay .qn-fab-row.on{background:color-mix(in srgb,var(--green) 9%,transparent)}
+html body #notesPageOverlay .qn-fab-sep{margin:5px 10px;opacity:.55}
+@media (prefers-reduced-motion:reduce){html body #notesPageOverlay .qn-fab-menu,html body #notesPageOverlay .qn-fab-row,html body #notesPageOverlay .qn-fab-scrim{transition:opacity .01s,visibility 0s!important;transform:none!important}}
+</style>
+
+
 
 
 <style id="savings-pro">
