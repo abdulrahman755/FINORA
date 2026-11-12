@@ -8826,6 +8826,71 @@ function fpInitSwipeNav(){
     const j = i + step;
     return (j >= 0 && j < ORDER.length) ? ORDER[j] : null;
   }
+  // ── Swipe between a page's titled tabs (My Finances: Overview/Income/…/Debts · My Job: Receipts/Custody/…) ──────
+  // Same gesture rules as page swipes. When the page has a neighbouring tab in the swipe direction the gesture
+  // switches TAB (content follows the finger a little, then slides in from the side); otherwise it falls through
+  // to normal page navigation. Reuses each tab button's own click handler, so no tab logic is duplicated.
+  const TAB_COMMIT_FRAC = 0.20, TAB_FLICK_MIN = 40;
+  // Who owns a swipe on a page that has tabs? Decided by WHERE it starts, never mid-gesture, so the two can't fight:
+  //   · starts in the outer edge zone, moving away from that edge  → PAGE navigation
+  //   · starts anywhere else                                       → TAB navigation (rubber-bands at the first/last tab)
+  const PAGE_ZONE = 0.22;     // share of the screen width on each side that belongs to page navigation
+  function tabScope(){
+    let bar = null, sel = '';
+    if(currentView === 'savings'){ bar = document.querySelector('.fin-page .fin-tabs'); sel = '.fin-tab'; }
+    else if(currentView === 'expenses'){ bar = document.querySelector('.cx-tabs'); sel = '.cx-seg-btn'; }
+    if(!bar || bar.offsetParent === null) return null;
+    const btns = Array.prototype.slice.call(bar.querySelectorAll(sel));
+    const i = btns.findIndex(function(b){ return b.classList.contains('on'); });
+    return (btns.length > 1 && i >= 0) ? {bar:bar, btns:btns, i:i, sel:sel} : null;
+  }
+  function tabBelow(bar){                        // everything under the tab bar = the part that changes
+    let a = bar; const host = getHost();
+    while(a && !a.nextElementSibling && a.parentElement && a.parentElement !== host) a = a.parentElement;
+    const out = []; for(let n = a && a.nextElementSibling; n; n = n.nextElementSibling) out.push(n);
+    return out;
+  }
+  const stepOf = dx => (dx < 0 ? 1 : -1) * (isRTL() ? -1 : 1);
+  function tabMove(t, adx){
+    const g = st, ok = !!g.tab.btns[g.tab.i + stepOf(adx)];
+    g.shown = Math.sign(adx) * (ok ? Math.min(Math.abs(adx) * 0.35, 56) : Math.min(Math.abs(adx) * 0.12, 16));
+    if(!raf) raf = requestAnimationFrame(function(){
+      raf = 0; if(st && st.tabEls) st.tabEls.forEach(function(el){ el.style.transform = tx(st.shown); });
+    });
+    const now = performance.now();
+    g.samples.push({x:t.clientX, t:now});
+    while(g.samples.length > 2 && now - g.samples[0].t > 90) g.samples.shift();
+  }
+  function tabFinish(g, cancelled){
+    if(raf){ cancelAnimationFrame(raf); raf = 0; }
+    const els = g.tabEls || [], W = window.innerWidth;
+    const a = g.samples[0], b = g.samples[g.samples.length-1];
+    const v = (b.t - a.t) > 0 ? (b.x - a.x) / (b.t - a.t) : 0;
+    const btn = g.tab.btns[g.tab.i + stepOf(g.dx)];
+    const back = (v * g.dx < 0) && Math.abs(v) > 0.25;
+    const go = !cancelled && btn && !back && (Math.abs(g.dx) > W * TAB_COMMIT_FRAC || (Math.abs(v) > FLICK_V && Math.abs(g.dx) > TAB_FLICK_MIN));
+    els.forEach(function(el){ el.style.transform = ''; el.style.willChange = ''; });
+    const dir = g.dx < 0 ? -1 : 1;                        // way the old content moved
+    if(!go){
+      if(!reduceMotion && g.shown) els.forEach(function(el){ try{ el.animate([{transform:tx(g.shown)},{transform:tx(0)}], {duration:200, easing:EASE}); }catch(_){} });
+      return;
+    }
+    if(navigator.vibrate) try{ navigator.vibrate(6); }catch(_){}
+    busy = true;
+    btn.click();                                          // the tab's own handler does the switch / re-render
+    const kind = g.tab.sel;
+    requestAnimationFrame(function(){
+      try{
+        if(!reduceMotion){
+          const bar = document.querySelector(kind === '.fin-tab' ? '.fin-page .fin-tabs' : '.cx-tabs');
+          if(bar) tabBelow(bar).forEach(function(el){
+            try{ el.animate([{transform:tx(-dir*34), opacity:.35},{transform:tx(0), opacity:1}], {duration:240, easing:EASE}); }catch(_){}
+          });
+        }
+      } finally { setTimeout(function(){ busy = false; }, 120); }
+    });
+  }
+
   function goTo(view){
     if(view === 'expenses') window._cxLand = 'requests';   // same landing as the nav button
     window._wdpNoNavSkeleton = true;                       // we mask render time ourselves; no skeleton flash mid-slide
@@ -8851,9 +8916,16 @@ function fpInitSwipeNav(){
       if(Math.hypot(dx,dy) < LOCK_PX) return;
       st.locked = (Math.abs(dx) > Math.abs(dy) * H_RATIO) ? 'h' : 'v';
       if(st.locked === 'h'){
-        st.host = getHost();
-        st.host.style.animation = 'none';          // the boot-time screenIn animation would otherwise pin transform
-        st.host.style.willChange = 'transform';    // promote to its own compositor layer for the drag
+        const sc = tabScope(), W0 = window.innerWidth;
+        const inEdge = dx < 0 ? st.x > W0 * (1 - PAGE_ZONE) : st.x < W0 * PAGE_ZONE;   // started in the zone it is moving away from
+        if(sc && !inEdge){                         // tabbed page, started in the middle → the swipe belongs to the tabs
+          st.tab = sc; st.tabEls = tabBelow(sc.bar);
+          st.tabEls.forEach(function(el){ el.style.willChange = 'transform'; });
+        } else {
+          st.host = getHost();
+          st.host.style.animation = 'none';          // the boot-time screenIn animation would otherwise pin transform
+          st.host.style.willChange = 'transform';    // promote to its own compositor layer for the drag
+        }
       }
     }
     if(st.locked !== 'h'){ if(st.locked === 'v') st = null; return; }
@@ -8861,6 +8933,7 @@ function fpInitSwipeNav(){
     e.stopImmediatePropagation();
     const adx = dx - Math.sign(dx) * Math.min(Math.abs(dx), LOCK_PX);   // page starts moving from 0 once the swipe is recognised
     st.dx = adx;
+    if(st.tab){ tabMove(t, adx); return; }
     st.target = targetFor(adx);
     const fwd = ((adx < 0 ? 1 : -1) * (isRTL() ? -1 : 1)) === 1;
     st.edge = !st.target && !fwd && idx() === 0 && swipeSettingsOn() && !reduceMotion;   // pull past the FIRST page, toward the side where the Settings (☰) button sits
@@ -8939,7 +9012,8 @@ function fpInitSwipeNav(){
   function finish(cancelled){
     if(!st) return;
     const g = st; st = null;
-    if(g.locked !== 'h' || !g.host) return;
+    if(g.locked !== 'h' || (!g.host && !g.tab)) return;
+    if(g.tab){ tabFinish(g, cancelled); return; }
     if(raf){ cancelAnimationFrame(raf); raf = 0; g.host.style.transform = tx(g.shown); }
     const W = window.innerWidth;
     const a = g.samples[0], b = g.samples[g.samples.length-1];
@@ -64672,6 +64746,58 @@ html body #mainContent .screen-wrap.banks-v2.banks-v2 .bnk-card-body.bnk-open>*{
 html body #mainContent .screen-wrap.banks-v2.banks-v2 .bnk-card.bnk-instant .bnk-card-body>*{transition:none!important}
 @media (prefers-reduced-motion:reduce){html body #mainContent .screen-wrap.banks-v2.banks-v2 .bnk-card-body>*,html body #mainContent .screen-wrap.banks-v2.banks-v2 .bnk-card-balance{transition:none}}
 </style>
+<style id="cv-pro">
+/* My Job → My CV polish — CSS-only (markup/JS untouched). Labels no longer all-caps/tracked (breaks Arabic joining). */
+/* live strip: one tidy status bar */
+html body #mainContent .cx-wrap.cv-wrap.cv-wrap .cv-live{padding:10px 12px 10px 14px;gap:10px;border-radius:18px;background:var(--surface);border:1px solid var(--lx-line,var(--border));box-shadow:0 1px 2px rgba(16,24,40,.04);font-size:calc(12.5px*var(--app-text-scale,1));font-weight:700;color:var(--text)}
+html body #mainContent .cx-wrap.cv-wrap.cv-wrap .cv-live-dot{width:9px;height:9px;animation:cvPulse 2.4s ease-in-out infinite}
+@keyframes cvPulse{0%,100%{box-shadow:0 0 0 3px color-mix(in srgb,var(--green) 22%,transparent)}50%{box-shadow:0 0 0 6px color-mix(in srgb,var(--green) 8%,transparent)}}
+html body #mainContent .cx-wrap.cv-wrap.cv-wrap .cv-live em{padding:3px 10px;border-radius:99px;background:var(--surface2);font-size:calc(11.5px*var(--app-text-scale,1));font-weight:700;color:var(--text2)}
+html body #mainContent .cx-wrap.cv-wrap.cv-wrap .cv-live .cv-prev-top{height:36px;padding:0 14px;border-radius:99px;font-weight:700}
+/* identity card */
+html body #mainContent .cx-wrap.cv-wrap.cv-wrap .cv-card.cv-prof{padding:18px}
+html body #mainContent .cx-wrap.cv-wrap.cv-wrap .cv-prof-top{align-items:center;gap:14px}
+html body #mainContent .cx-wrap.cv-wrap.cv-wrap .cv-prof-id{gap:5px}
+html body #mainContent .cx-wrap.cv-wrap.cv-wrap .cv-prof-id b{font-size:calc(17.5px*var(--app-text-scale,1));font-weight:800;line-height:1.25;letter-spacing:0}
+html body #mainContent .cx-wrap.cv-wrap.cv-wrap .cv-cts{margin-top:14px}
+html body #mainContent .cx-wrap.cv-wrap.cv-wrap .cv-ct-r{min-height:52px;padding:10px 0;gap:12px;overflow-wrap:anywhere;font-size:calc(14px*var(--app-text-scale,1));font-weight:500}
+html body #mainContent .cx-wrap.cv-wrap.cv-wrap .cv-ci{flex:none;width:36px;height:36px;border-radius:11px}
+/* section cards */
+html body #mainContent .cx-wrap.cv-wrap.cv-wrap .cv-sc{padding:16px 18px}
+html body #mainContent .cx-wrap.cv-wrap.cv-wrap .cv-sc .cv-sec-row{margin:0 0 12px;padding-bottom:12px;border-bottom:1px solid var(--lx-line,var(--border))}
+html body #mainContent .cx-wrap.cv-wrap.cv-wrap .cv-sec-t{gap:10px;font-size:calc(15px*var(--app-text-scale,1));font-weight:800;letter-spacing:0;text-transform:none;color:var(--text)}
+html body #mainContent .cx-wrap.cv-wrap.cv-wrap .cv-sec-t>svg{flex:none;box-sizing:content-box;width:16px;height:16px;padding:7px;border-radius:11px;background:color-mix(in srgb,var(--green) 11%,var(--surface2));color:var(--green)}
+html body #mainContent .cx-wrap.cv-wrap.cv-wrap .cv-sc.tap:active{background:var(--surface2)}
+html body #mainContent .cx-wrap.cv-wrap.cv-wrap .cv-sum,html body #mainContent .cx-wrap.cv-wrap.cv-wrap .cv-sc p{font-size:calc(14px*var(--app-text-scale,1));line-height:1.75;color:var(--text2)}
+html body #mainContent .cx-wrap.cv-wrap.cv-wrap .cv-sk{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:8px}
+html body #mainContent .cx-wrap.cv-wrap.cv-wrap .cv-sk li{padding:6px 13px;border-radius:99px;background:var(--surface2);border:1px solid var(--lx-line,var(--border));font-size:calc(13px*var(--app-text-scale,1));font-weight:600;color:var(--text);line-height:1.4}
+html body #mainContent .cx-wrap.cv-wrap.cv-wrap .cv-ul{gap:8px;line-height:1.65}
+html body #mainContent .cx-wrap.cv-wrap.cv-wrap .cv-ed{padding:10px 0}
+/* work experience */
+html body #mainContent .cx-wrap.cv-wrap.cv-wrap>.cv-sec-row{margin:8px 2px 0}
+html body #mainContent .cx-wrap.cv-wrap.cv-wrap>.cv-sec-row .cv-sec-t em{padding:2px 10px;border-radius:99px;background:var(--surface2);font-style:normal;font-size:calc(12px*var(--app-text-scale,1));font-weight:700;color:var(--text2)}
+html body #mainContent .cx-wrap.cv-wrap.cv-wrap .cv-newprj{height:34px;padding:0 13px;font-weight:700}
+html body #mainContent .cx-wrap.cv-wrap.cv-wrap .cv-co-grp{padding:12px;gap:10px;border-radius:22px}
+html body #mainContent .cx-wrap.cv-wrap.cv-wrap .cv-co-hd b{font-size:calc(15px*var(--app-text-scale,1));font-weight:800}
+html body #mainContent .cx-wrap.cv-wrap.cv-wrap .cv-co-hd small{font-size:calc(12px*var(--app-text-scale,1));font-weight:600;opacity:.75}
+html body #mainContent .cx-wrap.cv-wrap.cv-wrap .cv-proj{padding:16px 18px 14px;border-radius:20px}
+html body #mainContent .cx-wrap.cv-wrap.cv-wrap .cv-proj-hd{gap:13px;align-items:flex-start}
+html body #mainContent .cx-wrap.cv-wrap.cv-wrap .cv-proj-ttl b{font-size:calc(15px*var(--app-text-scale,1));font-weight:800}
+html body #mainContent .cx-wrap.cv-wrap.cv-wrap .cv-proj-ttl small{font-size:calc(12.5px*var(--app-text-scale,1))}
+html body #mainContent .cx-wrap.cv-wrap.cv-wrap .cv-proj-meta{gap:8px;margin-top:12px}
+html body #mainContent .cx-wrap.cv-wrap.cv-wrap .cv-proj-meta span{padding:4px 10px;border-radius:99px;background:var(--surface2);font-size:calc(11.5px*var(--app-text-scale,1));font-weight:600}
+html body #mainContent .cx-wrap.cv-wrap.cv-wrap .cv-proj-desc{margin-top:12px;font-size:calc(13px*var(--app-text-scale,1));line-height:1.7;color:var(--text2)}
+html body #mainContent .cx-wrap.cv-wrap.cv-wrap .cv-dh{margin:12px 0 5px;font-size:calc(13.5px*var(--app-text-scale,1));font-weight:800;color:var(--text)}
+html body #mainContent .cx-wrap.cv-wrap.cv-wrap .cv-db{margin-bottom:6px}
+html body #mainContent .cx-wrap.cv-wrap.cv-wrap .cv-auto-tag{padding:4px 11px;border-radius:99px;background:color-mix(in srgb,var(--green) 10%,transparent)}
+html body #mainContent .cx-wrap.cv-wrap.cv-wrap .cv-more{font-weight:700}
+/* export */
+html body #mainContent .cx-wrap.cv-wrap.cv-wrap .cv-lbl{margin:10px 4px -4px;font-size:calc(13px*var(--app-text-scale,1));font-weight:800;letter-spacing:0;text-transform:none;color:var(--text2)}
+html body #mainContent .cx-wrap.cv-wrap.cv-wrap .cv-btn{height:48px;border-radius:16px;font-weight:700}
+html body #mainContent .cx-wrap.cv-wrap.cv-wrap .cv-btn:active{transform:scale(.985)}
+@media (prefers-reduced-motion:reduce){html body #mainContent .cx-wrap.cv-wrap.cv-wrap .cv-live-dot{animation:none}}
+</style>
+
 
 <style id="savings-pro">
 /* My Savings / Finance hub polish — CSS-only; asset tiles and debt rows untouched */
