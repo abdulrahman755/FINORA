@@ -13495,6 +13495,7 @@ function renderView(preserveScroll){
     setTimeout(function(){ if(document.querySelector('.pr-drag')) try{ initPourCards(); }catch(e){_logErr('renderView:initPourCards',e);} },80);
     if(currentView==='banks') setTimeout(bnkAnimateHero,80);
     try{ sigAnimateAmounts(); }catch(e){_logErr('renderView:sigAnimateAmounts',e);}
+    try{ if(window.Delight) Delight.counters(); }catch(e){_logErr('renderView:Delight.counters',e);}
     if(currentView==='savings') setTimeout(savInitDrag,80);
     if(currentView==='wsdash') setTimeout(wdashInitDrag,80);
     requestAnimationFrame(function(){ if(window._fabRestorePos) window._fabRestorePos(); });
@@ -21429,6 +21430,7 @@ function renderSavings(){
 
     ${_dirHTML}
     ${(_savGoalsHTML()||'').replace('<section class="jp-card sg-card"','<section data-fsec="ov" class="jp-card sg-card"')}
+    ${(typeof Milestones!=='undefined'?Milestones.html():'')}
 
     <!-- Quick Actions -->
     <div class="fin-lbl fin-lbl-qa" data-fsec="ov">${L('Quick add','إضافة سريعة')}</div>
@@ -22072,6 +22074,7 @@ function savConfirmSettle(idx){
   if(done) _sdbHistOpen=true;
   saveSavings(); debtCheckDue(); closeModal(); renderView();
   showToast(done?L('Debt settled ✓ — kept in History','تمت التسوية ✓ — محفوظة في السجل'):L('Payment recorded ✓','تم تسجيل الدفعة ✓'),'success');
+  if(done){ try{ Delight.celebrate({key:'debt:'+(x.id||x.person||idx)+':'+x.payments.length,title:L('Debt settled','تمت تسوية الدَّين'),sub:x.person}); }catch(e){} }
 }
 // details: totals, payment timeline, reopen / delete
 function savDebtDetails(idx){
@@ -33628,6 +33631,7 @@ function savGoalDepositSave(){
   if(!(a>0)){ showToast(L('Enter an amount','اكتب المبلغ'),'warn'); return; }
   const was=g.saved||0; _sgPush(g,a,d);
   showToast((was<g.target&&g.saved>=g.target)?L('🎉 Goal reached','🎉 وصلت للهدف'):L('✓ Added','✓ اتضاف'),'success');
+  if(was<g.target&&g.saved>=g.target){ try{ Delight.celebrate({key:'goal:'+(g.id||g.name),title:L('Goal achieved','تم تحقيق الهدف'),sub:g.name}); }catch(e){} }
 }
 function savGoalQuick(id){
   const g=_sgFind(id); if(!g||!(g.monthly>0)) return;
@@ -33635,6 +33639,7 @@ function savGoalQuick(id){
   const was=g.saved||0; g.saved=was+g.monthly; (g.log=g.log||[]).push({d:_pxIso(new Date()),a:g.monthly});
   saveSavings(); renderView();
   showToast((was<g.target&&g.saved>=g.target)?L('🎉 Goal reached','🎉 وصلت للهدف'):L('✓ Added','✓ اتضاف'),'success');
+  if(was<g.target&&g.saved>=g.target){ try{ Delight.celebrate({key:'goal:'+(g.id||g.name),title:L('Goal achieved','تم تحقيق الهدف'),sub:g.name}); }catch(e){} }
 }
 function savGoalWithdraw(id){
   const g=_sgFind(id); if(!g) return; _sgId=id;
@@ -38540,7 +38545,7 @@ function renderPours(){
     ? `<div class="cst-empty-state">
          <div class="cst-empty-icon">${ic('droplet',26)}</div>
          <div class="cst-empty-title">${L('No CPP requests yet','لا توجد طلبات CPP بعد')}</div>
-         <div class="cst-empty-sub">${L('Mark a receipt as CPP and it is listed here with its plot, work type, floor and date.','اختار "CPP" في أي استلامة وهتظهر هنا برقم القطعة ونوع الاستلامة والدور والتاريخ.')}</div>
+         <div class="cst-empty-sub">${L('Mark a receipt as CPP and it is listed here with its plot, work type, floor and date.','حدّد "CPP" في أي استلامة لتظهر هنا برقم القطعة ونوع الاستلامة والدور والتاريخ.')}</div>
          <button type="button" class="cst-empty-cta" onclick="window._rqPourPreset=true;openRequestModal(null)">${ic('plus',13)} ${L('New CPP request','طلب CPP جديد')}</button>
        </div>`
     : `<div class="cx-none">${L('No results','لا نتائج')}</div>`;
@@ -65016,5 +65021,247 @@ function txScrollToTimeline(){
   sched();
 })();
 </script>
+<style id="delight-v1-css">
+.dl-card{position:fixed;left:50%;top:42%;transform:translate(-50%,-50%);z-index:1000001;width:min(240px,80vw);box-sizing:border-box;padding:18px 16px 16px;border-radius:18px;background:var(--surface);border:1px solid var(--border);box-shadow:var(--shadow-md);text-align:center;animation:dlIn .38s cubic-bezier(.2,.7,.2,1) backwards}
+.dl-card.dl-out{opacity:0;transform:translate(-50%,-50%) scale(.97);transition:opacity .25s ease,transform .25s ease}
+.dl-ring{width:56px;height:56px;display:block;margin:0 auto 10px}
+.dl-ring .tr{fill:none;stroke:var(--surface3);stroke-width:3}
+.dl-ring .pg{fill:none;stroke:var(--primary);stroke-width:3;stroke-linecap:round;stroke-dasharray:138.2;stroke-dashoffset:138.2;transform:rotate(-90deg);transform-origin:50% 50%;animation:dlRing .7s cubic-bezier(.4,0,.2,1) .15s forwards}
+.dl-ring .ck{fill:none;stroke:var(--primary);stroke-width:3;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:30;stroke-dashoffset:30;animation:dlCk .35s ease-out .75s forwards}
+.dl-t{font-size:15px;font-weight:700;color:var(--text)}
+.dl-s{font-size:12px;color:var(--muted);margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@keyframes dlIn{from{opacity:0;transform:translate(-50%,-46%) scale(.97)}to{opacity:1;transform:translate(-50%,-50%)}}
+@keyframes dlRing{to{stroke-dashoffset:0}}
+@keyframes dlCk{to{stroke-dashoffset:0}}
+.dl-card.dl-static,.dl-card.dl-static .pg,.dl-card.dl-static .ck{animation:none}
+.dl-card.dl-static .pg,.dl-card.dl-static .ck{stroke-dashoffset:0}
+@media (prefers-reduced-motion:reduce){.dl-card,.dl-card .pg,.dl-card .ck{animation:none!important}.dl-card .pg,.dl-card .ck{stroke-dashoffset:0}}
+</style>
+<script id="delight-v1-js">
+/* Delight layer v1 — quiet completion card (progress ring + check), one-time screen-entry cue for empty states,
+   and a count-up for the Savings overview cards. Self-contained; touches no business logic.
+   Off when the tab is hidden or localStorage 'fnr_delight_v1'==='off'. Motion-free (static card) under prefers-reduced-motion. */
+(function(){
+  'use strict';
+  if(window.Delight) return;
+  var seen=null, lastFire=0, cardEl=null, cardT=0;
+  function _L(en,ar){ try{ return L(en,ar); }catch(e){ return en; } }
+  function killed(){
+    try{ if(window.localStorage && localStorage.getItem('fnr_delight_v1')==='off') return true; }catch(e){}
+    return !!document.hidden;
+  }
+  function reduced(){ try{ return !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches); }catch(e){ return false; } }
+  function off(){ return killed()||reduced(); }
+  function seenSet(){
+    if(seen) return seen;
+    seen={};
+    try{ JSON.parse(localStorage.getItem('fnr_delight_seen_v1')||'[]').forEach(function(k){ seen[k]=1; }); }catch(e){}
+    return seen;
+  }
+  function markSeen(k){
+    seenSet()[k]=1;
+    try{ localStorage.setItem('fnr_delight_seen_v1', JSON.stringify(Object.keys(seen).slice(-200))); }catch(e){}
+  }
+  function dismiss(){
+    clearTimeout(cardT);
+    if(!cardEl) return;
+    var e=cardEl; cardEl=null; e.classList.add('dl-out');
+    setTimeout(function(){ if(e.parentNode) e.parentNode.removeChild(e); },260);
+  }
+  function show(o){
+    dismiss();
+    var c=document.createElement('div');
+    c.className='dl-card'+(reduced()?' dl-static':'');
+    c.setAttribute('role','status');
+    c.innerHTML='<svg class="dl-ring" viewBox="0 0 56 56" aria-hidden="true"><circle class="tr" cx="28" cy="28" r="22"/><circle class="pg" cx="28" cy="28" r="22"/><path class="ck" d="M19 29.5L25.5 36L37 22"/></svg>';
+    var t=document.createElement('div'); t.className='dl-t'; t.textContent=o.title||_L('Achieved','تم الإنجاز'); c.appendChild(t);
+    if(o.sub){ var s=document.createElement('div'); s.className='dl-s'; s.setAttribute('dir','auto'); s.textContent=String(o.sub); c.appendChild(s); }
+    c.addEventListener('click',dismiss);
+    document.body.appendChild(c);
+    cardEl=c; cardT=setTimeout(dismiss,2400);
+  }
+  // opts: key (stable id: sound once per key ever, card once per key unless opts.repeat), title, sub
+  function celebrate(opts){
+    opts=opts||{};
+    try{
+      var key=opts.key;
+      if(key && typeof SoundManager!=='undefined' && SoundManager.celebrate) SoundManager.celebrate(key);
+      if(killed()) return;
+      if(key && !opts.repeat){ if(seenSet()[key]) return; markSeen(key); }
+      var now=Date.now(); if(now-lastFire<1500) return; lastFire=now;
+      if(!reduced()){ try{ if(navigator.vibrate) navigator.vibrate([10,40,18]); }catch(e){} }
+      show(opts);
+    }catch(e){ try{ dismiss(); }catch(_){} }
+  }
+
+  // Once per screen entry: (1) briefly flag the body so empty states play their calm entrance,
+  // (2) count up the plain amounts that sigAnimateAmounts() does not cover (Savings overview cards).
+  var cView=null, cRaf=0;
+  function counters(){
+    try{
+      var v=(typeof currentView!=='undefined')?currentView:'';
+      var same=(cView===v); cView=v; if(same) return;
+      try{
+        var bd=document.body; bd.classList.add('em-enter');
+        clearTimeout(window._emT); window._emT=setTimeout(function(){ bd.classList.remove('em-enter'); },900);
+      }catch(_){}
+      var els=document.querySelectorAll('#mainContent .fin-card-amount .fin-num');
+      if(!els.length || off() || typeof fmt!=='function') return;
+      var jobs=[];
+      Array.prototype.forEach.call(els,function(el){
+        var orig=el.textContent, n=parseFloat(orig.replace(/,/g,''));
+        if(n>0 && fmt(n)===orig) jobs.push({el:el,to:n,orig:orig});
+      });
+      if(!jobs.length) return;
+      if(cRaf) cancelAnimationFrame(cRaf);
+      var t0=performance.now(), dur=700;
+      jobs.forEach(function(j){ j.el.textContent=fmt(0); });
+      (function step(now){
+        var p=Math.min(1,(now-t0)/dur), e=1-Math.pow(1-p,3);
+        jobs.forEach(function(j){ j.el.textContent=p<1?fmt(j.to*e):j.orig; });
+        cRaf=p<1?requestAnimationFrame(step):0;
+      })(t0);
+    }catch(e){}
+  }
+  window.Delight={ celebrate:celebrate, counters:counters };
+
+  // Timeline: card when an item is saved as 'done' (once per item, not on every re-save).
+  try{
+    if(typeof WDPEvents!=='undefined') WDPEvents.on('timeline.completed',function(p){
+      var it=p&&p.item; if(!it) return;
+      window.Delight.celebrate({ key:'tl:'+(it.id||(it.title||'')+'|'+(it.start||'')), title:_L('Completed','اكتمل'), sub:it.title });
+    });
+  }catch(e){}
+})();
+</script>
+<style id="milestones-v1-css">
+.ms-card .ms-count{margin-inline-start:auto;font-size:12px;font-weight:700;color:var(--muted);font-variant-numeric:tabular-nums}
+.ms-week{display:flex;gap:6px;justify-content:space-between;padding:10px 0 12px;border-bottom:1px solid var(--border)}
+.ms-day{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;font-size:10.5px;font-weight:700;color:var(--muted)}
+.ms-day i{width:100%;max-width:34px;height:6px;border-radius:99px;background:var(--surface3)}
+.ms-day.on i{background:var(--primary)}
+.ms-day.today{color:var(--text2)}
+.ms-row{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)}
+.ms-row:last-child{border-bottom:0}
+.ms-ic{flex:none;width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:var(--surface2);color:var(--muted)}
+.ms-row.done .ms-ic{background:var(--primary-soft);color:var(--primary)}
+.ms-tx{flex:1;min-width:0}
+.ms-t{font-size:14px;font-weight:700;color:var(--text)}
+.ms-s{font-size:12px;color:var(--muted);margin-top:2px}
+.ms-end{flex:none;text-align:end;font-size:12px;font-weight:700;color:var(--muted);font-variant-numeric:tabular-nums}
+.ms-row.done .ms-end{color:var(--primary)}
+.ms-bar{height:3px;border-radius:99px;background:var(--surface3);overflow:hidden;margin-top:8px}
+.ms-bar i{display:block;height:100%;border-radius:inherit;background:var(--primary);transition:width .5s ease}
+@media (prefers-reduced-motion:reduce){.ms-bar i{transition:none}}
+</style>
+<script id="milestones-v1-js">
+/* Milestones v1 — calm progress ledger for the Savings overview. Read-only over existing data:
+   DATA[month].transactions, SAVINGS.goals, SAVINGS.debts. Persists only the earned map ('fnr_ms_v1'). */
+(function(){
+  'use strict';
+  var KEY='fnr_ms_v1', TIERS=[3,7,14,30];
+  function _L(en,ar){ try{ return L(en,ar); }catch(e){ return en; } }
+  function iso(d){ return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2); }
+  function dayNum(s){ var p=s.split('-'); return Math.round(Date.UTC(+p[0],+p[1]-1,+p[2])/86400000); }
+  function load(){ try{ var v=JSON.parse(localStorage.getItem(KEY)||'null'); return (v&&typeof v==='object')?v:null; }catch(e){ return null; } }
+  function save(m){ try{ localStorage.setItem(KEY,JSON.stringify(m)); }catch(e){} }
+
+  function stats(){
+    var set={}, months={}, n=0;
+    if(typeof DATA!=='undefined' && DATA) Object.keys(DATA).forEach(function(mk){
+      var tx=(DATA[mk]&&DATA[mk].transactions)||[];
+      for(var i=0;i<tx.length;i++){
+        var d=tx[i]&&tx[i].date; if(typeof d!=='string'||!/^\d{4}-\d{2}-\d{2}/.test(d)) continue;
+        d=d.slice(0,10); if(!set[d]){ set[d]=1; n++; } months[d.slice(0,7)]=1;
+      }
+    });
+    var days=Object.keys(set).sort(), longest=0, run=0, prev=null;
+    days.forEach(function(d){ var k=dayNum(d); run=(prev!==null&&k===prev+1)?run+1:1; if(run>longest) longest=run; prev=k; });
+    var now=new Date(), cur=0, c=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+    if(!set[iso(c)]) c.setDate(c.getDate()-1);
+    while(set[iso(c)]){ cur++; c.setDate(c.getDate()-1); }
+    var week=[]; for(var i=6;i>=0;i--){ var w=new Date(now.getFullYear(),now.getMonth(),now.getDate()-i); week.push({d:w,on:!!set[iso(w)],today:i===0}); }
+    var goals=(typeof SAVINGS!=='undefined'&&Array.isArray(SAVINGS.goals))?SAVINGS.goals:[];
+    var debts=(typeof SAVINGS!=='undefined'&&Array.isArray(SAVINGS.debts))?SAVINGS.debts:[];
+    return { cur:cur, longest:longest, week:week, months:Object.keys(months).length,
+      goals:goals.length, reached:goals.some(function(g){ return g&&g.target>0&&(g.saved||0)>=g.target; }),
+      cleared:debts.some(function(x){ return x&&x.settled; }) };
+  }
+
+  function build(st){
+    var next=null; for(var i=0;i<TIERS.length;i++){ if(st.longest<TIERS[i]){ next=TIERS[i]; break; } }
+    var rows=[
+      { k:'streak', ic:'calendar', done:next===null, cur:st.cur, max:next||TIERS[TIERS.length-1],
+        t:_L('Consistency','الانتظام'),
+        s:next===null ? _L('Longest run: '+st.longest+' days','أطول سلسلة: '+st.longest+' يومًا')
+                      : _L('Record activity '+next+' days in a row','تسجيل المعاملات '+next+' أيام متتالية') },
+      { k:'goal1', ic:'flag', done:st.goals>0, cur:Math.min(st.goals,1), max:1,
+        t:_L('First goal','الهدف الأول'), s:_L('Create a savings goal','إنشاء هدف ادخار') },
+      { k:'goalDone', ic:'target', done:st.reached, cur:st.reached?1:0, max:1,
+        t:_L('Goal achieved','هدف محقق'), s:_L('Complete a savings goal','إكمال هدف ادخار') },
+      { k:'debt', ic:'shield', done:st.cleared, cur:st.cleared?1:0, max:1,
+        t:_L('Debt cleared','دَين مسدَّد'), s:_L('Settle a debt in full','تسوية دَين بالكامل') },
+      { k:'months', ic:'trend_up', done:st.months>=3, cur:Math.min(st.months,3), max:3,
+        t:_L('Three months tracked','ثلاثة أشهر موثّقة'), s:_L('Record activity in three different months','تسجيل معاملات في ثلاثة أشهر مختلفة') }
+    ];
+    // earned keys (streak tiers recorded individually so a later tier can still be announced)
+    var earned=rows.filter(function(r){ return r.done && r.k!=='streak'; }).map(function(r){ return r.k; });
+    TIERS.forEach(function(t){ if(st.longest>=t) earned.push('streak'+t); });
+    return { rows:rows, earned:earned };
+  }
+
+  // Seeds silently the first time; afterwards announces only milestones that are new since the last render.
+  function sync(b){
+    var m=load(), seeded=!m; if(!m) m={};
+    var fresh=[];
+    b.earned.forEach(function(k){ if(!(k in m)){ m[k]=seeded?'':iso(new Date()); if(!seeded) fresh.push(k); } });
+    if(seeded || fresh.length) save(m);
+    if(fresh.length && typeof showToast==='function'){
+      var k=fresh[fresh.length-1], t;
+      if(/^streak/.test(k)) t=_L('Consistency: '+k.slice(6)+' days in a row','الانتظام: '+k.slice(6)+' أيام متتالية');
+      else { var r=b.rows.filter(function(x){ return x.k===k; })[0]; t=r?r.t:''; }
+      if(t) setTimeout(function(){ try{ showToast(_L('Milestone reached: ','تم بلوغ محطة: ')+t,'success'); }catch(e){} },400);
+    }
+  }
+
+  function html(){
+    try{
+      var st=stats(), b=build(st); sync(b);
+      var loc=(typeof lang!=='undefined'&&lang==='ar')?'ar-EG':'en-US';
+      var week=st.week.map(function(w){
+        return '<div class="ms-day'+(w.on?' on':'')+(w.today?' today':'')+'"><i></i><span>'+w.d.toLocaleDateString(loc,{weekday:'narrow'})+'</span></div>';
+      }).join('');
+      var done=b.rows.filter(function(r){ return r.done; }).length;
+      var rows=b.rows.map(function(r){
+        var end=r.done?_L('Achieved','تحقق'):('<span dir="ltr">'+r.cur+' / '+r.max+'</span>');
+        var bar=r.done?'':'<div class="ms-bar"><i style="width:'+Math.round(Math.min(1,r.cur/r.max)*100)+'%"></i></div>';
+        return '<div class="ms-row'+(r.done?' done':'')+'"><span class="ms-ic">'+ic(r.ic,17)+'</span><div class="ms-tx"><div class="ms-t">'+r.t+'</div><div class="ms-s">'+r.s+'</div>'+bar+'</div><div class="ms-end">'+end+'</div></div>';
+      }).join('');
+      return '<section data-fsec="ov" class="jp-card ms-card"><div class="jp-sec">'+ic('trophy',17)+'<span>'+_L('Milestones','المحطات')+'</span><em class="ms-count">'+done+' / '+b.rows.length+'</em></div>'
+        +'<div class="ms-week" aria-label="'+_L('Last 7 days','آخر 7 أيام')+'">'+week+'</div>'+rows+'</section>';
+    }catch(e){ try{ _logErr('milestones',e); }catch(_){} return ''; }
+  }
+  window.Milestones={ html:html };
+})();
+</script>
+<style id="empty-calm-v1-css">
+/* Empty states: one calm entrance on screen entry (class em-enter is set briefly by Delight.counters()).
+   Replaces the endless bobbing of the legacy .empty .ei icon. fill-mode "backwards" so :active/hover states keep working. */
+@keyframes emRise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes emRing{from{opacity:.5;transform:scale(1)}to{opacity:0;transform:scale(1.65)}}
+.empty .ei{animation:none}
+.empty-hero-icon::after{content:"";position:absolute;inset:0;border-radius:inherit;border:1.5px solid var(--accent);opacity:0;pointer-events:none}
+.tx-rows .empty-hero-icon::after{display:none}
+.em-enter .empty-hero>*,.em-enter .empty>*{animation:emRise .42s cubic-bezier(.2,.7,.2,1) backwards}
+.em-enter .empty-hero>:nth-child(2),.em-enter .empty>:nth-child(2){animation-delay:.05s}
+.em-enter .empty-hero>:nth-child(3),.em-enter .empty>:nth-child(3){animation-delay:.1s}
+.em-enter .empty-hero>:nth-child(4),.em-enter .empty>:nth-child(4){animation-delay:.15s}
+.em-enter .empty-hero>:nth-child(5),.em-enter .empty>:nth-child(5){animation-delay:.2s}
+.em-enter .empty-hero>:nth-child(6),.em-enter .empty>:nth-child(6){animation-delay:.25s}
+.em-enter .empty-hero-icon::after{animation:emRing .9s ease-out .3s 1 backwards}
+@media (prefers-reduced-motion:reduce){
+  .em-enter .empty-hero>*,.em-enter .empty>*,.em-enter .empty-hero-icon::after{animation:none!important}
+}
+</style>
 </body>
 </html>
