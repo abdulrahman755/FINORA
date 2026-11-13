@@ -16045,9 +16045,11 @@ function matFetchLive(force, retried){
 // fetches the day's article and returns {rebar, ezz, cement, published}. Set MAT_FEED_URL to its /materials URL.
 // Rebar = "الحديد الاستثماري" (per ton), cement = "الأسمنت الرمادي" (per ton). Ezz is kept in the item as a reference.
 const MAT_FEED_URL='https://YOUR-WORKER-NAME.YOUR-SUBDOMAIN.workers.dev/materials';
+// The Worker URL can also be pasted in the app (Materials -> Steel & cement -> Connect); it is kept on this device.
+function _matFeedUrl(){ try{ const u=(localStorage.getItem('wdp_mat_feed_url')||'').trim(); if(/^https:\/\/\S+$/.test(u)) return u; }catch(e){} return MAT_FEED_URL; }
 const MAT_FEED_IDS={rebar:1,cement:1};
 let _matFeedBusy=false, _matFeedTried=0;
-function matFeedConfigured(){ return /^https:\/\//.test(MAT_FEED_URL) && !/YOUR-WORKER/i.test(MAT_FEED_URL); }
+function matFeedConfigured(){ const u=_matFeedUrl(); return /^https:\/\//.test(u) && !/YOUR-WORKER/i.test(u); }
 // Resolves true only if at least one price was really fetched, validated and stored.
 function matFetchFeed(force){
   if(!matFeedConfigured() || _matFeedBusy || navigator.onLine===false) return Promise.resolve(false);
@@ -16056,7 +16058,7 @@ function matFetchFeed(force){
   if(!force && now-(st.feedAt||0)<3*60*60*1000) return Promise.resolve(false);   // at most every 3 h on its own
   _matFeedBusy=true; _matFeedTried=now;
   const ctl=(typeof AbortController!=='undefined')?new AbortController():null, tm=setTimeout(()=>{ try{ctl&&ctl.abort();}catch(e){} },9000);
-  return fetch(MAT_FEED_URL,ctl?{signal:ctl.signal}:{}).then(r=>r.ok?r.json():Promise.reject(r.status)).then(d=>{
+  return fetch(_matFeedUrl(),ctl?{signal:ctl.signal}:{}).then(r=>r.ok?r.json():Promise.reject(r.status)).then(d=>{
     if(!d||d.ok===false) return false;
     const d0=_matToday(); let ok=0;
     // sanity ranges guard against a mis-parsed page ever writing a nonsense price
@@ -16121,6 +16123,7 @@ function _matPollGold(){
 function matRefreshGold(){
   try{
     if(typeof fxEnsureRates==='function') fxEnsureRates();
+    if(typeof matFxRefresh==='function') matFxRefresh();
     if(typeof GOLD_STATE!=='undefined' && GOLD_STATE) GOLD_STATE.fetchedAt=0;
     if(typeof goldEnsurePrice==='function') goldEnsurePrice();
     showToast(L('Updating live prices…','جاري تحديث الأسعار اللحظية…')); matFetchLive(true);
@@ -16192,6 +16195,7 @@ function renderMaterialsDashCard(){
       </span></div>
     ${_matKaratBar()}
     ${rows}
+    ${(typeof _matFxHtml==='function'?_matFxHtml():'')}
     <div class="mat-note">${L('Gold updates automatically from the world spot price (local jewelers may differ slightly). Steel & cement follow the daily Egyptian market price (Mubasher / Cabinet portal) when the feed is set up; other materials: enter the price from your supplier.','يُحدَّث الذهب تلقائيًا من السعر العالمي (وقد يختلف قليلًا عن سعر الصاغة). ويُحدَّث الحديد والأسمنت من سعر السوق المصري اليومي (مباشر / بوابة مجلس الوزراء) بعد تفعيل الوصلة؛ أما باقي الخامات فأدخل السعر من المورّد.')}</div>
   </div>`;
 }
@@ -16359,7 +16363,14 @@ function renderWorkspaceDashboard(m){
   // render functions, same bodies — just concatenated and wrapped foldable.
   if(canFinance) candidates.push({id:'charts', icon:'chart', label:L('Daily','يومي'), body:dfpSafeCard(()=>renderDailyChartsCard(m)), foldable:true, summary:L('2 charts','رسمين')});
   if(canFinance) candidates.push({id:'summary', icon:'clipboard', label:L('Executive Summary','ملخص تنفيذي'), body:DashboardLazy.placeholder('executiveSummary', ()=>dfpSafeCard(()=>renderExecutiveSummaryCard(m, sig))), foldable:true});
-  if(canFinance) candidates.push({id:'toplists', icon:'bank', label:L('Top Categories','أعلى التصنيفات'), body:DashboardLazy.placeholder('topLists', ()=>dfpSafeCard(()=>renderTopListsCard(m, sig))), foldable:true});
+  if(canFinance) candidates.push({id:'toplists', icon:'bank', label:L('Top Categories','أعلى التصنيفات'), body:DashboardLazy.placeholder('topLists', ()=>dfpSafeCard(()=>renderTopListsCard(m, sig))), foldable:true,
+    // Same source and ranking as the card itself (_insGetCatTotals): the #1 category and its share of the month's spending.
+    summary:(()=>{ try{
+      const all=Object.entries(_insGetCatTotals(activeMonth)).sort((a,z)=>z[1]-a[1]);
+      const total=all.reduce((a,e)=>a+(e[1]||0),0);
+      if(!all.length||!(total>0)) return '';
+      return esc(all[0][0])+' · '+Math.round(all[0][1]/total*100)+'%';
+    }catch(e){ return ''; } })()});
 
   // ── Apply saved order — cards with a saved position sort by it; any card
   // with no saved position (new install, or a card added in a future update)
@@ -65331,5 +65342,146 @@ html body #mainContent > .wdash-wrap.dv3-dark-v2 .wdash-grp em{font-style:normal
 html[dir="rtl"] body #mainContent > .wdash-wrap.dv3-dark-v2 .wdash-grp{letter-spacing:0}
 html body #mainContent > .wdash-wrap.dv3-dark-v2 .wdash-tile-sum .dl-arr{width:1.25em;height:1.25em;vertical-align:-.28em;margin-inline-end:2px}
 </style>
+<style id="mat-fx-v1-css">
+.mat-fx-sec{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:12px 10px 4px;margin-top:8px;border-top:1px solid var(--border)}
+.mat-fx-sec b{font-size:calc(11px*var(--app-text-scale,1));letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:800}
+[dir="rtl"] .mat-fx-sec b{letter-spacing:0}
+.mat-fx-row{cursor:default}
+.mat-fx-row:active{background:transparent}
+.mat-fx-sec + .mat-fx-row{border-top:0}
+.mat-fx-row .mat-main .mat-when{align-self:flex-start}
+.mat-fx-code{grid-area:ico;width:38px;height:38px;border-radius:12px;display:inline-flex;align-items:center;justify-content:center;font-size:calc(11px*var(--app-text-scale,1));font-weight:800;letter-spacing:.02em;color:var(--primary);background:color-mix(in srgb,var(--primary) 12%,var(--surface))}
+.mat-fx-feed{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:10px 10px 0;padding:9px 12px;border-radius:12px;background:var(--surface2);font-size:calc(12px*var(--app-text-scale,1));color:var(--sub);font-weight:600}
+.mat-fx-link{border:0;background:transparent;color:var(--primary);font-weight:800;font-size:inherit;padding:4px 6px;cursor:pointer}
+</style>
+<script id="mat-fx-v1-js">
+/* Materials page: currency rates (EGP per unit) from the app's existing FX source with a daily local history,
+   plus an in-app way to connect the steel & cement Worker feed. Read-only over FX_STATE; writes only its own keys
+   ('wdp_fx_hist_v1', 'wdp_mat_feed_url'). */
+const MAT_FX_CODES=['USD','EUR','GBP','SAR','AED','KWD'];
+const MAT_FX_NAMES={USD:['US Dollar','دولار أمريكي'],EUR:['Euro','يورو'],GBP:['Pound Sterling','جنيه إسترليني'],SAR:['Saudi Riyal','ريال سعودي'],AED:['UAE Dirham','درهم إماراتي'],KWD:['Kuwaiti Dinar','دينار كويتي']};
+const MAT_FXH_KEY='wdp_fx_hist_v1';
+let MAT_FXH=null, _fxShownAt=0, _fxPollT=false, _fxForcedAt=0;
+function _fxhLoad(){
+  if(MAT_FXH) return MAT_FXH;
+  try{ const v=JSON.parse(localStorage.getItem(MAT_FXH_KEY)||'null'); if(v&&typeof v==='object') MAT_FXH=v; }catch(e){}
+  if(!MAT_FXH) MAT_FXH={};
+  return MAT_FXH;
+}
+function _fxhSave(){ try{ localStorage.setItem(MAT_FXH_KEY,JSON.stringify(MAT_FXH)); }catch(e){ try{_logErr('fxhist:save',e);}catch(_){} } }
+// true only for a rate that was really fetched (never for the built-in approximate fallback)
+function _fxLive(){
+  try{ if(typeof FX_STATE==='undefined'||!FX_STATE) fxLoadCached(); }catch(e){}
+  return !!(typeof FX_STATE!=='undefined' && FX_STATE && !FX_STATE.isFallback && FX_STATE.fetchedAt>0 && FX_STATE.rates);
+}
+// one snapshot per day per currency (EGP per 1 unit); returns true if anything changed
+function _fxSnap(){
+  if(!_fxLive()) return false;
+  const h=_fxhLoad(), d=_matToday(); let ch=false;
+  MAT_FX_CODES.forEach(c=>{
+    const r=FX_STATE.rates[c]; if(!(r>0)) return;
+    const p=Math.round(10000/r)/10000, a=(h[c]=Array.isArray(h[c])?h[c]:[]), last=a[a.length-1];
+    if(last&&last.d===d){ if(last.p!==p){ last.p=p; ch=true; } } else { a.push({d:d,p:p}); ch=true; }
+    if(a.length>180) h[c]=a.slice(-180);
+  });
+  if(ch) _fxhSave();
+  return ch;
+}
+// a late-arriving fetch re-renders the card once (and stops: after that nothing differs)
+function _matFxPoll(){
+  if(_fxPollT) return; _fxPollT=true;
+  setTimeout(function(){
+    _fxPollT=false;
+    try{ if(_fxSnap() || (typeof FX_STATE!=='undefined' && FX_STATE && FX_STATE.fetchedAt!==_fxShownAt)) _matRefresh(); }catch(e){}
+  },4500);
+}
+function _fxAgo(ms){
+  const m=Math.round(ms/60000); if(m<60) return L(Math.max(1,m)+'m ago','منذ '+Math.max(1,m)+' د');
+  const h=Math.round(m/60); if(h<24) return L(h+'h ago','منذ '+h+' س');
+  const d=Math.round(h/24); return L(d+'d ago','منذ '+d+' يوم');
+}
+function matFxRefresh(){
+  const now=Date.now(); if(now-_fxForcedAt<60000) return; _fxForcedAt=now;   // the free API asks for at most ~1 call/min
+  fetch('https://open.er-api.com/v6/latest/EGP').then(r=>r.ok?r.json():Promise.reject(r.status)).then(d=>{
+    if(d&&d.result==='success'&&d.rates&&d.rates.USD>0){
+      FX_STATE={ base:'EGP', rates:d.rates, fetchedAt:Date.now(), isFallback:false };
+      try{ localStorage.setItem(FX_KEY,JSON.stringify(FX_STATE)); }catch(e){}
+      return true;
+    }
+    return false;
+  }).catch(()=>false).then(function(ok){
+    if(ok) _fxSnap(); else showToast(L("Couldn't refresh currency rates — showing the last saved ones",'تعذّر تحديث أسعار العملات — تُعرض آخر أسعار محفوظة'),'warn');
+    try{ _matRefresh(); }catch(e){}
+  });
+}
+function _matFeedRowHtml(){
+  const on=matFeedConfigured();
+  return `<div class="mat-fx-feed"><span>${on?L('Steel & cement feed: connected','تحديث الحديد والأسمنت: متصل'):L('Steel & cement: no live feed yet','الحديد والأسمنت: لا يوجد تحديث تلقائي بعد')}</span><button type="button" class="mat-fx-link" onclick="matFeedSetupOpen()">${on?L('Change','تغيير'):L('Connect','ربط')}</button></div>`;
+}
+function _matFxHtml(){
+  try{
+    _fxSnap(); _matFxPoll();
+    const st=(typeof FX_STATE!=='undefined')?FX_STATE:null;
+    if(!st||!st.rates) return _matFeedRowHtml();
+    _fxShownAt=st.fetchedAt;
+    const h=_fxhLoad(), d=_matToday();
+    let status;
+    if(st.isFallback||!st.fetchedAt) status=`<span class="mat-when stale">${L('Approximate','تقريبي')}</span>`;
+    else{
+      const age=Date.now()-st.fetchedAt;
+      const t=new Date(st.fetchedAt).toLocaleTimeString(_dtLocale('en-US'),{hour:'2-digit',minute:'2-digit'});
+      status=age<3*3600*1000?`<span class="mat-when gold-live"><i class="gl-dot"></i>${L('Updated '+t,'آخر تحديث '+t)}</span>`:`<span class="mat-when stale">${L('Saved','محفوظ')} · ${_fxAgo(age)}</span>`;
+    }
+    let anyPrev=false;
+    const rows=MAT_FX_CODES.map(function(c){
+      const r=st.rates[c]; if(!(r>0)) return '';
+      const p=1/r, a=Array.isArray(h[c])?h[c]:[];
+      let prev=null; for(let i=a.length-1;i>=0;i--){ if(a[i].d<d){ prev=a[i]; break; } }
+      let chip='', dir=0;
+      if(prev&&prev.p>0&&!st.isFallback){
+        anyPrev=true;
+        const pct=(p-prev.p)/prev.p*100; dir=pct>0.005?1:(pct<-0.005?-1:0);
+        chip=`<span class="mat-chip ${dir>0?'up':dir<0?'dn':''}" dir="ltr">${dir===0?'•':((window.Delight&&Delight.arrow)?Delight.arrow(dir,pct):(dir>0?'▲':'▼'))} ${Math.abs(pct).toFixed(2)}%</span>`;
+      }
+      const nm=MAT_FX_NAMES[c]||[c,c];
+      return `<div class="mat-row mat-fx-row"><span class="mat-fx-code" aria-hidden="true">${c}</span><span class="mat-main"><span class="mat-nm">${L(nm[0],nm[1])}</span><span class="mat-when" dir="ltr">1 ${c}</span></span><span class="mat-side"><span class="mat-pr"><span dir="ltr">${fmt(p)}</span><small>${esc(curLabel())}</small></span>${chip}</span>${st.isFallback?'':_matSpark(a,dir)}</div>`;
+    }).join('');
+    if(!rows) return _matFeedRowHtml();
+    const note=st.isFallback
+      ?L('Showing approximate built-in rates until a live fetch succeeds.','تُعرض أسعار تقريبية مدمجة إلى أن ينجح الجلب المباشر.')
+      :(anyPrev?L('Reference market rates (open.er-api.com). Banks and the parallel market may differ.','أسعار السوق المرجعية (open.er-api.com). قد تختلف أسعار البنوك والسوق الموازية.')
+               :L('Change tracking starts today — it compares with the previous day once there is one. Reference rates (open.er-api.com); banks and the parallel market may differ.','يبدأ تتبّع التغيّر من اليوم، ويُقارن باليوم السابق عند توفّره. أسعار مرجعية (open.er-api.com) وقد تختلف أسعار البنوك والسوق الموازية.'));
+    return `<div class="mat-fx-sec"><b>${L('Currency rates · EGP','أسعار العملات · جنيه')}</b>${status}</div>${rows}<div class="mat-note">${note}</div>${_matFeedRowHtml()}`;
+  }catch(e){ try{_logErr('matFxHtml',e);}catch(_){} return ''; }
+}
+function matFeedSetupOpen(){
+  let cur=''; try{ cur=localStorage.getItem('wdp_mat_feed_url')||''; }catch(e){}
+  _matModal(`
+    <div class="modal-title">${ic('package',14)} ${L('Steel & cement feed','تحديث الحديد والأسمنت')}</div>
+    <div class="field"><label>${L('Worker URL (ends with /materials)','رابط الـ Worker (ينتهي بـ /materials)')}</label>
+      <input id="matFeedUrl" type="url" inputmode="url" dir="ltr" autocomplete="off" placeholder="https://your-worker.workers.dev/materials" value="${esc(cur)}"></div>
+    <div class="mat-hempty" style="text-align:start;margin:-4px 0 8px">${L('Daily Egyptian steel and cement prices need a small server-side Worker (browsers cannot read the source directly). Paste its URL here. Every price is range-checked before it is stored, and nothing changes if the feed fails.','أسعار الحديد والأسمنت اليومية في مصر تحتاج Worker صغير على خادم (المتصفح لا يقرأ المصدر مباشرة). الصق رابطه هنا. يُتحقق من نطاق كل سعر قبل حفظه، ولا يتغيّر شيء إذا فشل الجلب.')}</div>
+    <div class="modal-btns">
+      <button type="button" class="mbtn save" onclick="matFeedSetupSave()">${L('Save & test','حفظ واختبار')}</button>
+      ${cur?`<button type="button" class="mbtn cancel" onclick="matFeedSetupClear()">${L('Remove link','إزالة الرابط')}</button>`:''}
+      <button type="button" class="mbtn cancel" onclick="closeModal()">${L('Close','إغلاق')}</button>
+    </div>`);
+}
+function matFeedSetupSave(){
+  const el=document.getElementById('matFeedUrl'); const u=(el&&el.value||'').trim();
+  if(!/^https:\/\/[^\s]+$/.test(u)){ showToast(L('Enter a valid https:// link','أدخل رابط https:// صحيحًا'),'warn'); return; }
+  try{ localStorage.setItem('wdp_mat_feed_url',u); }catch(e){ showToast(L("Couldn't save the link on this device",'تعذّر حفظ الرابط على هذا الجهاز'),'warn'); return; }
+  _matFeedTried=0; closeModal(); _matRefresh();
+  showToast(L('Testing the feed…','جاري اختبار الرابط…'));
+  matFetchFeed(true).then(function(ok){
+    showToast(ok?L('Steel & cement prices updated','تم تحديث أسعار الحديد والأسمنت'):L('Saved, but no valid prices came back — check the Worker','تم الحفظ لكن لم تصل أسعار صالحة — راجع الـ Worker'),ok?'success':'warn');
+    _matRefresh();
+  });
+}
+function matFeedSetupClear(){
+  try{ localStorage.removeItem('wdp_mat_feed_url'); }catch(e){}
+  closeModal(); _matRefresh(); showToast(L('Feed link removed','تمت إزالة الرابط'));
+}
+</script>
 </body>
 </html>
