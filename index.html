@@ -16160,7 +16160,7 @@ function _matRow(it){
   if(gold&&last){
     const p=last.p;
     const sk=_matKarat();
-    sub=`<div class="mat-sub2">${[24,21,18].filter(k=>k!==sk).map(k=>`${k}K <b dir="ltr">${fmt(Math.round(p*k/24))}</b>`).join(' · ')} · ${L('Pound','الجنيه')} <b dir="ltr">${fmt(Math.round(p*21/24*8))}</b></div>`;
+    sub=`<div class="mat-sub2">${[24,21,18].filter(k=>k!==sk).map(k=>`<span>${k}K <b dir="ltr">${fmt(Math.round(p*k/24))}</b></span>`).join('')}<span>${L('Pound','الجنيه')} <b dir="ltr">${fmt(Math.round(p*21/24*8))}</b></span></div>`;
   }
   const _gl=gold?_goldLiveLabel():null;
   const when=last&&_gl?`<span class="mat-when gold-live${_gl.stale?' stale':''}"><i class="gl-dot"></i>${_gl.txt}</span>`:last?`<span class="mat-when${stale?' stale':''}">${gold?L('Auto','تلقائي')+' · ':live?L('Live','لايف')+' · ':''}${_matAgo(last.d)}${stale?' · '+L('update','حدّث'):''}</span>`:`<span class="mat-when stale">${gold||live?L('Tap refresh to fetch','اضغط تحديث للجلب'):L('Tap to enter price','اضغط لإدخال السعر')}</span>`;
@@ -16187,16 +16187,18 @@ function renderMaterialsDashCard(){
   try{ if(typeof fxEnsureRates==='function') fxEnsureRates(); if(typeof goldEnsurePrice==='function') goldEnsurePrice(); }catch(e){}
   _matSnapGold(); _matPollGold(); matFetchLive(false); matFetchFeed(false);
   const rows=_matLoad().items.map(_matRow).join('');
+  const noteHtml=`<div class="mat-note">${L('Gold updates automatically from the world spot price (local jewelers may differ slightly). Steel & cement follow the daily Egyptian market price (Mubasher / Cabinet portal) when the feed is set up; other materials: enter the price from your supplier.','يُحدَّث الذهب تلقائيًا من السعر العالمي (وقد يختلف قليلًا عن سعر الصاغة). ويُحدَّث الحديد والأسمنت من سعر السوق المصري اليومي (مباشر / بوابة مجلس الوزراء) بعد تفعيل الوصلة؛ أما باقي الخامات فأدخل السعر من المورّد.')}</div>`;
   return `<div class="sc-card mat-card">
     <div class="mat-head"><span class="mat-hint">${L('Daily prices · tap a row to update','أسعار يومية · اضغط على الخامة للتحديث')}</span>
       <span class="mat-acts">
         <button type="button" class="mat-ib" onclick="matRefreshGold()" aria-label="${L('Refresh gold','تحديث الذهب')}">${ic('refresh',14,'aria-hidden="true"')}</button>
         <button type="button" class="mat-ib" onclick="matAddOpen()" aria-label="${L('Add material','إضافة خامة')}">${ic('plus',14,'aria-hidden="true"')}</button>
       </span></div>
+    ${(typeof _matSecHtml==='function'?_matSecHtml(L('Materials','الخامات'),_matLoad().items.length):'')}
     ${_matKaratBar()}
     ${rows}
     ${(typeof _matFxHtml==='function'?_matFxHtml():'')}
-    <div class="mat-note">${L('Gold updates automatically from the world spot price (local jewelers may differ slightly). Steel & cement follow the daily Egyptian market price (Mubasher / Cabinet portal) when the feed is set up; other materials: enter the price from your supplier.','يُحدَّث الذهب تلقائيًا من السعر العالمي (وقد يختلف قليلًا عن سعر الصاغة). ويُحدَّث الحديد والأسمنت من سعر السوق المصري اليومي (مباشر / بوابة مجلس الوزراء) بعد تفعيل الوصلة؛ أما باقي الخامات فأدخل السعر من المورّد.')}</div>
+    ${(typeof _matFootHtml==='function'?_matFootHtml(noteHtml):noteHtml)}
   </div>`;
 }
 function _matModal(html){
@@ -65343,16 +65345,35 @@ html[dir="rtl"] body #mainContent > .wdash-wrap.dv3-dark-v2 .wdash-grp{letter-sp
 html body #mainContent > .wdash-wrap.dv3-dark-v2 .wdash-tile-sum .dl-arr{width:1.25em;height:1.25em;vertical-align:-.28em;margin-inline-end:2px}
 </style>
 <style id="mat-fx-v1-css">
-.mat-fx-sec{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:12px 10px 4px;margin-top:8px;border-top:1px solid var(--border)}
-.mat-fx-sec b{font-size:calc(11px*var(--app-text-scale,1));letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:800}
-[dir="rtl"] .mat-fx-sec b{letter-spacing:0}
-.mat-fx-row{cursor:default}
-.mat-fx-row:active{background:transparent}
-.mat-fx-sec + .mat-fx-row{border-top:0}
-.mat-fx-row .mat-main .mat-when{align-self:flex-start}
-.mat-fx-code{grid-area:ico;width:38px;height:38px;border-radius:12px;display:inline-flex;align-items:center;justify-content:center;font-size:calc(11px*var(--app-text-scale,1));font-weight:800;letter-spacing:.02em;color:var(--primary);background:color-mix(in srgb,var(--primary) 12%,var(--surface))}
-.mat-fx-feed{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:10px 10px 0;padding:9px 12px;border-radius:12px;background:var(--surface2);font-size:calc(12px*var(--app-text-scale,1));color:var(--sub);font-weight:600}
-.mat-fx-link{border:0;background:transparent;color:var(--primary);font-weight:800;font-size:inherit;padding:4px 6px;cursor:pointer}
+/* Materials card: labelled sections, compact currency board, one tidy footer. */
+.mat-sec{display:flex;align-items:center;gap:8px;padding:12px 10px 6px;font-size:calc(11px*var(--app-text-scale,1))}
+.mat-sec b{letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:800}
+[dir="rtl"] .mat-sec b{letter-spacing:0}
+.mat-sec em{font-style:normal;min-width:18px;padding:1px 6px;border-radius:99px;background:var(--surface3);color:var(--muted);font-size:calc(10px*var(--app-text-scale,1));font-weight:800;text-align:center;font-variant-numeric:tabular-nums}
+.mat-sec .mat-when{margin-inline-start:auto}
+.mat-sec.mat-sec-fx{margin-top:8px;padding-top:14px;border-top:1px solid var(--border)}
+.mat-sub2{display:flex;flex-wrap:wrap;gap:1px 10px}
+.mat-fx-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;padding:2px 10px 4px}
+.mat-fxc{display:flex;flex-direction:column;gap:6px;padding:10px 12px;border:1px solid var(--border);border-radius:14px;background:var(--surface2);min-width:0}
+.mat-fxc-top{display:flex;align-items:center;justify-content:space-between;gap:6px}
+.mat-fxc-code{font-size:calc(12px*var(--app-text-scale,1));font-weight:800;letter-spacing:.05em;color:var(--primary)}
+.mat-fxc-px{display:flex;align-items:baseline;gap:4px;font-size:calc(19px*var(--app-text-scale,1));font-weight:800;font-variant-numeric:tabular-nums;color:var(--text)}
+.mat-fxc-px small{font-size:calc(10px*var(--app-text-scale,1));color:var(--muted);font-weight:700}
+.mat-fxc-bot{display:flex;align-items:center;justify-content:space-between;gap:6px}
+.mat-fxc-nm{font-size:calc(11px*var(--app-text-scale,1));color:var(--muted);font-weight:600;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mat-fxc .mat-spark{flex:none;width:52px;height:18px}
+.mat-foot{margin:10px 10px 0;display:flex;flex-direction:column;gap:8px}
+.mat-feed{display:flex;align-items:center;gap:8px;padding:9px 12px;border-radius:12px;background:var(--surface2);font-size:calc(12px*var(--app-text-scale,1));color:var(--sub);font-weight:600}
+.mat-feed i{width:7px;height:7px;border-radius:50%;background:var(--orange);flex:none}
+.mat-feed.on i{background:var(--green)}
+.mat-feed span{flex:1;min-width:0}
+.mat-feed button{border:1px solid var(--border);background:var(--surface);color:var(--primary);font-weight:800;font-size:inherit;padding:4px 12px;border-radius:99px;cursor:pointer}
+.mat-about summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:6px;padding:4px 2px;font-size:calc(12px*var(--app-text-scale,1));font-weight:700;color:var(--muted)}
+.mat-about summary::-webkit-details-marker{display:none}
+.mat-about summary::after{content:"";width:7px;height:7px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(45deg);margin-inline-start:auto;transition:transform .2s}
+.mat-about[open] summary::after{transform:rotate(-135deg)}
+.mat-about .mat-note{margin:4px 2px 2px}
+@media (prefers-reduced-motion:reduce){.mat-about summary::after{transition:none}}
 </style>
 <script id="mat-fx-v1-js">
 /* Materials page: currency rates (EGP per unit) from the app's existing FX source with a daily local history,
@@ -65414,15 +65435,14 @@ function matFxRefresh(){
     try{ _matRefresh(); }catch(e){}
   });
 }
-function _matFeedRowHtml(){
-  const on=matFeedConfigured();
-  return `<div class="mat-fx-feed"><span>${on?L('Steel & cement feed: connected','تحديث الحديد والأسمنت: متصل'):L('Steel & cement: no live feed yet','الحديد والأسمنت: لا يوجد تحديث تلقائي بعد')}</span><button type="button" class="mat-fx-link" onclick="matFeedSetupOpen()">${on?L('Change','تغيير'):L('Connect','ربط')}</button></div>`;
-}
+let _matAboutOpen=false, _matFxNoteTxt='';
+function _matSecHtml(label,n,extra){ return `<div class="mat-sec"><b>${label}</b><em>${n}</em>${extra||''}</div>`; }
 function _matFxHtml(){
+  _matFxNoteTxt='';
   try{
     _fxSnap(); _matFxPoll();
     const st=(typeof FX_STATE!=='undefined')?FX_STATE:null;
-    if(!st||!st.rates) return _matFeedRowHtml();
+    if(!st||!st.rates) return '';
     _fxShownAt=st.fetchedAt;
     const h=_fxhLoad(), d=_matToday();
     let status;
@@ -65432,9 +65452,10 @@ function _matFxHtml(){
       const t=new Date(st.fetchedAt).toLocaleTimeString(_dtLocale('en-US'),{hour:'2-digit',minute:'2-digit'});
       status=age<3*3600*1000?`<span class="mat-when gold-live"><i class="gl-dot"></i>${L('Updated '+t,'آخر تحديث '+t)}</span>`:`<span class="mat-when stale">${L('Saved','محفوظ')} · ${_fxAgo(age)}</span>`;
     }
-    let anyPrev=false;
-    const rows=MAT_FX_CODES.map(function(c){
+    let anyPrev=false, n=0;
+    const cards=MAT_FX_CODES.map(function(c){
       const r=st.rates[c]; if(!(r>0)) return '';
+      n++;
       const p=1/r, a=Array.isArray(h[c])?h[c]:[];
       let prev=null; for(let i=a.length-1;i>=0;i--){ if(a[i].d<d){ prev=a[i]; break; } }
       let chip='', dir=0;
@@ -65444,15 +65465,24 @@ function _matFxHtml(){
         chip=`<span class="mat-chip ${dir>0?'up':dir<0?'dn':''}" dir="ltr">${dir===0?'•':((window.Delight&&Delight.arrow)?Delight.arrow(dir,pct):(dir>0?'▲':'▼'))} ${Math.abs(pct).toFixed(2)}%</span>`;
       }
       const nm=MAT_FX_NAMES[c]||[c,c];
-      return `<div class="mat-row mat-fx-row"><span class="mat-fx-code" aria-hidden="true">${c}</span><span class="mat-main"><span class="mat-nm">${L(nm[0],nm[1])}</span><span class="mat-when" dir="ltr">1 ${c}</span></span><span class="mat-side"><span class="mat-pr"><span dir="ltr">${fmt(p)}</span><small>${esc(curLabel())}</small></span>${chip}</span>${st.isFallback?'':_matSpark(a,dir)}</div>`;
+      return `<div class="mat-fxc"><div class="mat-fxc-top"><span class="mat-fxc-code" dir="ltr">${c}</span>${chip}</div><div class="mat-fxc-px"><span dir="ltr">${fmt(p)}</span><small>${esc(curLabel())}</small></div><div class="mat-fxc-bot"><span class="mat-fxc-nm">${L(nm[0],nm[1])}</span>${st.isFallback?'':_matSpark(a,dir)}</div></div>`;
     }).join('');
-    if(!rows) return _matFeedRowHtml();
-    const note=st.isFallback
-      ?L('Showing approximate built-in rates until a live fetch succeeds.','تُعرض أسعار تقريبية مدمجة إلى أن ينجح الجلب المباشر.')
-      :(anyPrev?L('Reference market rates (open.er-api.com). Banks and the parallel market may differ.','أسعار السوق المرجعية (open.er-api.com). قد تختلف أسعار البنوك والسوق الموازية.')
-               :L('Change tracking starts today — it compares with the previous day once there is one. Reference rates (open.er-api.com); banks and the parallel market may differ.','يبدأ تتبّع التغيّر من اليوم، ويُقارن باليوم السابق عند توفّره. أسعار مرجعية (open.er-api.com) وقد تختلف أسعار البنوك والسوق الموازية.'));
-    return `<div class="mat-fx-sec"><b>${L('Currency rates · EGP','أسعار العملات · جنيه')}</b>${status}</div>${rows}<div class="mat-note">${note}</div>${_matFeedRowHtml()}`;
+    if(!cards) return '';
+    _matFxNoteTxt=st.isFallback
+      ?L('Currency rates: approximate built-in values are shown until a live fetch succeeds.','أسعار العملات: تُعرض قيم تقريبية مدمجة إلى أن ينجح الجلب المباشر.')
+      :(anyPrev?L('Currency rates are reference market rates (open.er-api.com); banks and the parallel market may differ.','أسعار العملات مرجعية من السوق (open.er-api.com)، وقد تختلف أسعار البنوك والسوق الموازية.')
+               :L('Currency rates are reference market rates (open.er-api.com); banks and the parallel market may differ. Change tracking starts today and compares with the previous day once there is one.','أسعار العملات مرجعية من السوق (open.er-api.com)، وقد تختلف أسعار البنوك والسوق الموازية. يبدأ تتبّع التغيّر من اليوم ويُقارن باليوم السابق عند توفّره.'));
+    return `<div class="mat-sec mat-sec-fx"><b>${L('Currencies','العملات')}</b><em>${n}</em>${status}</div><div class="mat-fx-grid">${cards}</div>`;
   }catch(e){ try{_logErr('matFxHtml',e);}catch(_){} return ''; }
+}
+function _matFeedRowHtml(){
+  const on=matFeedConfigured();
+  return `<div class="mat-feed${on?' on':''}"><i aria-hidden="true"></i><span>${on?L('Steel & cement feed connected','تحديث الحديد والأسمنت متصل'):L('Steel & cement: no live feed yet','الحديد والأسمنت: لا يوجد تحديث تلقائي بعد')}</span><button type="button" onclick="matFeedSetupOpen()">${on?L('Change','تغيير'):L('Connect','ربط')}</button></div>`;
+}
+// one footer: the feed status, then every explanatory note folded into a single "About these prices" block
+function _matFootHtml(noteHtml){
+  const fx=_matFxNoteTxt?`<div class="mat-note">${_matFxNoteTxt}</div>`:'';
+  return `<div class="mat-foot">${_matFeedRowHtml()}<details class="mat-about"${_matAboutOpen?' open':''} ontoggle="_matAboutOpen=this.open"><summary>${L('About these prices','عن هذه الأسعار')}</summary>${noteHtml}${fx}</details></div>`;
 }
 function matFeedSetupOpen(){
   let cur=''; try{ cur=localStorage.getItem('wdp_mat_feed_url')||''; }catch(e){}
