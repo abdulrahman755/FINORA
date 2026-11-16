@@ -51365,7 +51365,7 @@ const ATT=(function(){
         </div>
         <div class="att-multi-bar">${multi
           ? `<div class="att-seg-row att-seg-sm"><button type="button" class="att-seg${!rangeMode?' on':''}" onclick="ATT.setRangeMode(false)">${L('Pick days','أيام متفرقة')}</button><button type="button" class="att-seg${rangeMode?' on':''}" onclick="ATT.setRangeMode(true)">${L('Range','من – إلى')}</button></div><button type="button" class="att-mini" onclick="ATT.toggleMulti()">${L('Cancel','إلغاء')}</button>`
-          : `<button type="button" class="att-mini att-mini-main" onclick="ATT.toggleMulti()">${ic('check',13)} ${L('Select multiple days','تحديد عدة أيام')}</button>`}</div>
+          : `<button type="button" class="att-mini" onclick="ATT.previewOpen()">${ic('list',13)} ${L('Preview','معاينة')}</button><button type="button" class="att-mini att-mini-main" onclick="ATT.toggleMulti()">${ic('check',13)} ${L('Select multiple days','تحديد عدة أيام')}</button>`}</div>
         <div class="att-cal">${cells}</div>
         ${multi?`<div class="att-hint">${rangeMode?(rangeStart?L('Now tap the last day of the range','اضغط على آخر يوم في الفترة'):L('Tap the first day of the range','اضغط على أول يوم في الفترة')):L('Tap the days you want, then set their status','اضغط على الأيام التي تريدها ثم حدّد حالتها')}</div>
         <div class="att-act"><span><b>${msel.size}</b> ${L('selected','يوم محدد')}</span><button type="button" class="att-mini" onclick="ATT.clearSel()" ${msel.size?'':'disabled'}>${L('Clear','مسح التحديد')}</button><button type="button" class="att-mini att-mini-main" onclick="ATT.openMulti()" ${msel.size?'':'disabled'}>${L('Set status','تحديد الحالة')}</button></div>`
@@ -51412,6 +51412,157 @@ const ATT=(function(){
 
       <div class="att-foot"><button type="button" class="att-link danger" onclick="ATT.clearMonth()">${ic('trash',13)} ${L('Clear this month','مسح بيانات الشهر')}</button></div>
     </div>`;
+  }
+  // ── Preview: a professional attendance report for any date range ──
+  // Status, check-in / check-out, hours, late / early-leave / overtime (from the saved work window, via winSplit),
+  // weekly days off, month bands, a status filter, totals, and print / save-as-PDF.
+  let pv=null, pvC={};
+  const pvKey=d=>dk(d.getFullYear(),d.getMonth(),d.getDate());
+  const pvDate=k=>new Date(+k.slice(0,4),+k.slice(5,7)-1,+k.slice(8,10));
+  const pvOk=k=>/^\d{4}-\d{2}-\d{2}$/.test(String(k||''));
+  const pvT=t=>{ const a=/^(\d{2}):(\d{2})$/.exec(t||''); return a?(+a[1]*60+ +a[2]):0; };
+  function pvPreset(kind){
+    const n=new Date(), y=n.getFullYear(), m=n.getMonth();
+    if(kind==='month') return [pvKey(new Date(vy,vm,1)),pvKey(new Date(vy,vm+1,0))];
+    if(kind==='prev') return [pvKey(new Date(vy,vm-1,1)),pvKey(new Date(vy,vm,0))];
+    if(kind==='week') return [pvKey(new Date(y,m,n.getDate()-6)),pvKey(n)];
+    if(kind==='year') return [dk(y,0,1),dk(y,11,31)];
+    if(kind==='all'){ const ks=Object.keys(db.days).filter(pvOk).sort(); return ks.length?[ks[0],ks[ks.length-1]]:[tk(),tk()]; }
+    return null;
+  }
+  function previewOpen(){ load(); const r=pvPreset('month'); pv={from:r[0],to:r[1],chip:'month',hide:false,f:'all'}; pvRender(); }
+  function previewChip(kind){ load(); const r=pvPreset(kind); if(!r||!pv) return; pv.from=r[0]; pv.to=r[1]; pv.chip=kind; pv.hide=(kind==='year'||kind==='all'); pvRender(); }
+  function previewSet(){
+    const a=(document.getElementById('pvFrom')||{}).value, b=(document.getElementById('pvTo')||{}).value;
+    if(!pvOk(a)||!pvOk(b)||!pv) return;
+    pv.from=a<=b?a:b; pv.to=a<=b?b:a; pv.chip='custom'; pvRender();
+  }
+  function previewToggle(){ if(!pv) return; pv.hide=!pv.hide; pvRender(); }
+  function previewFilter(f){ if(!pv) return; pv.f=f; pvRender(); }
+  // Printing reuses the app's own mechanism (a global print rule hides every body child except #printArea):
+  // a clean copy of the report goes into a temporary #printArea, and is removed again after printing.
+  function previewPrint(){
+    const src=document.querySelector('#modalContent .pv'); if(!src) return;
+    const old=document.getElementById('printArea'); if(old&&old.parentNode) old.parentNode.removeChild(old);
+    const pa=document.createElement('div'); pa.id='printArea'; pa.className='pv-print';
+    pa.innerHTML='<div class="pv">'+src.innerHTML+'</div>'; document.body.appendChild(pa);
+    const done=()=>{ if(pa.parentNode) pa.parentNode.removeChild(pa); window.removeEventListener('afterprint',done); };
+    window.addEventListener('afterprint',done);
+    try{ window.print(); }catch(e){ done(); }
+  }
+  // the work window / daily hours that applied in the month of that day (same lookup the pay screen uses)
+  function pvCfg(k){
+    const ym=k.slice(0,7); if(pvC[ym]) return pvC[ym];
+    const sy=vy, sm=vm; vy=+k.slice(0,4); vm=+k.slice(5,7)-1;
+    try{ return (pvC[ym]=payCfg(true)); } finally{ vy=sy; vm=sm; }
+  }
+  // minutes worked, plus late / early-leave / overtime when a work window is saved (a permission day counts as a full day)
+  function pvDay(k,r){
+    const o={mins:0,late:0,early:0,ot:0,perm:false};
+    if(!r||!WORKING(r.s)||!r.i) return o;
+    const cfg=pvCfg(k); o.perm=hasPerm(r);
+    const S=pvT(cfg.ws); let E=pvT(cfg.we); if(E<=S) E+=1440;
+    const I=pvT(r.i);
+    if(cfg.win>0&&!o.perm) o.late=Math.max(0,Math.min(I,E)-S);
+    if(r.o){
+      let d=durMin(r.i,r.o);
+      if(d>0&&o.perm) d=Math.max(d,Math.round((cfg.hpd||8)*60));
+      o.mins=d>0?d:0;
+      if(cfg.win>0&&d>0){
+        o.ot=winSplit(cfg,r.i,r.o).ot;
+        let O=pvT(r.o); if(O<I) O+=1440;
+        if(!o.perm) o.early=Math.max(0,E-Math.max(O,S));
+      }
+    }
+    return o;
+  }
+  function pvRender(){
+    load(); pvC={};
+    const a=pvDate(pv.from), b=pvDate(pv.to), todayK=tk();
+    const keys=[]; for(let d=new Date(a); d<=b && keys.length<400; d.setDate(d.getDate()+1)) keys.push(pvKey(d));
+    const c={}; ST.forEach(x=>{ c[x.k]=0; });
+    let mins=0, hdays=0, rec=0, otTot=0, lateDays=0, lateTot=0;
+    const info={};
+    keys.forEach(k=>{
+      const r=db.days[k];
+      if(r&&c[r.s]!==undefined){
+        c[r.s]++; rec++;
+        const x=info[k]=pvDay(k,r);
+        if(WORKING(r.s)&&r.i&&r.o&&x.mins>0){ mins+=x.mins; hdays++; }
+        otTot+=x.ot; if(x.late>=5){ lateDays++; lateTot+=x.late; }
+      }
+    });
+    const leaves=c.sick+c.leave+c.holiday+c.off, worked=c.present+c.late, rate=rateOf(c);
+    const anyWin=keys.some(k=>pvCfg(k).win>0);
+    const match=st=>{
+      if(pv.f==='all') return true; if(!st) return false;
+      if(pv.f==='worked') return WORKING(st.k); if(pv.f==='late') return st.k==='late';
+      if(pv.f==='absent') return st.k==='absent'; if(pv.f==='leaves') return st.k==='sick'||st.k==='leave'||st.k==='holiday'||st.k==='off';
+      return true;
+    };
+    const multiMonth=pvKey(a).slice(0,7)!==pvKey(b).slice(0,7);
+    const dur=m=>m>0?fmtDur(m):'';
+    let shown=0, lastYm='';
+    const rows=keys.map(function(k){
+      const r=db.days[k], st=r&&BY[r.s], dt=pvDate(k);
+      if(!match(st)) return '';
+      const cfg=pvCfg(k), isOff=!st&&cfg.off.indexOf(dt.getDay())>=0;
+      if(!st&&(pv.hide||pv.f!=='all')) return '';
+      shown++;
+      const ym=k.slice(0,7); let band='';
+      if(multiMonth&&ym!==lastYm){ lastYm=ym; band=`<tr class="pv-mb"><td colspan="5">${esc(dt.toLocaleDateString(loc(),{month:'long',year:'numeric'}))}</td></tr>`; }
+      const w=!!st&&WORKING(st.k), x=info[k]||{};
+      const dm=dt.toLocaleDateString(loc(),{day:'numeric',month:'short'}), wd=dt.toLocaleDateString(loc(),{weekday:'short'});
+      const inT=w&&r.i?fmtT(r.i):'', outT=w&&r.o?fmtT(r.o):'';
+      let hrs=''; if(w&&r.i&&r.o&&x.mins>0) hrs=fmtDur(x.mins); else if(w&&r.i&&!r.o&&k===todayK) hrs=L('Now','الآن');
+      const chip=st?`<span class="pv-chip"><i></i>${esc(L(st.sEn,st.sAr))}</span>`:(isOff?`<span class="pv-none">${L('Weekly off','راحة أسبوعية')}</span>`:`<span class="pv-none">—</span>`);
+      const tags=[];
+      if(x.late>=5) tags.push(`<span class="pv-tag ${st&&st.k==='late'?'warn':'soft'}">${L('Late','تأخر')} ${esc(dur(x.late))}</span>`);
+      if(x.early>=5) tags.push(`<span class="pv-tag warn">${L('Left early','انصراف مبكر')} ${esc(dur(x.early))}</span>`);
+      if(x.ot>=5) tags.push(`<span class="pv-tag ot">${L('Overtime','أوفر تايم')} ${esc(dur(x.ot))}</span>`);
+      if(x.perm) tags.push(`<span class="pv-tag perm">${L('Permission','إذن')}</span>`);
+      const sub=(tags.length||(r&&r.n))?`<tr class="pv-nr ${st?'att-st-'+st.k:''}"><td colspan="5">${tags.join('')}${r&&r.n?`<span class="pv-ntx">${esc(r.n)}</span>`:''}</td></tr>`:'';
+      const cls=(st?'att-st-'+st.k:'pv-empty')+(isOff?' pv-off':'')+(k===todayK?' pv-today':'')+(sub?' pv-hn':'');
+      return `${band}<tr class="${cls}"><td class="pv-d"><b>${esc(dm)}</b><small>${esc(wd)}</small></td><td class="pv-s">${chip}</td><td class="pv-t">${inT?esc(inT):'—'}</td><td class="pv-t">${outT?esc(outT):'—'}</td><td class="pv-h">${hrs?esc(hrs):'—'}</td></tr>${sub}`;
+    }).join('');
+    const kpi=(lbl,val,cls,sub)=>`<div class="pv-k ${cls||''}"><small>${lbl}</small><b>${val}</b>${sub?`<em>${sub}</em>`:''}</div>`;
+    const kpis=kpi(L('Attendance rate','معدل الحضور'),rate===null?'—':rate+'%','ok')
+      +kpi(L('Days worked','أيام العمل'),worked,'')
+      +kpi(L('Absent','غياب'),c.absent,c.absent?'bad':'')
+      +kpi(L('Leaves','إجازات'),c.sick+c.leave,'',L(c.sick+' sick · '+c.leave+' annual',c.sick+' مرضي · '+c.leave+' اعتيادي'))
+      +kpi(L('Total hours','إجمالي الساعات'),mins>0?fmtDur(mins):'—','')
+      +kpi(L('Daily average','متوسط اليوم'),hdays?fmtDur(Math.round(mins/hdays)):'—','')
+      +(anyWin?kpi(L('Overtime','أوفر تايم'),otTot>0?fmtDur(otTot):'—','ot')+kpi(L('Late arrivals','مرات التأخر'),lateDays,lateDays?'warn':'',lateTot>0?fmtDur(lateTot)+' '+L('total','إجمالي'):''):'');
+    const chipB=(k,en,ar)=>`<button type="button" class="pv-cb${pv.chip===k?' on':''}" onclick="ATT.previewChip('${k}')">${L(en,ar)}</button>`;
+    const fB=(k,en,ar,n)=>`<button type="button" class="pv-fb${pv.f===k?' on':''}" onclick="ATT.previewFilter('${k}')">${L(en,ar)} <em>${n}</em></button>`;
+    const fmtL=d=>d.toLocaleDateString(loc(),{day:'numeric',month:'short',year:'numeric'});
+    const period=fmtL(a)+' – '+fmtL(b);
+    const clipped=Math.round((b-a)/86400000)+1>400;
+    document.getElementById('modalContent').innerHTML=`<div class="modal-handle"></div>
+      <div class="rq-modal att-sheet pv">
+        <div class="modal-hdr">
+          <span class="pv-hic">${db.logo?bankLogoHTML(db.logo,38,{alt:''}):ic('list',18)}</span>
+          <div style="flex:1;min-width:0"><div class="modal-hdr-title">${L('Attendance report','تقرير الحضور')}</div><div class="modal-hdr-sub" dir="auto">${esc(db.company||'')}${db.company?' · ':''}${esc(period)}</div></div>
+          <button type="button" class="sheet-close-btn sq pv-noprint" onclick="ATT.previewPrint()" aria-label="${L('Print / save as PDF','طباعة / حفظ PDF')}">${ic('print',16)}</button>
+          <button type="button" class="sheet-close-btn sq pv-noprint" onclick="closeModal()" aria-label="${L('Close','إغلاق')}">${ic('close',16)}</button>
+        </div>
+        <div class="pv-ph"><b>${L('Attendance report','تقرير الحضور')}</b><span dir="auto">${esc(db.company||'')}</span><span>${esc(period)}</span><small>${L('Generated','أُنشئ في')} ${esc(new Date().toLocaleString(loc(),{dateStyle:'medium',timeStyle:'short'}))}</small></div>
+        <div class="pv-ctl pv-noprint">
+          <div class="pv-chips">${chipB('month','Shown month','الشهر المعروض')}${chipB('prev','Previous month','الشهر السابق')}${chipB('week','Last 7 days','آخر 7 أيام')}${chipB('year','This year','هذه السنة')}${chipB('all','All records','كل السجلات')}</div>
+          <div class="pv-range">
+            <label><span>${L('From','من')}</span><input type="date" id="pvFrom" value="${pv.from}" onchange="ATT.previewSet()"></label>
+            <label><span>${L('To','إلى')}</span><input type="date" id="pvTo" value="${pv.to}" onchange="ATT.previewSet()"></label>
+          </div>
+        </div>
+        <div class="pv-kpis">${kpis}</div>
+        <div class="pv-ctl pv-noprint">
+          <div class="pv-filters">${fB('all','All','الكل',rec)}${fB('worked','Worked','حضور',worked)}${fB('late','Late','تأخير',c.late)}${fB('absent','Absent','غياب',c.absent)}${fB('leaves','Leaves & off','إجازات وراحة',leaves)}</div>
+          <div class="pv-bar"><span>${L(keys.length+' days · '+rec+' recorded',keys.length+' يوم · '+rec+' مسجّل')}${clipped?' · '+L('first 400 days shown','أول 400 يوم'):''}</span><button type="button" class="pv-tg${pv.hide?' on':''}" onclick="ATT.previewToggle()">${L('Hide empty days','إخفاء الأيام الفارغة')}</button></div>
+        </div>
+        <div class="pv-wrap">${shown?`<table class="pv-tbl"><colgroup><col style="width:21%"><col style="width:25%"><col style="width:18%"><col style="width:18%"><col style="width:18%"></colgroup><thead><tr><th>${L('Date','التاريخ')}</th><th>${L('Status','الحالة')}</th><th>${L('In','الحضور')}</th><th>${L('Out','الانصراف')}</th><th>${L('Hours','الساعات')}</th></tr></thead><tbody>${rows}</tbody>${mins>0?`<tfoot><tr><td colspan="4">${L('Total · '+hdays+' working days','الإجمالي · '+hdays+' يوم عمل')}</td><td class="pv-h">${esc(fmtDur(mins))}</td></tr></tfoot>`:''}</table>${anyWin?`<div class="pv-fn">${L('Late, early-leave and overtime tags show differences of 5 minutes or more.','تظهر وسوم التأخر والانصراف المبكر والأوفر تايم للفروق من 5 دقائق فأكثر.')}</div>`:''}`:`<div class="pv-emptybox">${L('No records match this period and filter','لا توجد سجلات تطابق هذه الفترة والفلتر')}</div>`}</div>
+        <div class="modal-btns pv-noprint"><button type="button" class="mbtn save" onclick="ATT.previewPrint()">${ic('print',15)} ${L('Print / save as PDF','طباعة / حفظ PDF')}</button><button type="button" class="mbtn cancel" onclick="closeModal()">${L('Close','إغلاق')}</button></div>
+      </div>`;
+    document.getElementById('modalOverlay').style.display='flex';
   }
   function openDay(key){
     load();
@@ -51731,7 +51882,7 @@ const ATT=(function(){
     });
   }
   function reset(){ db=null; sel=''; coOpen=null; multi=false; rangeMode=false; rangeStart=''; msel=new Set(); payOpen=null; }
-  return {reset,render,dashCard,dashSummary,quickStrip,checkIn,checkOut,stamp,tUpd,clearT,noteChip,openPage,openDay,pick,saveDay,clearDay,quick,nav,goToday,setScope,setField,pickLogo,removeLogo,clearMonth,toggleCo,openPay,openLeave,leaveSave,jump,togglePayDays,payDraftSet,payTimeChange,paySave,toggleMulti,setRangeMode,clearSel,tapDay,openMulti,saveMulti,clearMulti};
+  return {reset,render,dashCard,dashSummary,quickStrip,checkIn,checkOut,stamp,tUpd,clearT,noteChip,openPage,openDay,pick,saveDay,clearDay,quick,nav,goToday,setScope,setField,pickLogo,removeLogo,clearMonth,toggleCo,openPay,openLeave,leaveSave,jump,togglePayDays,payDraftSet,payTimeChange,paySave,toggleMulti,setRangeMode,clearSel,tapDay,openMulti,saveMulti,clearMulti,previewOpen,previewChip,previewSet,previewToggle,previewFilter,previewPrint};
 })();
 // My Locations photos live in IndexedDB; carry them through the app's existing backup/restore
 // (which only knows localStorage) without ever writing them into localStorage.
@@ -65367,6 +65518,7 @@ html body #mainContent > .wdash-wrap.dv3-dark-v2 .wdash-tile-sum .dl-arr{width:1
 .mat-feed i{width:7px;height:7px;border-radius:50%;background:var(--orange);flex:none}
 .mat-feed.on i{background:var(--green)}
 .mat-feed span{flex:1;min-width:0}
+.mat-feed{flex-wrap:wrap}
 .mat-feed button{border:1px solid var(--border);background:var(--surface);color:var(--primary);font-weight:800;font-size:inherit;padding:4px 12px;border-radius:99px;cursor:pointer}
 .mat-about summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:6px;padding:4px 2px;font-size:calc(12px*var(--app-text-scale,1));font-weight:700;color:var(--muted)}
 .mat-about summary::-webkit-details-marker{display:none}
@@ -65477,13 +65629,76 @@ function _matFxHtml(){
 }
 function _matFeedRowHtml(){
   const on=matFeedConfigured();
-  return `<div class="mat-feed${on?' on':''}"><i aria-hidden="true"></i><span>${on?L('Steel & cement feed connected','تحديث الحديد والأسمنت متصل'):L('Steel & cement: no live feed yet','الحديد والأسمنت: لا يوجد تحديث تلقائي بعد')}</span><button type="button" onclick="matFeedSetupOpen()">${on?L('Change','تغيير'):L('Connect','ربط')}</button></div>`;
+  return `<div class="mat-feed${on?' on':''}"><i aria-hidden="true"></i><span>${on?L('Steel & cement feed connected','تحديث الحديد والأسمنت متصل'):L('Steel & cement: manual prices','الحديد والأسمنت: أسعار يدوية')}</span><button type="button" onclick="matPasteOpen()">${L('Paste report','لصق تقرير')}</button><button type="button" onclick="matFeedSetupOpen()">${on?L('Change','تغيير'):L('Connect','ربط')}</button></div>`;
 }
 // one footer: the feed status, then every explanatory note folded into a single "About these prices" block
 function _matFootHtml(noteHtml){
   const fx=_matFxNoteTxt?`<div class="mat-note">${_matFxNoteTxt}</div>`:'';
   return `<div class="mat-foot">${_matFeedRowHtml()}<details class="mat-about"${_matAboutOpen?' open':''} ontoggle="_matAboutOpen=this.open"><summary>${L('About these prices','عن هذه الأسعار')}</summary>${noteHtml}${fx}</details></div>`;
 }
+// ── Smart paste: read rebar / cement (and Ezz as a reference) from the text of a daily price report ──
+// Works on the usual Arabic wording of the Cabinet-portal reports (Masrawy, Sada El Balad, Arab Finance, ...) and the English
+// versions. A price is the first plausible number after the item name inside the same sentence; years, percentages and the
+// "change" figures are skipped by the sane ranges, and "38.290 ألف" style numbers are understood.
+function matParsePrices(text){
+  if(typeof text!=='string') return {};
+  let t=text.replace(/[\u0660-\u0669]/g,c=>String(c.charCodeAt(0)-0x660)).replace(/[\u06F0-\u06F9]/g,c=>String(c.charCodeAt(0)-0x6F0))
+            .replace(/\u066C/g,',').replace(/\u066B/g,'.').replace(/[\u0640\u064B-\u0652]/g,'').replace(/[أإآ]/g,'ا').replace(/\s+/g,' ');
+  const RANGE={rebar:[15000,120000],ezz:[15000,120000],cement:[1500,20000]};
+  const KEY={
+    rebar:/(?:الحديد|حديد)\s+الاستثماري|investment[- ]grade\s+(?:iron|steel|rebar)/gi,
+    ezz:/حديد\s+عز|ezz\s+steel/gi,
+    cement:/(?:الاسمنت|الاسمنت|الإسمنت|السمنت)\s+الرمادي|(?:gray|grey)\s+cement/gi
+  };
+  const out={};
+  Object.keys(KEY).forEach(function(k){
+    const re=KEY[k]; let m;
+    while((m=re.exec(t))){
+      let w=t.slice(re.lastIndex,re.lastIndex+170);
+      const end=w.search(/(?:(?<![0-9])[.؟!?](?![0-9])|\n)/);   // stay inside the sentence (a decimal point is not an end)
+      if(end>=0) w=w.slice(0,end);
+      const nre=/(\d{1,3}(?:,\d{3})+|\d+)(\.\d+)?(\s*(?:ا?لف|thousand|k\b))?(\s*%)?/gi; let n;
+      while((n=nre.exec(w))){
+        if(n[4]) continue;                                       // a percentage
+        const raw=(n[1]+(n[2]||'')).replace(/,/g,''); let v=parseFloat(raw);
+        if(!isFinite(v)) continue;
+        if(n[3]) v=v*1000;
+        const tail=w.slice(nre.lastIndex,nre.lastIndex+8);
+        if(!n[3] && v>=1990 && v<=2100 && Number.isInteger(v) && !/جنيه|egp/i.test(tail)) continue;   // a year
+        if(v>=RANGE[k][0] && v<=RANGE[k][1]){ out[k]=Math.round(v*100)/100; break; }
+      }
+      if(out[k]) break;
+    }
+  });
+  return out;
+}
+function matPasteOpen(){
+  _matModal(`
+    <div class="modal-title">${ic('package',14)} ${L('Update from a price report','تحديث من نشرة الأسعار')}</div>
+    <div class="field"><label>${L('Paste the text of today’s steel & cement report','الصق نص تقرير أسعار الحديد والأسمنت اليوم')}</label>
+      <textarea id="matPasteTxt" rows="7" dir="auto" placeholder="${L('e.g. Investment-grade rebar: 37,600 EGP … Grey cement: 4,140 EGP','مثال: سعر طن الحديد الاستثماري: 37600 جنيه … سعر طن الأسمنت الرمادي: 4140 جنيه')}" style="width:100%;box-sizing:border-box"></textarea></div>
+    <div class="mat-hempty" style="text-align:start;margin:-4px 0 8px">${L('Reads “investment-grade rebar” and “grey cement” per ton (Ezz is kept as a reference). Values outside a sane range are ignored.','يقرأ «الحديد الاستثماري» و«الأسمنت الرمادي» للطن (وحديد عز كمرجع). تُتجاهل القيم خارج النطاق المعقول.')}</div>
+    <div class="modal-btns">
+      <button type="button" class="mbtn save" onclick="matPasteApply()">${L('Read & update','قراءة وتحديث')}</button>
+      <button type="button" class="mbtn cancel" onclick="closeModal()">${L('Close','إغلاق')}</button>
+    </div>`);
+}
+function matPasteApply(){
+  const el=document.getElementById('matPasteTxt'); const p=matParsePrices(el?el.value:'');
+  const d0=_matToday(); const done=[];
+  [['rebar',p.rebar,15000,120000,L('Rebar','الحديد')],['cement',p.cement,1500,20000,L('Cement','الأسمنت')]].forEach(function(a){
+    const it=_matItem(a[0]), v=Number(a[1]); if(!it||!(v>=a[2]&&v<=a[3])) return;
+    const last=it.history[it.history.length-1];
+    if(last&&last.d===d0) last.p=v; else it.history.push({d:d0,p:v});
+    if(it.history.length>180) it.history=it.history.slice(-180);
+    it.src='paste'; if(a[0]==='rebar'&&Number(p.ezz)>0) it.ezz=Number(p.ezz);
+    done.push(a[4]+' '+fmt(v));
+  });
+  if(!done.length){ showToast(L('No steel or cement price found in that text','لم أجد سعر الحديد أو الأسمنت في هذا النص'),'warn'); return; }
+  _matSave(); closeModal(); _matRefresh();
+  showToast(L('Updated: ','تم التحديث: ')+done.join(' · '),'success');
+}
+
 function matFeedSetupOpen(){
   let cur=''; try{ cur=localStorage.getItem('wdp_mat_feed_url')||''; }catch(e){}
   _matModal(`
@@ -65513,5 +65728,85 @@ function matFeedSetupClear(){
   closeModal(); _matRefresh(); showToast(L('Feed link removed','تمت إزالة الرابط'));
 }
 </script>
+<style id="att-preview-v1-css">
+/* Attendance report sheet: range chips, from/to pickers, KPI tiles, status filter, month-banded table, totals, print. */
+.pv .pv-hic{width:38px;height:38px;border-radius:12px;display:inline-flex;align-items:center;justify-content:center;color:var(--primary);background:color-mix(in srgb,var(--primary) 12%,var(--surface));flex:none;overflow:hidden}
+.pv .pv-ph{display:none}
+.pv .pv-chips{display:flex;gap:6px;overflow-x:auto;padding:2px 0 10px;scrollbar-width:none}
+.pv .pv-chips::-webkit-scrollbar{display:none}
+.pv .pv-cb{flex:none;height:32px;padding:0 12px;border:1px solid var(--border);border-radius:99px;background:var(--surface);color:var(--sub);font-family:inherit;font-size:calc(12px*var(--app-text-scale,1));font-weight:700;cursor:pointer}
+.pv .pv-cb.on{background:var(--primary);border-color:var(--primary);color:#fff}
+.pv .pv-range{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:0 0 12px}
+.pv .pv-range label{display:flex;flex-direction:column;gap:4px;min-width:0}
+.pv .pv-range label span{font-size:calc(11px*var(--app-text-scale,1));font-weight:800;color:var(--sub);text-transform:uppercase;letter-spacing:.5px}
+[dir="rtl"] .pv .pv-range label span{letter-spacing:0}
+.pv .pv-range input{height:42px;width:100%;box-sizing:border-box;border:1px solid var(--border);border-radius:11px;background:var(--surface);color:var(--text);padding:0 10px;font-family:inherit;font-size:calc(14px*var(--app-text-scale,1));font-weight:600;min-width:0}
+.pv .pv-kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:0 0 12px}
+.pv .pv-k{display:flex;flex-direction:column;gap:2px;padding:10px 12px;border-radius:14px;background:var(--surface2);border:1px solid var(--border);min-width:0}
+.pv .pv-k small{font-size:calc(10.5px*var(--app-text-scale,1));font-weight:800;letter-spacing:.3px;color:var(--sub)}
+.pv .pv-k b{font-size:calc(18px*var(--app-text-scale,1));font-weight:800;line-height:1.2;color:var(--text);font-variant-numeric:tabular-nums}
+.pv .pv-k em{font-style:normal;font-size:calc(10.5px*var(--app-text-scale,1));font-weight:700;color:var(--muted);white-space:normal;line-height:1.3}
+.pv .pv-k.ok b{color:var(--green)}.pv .pv-k.bad b{color:var(--red)}.pv .pv-k.warn b{color:var(--orange)}.pv .pv-k.ot b{color:var(--blue)}
+.pv .pv-filters{display:flex;gap:6px;overflow-x:auto;padding:0 0 8px;scrollbar-width:none}
+.pv .pv-filters::-webkit-scrollbar{display:none}
+.pv .pv-fb{flex:none;display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 12px;border:1px solid var(--border);border-radius:10px;background:var(--surface);color:var(--sub);font-family:inherit;font-size:calc(12px*var(--app-text-scale,1));font-weight:700;cursor:pointer}
+.pv .pv-fb em{font-style:normal;min-width:18px;padding:1px 6px;border-radius:99px;background:var(--surface3);color:var(--muted);font-size:calc(10px*var(--app-text-scale,1));font-weight:800;text-align:center;font-variant-numeric:tabular-nums}
+.pv .pv-fb.on{border-color:var(--primary);color:var(--primary);background:color-mix(in srgb,var(--primary) 10%,var(--surface))}
+.pv .pv-fb.on em{background:var(--primary);color:#fff}
+.pv .pv-bar{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 0 6px;font-size:calc(12px*var(--app-text-scale,1));font-weight:600;color:var(--sub)}
+.pv .pv-tg{flex:none;border:1px solid var(--border);background:var(--surface);color:var(--sub);border-radius:99px;padding:5px 12px;font-family:inherit;font-size:calc(12px*var(--app-text-scale,1));font-weight:700;cursor:pointer}
+.pv .pv-tg.on{border-color:var(--primary);color:var(--primary);background:color-mix(in srgb,var(--primary) 10%,var(--surface))}
+.pv .pv-wrap{overflow:visible;overflow:clip;border:1px solid var(--border);border-radius:14px;background:var(--surface);margin-bottom:12px}
+/* the app auto-wraps every table in .table-scroll (overflow:auto, nowrap cells): keep this one flowing with the sheet so its header can stick */
+.pv .table-scroll{overflow:visible;overflow:clip}
+.pv .table-scroll .pv-nr td,.pv .table-scroll .pv-ntx{white-space:normal}
+.pv .pv-tbl{width:100%;table-layout:fixed;border-collapse:separate;border-spacing:0;font-size:calc(12.5px*var(--app-text-scale,1))}
+.pv .pv-tbl th{position:sticky;top:-16px;z-index:2;background:var(--surface2);text-align:start;padding:9px 6px;border-bottom:1px solid var(--border);font-size:calc(11px*var(--app-text-scale,1));font-weight:800;letter-spacing:.4px;text-transform:uppercase;color:var(--sub);white-space:nowrap}
+[dir="rtl"] .pv .pv-tbl th{letter-spacing:0}
+.pv .pv-tbl td{padding:9px 6px;border-bottom:1px solid var(--border);vertical-align:top}
+.pv .pv-tbl tbody tr:last-child td{border-bottom:0}
+.pv .pv-tbl tr[class*="att-st-"] td{background:color-mix(in srgb,var(--c) 5%,transparent)}
+.pv .pv-tbl tr[class*="att-st-"] td:first-child{border-inline-start:3px solid var(--c)}
+.pv .pv-tbl tr.pv-empty td{color:var(--muted)}
+.pv .pv-tbl tr.pv-off td{background:color-mix(in srgb,var(--muted) 7%,transparent)}
+.pv .pv-tbl tr.pv-today td{background:color-mix(in srgb,var(--primary) 9%,transparent)}
+.pv .pv-tbl tr.pv-mb td{position:sticky;top:18px;z-index:1;padding:7px 8px;background:var(--surface3);color:var(--sub);font-size:calc(11px*var(--app-text-scale,1));font-weight:800;letter-spacing:.4px;text-transform:uppercase;border-bottom:1px solid var(--border)}
+[dir="rtl"] .pv .pv-tbl tr.pv-mb td{letter-spacing:0}
+.pv .pv-hn td{border-bottom:0}
+.pv .pv-nr td{padding:0 8px 9px;border-bottom:1px solid var(--border);font-size:calc(11px*var(--app-text-scale,1));font-weight:600;line-height:1.4;color:var(--sub)}
+.pv .pv-tag{display:inline-block;margin:0 5px 4px 0;padding:2px 8px;border-radius:99px;font-size:calc(10.5px*var(--app-text-scale,1));font-weight:800;background:var(--surface3);color:var(--sub)}
+[dir="rtl"] .pv .pv-tag{margin:0 0 4px 5px}
+.pv .pv-tag.warn{background:color-mix(in srgb,var(--orange) 16%,var(--surface));color:var(--orange)}
+.pv .pv-tag.ot{background:color-mix(in srgb,var(--blue) 16%,var(--surface));color:var(--blue)}
+.pv .pv-tag.perm{background:color-mix(in srgb,var(--purple) 16%,var(--surface));color:var(--purple)}
+.pv .pv-ntx{unicode-bidi:plaintext;display:block;text-align:start}
+.pv .pv-d b{display:block}
+.pv .pv-d small{font-size:calc(11px*var(--app-text-scale,1));font-weight:700;color:var(--muted)}
+.pv .pv-chip{display:inline-flex;align-items:center;gap:5px;font-size:calc(12px*var(--app-text-scale,1));font-weight:800;color:var(--c)}
+.pv .pv-chip i{width:8px;height:8px;border-radius:50%;background:var(--c)}
+.pv .pv-none{color:var(--muted);font-weight:600}
+.pv .pv-t,.pv .pv-h{white-space:nowrap;font-weight:700;font-variant-numeric:tabular-nums}
+.pv .pv-tbl tfoot td{padding:10px 8px;background:var(--surface2);border-top:1px solid var(--border);font-size:calc(12px*var(--app-text-scale,1));font-weight:800;color:var(--text)}
+.pv .pv-fn{padding:8px 10px;font-size:calc(10.5px*var(--app-text-scale,1));font-weight:600;color:var(--muted);background:var(--surface2);border-top:1px solid var(--border)}
+.pv .pv-emptybox{padding:28px 12px;text-align:center;color:var(--muted);font-weight:600}
+#printArea.pv-print{display:none}
+@media print{
+  @page{size:A4;margin:12mm}
+  html:has(#printArea.pv-print),html:has(#printArea.pv-print) body{background:#fff!important;color-scheme:light}
+  #printArea.pv-print{display:block!important;background:#fff;color:#10151a;font-family:inherit}
+  #printArea .pv{--surface:#fff;--surface2:#f3f5f7;--surface3:#e8ecf0;--border:#d5dbe1;--text:#10151a;--sub:#46525d;--muted:#6b7782;display:block!important;background:#fff!important;color:#10151a!important;padding:0!important}
+  #printArea .pv .modal-hdr,#printArea .pv .pv-noprint{display:none!important}
+  #printArea .pv .pv-ph{display:flex;flex-direction:column;gap:2px;padding:0 0 10px;margin:0 0 10px;border-bottom:2px solid #10151a}
+  #printArea .pv .pv-ph b{font-size:20px}
+  #printArea .pv .pv-ph small{color:#6b7782}
+  #printArea .pv .pv-kpis{margin-bottom:12px}
+  #printArea .pv .pv-wrap{max-height:none!important;overflow:visible!important;border:1px solid var(--border);border-radius:8px}
+  #printArea .pv .pv-tbl th,#printArea .pv .pv-tbl tfoot td,#printArea .pv .pv-tbl tr.pv-mb td{position:static!important}
+  #printArea .pv .pv-tbl tr{break-inside:avoid}
+  #printArea .pv .pv-tbl tfoot{display:table-row-group}
+  #printArea .pv .pv-tbl thead{display:table-header-group}
+  #printArea .pv *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+</style>
 </body>
 </html>
