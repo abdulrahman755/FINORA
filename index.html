@@ -51416,7 +51416,7 @@ const ATT=(function(){
   // ── Preview: a professional attendance report for any date range ──
   // Status, check-in / check-out, hours, late / early-leave / overtime (from the saved work window, via winSplit),
   // weekly days off, month bands, a status filter, totals, and print / save-as-PDF.
-  let pv=null, pvC={};
+  let pv=null, pvC={}, pvTol=5;   // pvTol: differences under this many minutes are ignored (kept while the app is open)
   const pvKey=d=>dk(d.getFullYear(),d.getMonth(),d.getDate());
   const pvDate=k=>new Date(+k.slice(0,4),+k.slice(5,7)-1,+k.slice(8,10));
   const pvOk=k=>/^\d{4}-\d{2}-\d{2}$/.test(String(k||''));
@@ -51439,6 +51439,7 @@ const ATT=(function(){
   }
   function previewToggle(){ if(!pv) return; pv.hide=!pv.hide; pvRender(); }
   function previewFilter(f){ if(!pv) return; pv.f=f; pvRender(); }
+  function previewTol(n){ n=+n; if(!pv||!(n>=1)) return; pvTol=n; pvRender(); }
   // Printing reuses the app's own mechanism (a global print rule hides every body child except #printArea):
   // a clean copy of the report goes into a temporary #printArea, and is removed again after printing.
   function previewPrint(){
@@ -51476,27 +51477,49 @@ const ATT=(function(){
     }
     return o;
   }
+  // ring + daily-hours chart used by the report header
+  function pvDonut(rate){
+    const r=26, c=2*Math.PI*r, p=rate===null?0:Math.max(0,Math.min(100,rate));
+    return `<svg class="pv-ring" viewBox="0 0 64 64" aria-hidden="true"><circle class="tr" cx="32" cy="32" r="${r}"/><circle class="pg" cx="32" cy="32" r="${r}" stroke-dasharray="${(c*p/100).toFixed(1)} ${c.toFixed(1)}" transform="rotate(-90 32 32)"/><text x="32" y="37" text-anchor="middle">${rate===null?'—':rate+'%'}</text></svg>`;
+  }
+  function pvChart(keys,info,hpdMin){
+    const n=keys.length; if(n<2||n>62) return '';
+    const mx=Math.max.apply(null,keys.map(k=>info[k]?info[k].mins:0)); if(!(mx>0)) return '';
+    const W=340,H=96,pb=16,pt=6,ph=H-pb-pt, top=Math.max(hpdMin*1.25,mx,60), slot=W/n, bw=Math.max(3,Math.min(14,slot*0.64));
+    let g='', lab='';
+    const step=Math.ceil(n/9);
+    keys.forEach(function(k,i){
+      const r=db.days[k], st=r&&BY[r.s], x=info[k], cx=i*slot+slot/2, cls=st?'att-st-'+st.k:'';
+      if(x&&x.mins>0){ const h=Math.max(2,x.mins/top*ph); g+=`<rect class="${cls}" x="${(cx-bw/2).toFixed(1)}" y="${(pt+ph-h).toFixed(1)}" width="${bw.toFixed(1)}" height="${h.toFixed(1)}" rx="2"/>`; }
+      else if(st){ g+=`<circle class="${cls}" cx="${cx.toFixed(1)}" cy="${(pt+ph-3).toFixed(1)}" r="${Math.min(3,bw/2).toFixed(1)}"/>`; }
+      if(i%step===0) lab+=`<text x="${cx.toFixed(1)}" y="${H-3}" text-anchor="middle">${+k.slice(8,10)}</text>`;
+    });
+    const ty=pt+ph-hpdMin/top*ph;
+    return `<div class="pv-chartbox"><div class="pv-cht"><b>${L('Daily hours','ساعات كل يوم')}</b><span>${L('dashed line = target','الخط المتقطع = المستهدف')} ${esc(fmtDur(Math.round(hpdMin)))}</span></div><svg class="pv-chart" dir="ltr" viewBox="0 0 ${W} ${H}" role="img" aria-label="${L('Daily hours chart','مخطط ساعات كل يوم')}"><line class="tg" x1="0" x2="${W}" y1="${ty.toFixed(1)}" y2="${ty.toFixed(1)}"/>${g}${lab}</svg></div>`;
+  }
   function pvRender(){
     load(); pvC={};
     const a=pvDate(pv.from), b=pvDate(pv.to), todayK=tk();
     const keys=[]; for(let d=new Date(a); d<=b && keys.length<400; d.setDate(d.getDate()+1)) keys.push(pvKey(d));
     const c={}; ST.forEach(x=>{ c[x.k]=0; });
-    let mins=0, hdays=0, rec=0, otTot=0, lateDays=0, lateTot=0;
+    let mins=0, hdays=0, rec=0, otTot=0, lateN=0, lateTot=0;
     const info={};
     keys.forEach(k=>{
       const r=db.days[k];
       if(r&&c[r.s]!==undefined){
         c[r.s]++; rec++;
         const x=info[k]=pvDay(k,r);
+        x.isLate=(r.s==='late')||x.late>=pvTol;               // one definition of "late" for the rows, the filter and the counters
         if(WORKING(r.s)&&r.i&&r.o&&x.mins>0){ mins+=x.mins; hdays++; }
-        otTot+=x.ot; if(x.late>=5){ lateDays++; lateTot+=x.late; }
+        if(x.ot>=pvTol) otTot+=x.ot; if(x.isLate) lateN++; if(x.late>=pvTol) lateTot+=x.late;
       }
     });
     const leaves=c.sick+c.leave+c.holiday+c.off, worked=c.present+c.late, rate=rateOf(c);
     const anyWin=keys.some(k=>pvCfg(k).win>0);
-    const match=st=>{
+    const cfg0=pvCfg(keys[0]||tk());
+    const match=(st,x)=>{
       if(pv.f==='all') return true; if(!st) return false;
-      if(pv.f==='worked') return WORKING(st.k); if(pv.f==='late') return st.k==='late';
+      if(pv.f==='worked') return WORKING(st.k); if(pv.f==='late') return !!(x&&x.isLate);
       if(pv.f==='absent') return st.k==='absent'; if(pv.f==='leaves') return st.k==='sick'||st.k==='leave'||st.k==='holiday'||st.k==='off';
       return true;
     };
@@ -51504,35 +51527,42 @@ const ATT=(function(){
     const dur=m=>m>0?fmtDur(m):'';
     let shown=0, lastYm='';
     const rows=keys.map(function(k){
-      const r=db.days[k], st=r&&BY[r.s], dt=pvDate(k);
-      if(!match(st)) return '';
+      const r=db.days[k], st=r&&BY[r.s], dt=pvDate(k), x=info[k]||{};
+      if(!match(st,x)) return '';
       const cfg=pvCfg(k), isOff=!st&&cfg.off.indexOf(dt.getDay())>=0;
       if(!st&&(pv.hide||pv.f!=='all')) return '';
       shown++;
       const ym=k.slice(0,7); let band='';
       if(multiMonth&&ym!==lastYm){ lastYm=ym; band=`<tr class="pv-mb"><td colspan="5">${esc(dt.toLocaleDateString(loc(),{month:'long',year:'numeric'}))}</td></tr>`; }
-      const w=!!st&&WORKING(st.k), x=info[k]||{};
+      const w=!!st&&WORKING(st.k);
       const dm=dt.toLocaleDateString(loc(),{day:'numeric',month:'short'}), wd=dt.toLocaleDateString(loc(),{weekday:'short'});
       const inT=w&&r.i?fmtT(r.i):'', outT=w&&r.o?fmtT(r.o):'';
       let hrs=''; if(w&&r.i&&r.o&&x.mins>0) hrs=fmtDur(x.mins); else if(w&&r.i&&!r.o&&k===todayK) hrs=L('Now','الآن');
       const chip=st?`<span class="pv-chip"><i></i>${esc(L(st.sEn,st.sAr))}</span>`:(isOff?`<span class="pv-none">${L('Weekly off','راحة أسبوعية')}</span>`:`<span class="pv-none">—</span>`);
-      const tags=[];
-      if(x.late>=5) tags.push(`<span class="pv-tag ${st&&st.k==='late'?'warn':'soft'}">${L('Late','تأخر')} ${esc(dur(x.late))}</span>`);
-      if(x.early>=5) tags.push(`<span class="pv-tag warn">${L('Left early','انصراف مبكر')} ${esc(dur(x.early))}</span>`);
-      if(x.ot>=5) tags.push(`<span class="pv-tag ot">${L('Overtime','أوفر تايم')} ${esc(dur(x.ot))}</span>`);
-      if(x.perm) tags.push(`<span class="pv-tag perm">${L('Permission','إذن')}</span>`);
-      const sub=(tags.length||(r&&r.n))?`<tr class="pv-nr ${st?'att-st-'+st.k:''}"><td colspan="5">${tags.join('')}${r&&r.n?`<span class="pv-ntx">${esc(r.n)}</span>`:''}</td></tr>`:'';
+      // the difference sits right under the time it belongs to
+      const lateT=x.late>=pvTol?`<small class="pv-dl ${st&&st.k==='late'?'warn':'soft'}">${esc(L(dur(x.late)+' late','تأخر '+dur(x.late)))}</small>`:'';
+      const endT=x.early>=pvTol?`<small class="pv-dl warn">${esc(L(dur(x.early)+' early','مبكر '+dur(x.early)))}</small>`:(x.ot>=pvTol?`<small class="pv-dl ot">${esc(L(dur(x.ot)+' over','أوفر '+dur(x.ot)))}</small>`:'');
+      const permT=x.perm?`<small class="pv-dl perm">${L('Permission','إذن')}</small>`:'';
+      const sub=(r&&r.n)?`<tr class="pv-nr ${st?'att-st-'+st.k:''}"><td colspan="5"><span class="pv-ntx">${esc(r.n)}</span></td></tr>`:'';
       const cls=(st?'att-st-'+st.k:'pv-empty')+(isOff?' pv-off':'')+(k===todayK?' pv-today':'')+(sub?' pv-hn':'');
-      return `${band}<tr class="${cls}"><td class="pv-d"><b>${esc(dm)}</b><small>${esc(wd)}</small></td><td class="pv-s">${chip}</td><td class="pv-t">${inT?esc(inT):'—'}</td><td class="pv-t">${outT?esc(outT):'—'}</td><td class="pv-h">${hrs?esc(hrs):'—'}</td></tr>${sub}`;
+      return `${band}<tr class="${cls}"><td class="pv-d"><b>${esc(dm)}</b><small>${esc(wd)}</small></td><td class="pv-s">${chip}${permT}</td><td class="pv-t">${inT?esc(inT)+lateT:'—'}</td><td class="pv-t">${outT?esc(outT)+endT:'—'}</td><td class="pv-h">${hrs?esc(hrs):'—'}</td></tr>${sub}`;
     }).join('');
-    const kpi=(lbl,val,cls,sub)=>`<div class="pv-k ${cls||''}"><small>${lbl}</small><b>${val}</b>${sub?`<em>${sub}</em>`:''}</div>`;
-    const kpis=kpi(L('Attendance rate','معدل الحضور'),rate===null?'—':rate+'%','ok')
-      +kpi(L('Days worked','أيام العمل'),worked,'')
-      +kpi(L('Absent','غياب'),c.absent,c.absent?'bad':'')
-      +kpi(L('Leaves','إجازات'),c.sick+c.leave,'',L(c.sick+' sick · '+c.leave+' annual',c.sick+' مرضي · '+c.leave+' اعتيادي'))
-      +kpi(L('Total hours','إجمالي الساعات'),mins>0?fmtDur(mins):'—','')
-      +kpi(L('Daily average','متوسط اليوم'),hdays?fmtDur(Math.round(mins/hdays)):'—','')
-      +(anyWin?kpi(L('Overtime','أوفر تايم'),otTot>0?fmtDur(otTot):'—','ot')+kpi(L('Late arrivals','مرات التأخر'),lateDays,lateDays?'warn':'',lateTot>0?fmtDur(lateTot)+' '+L('total','إجمالي'):''):'');
+    const hpdMin=Math.round((cfg0.hpd||8)*60);
+    const cn=(k,lbl,val,sub)=>`<div class="pv-cn att-st-${k}"><i></i><span>${lbl}</span><b>${val}</b>${sub?`<em>${sub}</em>`:''}</div>`;
+    const hero=`<div class="pv-hero"><div class="pv-ringbox">${pvDonut(rate)}<small>${L('Attendance rate','معدل الحضور')}</small></div><div class="pv-cnts">`
+      +cn('present',L('Worked','حضور'),worked)
+      +cn('absent',L('Absent','غياب'),c.absent)
+      +cn('sick',L('Leaves','إجازات'),c.sick+c.leave,(c.sick||c.leave)?L(c.sick+' sick · '+c.leave+' annual',c.sick+' مرضي · '+c.leave+' اعتيادي'):'')
+      +(anyWin?cn('late',L('Late arrivals','مرات التأخر'),lateN,lateTot>0?fmtDur(lateTot)+' '+L('total','إجمالي'):''):'')
+      +`</div></div>`;
+    const kt=(lbl,val,cls)=>`<div class="pv-k ${cls||''}"><small>${lbl}</small><b>${val}</b></div>`;
+    const hrs3=`<div class="pv-hrs3">`+kt(L('Total hours','إجمالي الساعات'),mins>0?fmtDur(mins):'—')+kt(L('Daily average','متوسط اليوم'),hdays?fmtDur(Math.round(mins/hdays)):'—')+(anyWin?kt(L('Overtime','أوفر تايم'),otTot>0?fmtDur(otTot):'—','ot'):'')+`</div>`;
+    const offNames=(cfg0.off||[]).map(d=>new Date(2021,0,3+d).toLocaleDateString(loc(),{weekday:'long'})).join('، ');
+    const winLbl={}; keys.forEach(k=>{ const cf=pvCfg(k); if(cf.win>0) winLbl[fmtT(cf.ws)+'|'+fmtT(cf.we)]=1; });
+    const wk=Object.keys(winLbl);
+    const infoLine=anyWin
+      ?`<div class="pv-info"><b>${L('Work window','نافذة الدوام')}</b> ${wk.length===1?(function(){ const q=wk[0].split('|'); return '<bdi>'+esc(q[0])+'</bdi>'+L(' – ',' إلى ')+'<bdi>'+esc(q[1])+'</bdi>'; })():esc(L('varies by month','تختلف حسب الشهر'))} · <b>${L('Target','المستهدف')}</b> ${esc(fmtDur(hpdMin))}/${L('day','يوم')}${offNames?' · <b>'+L('Weekly off','الراحة')+'</b> '+esc(offNames):''}<br>${L('Late, early and over are measured against the window; differences under '+pvTol+' minutes are ignored.','يُقاس التأخر والانصراف المبكر والزيادة بالنسبة للنافذة، وتُتجاهل الفروق الأقل من '+pvTol+' دقيقة.')}</div>`
+      :`<div class="pv-info">${L('Set your work start and end in Pay settings to see late arrivals and overtime here.','حدّد بداية ونهاية الدوام في إعدادات الراتب لتظهر هنا مرات التأخر والأوفر تايم.')}</div>`;
     const chipB=(k,en,ar)=>`<button type="button" class="pv-cb${pv.chip===k?' on':''}" onclick="ATT.previewChip('${k}')">${L(en,ar)}</button>`;
     const fB=(k,en,ar,n)=>`<button type="button" class="pv-fb${pv.f===k?' on':''}" onclick="ATT.previewFilter('${k}')">${L(en,ar)} <em>${n}</em></button>`;
     const fmtL=d=>d.toLocaleDateString(loc(),{day:'numeric',month:'short',year:'numeric'});
@@ -51554,12 +51584,12 @@ const ATT=(function(){
             <label><span>${L('To','إلى')}</span><input type="date" id="pvTo" value="${pv.to}" onchange="ATT.previewSet()"></label>
           </div>
         </div>
-        <div class="pv-kpis">${kpis}</div>
+        ${hero}${hrs3}${pvChart(keys,info,hpdMin)}${infoLine}${anyWin?`<div class="pv-tol pv-noprint"><span>${L('Ignore differences under','تجاهل الفروق الأقل من')}</span>${[5,10,15,30].map(n=>`<button type="button" class="pv-tb${pvTol===n?' on':''}" onclick="ATT.previewTol(${n})">${L(n+' min',n+' د')}</button>`).join('')}</div>`:''}
         <div class="pv-ctl pv-noprint">
-          <div class="pv-filters">${fB('all','All','الكل',rec)}${fB('worked','Worked','حضور',worked)}${fB('late','Late','تأخير',c.late)}${fB('absent','Absent','غياب',c.absent)}${fB('leaves','Leaves & off','إجازات وراحة',leaves)}</div>
+          <div class="pv-filters">${fB('all','All','الكل',rec)}${fB('worked','Worked','حضور',worked)}${fB('late','Late','تأخير',lateN)}${fB('absent','Absent','غياب',c.absent)}${fB('leaves','Leaves & off','إجازات وراحة',leaves)}</div>
           <div class="pv-bar"><span>${L(keys.length+' days · '+rec+' recorded',keys.length+' يوم · '+rec+' مسجّل')}${clipped?' · '+L('first 400 days shown','أول 400 يوم'):''}</span><button type="button" class="pv-tg${pv.hide?' on':''}" onclick="ATT.previewToggle()">${L('Hide empty days','إخفاء الأيام الفارغة')}</button></div>
         </div>
-        <div class="pv-wrap">${shown?`<table class="pv-tbl"><colgroup><col style="width:21%"><col style="width:25%"><col style="width:18%"><col style="width:18%"><col style="width:18%"></colgroup><thead><tr><th>${L('Date','التاريخ')}</th><th>${L('Status','الحالة')}</th><th>${L('In','الحضور')}</th><th>${L('Out','الانصراف')}</th><th>${L('Hours','الساعات')}</th></tr></thead><tbody>${rows}</tbody>${mins>0?`<tfoot><tr><td colspan="4">${L('Total · '+hdays+' working days','الإجمالي · '+hdays+' يوم عمل')}</td><td class="pv-h">${esc(fmtDur(mins))}</td></tr></tfoot>`:''}</table>${anyWin?`<div class="pv-fn">${L('Late, early-leave and overtime tags show differences of 5 minutes or more.','تظهر وسوم التأخر والانصراف المبكر والأوفر تايم للفروق من 5 دقائق فأكثر.')}</div>`:''}`:`<div class="pv-emptybox">${L('No records match this period and filter','لا توجد سجلات تطابق هذه الفترة والفلتر')}</div>`}</div>
+        <div class="pv-wrap">${shown?`<table class="pv-tbl"><colgroup><col style="width:21%"><col style="width:25%"><col style="width:18%"><col style="width:18%"><col style="width:18%"></colgroup><thead><tr><th>${L('Date','التاريخ')}</th><th>${L('Status','الحالة')}</th><th>${L('In','الحضور')}</th><th>${L('Out','الانصراف')}</th><th>${L('Hours','الساعات')}</th></tr></thead><tbody>${rows}</tbody>${mins>0?`<tfoot><tr><td colspan="4">${L('Total · '+hdays+' working days','الإجمالي · '+hdays+' يوم عمل')}</td><td class="pv-h">${esc(fmtDur(mins))}</td></tr></tfoot>`:''}</table>`:`<div class="pv-emptybox">${L('No records match this period and filter','لا توجد سجلات تطابق هذه الفترة والفلتر')}</div>`}</div>
         <div class="modal-btns pv-noprint"><button type="button" class="mbtn save" onclick="ATT.previewPrint()">${ic('print',15)} ${L('Print / save as PDF','طباعة / حفظ PDF')}</button><button type="button" class="mbtn cancel" onclick="closeModal()">${L('Close','إغلاق')}</button></div>
       </div>`;
     document.getElementById('modalOverlay').style.display='flex';
@@ -51882,7 +51912,7 @@ const ATT=(function(){
     });
   }
   function reset(){ db=null; sel=''; coOpen=null; multi=false; rangeMode=false; rangeStart=''; msel=new Set(); payOpen=null; }
-  return {reset,render,dashCard,dashSummary,quickStrip,checkIn,checkOut,stamp,tUpd,clearT,noteChip,openPage,openDay,pick,saveDay,clearDay,quick,nav,goToday,setScope,setField,pickLogo,removeLogo,clearMonth,toggleCo,openPay,openLeave,leaveSave,jump,togglePayDays,payDraftSet,payTimeChange,paySave,toggleMulti,setRangeMode,clearSel,tapDay,openMulti,saveMulti,clearMulti,previewOpen,previewChip,previewSet,previewToggle,previewFilter,previewPrint};
+  return {reset,render,dashCard,dashSummary,quickStrip,checkIn,checkOut,stamp,tUpd,clearT,noteChip,openPage,openDay,pick,saveDay,clearDay,quick,nav,goToday,setScope,setField,pickLogo,removeLogo,clearMonth,toggleCo,openPay,openLeave,leaveSave,jump,togglePayDays,payDraftSet,payTimeChange,paySave,toggleMulti,setRangeMode,clearSel,tapDay,openMulti,saveMulti,clearMulti,previewOpen,previewChip,previewSet,previewToggle,previewFilter,previewPrint,previewTol};
 })();
 // My Locations photos live in IndexedDB; carry them through the app's existing backup/restore
 // (which only knows localStorage) without ever writing them into localStorage.
@@ -65806,6 +65836,43 @@ function matFeedSetupClear(){
   #printArea .pv .pv-tbl tfoot{display:table-row-group}
   #printArea .pv .pv-tbl thead{display:table-header-group}
   #printArea .pv *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+</style>
+<style id="att-preview-v2-css">
+/* Report header: attendance ring + counters, hours tiles, daily-hours chart, work-window note; deltas under the times. */
+.pv .pv-hero{display:flex;align-items:center;gap:14px;padding:12px 14px;margin:0 0 10px;border:1px solid var(--border);border-radius:16px;background:var(--surface2)}
+.pv .pv-ringbox{display:flex;flex-direction:column;align-items:center;gap:4px;flex:none;width:92px}
+.pv .pv-ring{width:76px;height:76px}
+.pv .pv-ring .tr{fill:none;stroke:var(--surface3);stroke-width:7}
+.pv .pv-ring .pg{fill:none;stroke:var(--green);stroke-width:7;stroke-linecap:round}
+.pv .pv-ring text{font-size:15px;font-weight:800;fill:var(--text);font-variant-numeric:tabular-nums}
+.pv .pv-ringbox small{font-size:calc(10.5px*var(--app-text-scale,1));font-weight:800;color:var(--sub);text-align:center;line-height:1.25}
+.pv .pv-cnts{flex:1;min-width:0;display:flex;flex-direction:column;gap:7px}
+.pv .pv-cn{display:grid;grid-template-columns:10px 1fr auto;column-gap:8px;align-items:center;font-size:calc(13px*var(--app-text-scale,1));font-weight:700;color:var(--text)}
+.pv .pv-cn i{width:9px;height:9px;border-radius:50%;background:var(--c)}
+.pv .pv-cn b{font-size:calc(16px*var(--app-text-scale,1));font-variant-numeric:tabular-nums}
+.pv .pv-cn em{grid-column:2/4;margin-top:-3px;font-style:normal;font-size:calc(10.5px*var(--app-text-scale,1));font-weight:600;color:var(--muted)}
+.pv .pv-hrs3{display:grid;grid-template-columns:repeat(auto-fit,minmax(0,1fr));gap:8px;margin:0 0 10px}
+.pv .pv-hrs3 .pv-k{padding:9px 12px}
+.pv .pv-chartbox{margin:0 0 10px;padding:10px 12px 6px;border:1px solid var(--border);border-radius:14px;background:var(--surface)}
+.pv .pv-cht{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:4px;font-size:calc(11px*var(--app-text-scale,1))}
+.pv .pv-cht b{font-weight:800;color:var(--text)}
+.pv .pv-cht span{font-weight:600;color:var(--muted)}
+.pv .pv-chart{display:block;width:100%;height:auto;overflow:visible}
+.pv .pv-chart rect,.pv .pv-chart circle{fill:var(--c,var(--primary))}
+.pv .pv-chart .tg{stroke:var(--muted);stroke-width:1;stroke-dasharray:3 3}
+.pv .pv-chart text{font-size:8.5px;font-weight:700;fill:var(--muted)}
+.pv .pv-info{margin:0 0 10px;padding:9px 12px;border-radius:12px;background:var(--surface2);font-size:calc(11.5px*var(--app-text-scale,1));font-weight:600;line-height:1.55;color:var(--sub)}
+.pv .pv-info b{color:var(--text);font-weight:800}
+.pv .pv-dl{display:block;margin-top:3px;font-size:calc(10.5px*var(--app-text-scale,1));font-weight:800;line-height:1.2}
+.pv .pv-dl.warn{color:var(--orange)}.pv .pv-dl.soft{color:var(--muted)}.pv .pv-dl.ot{color:var(--blue)}.pv .pv-dl.perm{color:var(--purple)}
+.pv .table-scroll .pv-nr td{padding-top:0}
+.pv .pv-tol{display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin:-4px 0 12px;font-size:calc(11.5px*var(--app-text-scale,1));font-weight:700;color:var(--sub)}
+.pv .pv-tol>span{flex:0 0 100%}
+.pv .pv-tb{height:28px;padding:0 11px;border:1px solid var(--border);border-radius:99px;background:var(--surface);color:var(--sub);font-family:inherit;font-size:inherit;font-weight:700;cursor:pointer}
+.pv .pv-tb.on{background:var(--primary);border-color:var(--primary);color:#fff}
+@media print{
+  #printArea .pv .pv-hero,#printArea .pv .pv-chartbox,#printArea .pv .pv-info{break-inside:avoid}
 }
 </style>
 </body>
